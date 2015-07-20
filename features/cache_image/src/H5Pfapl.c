@@ -57,6 +57,12 @@
 
 /* ========= File Access properties ============ */
 /* Definitions for the initial metadata cache resize configuration */
+#define H5F_ACS_META_CACHE_INIT_IMAGE_CONFIG_SIZE sizeof(H5AC_cache_image_config_t)
+#define H5F_ACS_META_CACHE_INIT_IMAGE_CONFIG_DEF  H5AC__DEFAULT_CACHE_IMAGE_CONFIG
+#define H5F_ACS_META_CACHE_INIT_IMAGE_CONFIG_ENC  H5P__facc_cache_image_config_enc
+#define H5F_ACS_META_CACHE_INIT_IMAGE_CONFIG_DEC  H5P__facc_cache_image_config_dec
+#define H5F_ACS_META_CACHE_INIT_IMAGE_CONFIG_CMP  H5P__facc_cache_image_config_cmp
+/* Definitions for the initial metadata cache resize configuration */
 #define H5F_ACS_META_CACHE_INIT_CONFIG_SIZE	sizeof(H5AC_cache_config_t)
 #define H5F_ACS_META_CACHE_INIT_CONFIG_DEF	H5AC__DEFAULT_CACHE_CONFIG
 #define H5F_ACS_META_CACHE_INIT_CONFIG_ENC	H5P__facc_cache_config_enc
@@ -198,6 +204,11 @@ static herr_t H5P_file_image_info_close(const char *name, size_t size, void *val
 /* encode & decode callbacks */
 static herr_t H5P__facc_cache_config_enc(const void *value, void **_pp, size_t *size);
 static herr_t H5P__facc_cache_config_dec(const void **_pp, void *value);
+#if 1 /* new code */ /* JRM */
+static int H5P__facc_cache_image_config_cmp(const void *_config1, const void *_config2, size_t H5_ATTR_UNUSED size);
+static herr_t H5P__facc_cache_image_config_enc(const void *value, void **_pp, size_t *size);
+static herr_t H5P__facc_cache_image_config_dec(const void **_pp, void *_value);
+#endif /* new code */ /* JRM */
 static int H5P__facc_cache_config_cmp(const void *value1, const void *value2, size_t size);
 static herr_t H5P__facc_fclose_degree_enc(const void *value, void **_pp, size_t *size);
 static herr_t H5P__facc_fclose_degree_dec(const void **pp, void *value);
@@ -239,6 +250,7 @@ const H5P_libclass_t H5P_CLS_FACC[1] = {{
 /*******************/
 
 /* Property value defaults */
+static const H5AC_cache_image_config_t H5F_def_mdc_initCacheImageCfg_g = H5F_ACS_META_CACHE_INIT_IMAGE_CONFIG_DEF;  /* Default metadata cache image settings */
 static const H5AC_cache_config_t H5F_def_mdc_initCacheCfg_g = H5F_ACS_META_CACHE_INIT_CONFIG_DEF;  /* Default metadata cache settings */
 static const size_t H5F_def_rdcc_nslots_g = H5F_ACS_DATA_CACHE_NUM_SLOTS_DEF;      /* Default raw data chunk cache # of slots */
 static const size_t H5F_def_rdcc_nbytes_g = H5F_ACS_DATA_CACHE_BYTE_SIZE_DEF;      /* Default raw data chunk cache # of bytes */
@@ -281,6 +293,16 @@ H5P_facc_reg_prop(H5P_genclass_t *pclass)
     herr_t ret_value = SUCCEED;         /* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT
+
+#if 1 /* new code */ /* JRM */
+
+    /* Register the initial metadata cache resize configuration */
+    if(H5P_register_real(pclass, H5F_ACS_META_CACHE_INIT_IMAGE_CONFIG_NAME, H5F_ACS_META_CACHE_INIT_IMAGE_CONFIG_SIZE, &H5F_def_mdc_initCacheImageCfg_g, 
+            NULL, NULL, NULL, H5F_ACS_META_CACHE_INIT_IMAGE_CONFIG_ENC, H5F_ACS_META_CACHE_INIT_IMAGE_CONFIG_DEC, 
+            NULL, NULL, H5F_ACS_META_CACHE_INIT_IMAGE_CONFIG_CMP, NULL) < 0)
+        HGOTO_ERROR(H5E_PLIST, H5E_CANTINSERT, FAIL, "can't insert property into class")
+
+#endif /* new code */ /* JRM */
 
     /* Register the initial metadata cache resize configuration */
     if(H5P_register_real(pclass, H5F_ACS_META_CACHE_INIT_CONFIG_NAME, H5F_ACS_META_CACHE_INIT_CONFIG_SIZE, &H5F_def_mdc_initCacheCfg_g, 
@@ -1198,6 +1220,103 @@ H5Pget_cache(hid_t plist_id, int *mdc_nelmts,
 done:
     FUNC_LEAVE_API(ret_value)
 } /* end H5Pget_cache() */
+
+
+#if 1 /* new code */ /* JRM */
+/*-------------------------------------------------------------------------
+ * Function:	H5Pset_mdc_image_config
+ *
+ * Purpose:	Set the initial metadata cache image configuration in the
+ *		target FAPL.
+ *
+ * Return:	Non-negative on success/Negative on failure
+ *
+ * Programmer:	J. Mainzer
+ *              Thursday, June 25, 2015
+ *
+ *-------------------------------------------------------------------------
+ */
+herr_t
+H5Pset_mdc_image_config(hid_t plist_id, H5AC_cache_image_config_t *config_ptr)
+{
+    H5P_genplist_t *plist;      /* Property list pointer */
+    herr_t ret_value = SUCCEED;   /* return value */
+
+    FUNC_ENTER_API(FAIL)
+    H5TRACE2("e", "i*x", plist_id, config_ptr);
+
+    /* Get the plist structure */
+    if(NULL == (plist = H5P_object_verify(plist_id,H5P_FILE_ACCESS)))
+        HGOTO_ERROR(H5E_ATOM, H5E_BADATOM, FAIL, "can't find object for ID")
+
+    /* validate the new configuration */
+    if(H5AC_validate_cache_image_config(config_ptr) < 0)
+        HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "invalid metadata cache image configuration")
+
+    /* set the modified metadata cache image config */
+
+    /* If we ever support multiple versions of H5AC_cache_image_config_t, we
+     * will have to test the version and do translation here.
+     */
+
+    if(H5P_set(plist, H5F_ACS_META_CACHE_INIT_IMAGE_CONFIG_NAME, config_ptr) < 0)
+        HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "can't set metadata cache image initial config")
+
+done:
+    FUNC_LEAVE_API(ret_value)
+} /* H5Pset_mdc_image_config() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:	H5Pget_mdc_image_config
+ *
+ * Purpose:	Retrieve the metadata cache initial image configuration
+ *		from the target FAPL.
+ *
+ *		Observe that the function will fail if config_ptr is
+ *		NULL, or if config_ptr->version specifies an unknown
+ *		version of H5AC_cache_image_config_t.
+ *
+ * Return:	Non-negative on success/Negative on failure
+ *
+ * Programmer:	J. Mainzer
+ *              Friday, June 26, 2015
+ *
+ *-------------------------------------------------------------------------
+ */
+herr_t
+H5Pget_mdc_image_config(hid_t plist_id, H5AC_cache_image_config_t *config_ptr)
+{
+    H5P_genplist_t *plist;      /* Property list pointer */
+    herr_t ret_value = SUCCEED;   /* return value */
+
+    FUNC_ENTER_API(FAIL)
+    H5TRACE2("e", "i*x", plist_id, config_ptr);
+
+    /* Get the plist structure */
+    if(NULL == (plist = H5P_object_verify(plist_id,H5P_FILE_ACCESS)))
+        HGOTO_ERROR(H5E_ATOM, H5E_BADATOM, FAIL, "can't find object for ID")
+
+    /* validate the config_ptr */
+    if(config_ptr == NULL)
+        HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "NULL config_ptr on entry.")
+
+    if(config_ptr->version != H5AC__CURR_CACHE_IMAGE_CONFIG_VERSION)
+        HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "Unknown image config version.")
+
+    /* If we ever support multiple versions of H5AC_cache_config_t, we
+     * will have to get the cannonical version here, and then translate
+     * to the version of the structure supplied.
+     */
+
+    /* Get the current initial metadata cache resize configuration */
+    if(H5P_get(plist, H5F_ACS_META_CACHE_INIT_IMAGE_CONFIG_NAME, config_ptr) < 0)
+        HGOTO_ERROR(H5E_PLIST, H5E_CANTGET,FAIL, "can't get metadata cache initial image config")
+
+done:
+    FUNC_LEAVE_API(ret_value)
+} /* H5Pget_mdc_image_config() */
+#endif /* new code */ /* JRM */
 
 
 /*-------------------------------------------------------------------------
@@ -2457,6 +2576,160 @@ H5P_file_image_info_close(const char H5_ATTR_UNUSED *name, size_t H5_ATTR_UNUSED
 done:
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5P_file_image_info_close() */
+
+
+#if 1 /* new code */ /* JRM */
+/*-------------------------------------------------------------------------
+ * Function: H5P__facc_cache_image_config_cmp
+ *
+ * Purpose: Compare two cache image configurations.
+ *
+ * Return: positive if VALUE1 is greater than VALUE2, negative if VALUE2 is
+ *		greater than VALUE1 and zero if VALUE1 and VALUE2 are equal.
+ *
+ * Programmer:     John Mainzer
+ *                 June 26, 2015 24, 2012
+ *
+ *-------------------------------------------------------------------------
+ */
+static int
+H5P__facc_cache_image_config_cmp(const void *_config1, const void *_config2, size_t H5_ATTR_UNUSED size)
+{
+    const H5AC_cache_image_config_t *config1 = (const H5AC_cache_image_config_t *)_config1; /* Create local aliases for values */
+    const H5AC_cache_image_config_t *config2 = (const H5AC_cache_image_config_t *)_config2; /* Create local aliases for values */
+    int ret_value = 0;               /* Return value */
+
+    FUNC_ENTER_STATIC_NOERR
+
+    /* Check for a property being set */
+    if(config1 == NULL && config2 != NULL) HGOTO_DONE(-1);
+    if(config1 != NULL && config2 == NULL) HGOTO_DONE(1);
+
+    if(config1->version < config2->version) HGOTO_DONE(-1);
+    if(config1->version > config2->version) HGOTO_DONE(1);
+
+    if(config1->generate_image < config2->generate_image) HGOTO_DONE(-1);
+    if(config1->generate_image > config2->generate_image) HGOTO_DONE(1);
+
+    if(config1->max_image_size < config2->max_image_size) HGOTO_DONE(-1);
+    if(config1->max_image_size > config2->max_image_size) HGOTO_DONE(1);
+
+done:
+    FUNC_LEAVE_NOAPI(ret_value)
+} /* end H5P__facc_cache_image_config_cmp() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:       H5P__facc_cache_image_config_enc
+ *
+ * Purpose:        Callback routine which is called whenever the default
+ *                 cache image config property in the file creation 
+ *		   property list is encoded.
+ *
+ * Return:	   Success:	Non-negative
+ *		   Failure:	Negative
+ *
+ * Programmer:     John Mainzer
+ *                 June 26, 2015 24, 2012
+ *
+ *-------------------------------------------------------------------------
+ */
+static herr_t
+H5P__facc_cache_image_config_enc(const void *value, void **_pp, size_t *size)
+{
+    const H5AC_cache_image_config_t *config = (const H5AC_cache_image_config_t *)value; /* Create local aliases for value */
+    uint8_t **pp = (uint8_t **)_pp;
+    unsigned enc_size;      /* Size of encoded property */
+    uint64_t enc_value;         /* Property to encode */
+
+    FUNC_ENTER_STATIC_NOERR
+
+    /* Sanity check */
+    HDassert(value);
+    HDcompile_assert(sizeof(size_t) <= sizeof(uint64_t));
+
+    if(NULL != *pp) {
+        /* Encode type sizes (as a safety check) */
+        *(*pp)++ = (uint8_t)sizeof(unsigned);
+
+        /* int */
+        INT32ENCODE(*pp, (int32_t)config->version);
+
+        H5_ENCODE_UNSIGNED(*pp, config->generate_image);
+
+        enc_value = (uint64_t)config->max_image_size;
+        enc_size = H5VM_limit_enc_size(enc_value);
+        HDassert(enc_size < 256);
+        *(*pp)++ = (uint8_t)enc_size;
+        UINT64ENCODE_VAR(*pp, enc_value, enc_size);
+    } /* end if */
+
+    /* Compute encoded size of variably-encoded values */
+    enc_value = (uint64_t)config->max_image_size;
+    *size += 1 + H5VM_limit_enc_size(enc_value);
+
+    /* Compute encoded size of fixed-size values */
+    *size += (1 + sizeof(unsigned) + sizeof(int32_t));
+
+    FUNC_LEAVE_NOAPI(SUCCEED)
+} /* end H5P__facc_cache_image_config_enc() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:       H5P__facc_cache_image_config_dec
+ *
+ * Purpose:        Callback routine which is called whenever the default
+ *                 cache image config property in the file creation property 
+ *		   list is  decoded.
+ *
+ * Return:	   Success:	Non-negative
+ *		   Failure:	Negative
+ *
+ * Programmer:     John Mainzer
+ *                 June 26, 2015 24, 2012
+ *
+ *-------------------------------------------------------------------------
+ */
+static herr_t
+H5P__facc_cache_image_config_dec(const void **_pp, void *_value)
+{
+    H5AC_cache_image_config_t *config = (H5AC_cache_image_config_t *)_value;
+    const uint8_t **pp = (const uint8_t **)_pp;
+    unsigned enc_size;
+    uint64_t enc_value;
+    herr_t ret_value = SUCCEED;         /* Return value */
+
+    FUNC_ENTER_STATIC
+
+    /* Sanity checks */
+    HDassert(pp);
+    HDassert(*pp);
+    HDassert(config);
+    HDcompile_assert(sizeof(size_t) <= sizeof(uint64_t));
+
+    /* Set property to default value */
+    HDmemcpy(config, &H5F_def_mdc_initCacheImageCfg_g, sizeof(H5AC_cache_image_config_t));
+
+    /* Decode type sizes */
+    enc_size = *(*pp)++;
+    if(enc_size != sizeof(unsigned))
+        HGOTO_ERROR(H5E_PLIST, H5E_BADVALUE, FAIL, "unsigned value can't be decoded")
+
+    /* int */
+    INT32DECODE(*pp, config->version);
+
+    H5_DECODE_UNSIGNED(*pp, config->generate_image);
+
+    enc_size = *(*pp)++;
+    HDassert(enc_size < 256);
+    UINT64DECODE_VAR(*pp, enc_value, enc_size);
+    config->max_image_size = (size_t)enc_value;
+
+done:
+    FUNC_LEAVE_NOAPI(ret_value)
+} /* end H5P__facc_cache_image_config_dec() */
+
+#endif /* new code */ /* JRM */
 
 
 /*-------------------------------------------------------------------------

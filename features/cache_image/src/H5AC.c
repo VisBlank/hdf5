@@ -303,12 +303,15 @@ H5AC_term_interface(void)
  *-------------------------------------------------------------------------
  */
 herr_t
-H5AC_create(const H5F_t *f, H5AC_cache_config_t *config_ptr)
+H5AC_create(const H5F_t *f, H5AC_cache_config_t *config_ptr, H5AC_cache_image_config_t * image_config_ptr)
 {
 #ifdef H5_HAVE_PARALLEL
     char 	 prefix[H5C__PREFIX_LEN] = "";
     H5AC_aux_t * aux_ptr = NULL;
 #endif /* H5_HAVE_PARALLEL */
+#if 1 /* new code */ /* JRM */
+    struct H5C_cache_image_ctl_t int_ci_config = H5C__DEFAULT_CACHE_IMAGE_CTL;
+#endif /* new code */ /* JRM */
     herr_t ret_value = SUCCEED;      /* Return value */
 
     FUNC_ENTER_NOAPI(FAIL)
@@ -317,11 +320,22 @@ H5AC_create(const H5F_t *f, H5AC_cache_config_t *config_ptr)
     HDassert(f);
     HDassert(NULL == f->shared->cache);
     HDassert(config_ptr != NULL) ;
+#if 1 /* new code */ /* JRM */
+    HDassert(image_config_ptr != NULL) ;
+    HDassert(image_config_ptr->version == \
+             H5AC__CURR_CACHE_IMAGE_CONFIG_VERSION);
+#endif /* new code */ /* JRM */
     HDcompile_assert(NELMTS(H5AC_entry_type_names) == H5AC_NTYPES);
     HDcompile_assert(H5C__MAX_NUM_TYPE_IDS == H5AC_NTYPES);
 
     if(H5AC_validate_config(config_ptr) < 0)
         HGOTO_ERROR(H5E_CACHE, H5E_BADVALUE, FAIL, "Bad cache configuration")
+
+#if 1 /* new code */ /* JRM */
+    if(H5AC_validate_cache_image_config(image_config_ptr) < 0)
+        HGOTO_ERROR(H5E_CACHE, H5E_BADVALUE, FAIL, \
+                    "Bad cache image configuration")
+#endif /* new code */ /* JRM */
 
 #ifdef H5_HAVE_PARALLEL
     if(H5F_HAS_FEATURE(f, H5FD_FEAT_HAS_MPI)) {
@@ -425,6 +439,21 @@ H5AC_create(const H5F_t *f, H5AC_cache_config_t *config_ptr)
 
     if(H5AC_set_cache_auto_resize_config(f->shared->cache, config_ptr) < 0)
         HGOTO_ERROR(H5E_CACHE, H5E_CANTALLOC, FAIL, "auto resize configuration failed")
+
+#if 1 /* new code */ /* JRM */
+    /* don't need to get the current H5C image config here since the
+     * cache has just been created, and thus f->shared->cache->image_ctl 
+     * must still set to its initial value (H5C__DEFAULT_CACHE_IMAGE_CTL).  
+     * Note that this not true as soon as control returns to the application
+     * program, as some test code modifies f->shared->cache->image_ctl.
+     */
+    int_ci_config.version        = image_config_ptr->version;
+    int_ci_config.generate_image = image_config_ptr->generate_image;
+    int_ci_config.max_image_size = image_config_ptr->max_image_size;
+
+    if(H5C_set_cache_image_config(f->shared->cache, &int_ci_config) < 0)
+        HGOTO_ERROR(H5E_CACHE, H5E_CANTALLOC, FAIL, "auto resize configuration failed")
+#endif /* new code */ /* JRM */
 
 done:
 #ifdef H5_HAVE_PARALLEL
@@ -798,6 +827,44 @@ done:
 } /* H5AC_insert_entry() */
 
 
+#if 1 /* new code */ /* JRM */
+/*-------------------------------------------------------------------------
+ * Function:    H5AC_load_cache_image_on_next_protect
+ *
+ * Purpose:     Load the cache image block at the specified location,
+ *              decode it, and insert its contents into the metadata
+ *              cache.
+ *
+ * Return:      Non-negative on success/Negative on failure
+ *
+ * Programmer:  John Mainzer
+ *              7/6/15
+ *
+ *-------------------------------------------------------------------------
+ */
+herr_t
+H5AC_load_cache_image_on_next_protect(H5F_t * f, haddr_t addr, size_t len, hbool_t rw)
+{
+    herr_t              ret_value = SUCCEED;    /* Return value */
+
+    FUNC_ENTER_NOAPI(FAIL)
+
+    HDassert( f );
+    HDassert( f->shared );
+    HDassert( f->shared->cache );
+
+    if(H5C_load_cache_image_on_next_protect(f, addr, len, rw) < 0)
+        HGOTO_ERROR(H5E_CACHE, H5E_CANTLOAD, FAIL, \
+                    "call to H5C_load_cache_image_on_next_protect failed");
+
+done:
+
+    FUNC_LEAVE_NOAPI(ret_value)
+
+} /* H5AC_load_cache_image_on_next_protect() */
+#endif /* new code */ /* JRM */
+
+
 /*-------------------------------------------------------------------------
  * Function:    H5AC_mark_entry_dirty
  *
@@ -982,6 +1049,50 @@ done:
 
     FUNC_LEAVE_NOAPI(ret_value)
 } /* H5AC_pin_protected_entry() */
+
+
+#if 1 /* new code */ /* JRM */
+/*-------------------------------------------------------------------------
+ *
+ * Function:    H5AC_prep_for_file_close
+ *
+ * Purpose:     This function should be called just prior to the cache
+ *              flushes at file close.  
+ *
+ *              The objective of the call is to allow the metadata cache
+ *              to do any preparatory work prior to generation of a
+ *              cache image.
+ *
+ * Return:      Non-negative on success/Negative on failure
+ *
+ * Programmer:  John Mainzer
+ *              7/3/15
+ *
+ *-------------------------------------------------------------------------
+ */
+herr_t
+H5AC_prep_for_file_close(H5F_t *f, hid_t dxpl_id)
+{
+    herr_t                      ret_value = SUCCEED;      /* Return value */
+
+    FUNC_ENTER_NOAPI(FAIL)
+
+    /* sanity checks */
+    HDassert(f);
+    HDassert(f->shared);
+    HDassert(f->shared->cache);
+
+    if(H5C_prep_for_file_close(f, dxpl_id) < 0)
+        HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, \
+                    "cache prep for file close failed")
+
+done:
+
+    FUNC_LEAVE_NOAPI(ret_value)
+
+} /* H5C_prep_for_file_close() */
+
+#endif /* new code */ /* JRM */
 
 
 /*-------------------------------------------------------------------------
@@ -1868,6 +1979,68 @@ H5AC_validate_config(H5AC_cache_config_t *config_ptr)
 done:
     FUNC_LEAVE_NOAPI(ret_value)
 } /* H5AC_validate_config() */
+
+
+#if 1 /* new code */ /* JRM */
+/*-------------------------------------------------------------------------
+ * Function:    H5AC_validate_cache_image_config()
+ *
+ * Purpose:     Run a sanity check on the contents of the supplied
+ *		instance of H5AC_cache_image_config_t.
+ *
+ *              Do nothing and return SUCCEED if no errors are detected,
+ *              and flag an error and return FAIL otherwise.
+ *
+ *		At present, this function operates by packing the data
+ *		from the instance of H5AC_cache_image_config_t into an 
+ *		instance of H5C_cache_image_ctl_t, and then calling
+ *		H5C_validate_cache_image_config().  If and when 
+ *              H5AC_cache_image_config_t and H5C_cache_image_ctl_t 
+ *		diverge, we may have to change this.
+ *
+ * Return:      Non-negative on success/Negative on failure
+ *
+ * Programmer:  John Mainzer
+ *              6/25/15
+ *
+ *-------------------------------------------------------------------------
+ */
+herr_t
+H5AC_validate_cache_image_config(H5AC_cache_image_config_t *config_ptr)
+{
+    H5C_cache_image_ctl_t internal_config = H5C__DEFAULT_CACHE_IMAGE_CTL;
+    herr_t              ret_value = SUCCEED;    /* Return value */
+
+    FUNC_ENTER_NOAPI(FAIL)
+
+    /* Check args */
+    if(config_ptr == NULL)
+        HGOTO_ERROR(H5E_CACHE, H5E_BADVALUE, FAIL, "NULL config_ptr on entry.")
+
+    if(config_ptr->version != H5AC__CURR_CACHE_IMAGE_CONFIG_VERSION)
+        HGOTO_ERROR(H5E_CACHE, H5E_BADVALUE, FAIL, \
+                    "Unknown image config version.")
+
+    /* don't need to get the current H5C image config here since the
+     * default values of fields not in the H5AC config will always be 
+     * valid.
+     */
+
+    internal_config.version        = config_ptr->version;
+    internal_config.generate_image = config_ptr->generate_image;
+    internal_config.max_image_size = config_ptr->max_image_size;
+
+    if(H5C_validate_cache_image_config(&internal_config) < 0)
+        HGOTO_ERROR(H5E_CACHE, H5E_BADVALUE, FAIL, \
+                    "error(s) in new cache image config.")
+
+done:
+
+    FUNC_LEAVE_NOAPI(ret_value)
+
+} /* H5AC_validate_cache_image_config() */
+
+#endif /* new code */ /* JRM */
 
 
 /*-------------------------------------------------------------------------

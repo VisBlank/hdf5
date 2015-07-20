@@ -3320,6 +3320,37 @@ if ( ( (cache_ptr)->index_size !=                                           \
  *	this field will be reset every automatic resize epoch.
  *
  *
+ * Metadata cache image management related fields.
+ *
+ * image_ctl:	Instance of H5C_cache_image_ctl_t containing configuration
+ * 		data for generation of a cache image on file close.
+ *
+ * close_warning_received: Boolean flag indicating that a file closing 
+ *		warning has been received.
+ *
+ * load_image:	Boolean flag indicating that the metadata cache image 
+ *		superblock extension message exists and should be 
+ *		read, and the image block read and decoded on the next
+ *		call to H5C_protect().  
+ *
+ * delete_image: Boolean flag indicating whether the metadata cache image
+ *		superblock message should be deleted and the cache image
+ *		file space freed after they have been read and decoded.
+ *
+ *		This flag should be set to TRUE iff the file is opened 
+ *		R/W and there is a cache image to be read.
+ *
+ * image_addr:  haddr_t containing the base address of the on disk 
+ *		metadata cache image, or HADDR_UNDEF if that value is 
+ *		undefined.  Note that this field is used both in the 
+ *		construction and write, and the read and decode of 
+ *		metadata cache image blocks.
+ *
+ * image_len:	size_t containing the size of the on disk metadata cache 
+ *		image, or zero if that value is undefined.  Note that this 
+ *		field is used both in the construction and write, and the 
+ *		read and decode of metadata cache image blocks.
+ *
  * Statistics collection fields:
  *
  * When enabled, these fields are used to collect statistics as described
@@ -3678,6 +3709,14 @@ struct H5C_t {
     /* Fields for cache hit rate collection */
     int64_t			cache_hits;
     int64_t			cache_accesses;
+
+    /* fields supporting generation of a cache image on file close */
+    H5C_cache_image_ctl_t	image_ctl;
+    hbool_t			close_warning_received;
+    hbool_t			load_image;
+    hbool_t			delete_image;
+    haddr_t 			image_addr;
+    size_t			image_len;
 
 #if H5C_COLLECT_CACHE_STATS
     /* stats fields */

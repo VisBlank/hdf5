@@ -85,6 +85,13 @@ main(void)
         0.2,
         (256 * 2048),
         H5AC_METADATA_WRITE_STRATEGY__PROCESS_0_ONLY};
+#if 1 /* new code */ /* JRM */
+    H5AC_cache_image_config_t my_cache_image_config = {
+        H5AC__CURR_CACHE_IMAGE_CONFIG_VERSION,
+        TRUE,
+        0};
+#endif /* new code */ /* JRM */
+
 
     /* check endianess */
     {
@@ -327,6 +334,11 @@ main(void)
         assert(ret > 0);
     if((ret = H5Pset_mdc_config(fapl1, &my_cache_config)) < 0)
         assert(ret > 0);
+#if 1 /* new code */ /* JRM */
+    if((ret = H5Pset_mdc_image_config(fapl1, &my_cache_image_config)) < 0)
+        assert(ret > 0);
+#endif /* JRM */
+
     if((ret = H5Pset_core_write_tracking(fapl1, TRUE, (size_t)(1024 * 1024))) < 0)
         assert(ret > 0);
 

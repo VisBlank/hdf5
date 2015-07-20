@@ -276,7 +276,12 @@ H5_DLLVAR hid_t H5AC_ind_dxpl_id;
 }
 #endif /* H5_HAVE_PARALLEL */
 
-
+#define H5AC__DEFAULT_CACHE_IMAGE_CONFIG                                    \
+{                                                                           \
+   /* int32_t    version        = */ H5AC__CURR_CACHE_IMAGE_CONFIG_VERSION, \
+   /* hbool_t    generate_image = */ FALSE,                                 \
+   /* size_t     max_image_size = */ 0                                      \
+}
 /*
  * Library prototypes.
  */
@@ -318,12 +323,14 @@ H5_DLLVAR hid_t H5AC_ind_dxpl_id;
 /* external function declarations: */
 
 H5_DLL herr_t H5AC_init(void);
-H5_DLL herr_t H5AC_create(const H5F_t *f, H5AC_cache_config_t *config_ptr);
+H5_DLL herr_t H5AC_create(const H5F_t *f, H5AC_cache_config_t *config_ptr,
+    H5AC_cache_image_config_t * image_config_ptr);
 H5_DLL herr_t H5AC_get_entry_status(const H5F_t *f, haddr_t addr,
     unsigned *status_ptr);
 H5_DLL herr_t H5AC_insert_entry(H5F_t *f, hid_t dxpl_id, const H5AC_class_t *type,
     haddr_t addr, void *thing, unsigned int flags);
 H5_DLL herr_t H5AC_pin_protected_entry(void *thing);
+H5_DLL herr_t H5AC_prep_for_file_close(H5F_t *f, hid_t dxpl_id);
 H5_DLL herr_t H5AC_create_flush_dependency(void *parent_thing, void *child_thing);
 H5_DLL void * H5AC_protect(H5F_t *f, hid_t dxpl_id, const H5AC_class_t *type,
     haddr_t addr, void *udata, unsigned flags);
@@ -333,6 +340,8 @@ H5_DLL herr_t H5AC_destroy_flush_dependency(void *parent_thing, void *child_thin
 H5_DLL herr_t H5AC_unprotect(H5F_t *f, hid_t dxpl_id, const H5AC_class_t *type,
     haddr_t addr, void *thing, unsigned flags);
 H5_DLL herr_t H5AC_flush(H5F_t *f, hid_t dxpl_id);
+H5_DLL herr_t H5AC_load_cache_image_on_next_protect(H5F_t *f, haddr_t addr, 
+    size_t len, hbool_t rw);
 H5_DLL herr_t H5AC_mark_entry_dirty(void *thing);
 H5_DLL herr_t H5AC_move_entry(H5F_t *f, const H5AC_class_t *type,
     haddr_t old_addr, haddr_t new_addr);
@@ -347,6 +356,8 @@ H5_DLL herr_t H5AC_get_cache_hit_rate(H5AC_t *cache_ptr, double *hit_rate_ptr);
 H5_DLL herr_t H5AC_reset_cache_hit_rate_stats(H5AC_t *cache_ptr);
 H5_DLL herr_t H5AC_set_cache_auto_resize_config(H5AC_t *cache_ptr,
     H5AC_cache_config_t *config_ptr);
+H5_DLL herr_t H5AC_validate_cache_image_config(
+    H5AC_cache_image_config_t *config_ptr);
 H5_DLL herr_t H5AC_validate_config(H5AC_cache_config_t *config_ptr);
 H5_DLL herr_t H5AC_close_trace_file(H5AC_t *cache_ptr);
 H5_DLL herr_t H5AC_open_trace_file(H5AC_t *cache_ptr, const char *trace_file_name);

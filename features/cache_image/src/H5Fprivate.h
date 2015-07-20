@@ -432,6 +432,10 @@
 
 
 /* ========= File Access properties ============ */
+#if 1 /* new code */ /* JRM */
+#define H5F_ACS_META_CACHE_INIT_IMAGE_CONFIG_NAME \
+						"mdc_initCacheImageCfg" /* Initial metadata cache image creation configuration */
+#endif /* new code */ /* JRM */
 #define H5F_ACS_META_CACHE_INIT_CONFIG_NAME	"mdc_initCacheCfg" /* Initial metadata cache resize configuration */
 #define H5F_ACS_DATA_CACHE_NUM_SLOTS_NAME       "rdcc_nslots"   /* Size of raw data chunk cache(slots) */
 #define H5F_ACS_DATA_CACHE_BYTE_SIZE_NAME       "rdcc_nbytes"   /* Size of raw data chunk cache(bytes) */

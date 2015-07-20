@@ -502,6 +502,41 @@ typedef struct H5AC_cache_config_t
 } H5AC_cache_config_t;
 
 
+/****************************************************************************
+ *
+ * structure H5AC_cache_image_config_t
+ *
+ * H5AC_cache_image_ctl_t is a public structure intended for use in public 
+ * APIs.  At least in its initial incarnation, it is a copy of struct
+ * H5C_cache_image_ctl_t.
+ *
+ * The fields of the structure are discussed individually below:
+ *
+ * version: Integer field containing the version number of this version
+ *      of the H5C_image_ctl_t structure.  Any instance of
+ *      H5C_image_ctl_t passed to the cache must have a known
+ *      version number, or an error will be flagged.
+ *
+ * generate_image:  Boolean flag indicating whether a cache image should
+ *      be created on file close.
+ *
+ * max_image_size: size_t containing the maximum size of the cache image,
+ *      or 0 if no limit on cache image size.
+ *
+ ****************************************************************************/
+
+#define H5AC__CURR_CACHE_IMAGE_CONFIG_VERSION 	1
+
+typedef struct H5AC_cache_image_config_t {
+
+    int32_t                             version;
+
+    hbool_t                             generate_image;
+
+    size_t                              max_image_size;
+
+} H5AC_cache_image_config_t;
+
 #ifdef __cplusplus
 }
 #endif

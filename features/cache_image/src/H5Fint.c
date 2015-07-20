@@ -172,6 +172,10 @@ H5F_get_access_plist(H5F_t *f, hbool_t app_ref)
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a property list")
 
     /* Copy properties of the file access property list */
+#if 1 /* new code */ /* JRM */
+    if(H5P_set(new_plist, H5F_ACS_META_CACHE_INIT_IMAGE_CONFIG_NAME, &(f->shared->mdc_initCacheImageCfg)) < 0)
+        HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "can't set initial metadata cache resize config.")
+#endif /* new code */ /* JRM */
     if(H5P_set(new_plist, H5F_ACS_META_CACHE_INIT_CONFIG_NAME, &(f->shared->mdc_initCacheCfg)) < 0)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "can't set initial metadata cache resize config.")
     if(H5P_set(new_plist, H5F_ACS_DATA_CACHE_NUM_SLOTS_NAME, &(f->shared->rdcc_nslots)) < 0)
@@ -635,6 +639,10 @@ H5F_new(H5F_file_t *shared, unsigned flags, hid_t fcpl_id, hid_t fapl_id, H5FD_t
         /* Get the FAPL values to cache */
         if(NULL == (plist = (H5P_genplist_t *)H5I_object(fapl_id)))
             HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, NULL, "not file access property list")
+#if 1 /* new code */ /* JRM */
+        if(H5P_get(plist, H5F_ACS_META_CACHE_INIT_IMAGE_CONFIG_NAME, &(f->shared->mdc_initCacheImageCfg)) < 0)
+            HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, NULL, "can't get initial metadata cache resize config")
+#endif /* new code */ /* JRM */
         if(H5P_get(plist, H5F_ACS_META_CACHE_INIT_CONFIG_NAME, &(f->shared->mdc_initCacheCfg)) < 0)
             HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, NULL, "can't get initial metadata cache resize config")
         if(H5P_get(plist, H5F_ACS_DATA_CACHE_NUM_SLOTS_NAME, &(f->shared->rdcc_nslots)) < 0)
@@ -692,7 +700,11 @@ H5F_new(H5F_file_t *shared, unsigned flags, hid_t fcpl_id, hid_t fapl_id, H5FD_t
 	 * The cache might be created with a different number of elements and
 	 * the access property list should be updated to reflect that.
 	 */
+#if 0 /* old code */ /* JRM */
 	if(H5AC_create(f, &(f->shared->mdc_initCacheCfg)) < 0)
+#else /* new code */ /* JRM */
+	if(H5AC_create(f, &(f->shared->mdc_initCacheCfg), &(f->shared->mdc_initCacheImageCfg)) < 0)
+#endif /* new code */ /* JRM */
 	    HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, NULL, "unable to create metadata cache")
 
         /* Create the file's "open object" information */
@@ -762,6 +774,16 @@ H5F_dest(H5F_t *f, hid_t dxpl_id, hbool_t flush)
 
     if(1 == f->shared->nrefs) {
         H5F_io_info_t fio_info;             /* I/O info for operation */
+
+#if 1 /* new code */ /* JRM */
+        /* notify the metadata cache that the file is about to be closed.
+         * This allows the cache to set up for creating a metadata cache 
+         * image if this has been requested.
+         */
+        if(H5AC_prep_for_file_close(f, dxpl_id) < 0)
+            /* Push error, but keep going*/
+            HDONE_ERROR(H5E_CACHE, H5E_CANTFLUSH, FAIL, "metadata cache prep for close failed")
+#endif /* new code */ /* JRM */
 
         /* Flush at this point since the file will be closed.
          * Only try to flush the file if it was opened with write access, and if

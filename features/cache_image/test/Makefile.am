@@ -40,8 +40,8 @@ check_SCRIPTS = $(TEST_SCRIPT)
 # These tests (fheap, btree2) are under development and are not used by
 # the library yet. Move them to the end so that their failure do not block
 # other current library code tests.
-TEST_PROG= testhdf5 lheap ohdr stab gheap cache cache_api cache_tagging \
-           pool accum hyperslab istore bittests dt_arith \
+TEST_PROG= testhdf5 lheap ohdr stab gheap cache cache_api cache_image \
+           cache_tagging pool accum hyperslab istore bittests dt_arith \
            dtypes dsets cmpd_dset filter_fail extend external efc objcopy links unlink \
            big mtime fillval mount flush1 flush2 app_ref enum \
            set_extent ttsafe enc_dec_plist enc_dec_plist_with_endianess\

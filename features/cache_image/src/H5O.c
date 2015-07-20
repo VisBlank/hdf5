@@ -129,7 +129,12 @@ const H5O_msg_class_t *const H5O_msg_class_g[] = {
     H5O_MSG_AINFO,		/*0x0015 Attribute information		*/
     H5O_MSG_REFCOUNT,		/*0x0016 Object's ref. count		*/
     H5O_MSG_FSINFO,		/*0x0017 Free-space manager info message */
+#if 0 /* original code */ /* JRM */
     H5O_MSG_UNKNOWN,		/*0x0018 Placeholder for unknown message */
+#else /* modeified code */ /* JRM */
+    H5O_MSG_MDCI,               /*0x0018 Metadata Cache Image Message */
+    H5O_MSG_UNKNOWN,		/*0x0019 Placeholder for unknown message */
+#endif /* modified code */ /* JRM */
 };
 
 /* Declare a free list to manage the H5O_t struct */

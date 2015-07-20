@@ -125,6 +125,7 @@
 /* Cache configuration versions */
 #define H5C__CURR_AUTO_SIZE_CTL_VER		1
 #define H5C__CURR_AUTO_RESIZE_RPT_FCN_VER	1
+#define H5C__CURR_CACHE_IMAGE_CTL_VER		1
 
 /* Number of epoch markers active */
 #define H5C__MAX_EPOCH_MARKERS  		10
@@ -1858,6 +1859,66 @@ typedef struct H5C_auto_size_ctl_t {
     double				empty_reserve;
 } H5C_auto_size_ctl_t;
 
+/****************************************************************************
+ *
+ * structure H5C_cache_image_ctl_t
+ *
+ * Instances of H5C_image_ctl_t are used to get and set the control
+ * fields for generation of a metadata cache image on file close.
+ *
+ * At present control of construction of a cache image is via a FAPL
+ * property at file open / create.  
+ *
+ * The fields of the structure are discussed individually below:
+ *
+ * version: Integer field containing the version number of this version
+ *	of the H5C_image_ctl_t structure.  Any instance of
+ *	H5C_image_ctl_t passed to the cache must have a known
+ *	version number, or an error will be flagged.
+ *
+ * generate_image:  Boolean flag indicating whether a cache image should 
+ *	be created on file close.
+ *
+ * max_image_size: size_t containing the maximum size of the cache image,
+ *	or 0 if no limit on cache image size.
+ *
+ * flags: Unsigned integer containing flags controling which aspects of the
+ *	cache image functinality is actually executed.  The primary impetus 
+ *	behind this field is to allow developement of tests for partial 
+ *	implementations that will require little if any modification to run 
+ *	with the full implementation.  In normal operation, all flags should 
+ *	be set.
+ *
+ ****************************************************************************/
+
+#define H5C_CI__GEN_MDCI_SBE_MESG	((unsigned)0x0001)
+
+/* This #define must set all defined H5C_CI flags.  It is 
+ * used in the default value for instances of H5C_cache_image_ctl_t.
+ * This value will only be modified in test code.
+ */
+#define H5C_CI__ALL_FLAGS		((unsigned)0x0001)
+
+#define H5C__DEFAULT_CACHE_IMAGE_CTL                      \
+{                                                         \
+    /* version        = */ H5C__CURR_CACHE_IMAGE_CTL_VER, \
+    /* generate_image = */ FALSE,                         \
+    /* max_image_size = */ 0,                             \
+    /* flags          = */ H5C_CI__ALL_FLAGS              \
+}
+
+typedef struct H5C_cache_image_ctl_t {
+
+    int32_t				version;
+
+    hbool_t				generate_image;
+
+    size_t				max_image_size;
+
+    unsigned				flags;
+
+} H5C_cache_image_ctl_t;
+
 /***************************************/
 /* Library-private Function Prototypes */
 /***************************************/
@@ -1877,6 +1938,8 @@ H5_DLL herr_t H5C_flush_cache(H5F_t *f, hid_t dxpl_id, unsigned flags);
 H5_DLL herr_t H5C_flush_to_min_clean(H5F_t *f, hid_t dxpl_id);
 H5_DLL herr_t H5C_get_cache_auto_resize_config(const H5C_t *cache_ptr,
     H5C_auto_size_ctl_t *config_ptr);
+H5_DLL herr_t H5C_get_cache_image_config(const H5C_t * cache_ptr,
+    H5C_cache_image_ctl_t *config_ptr);
 H5_DLL herr_t H5C_get_cache_size(H5C_t *cache_ptr, size_t *max_size_ptr,
     size_t *min_clean_size_ptr, size_t *cur_size_ptr,
     int32_t *cur_num_entries_ptr);
@@ -1891,10 +1954,13 @@ H5_DLL FILE *H5C_get_trace_file_ptr(const H5C_t *cache_ptr);
 H5_DLL FILE *H5C_get_trace_file_ptr_from_entry(const H5C_cache_entry_t *entry_ptr);
 H5_DLL herr_t H5C_insert_entry(H5F_t *f, hid_t dxpl_id, const H5C_class_t *type,
     haddr_t addr, void *thing, unsigned int flags);
+H5_DLL herr_t H5C_load_cache_image_on_next_protect(H5F_t *f, haddr_t addr, 
+   size_t len, hbool_t rw);
 H5_DLL herr_t H5C_mark_entry_dirty(void *thing);
 H5_DLL herr_t H5C_move_entry(H5C_t *cache_ptr, const H5C_class_t *type,
     haddr_t old_addr, haddr_t new_addr);
 H5_DLL herr_t H5C_pin_protected_entry(void *thing);
+H5_DLL herr_t H5C_prep_for_file_close(H5F_t *f, hid_t dxpl_id);
 H5_DLL herr_t H5C_create_flush_dependency(void *parent_thing, void *child_thing);
 H5_DLL void * H5C_protect(H5F_t *f, hid_t dxpl_id, const H5C_class_t *type,
     haddr_t addr, void *udata, unsigned flags);
@@ -1902,6 +1968,8 @@ H5_DLL herr_t H5C_reset_cache_hit_rate_stats(H5C_t *cache_ptr);
 H5_DLL herr_t H5C_resize_entry(void *thing, size_t new_size);
 H5_DLL herr_t H5C_set_cache_auto_resize_config(H5C_t *cache_ptr,
     H5C_auto_size_ctl_t *config_ptr);
+H5_DLL herr_t H5C_set_cache_image_config(H5C_t *cache_ptr,
+    H5C_cache_image_ctl_t *config_ptr);
 H5_DLL herr_t H5C_set_evictions_enabled(H5C_t *cache_ptr, hbool_t evictions_enabled);
 H5_DLL herr_t H5C_set_prefix(H5C_t *cache_ptr, char *prefix);
 H5_DLL herr_t H5C_set_trace_file_ptr(H5C_t *cache_ptr, FILE *trace_file_ptr);
@@ -1913,6 +1981,7 @@ H5_DLL herr_t H5C_unpin_entry(void *thing);
 H5_DLL herr_t H5C_destroy_flush_dependency(void *parent_thing, void *child_thing);
 H5_DLL herr_t H5C_unprotect(H5F_t *f, hid_t dxpl_id, haddr_t addr, void *thing,
     unsigned int flags);
+H5_DLL herr_t H5C_validate_cache_image_config(H5C_cache_image_ctl_t * ctl_ptr);
 H5_DLL herr_t H5C_validate_resize_config(H5C_auto_size_ctl_t *config_ptr,
     unsigned int tests);
 H5_DLL herr_t H5C_ignore_tags(H5C_t *cache_ptr);

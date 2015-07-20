@@ -576,6 +576,35 @@ H5F__super_read(H5F_t *f, hid_t dxpl_id)
 		f->shared->fs_addr[u] = fsinfo.fs_addr[u-1];
         } /* end if */
 
+#if 1 /* new code */ /* JRM */
+	/* Check for the extensin having a 'metadata cache image' message */
+        if((status = H5O_msg_exists(&ext_loc, H5O_MDCI_MSG_ID, dxpl_id)) < 0)
+            HGOTO_ERROR(H5E_FILE, H5E_EXISTS, FAIL, "unable to read object header")
+        if(status) {
+            hbool_t 		rw = ((rw_flags & H5AC__READ_ONLY_FLAG) == 0);
+	    H5O_mdci_msg_t      mdci_msg;
+
+	    /* if the metadata cache image superblock extension message exists,
+             * read its contents and pass the data on to the metadata cache.
+             * Given this data, the cache will load and decode the metadata
+ 	     * cache image block, decoded it and load its contents into the 
+	     * the cache on the test protect call.  
+             *
+             * Further, if the file is opened R/W, the metadata cache will 
+	     * delete the metadata cache image superblock extension and free
+	     * the cache image block.  Don't do this now as f->shared 
+	     * is not fully setup, which complicates matters.
+             */
+
+            /* Retrieve the 'metadata cache image message' structure */
+	    if(NULL == H5O_msg_read(&ext_loc, H5O_MDCI_MSG_ID, &mdci_msg, dxpl_id))
+                HGOTO_ERROR(H5E_FILE, H5E_CANTGET, FAIL, "unable to get metadata cache image message")
+
+            if(H5AC_load_cache_image_on_next_protect(f, mdci_msg.addr, mdci_msg.size, rw) < 0)
+		HGOTO_ERROR(H5E_CACHE, H5E_CANTLOAD, FAIL, "call to H5AC_load_cache_image_on_next_protect failed");
+        } /* end if */
+#endif /* new code */ /* JRM */
+
         /* Close superblock extension */
         if(H5F_super_ext_close(f, &ext_loc, dxpl_id, FALSE) < 0)
 	    HGOTO_ERROR(H5E_FILE, H5E_CANTCLOSEOBJ, FAIL, "unable to close file's superblock extension")
@@ -622,7 +651,7 @@ H5F__super_read(H5F_t *f, hid_t dxpl_id)
 		f->shared->sblock = sblock;
 #endif /* JRM */
 
-                if(H5F_super_ext_write_msg(f, dxpl_id, &drvinfo, H5O_DRVINFO_ID, FALSE) < 0)
+                if(H5F_super_ext_write_msg(f, dxpl_id, &drvinfo, H5O_DRVINFO_ID, FALSE, 0) < 0)
                     HGOTO_ERROR(H5E_FILE, H5E_WRITEERROR, FAIL, "error in writing message to superblock extension")
 
 #if 1 /* bug fix test code -- tidy this up if all goes well */ /* JRM */
@@ -1167,7 +1196,11 @@ done:
  *-------------------------------------------------------------------------
  */
 herr_t
+#if 0 /* original code */ /* JRM */
 H5F_super_ext_write_msg(H5F_t *f, hid_t dxpl_id, void *mesg, unsigned id, hbool_t may_create)
+#else /* modified code */ /* JRM */
+H5F_super_ext_write_msg(H5F_t *f, hid_t dxpl_id, void *mesg, unsigned id, hbool_t may_create, unsigned mesg_flags)
+#endif /* modified code */ /* JRM */
 {
     hbool_t     ext_created = FALSE;   /* Whether superblock extension was created */
     hbool_t     ext_opened = FALSE;    /* Whether superblock extension was opened */
@@ -1214,7 +1247,11 @@ H5F_super_ext_write_msg(H5F_t *f, hid_t dxpl_id, void *mesg, unsigned id, hbool_
 	    HGOTO_ERROR(H5E_OHDR, H5E_CANTGET, FAIL, "Message should exist")
 
 	/* Update the message with ID in the superblock extension */
+#if 0 /* original code */ /* JRM */
 	if(H5O_msg_write(&ext_loc, id, H5O_MSG_FLAG_DONTSHARE, H5O_UPDATE_TIME, mesg, dxpl_id) < 0)
+#else /* modified code */ /* JRM */
+	if(H5O_msg_write(&ext_loc, id, (mesg_flags | H5O_MSG_FLAG_DONTSHARE), H5O_UPDATE_TIME, mesg, dxpl_id) < 0)
+#endif /* modified code */ /* JRM */
 	    HGOTO_ERROR(H5E_OHDR, H5E_CANTGET, FAIL, "unable to write the message in object header")
     } /* end else */
 
