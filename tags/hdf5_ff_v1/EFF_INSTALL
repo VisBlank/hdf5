@@ -1,0 +1,91 @@
+System pre-requisites: 
+	An MPI3 implementation that supports MPI_THREAD_MULTIPLE
+            [i.e. MPICH3 or later - we built with MPICH 3.0.4 in Q6]
+	Pthread
+	BOOST
+
+build opa:
+	It is located in the tarball in the 'openpa' subdirectory, OR get it
+        from here: git clone git://git.mcs.anl.gov/radix/openpa.git
+
+	./configure --prefix=/path/to/opa/install/directory
+	make
+        make check
+	make install
+
+
+build AXE:
+	It is located in the tarball in the 'axe' subdirectory, OR get it from
+        here: svn checkout https://svn.hdfgroup.uiuc.edu/axe/trunk
+
+	./configure --prefix=/path/to/axe/install/directory --with-opa=/path/to/opa/install/directory
+	make
+        make check
+	make install
+
+
+build DAOS, PLFS, and IOD:
+        Please refer to the DAOS and IOD tarball for instruction on how to build and setup the three libraries.
+
+
+build Mercury (Function Shipper)
+	The code is located in tarball in the 'mercury' directory.
+
+	refer to the mercury build recipe in:
+	mercury/README
+
+build HDF5 IOD VOL plugin:
+        The code is located in the tarball in the 'hdf5_ff' subdirectory, OR
+        get it from here:
+            svn checkout http://svn.hdfgroup.uiuc.edu/hdf5/features/hdf5_ff
+
+	./configure --with-daos=/path/to/daos/posix --with-plfs=/path/to/plfs --with-iod=/path/to/iod/ --with-axe=/path/to/axe/install/directory PKG_CONFIG_PATH=/path/to/mercury/install/directory/lib/pkgconfig/:/path/to/mchecksum/install/dir --enable-parallel --enable-debug --enable-trace --enable-threadsafe --enable-unsupported --with-pthread=/usr --enable-eff --enable-shared --enable-python
+
+	If you want indexing to be built in add --enable-indexing
+	Note in that case all 3rd party libraries have to be build shared or with -fPIC. You should also have devel python devel libraries and numpy installed on your system.
+
+	You should see in the configure summary at the end if the EFF plugin in HDF5 was successfully configured.
+
+	make
+        make check
+	make install
+
+build the example programs:
+
+	The examples are located in hdf5_ff/examples/.
+	The server is h5ff_server.
+	The client programs are 
+	- h5ff_client_attr.c : This tests attribute routines (H5A).
+	- h5ff_client_dset.c : This tests dataset routines (H5D).
+	- h5ff_client_links.c : This tests Links routines (H5L).
+	- h5ff_client_map.c : This tests the new Map routines (H5M) added this quarter to support Dynamic Data Structures.
+	- h5ff_client_multiple_cont.c : This tests access to multiple containers.
+	- h5ff_client_obj.c : This tests generic object routines (H5O).
+        - h5ff_client_analysis.c : This tests the analysis shipping functionality (H5AS).
+	- h5ff_client_M6.2_demo.c: HDF5 and I/O Dispatcher Container Versioning Demonstration
+	- h5ff_client_M7.2-pep_demo.c: Prefetch, evict, persist data movement demo.
+
+	cd path/where/hdf5_ff/is/built/examples/
+	make
+	chmod 775 run_ff_tests.sh
+	./run_ff_tests.sh num_server_procs num_client_procs
+
+	Or you can run each test manually:
+		The client and server need to be launched from the same directory for now.
+		Launch the server first:
+ 		mpiexec -n <x> ./h5ff_server
+		then launch one of the clients
+ 		mpiexec -n <x> ./h5ff_client_xx
+
+	Note, for now, the number of clients must be greater than or equal to the number of servers.
+
+H5Part:
+	fastforward/H5Part-1.6.6_ff/configure --enable-debug --enable-shared --enable-parallel --with-hdf5=/path/to/hdf5
+	make
+	make install
+
+VPICIO:
+	Edit makefile in source to point to H5Part and HDF5 installation
+	make
+
+END
