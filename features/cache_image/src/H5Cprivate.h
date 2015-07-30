@@ -127,8 +127,13 @@
 #define H5C__CURR_AUTO_RESIZE_RPT_FCN_VER	1
 #define H5C__CURR_CACHE_IMAGE_CTL_VER		1
 
+#if 0 /* moved to H5Cpkg.h */ /* JRM */
 /* Number of epoch markers active */
 #define H5C__MAX_EPOCH_MARKERS  		10
+
+/* type ID for epoch markers */
+#define H5C__EPOCH_MARKER_TYPE  H5C__MAX_NUM_TYPE_IDS
+#endif /* moved to H5Cpkg.h */ /* JRM */
 
 /* Default configuration settings */
 #define H5C__DEF_AR_UPPER_THRESHHOLD		0.9999f
@@ -1497,6 +1502,37 @@ typedef herr_t (*H5C_log_flush_func_t)(H5C_t *cache_ptr, haddr_t addr,
  *		In either case, when there is no previous item, it should 
  *		be NULL.
  *
+ * Fields supporting the cache image feature:
+ *
+ * The following fields are used to store about the entry which must 
+ * be stored in the cache image block, but which will typically be either 
+ * lost or heavily altered in the process of serializing the cache and 
+ * preparing its contents to be copied into the cache image block.
+ *
+ * lru_rank:	Rank of the entry in the LRU just prior to file close.
+ *
+ *		Note that the first entry on the LRU has lru_rank 1,
+ *		and that entries not on the LRU at that time will have 
+ *		either lru_rank -1 (if pinned) or 0 (if loaded during 
+ *		the process of flushing the cache.
+ *
+ * image_dirty: Boolean flag indicating whether the entry should be marked
+ *		as dirty in the metadata cache image.  The flag is set to
+ *		TRUE iff the entry is dirty when H5C_prep_for_file_close()
+ *		is called.
+ *
+ * fd_parent_addr: If the entry is a child in a flush dependency relationship
+ *		when H5C_prep_for_file_close() is called, this field 
+ *		must contain the on disk address of the parent.
+ *
+ *		In all other cases, the field is set to HADDR_UNDEF.
+ *
+ * fd_child_count: If the entry is a parent in a flush dependency 
+ *		relationship, this field contains the number of flush 
+ *		dependency children.
+ *
+ *		In all other cases, the field is set to zero.
+ *
  * Cache entry stats collection fields:
  *
  * These fields should only be compiled in when both H5C_COLLECT_CACHE_STATS
@@ -1560,7 +1596,13 @@ typedef struct H5C_cache_entry_t {
     struct H5C_cache_entry_t  *	prev;
     struct H5C_cache_entry_t  *	aux_next;
     struct H5C_cache_entry_t  *	aux_prev;
-
+#if 1 /* new code */ /* JRM */
+    /* fields supporting cache image */
+    int32_t			lru_rank;
+    hbool_t			image_dirty;
+    haddr_t			fd_parent_addr;
+    uint64_t			fd_child_count;
+#endif /* new code */ /* JRM */
 #if H5C_COLLECT_CACHE_ENTRY_STATS
     /* cache entry stats fields */
     int32_t			accesses;
@@ -1892,12 +1934,13 @@ typedef struct H5C_auto_size_ctl_t {
  ****************************************************************************/
 
 #define H5C_CI__GEN_MDCI_SBE_MESG	((unsigned)0x0001)
+#define H5C_CI__GEN_MDC_IMAGE_BLK	((unsigned)0x0002)
 
 /* This #define must set all defined H5C_CI flags.  It is 
  * used in the default value for instances of H5C_cache_image_ctl_t.
  * This value will only be modified in test code.
  */
-#define H5C_CI__ALL_FLAGS		((unsigned)0x0001)
+#define H5C_CI__ALL_FLAGS		((unsigned)0x0003)
 
 #define H5C__DEFAULT_CACHE_IMAGE_CTL                      \
 {                                                         \

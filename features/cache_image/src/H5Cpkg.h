@@ -45,6 +45,15 @@
 /* Package Private Macros */
 /**************************/
 
+#if 1 /* moved from H5Cprivate.h */ /* JRM */
+/* Number of epoch markers active */
+#define H5C__MAX_EPOCH_MARKERS                  10
+
+/* type ID for epoch markers */
+#define H5C__EPOCH_MARKER_TYPE  H5C__MAX_NUM_TYPE_IDS
+#endif /* moved fron H5Cprivate.h */ /* JRM */
+
+
 /* With the introduction of the fractal heap, it is now possible for
  * entries to be dirtied, resized, and/or moved in the flush callbacks.
  * As a result, on flushes, it may be necessary to make multiple passes
@@ -3351,6 +3360,43 @@ if ( ( (cache_ptr)->index_size !=                                           \
  *		field is used both in the construction and write, and the 
  *		read and decode of metadata cache image blocks.
  *
+ * To create the metadata cache image, we must first serialize all the
+ * entries in the metadata cache.  This is done by a scan of the index.
+ * As entries must be serialized in increasing flush dependency height
+ * order, we scan the index repeatedly, once for each flush dependency
+ * height in increasing order.
+ *
+ * This operation is complicated by the fact that entries other the the
+ * target may be inserted, loaded, relocated, or removed from the cache 
+ * (either by eviction or the take ownership flag) as the result of a 
+ * pre_serialize or serialize callback.  While entry removals are not 
+ * a problem for the scan of the index, insertions, loads, and relocations
+ * are.  Hence the entries loaded, inserted, and relocated counters 
+ * listed below have been implemented to allow these conditions to be 
+ * detected and dealt with by restarting the scan.
+ *
+ * The serialization operation is further complicated by the fact that 
+ * the flush dependency height of a given entry may increase (as the 
+ * result of an entry load or insert) or decrease (as the result of an 
+ * entry removal -- via either eviction or the take ownership flag).  The
+ * entry_fd_height_change_counter field is maintained to allow detection
+ * of this condition, and a restart of the scan when it occurs.
+ *
+ * Note that all these new fields would work just as well as booleans.
+ *
+ * entries_loaded_counter: Number of entries loaded into the cache 
+ *		since the last time this field was reset.
+ *
+ * entries_inserted_counter: Number of entries inserted into the cache 
+ *		since the last time this field was reset.
+ *
+ * entries relocated_counter: Number of entries whose base address has
+ *		been changed since the last time this field was reset.
+ *
+ * entry_fd_height_change_counter: Number of entries whose flush dependency
+ *		height has changed since the last time this field was reset.
+ *
+ *
  * Statistics collection fields:
  *
  * When enabled, these fields are used to collect statistics as described
@@ -3570,6 +3616,19 @@ if ( ( (cache_ptr)->index_size !=                                           \
  *		restarted to avoid potential issues with change of status 
  *		of the next entry in the scan.
  *
+ *		Update: this condition can also be triggered by the change
+ *		of location of the target entry in 
+ *		H5C_serialize_single_entry().
+ *
+ * index_scan_restarts: Number of times a scan of the index has been 
+ *		restarted to avoid potential issues with load, insertion
+ *		or change in flush dependency height of an entry other 
+ *		than the target entry as the result of call(s) to the
+ *		pre_serialize or serialize callbacks.
+ *
+ *		Note that at present, this condition can only be triggerd
+ *		by a call to H5C_serialize_single_entry().
+ *
  * The remaining stats are collected only when both H5C_COLLECT_CACHE_STATS
  * and H5C_COLLECT_CACHE_ENTRY_STATS are true.
  *
@@ -3717,6 +3776,10 @@ struct H5C_t {
     hbool_t			delete_image;
     haddr_t 			image_addr;
     size_t			image_len;
+    int64_t			entries_loaded_counter;
+    int64_t			entries_inserted_counter;
+    int64_t			entries_relocated_counter;
+    int64_t			entry_fd_height_change_counter;
 
 #if H5C_COLLECT_CACHE_STATS
     /* stats fields */
@@ -3780,6 +3843,9 @@ struct H5C_t {
     int64_t			slist_scan_restarts;
     int64_t			LRU_scan_restarts;
     int64_t			hash_bucket_scan_restarts;
+#if 1 /* new code */ /* JRM */
+    int64_t			index_scan_restarts;
+#endif /* new code */ /* JRM */
 
 #if H5C_COLLECT_CACHE_ENTRY_STATS
     int32_t                     max_accesses[H5C__MAX_NUM_TYPE_IDS + 1];
@@ -3807,7 +3873,9 @@ struct H5C_t {
 /* Package Private Prototypes */
 /******************************/
 H5_DLL herr_t H5C__flush_single_entry(const H5F_t *f, hid_t dxpl_id,
-    H5C_cache_entry_t *entry_ptr, unsigned flags, int64_t *entry_size_change_ptr);
+    H5C_cache_entry_t *entry_ptr, unsigned flags, 
+    int64_t *entry_size_change_ptr);
+H5_DLL herr_t H5C_load_cache_image(H5F_t *f, hid_t dxpl_id);
 
 #endif /* _H5Cpkg_H */
 

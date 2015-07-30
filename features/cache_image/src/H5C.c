@@ -147,8 +147,6 @@ static herr_t H5C_flush_invalidate_cache(const H5F_t *  f,
                                           hid_t    dxpl_id,
 			                  unsigned flags);
 
-static herr_t H5C_load_cache_image(H5F_t *f, hid_t dxpl_id);
-
 static void * H5C_load_entry(H5F_t *             f,
                              hid_t               dxpl_id,
                              const H5C_class_t * type,
@@ -174,10 +172,6 @@ static herr_t H5C_mark_tagged_entries(H5C_t * cache_ptr,
 
 static herr_t H5C_flush_marked_entries(H5F_t * f, 
                                        hid_t dxpl_id);
-
-static herr_t H5C__write_cache_image_superblock_msg(H5F_t *f, 
-                                                    hid_t dxpl_id, 
-                                                    hbool_t create);
 
 #if H5C_DO_TAGGING_SANITY_CHECKS
 static herr_t H5C_verify_tag(int id, haddr_t tag);
@@ -229,11 +223,11 @@ H5FL_DEFINE_STATIC(H5C_t);
  *
  ****************************************************************************/
 
-/* Note that H5C__MAX_EPOCH_MARKERS is defined in H5Cpkg.h, not here because
- * it is needed to dimension arrays in H5C_t.
- */
+/* H5C__MAX_EPOCH_MARKERS and H5C__EPOCH_MARKER_TYPE are defined in H5Cpkg.h. */
 
+#if 0 /* moved to H5Cprivate.h */ /* JRM */
 #define H5C__EPOCH_MARKER_TYPE	H5C__MAX_NUM_TYPE_IDS
+#endif /* moved to H5Cprivate.h */ /* JRM */
 
 static herr_t H5C__epoch_marker_get_load_size(const void *udata_ptr,
 		                            size_t *image_len_ptr);
@@ -619,6 +613,11 @@ H5C_create(size_t		      max_cache_size,
     cache_ptr->delete_image		= FALSE;
     cache_ptr->image_addr		= HADDR_UNDEF;
     cache_ptr->image_len		= 0;
+
+    cache_ptr->entries_loaded_counter		= 0;
+    cache_ptr->entries_inserted_counter		= 0;
+    cache_ptr->entries_relocated_counter	= 0;
+    cache_ptr->entry_fd_height_change_counter	= 0;
 #endif /* new code */ /* JRM */
 
     if ( H5C_reset_cache_hit_rate_stats(cache_ptr) != SUCCEED ) {
@@ -1697,49 +1696,6 @@ done:
 } /* H5C_get_cache_auto_resize_config() */
 
 
-#if 1 /* new code */ /* JRM */
-/*-------------------------------------------------------------------------
- * Function:    H5C_get_cache_image_config
- *
- * Purpose:     Copy the current configuration for cache image generation
- *              on file close into the instance of H5C_cache_image_ctl_t
- *              pointed to by config_ptr.
- *
- * Return:      SUCCEED on success, and FAIL on failure.
- *
- * Programmer:  John Mainzer
- *              7/3/15
- *
- *-------------------------------------------------------------------------
- */
-herr_t
-H5C_get_cache_image_config(const H5C_t * cache_ptr,
-                           H5C_cache_image_ctl_t *config_ptr)
-{
-    herr_t ret_value = SUCCEED;      /* Return value */
-
-    FUNC_ENTER_NOAPI(FAIL)
-
-    if ( ( cache_ptr == NULL ) || ( cache_ptr->magic != H5C__H5C_T_MAGIC ) ) {
-
-        HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, "Bad cache_ptr on entry.")
-    }
-
-    if ( config_ptr == NULL ) {
-
-        HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, "Bad config_ptr on entry.")
-    }
-
-    *config_ptr = cache_ptr->image_ctl;
-
-done:
-
-    FUNC_LEAVE_NOAPI(ret_value)
-
-} /* H5C_get_cache_image_config() */
-#endif /* new code */ /* JRM */
-
-
 /*-------------------------------------------------------------------------
  * Function:    H5C_get_cache_size
  *
@@ -2250,7 +2206,13 @@ H5C_insert_entry(H5F_t *             f,
 
     entry_ptr->aux_next = NULL;
     entry_ptr->aux_prev = NULL;
-
+#if 1 /* new code */ /* JRM */
+    /* initialize cache image related fields */
+    entry_ptr->lru_rank         = 0;
+    entry_ptr->image_dirty	= FALSE;
+    entry_ptr->fd_parent_addr	= HADDR_UNDEF;
+    entry_ptr->fd_child_count	= 0;
+#endif /* new code */ /* JRM */
     H5C__RESET_CACHE_ENTRY_STATS(entry_ptr)
 
     if ( ( cache_ptr->flash_size_increase_possible ) &&
@@ -2380,7 +2342,9 @@ H5C_insert_entry(H5F_t *             f,
         HGOTO_ERROR(H5E_CACHE, H5E_CANTNOTIFY, FAIL, "can't notify client about entry inserted into cache")
 
     H5C__UPDATE_STATS_FOR_INSERTION(cache_ptr, entry_ptr)
-
+#if 1 /* new code */ /* JRM */
+    cache_ptr->entries_inserted_counter++;
+#endif /* new code */ /* JRM */
 done:
 
 #if H5C_DO_EXTREME_SANITY_CHECKS
@@ -2396,62 +2360,6 @@ done:
     FUNC_LEAVE_NOAPI(ret_value)
 
 } /* H5C_insert_entry() */
-
-
-#if 1 /* new code */ /* JRM */
-/*-------------------------------------------------------------------------
- * Function:    H5C_load_cache_image_on_next_protect()
- *
- * Purpose:     Note the fact that a metadata cache image superblock 
- *		extension message exists, along with the base address
- *		and length of the metadata cache image block.
- *
- *		Once this notification is received the metadata cache 
- *		image block must be read, decoded, and loaded into the 
- *		cache on the next call to H5C_protect().
- *
- *		Further, if the file is opened R/W, the metadata cache 
- *		image superblock extension message must be deleted from 
- *		the superblock extension and the image block freed
- *
- * Return:      Non-negative on success/Negative on failure
- *
- * Programmer:  John Mainzer
- *		7/6/15
- *
- *-------------------------------------------------------------------------
- */
-herr_t
-H5C_load_cache_image_on_next_protect(H5F_t * f,
-				     haddr_t addr,
-				     size_t len,
-				     hbool_t rw)
-{
-    H5C_t *             cache_ptr;
-    herr_t		ret_value = SUCCEED;    /* Return value */
-
-    FUNC_ENTER_NOAPI(FAIL)
-
-    HDassert( f );
-    HDassert( f->shared );
-
-    cache_ptr = f->shared->cache;
-
-    HDassert( cache_ptr );
-    HDassert( cache_ptr->magic == H5C__H5C_T_MAGIC );
-
-    cache_ptr->image_addr   = addr,
-    cache_ptr->image_len    = len;
-    cache_ptr->load_image   = TRUE;
-    cache_ptr->delete_image = rw;
-
-done:
-
-    FUNC_LEAVE_NOAPI(ret_value)
-
-} /* H5C_insert_entry() */
-
-#endif /* new code */ /* JRM */
 
 
 /*-------------------------------------------------------------------------
@@ -2691,7 +2599,9 @@ H5C_move_entry(H5C_t *	     cache_ptr,
     }
 
     H5C__UPDATE_STATS_FOR_MOVE(cache_ptr, entry_ptr)
-
+#if 1 /* new code */ /* JRM */
+    cache_ptr->entries_relocated_counter++;
+#endif /* new code */ /* JRM */
 done:
 
 #if H5C_DO_EXTREME_SANITY_CHECKS
@@ -2707,84 +2617,6 @@ done:
     FUNC_LEAVE_NOAPI(ret_value)
 
 } /* H5C_move_entry() */
-
-
-#if 1 /* new code */ /* JRM */
-/*-------------------------------------------------------------------------
- *
- * Function:    H5C_prep_for_file_close
- *
- * Purpose:     This function should be called just prior to the cache 
- *		flushes at file close.  There should be no protected 
- *		entries in the cache at this point.
- *		
- *              The objective of the call is to allow the metadata cache 
- *		to do any preparatory work prior to generation of a 
- *		cache image.
- *
- * Return:      Non-negative on success/Negative on failure
- *
- * Programmer:  John Mainzer
- *              7/3/15
- *
- *-------------------------------------------------------------------------
- */
-herr_t
-H5C_prep_for_file_close(H5F_t *f, hid_t dxpl_id)
-{
-    H5C_t *     cache_ptr = NULL;
-    herr_t	ret_value = SUCCEED;      /* Return value */
-
-    FUNC_ENTER_NOAPI(FAIL)
-
-    /* sanity checks */
-    HDassert(f);
-    HDassert(f->shared);
-    HDassert(f->shared->cache);
-
-    cache_ptr = f->shared->cache;
-
-    HDassert(cache_ptr);
-    HDassert(cache_ptr->magic == H5C__H5C_T_MAGIC);
-    HDassert(!cache_ptr->close_warning_received);
-    HDassert(cache_ptr->pl_len == 0);
-
-    /* If the file is opened and closed without any access to 
-     * any group or data set, it is possible that the cache image (if 
-     * it exists) has not been read yet.  Do this now if required.
-     */
-    if ( cache_ptr->load_image ) {
-
-        cache_ptr->load_image = FALSE;
-
-        if ( H5C_load_cache_image(f, dxpl_id) < 0 )
-
-	    HGOTO_ERROR(H5E_CACHE, H5E_CANTLOAD, FAIL, "Can't load cache image")
-    }
-
-    cache_ptr->close_warning_received = TRUE;
-
-    if ( cache_ptr->close_warning_received ) {
-
-        if ( cache_ptr->image_ctl.generate_image ) { /* we have work to do */
-
-            if ( cache_ptr->image_ctl.flags & H5C_CI__GEN_MDCI_SBE_MESG ) {
-
-		if ( H5C__write_cache_image_superblock_msg(f, dxpl_id, 
-                                                           TRUE) < 0 )
-
-		    HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, \
-                                "creation of cache image SB mesg failed")
-            }
-        }
-    }
-
-done:
-
-    FUNC_LEAVE_NOAPI(ret_value)
-
-} /* H5C_prep_for_file_close() */
-#endif /* new code */ /* JRM */
 
 
 /*-------------------------------------------------------------------------
@@ -3208,9 +3040,13 @@ H5C_protect(H5F_t *		f,
         if ( thing == NULL ) {
 
             HGOTO_ERROR(H5E_CACHE, H5E_CANTLOAD, NULL, "can't load entry")
-        }
+
+        } 
 
         entry_ptr = (H5C_cache_entry_t *)thing;
+#if 1 /* new code */ /* JRM */
+	cache_ptr->entries_loaded_counter++;
+#endif /* new code */ /* JRM */
 
         /* Apply tag to newly protected entry */
         if(H5C_tag_entry(cache_ptr, entry_ptr, dxpl_id) < 0)
@@ -3828,63 +3664,6 @@ done:
 } /* H5C_set_cache_auto_resize_config() */
 
 
-#if 1 /* new code */ /* JRM */
-/*-------------------------------------------------------------------------
- * Function:    H5C_set_cache_image_config
- *
- * Purpose:	If *config_ptr contains valid data, copy it into the 
- *		image_ctl field of *cache_ptr.  Make adjustments for 
- *		changes in configuration as required.
- *
- *		Fail if the new configuration is invalid.
- *
- * Return:      SUCCEED on success, and FAIL on failure.
- *
- * Programmer:  John Mainzer
- *		7/3/15
- *
- *-------------------------------------------------------------------------
- */
-herr_t
-H5C_set_cache_image_config(H5C_t *cache_ptr,
-                           H5C_cache_image_ctl_t *config_ptr)
-{
-    herr_t	ret_value = SUCCEED;      /* Return value */
-
-    FUNC_ENTER_NOAPI(FAIL)
-
-    if ( ( cache_ptr == NULL ) || ( cache_ptr->magic != H5C__H5C_T_MAGIC ) ) {
-
-        HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, "Bad cache_ptr on entry.")
-    }
-
-    if ( config_ptr == NULL ) {
-
-        HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, "NULL config_ptr on entry.")
-    }
-
-    if ( config_ptr->version != H5C__CURR_CACHE_IMAGE_CTL_VER ) {
-
-        HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, "Unknown config version.")
-    }
-
-    /* check general configuration section of the config: */
-    if ( SUCCEED != H5C_validate_cache_image_config(config_ptr) ) {
-
-        HGOTO_ERROR(H5E_ARGS, H5E_BADRANGE, FAIL, \
-                    "invalid cache image configuration.")
-    }
-
-    cache_ptr->image_ctl = *config_ptr;
-
-done:
-
-    FUNC_LEAVE_NOAPI(ret_value)
-
-} /* H5C_set_cache_image_config() */
-#endif /* new code */ /* JRM */
-
-
 /*-------------------------------------------------------------------------
  * Function:    H5C_set_evictions_enabled()
  *
@@ -4039,6 +3818,9 @@ done:
  *		JRM -- 4/11/15
  *		Added code displaying the new slist_scan_restarts,
  *		LRU_scan_restarts, and hash_bucket_scan_restarts fields;
+ *
+ *		JRM -- 7/28/15
+ *		Added code displaying the new index_scan_restarts field.
  *
  *-------------------------------------------------------------------------
  */
@@ -4354,11 +4136,20 @@ H5C_stats(H5C_t * cache_ptr,
                             cache_ptr->entries_scanned_to_make_space));
 
     HDfprintf(stdout, 
+#if 0 /* old code */ /* JRM */
               "%s  slist/LRU/hash bkt scan restarts   = %lld / %lld / %lld.\n",
               cache_ptr->prefix, 
               (long long)(cache_ptr->slist_scan_restarts),
               (long long)(cache_ptr->LRU_scan_restarts),
               (long long)(cache_ptr->hash_bucket_scan_restarts));
+#else /* new code */ /* JRM */
+        "%s  slist/LRU/bkt/index scan restarts  = %lld / %lld / %lld / %lld.\n",
+              cache_ptr->prefix, 
+              (long long)(cache_ptr->slist_scan_restarts),
+              (long long)(cache_ptr->LRU_scan_restarts),
+              (long long)(cache_ptr->hash_bucket_scan_restarts),
+              (long long)(cache_ptr->index_scan_restarts));
+#endif /* new code */ /* JRM */
 
 #if H5C_COLLECT_CACHE_ENTRY_STATS
 
@@ -4522,6 +4313,10 @@ done:
  *		LRU_scan_restarts, hash_bucket_scan_restarts, and 
  *		take_ownerships fields.
  *
+ *		JRM 7/28/15
+ *		Added code to initialize the new index_scan_restarts
+ *		field.
+ *
  *-------------------------------------------------------------------------
  */
 void
@@ -4601,6 +4396,9 @@ H5C_stats__reset(H5C_t H5_ATTR_UNUSED * cache_ptr)
     cache_ptr->slist_scan_restarts		= 0;
     cache_ptr->LRU_scan_restarts		= 0;
     cache_ptr->hash_bucket_scan_restarts	= 0;
+#if 1 /* new code */ /* JRM */
+    cache_ptr->index_scan_restarts		= 0;
+#endif /* new_code */ /* JRM */
 
 #if H5C_COLLECT_CACHE_ENTRY_STATS
 
@@ -5262,71 +5060,6 @@ done:
 } /* H5C_unprotect() */
 
 
-#if 1 /* new code */ /* JRM */
-/*-------------------------------------------------------------------------
- * Function:    H5C_validate_cache_image_config()
- *
- * Purpose:	Run a sanity check on the provided instance of struct 
- *		H5AC_cache_image_config_t.
- *
- *		Do nothing and return SUCCEED if no errors are detected,
- *		and flag an error and return FAIL otherwise.
- *
- * Return:      Non-negative on success/Negative on failure
- *
- * Programmer:  John Mainzer
- *              6/15/15
- *
- *-------------------------------------------------------------------------
- */
-herr_t
-H5C_validate_cache_image_config(H5C_cache_image_ctl_t * ctl_ptr)
-{
-    herr_t              ret_value = SUCCEED;    /* Return value */
-
-    FUNC_ENTER_NOAPI(FAIL)
-
-    if ( ctl_ptr == NULL ) {
-
-        HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, "NULL ctl_ptr on entry.")
-    }
-
-    if ( ctl_ptr->version != H5C__CURR_CACHE_IMAGE_CTL_VER ) {
-
-        HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, \
-                    "Unknown cache image control version.")
-    }
-
-    if ( ( ctl_ptr->generate_image != FALSE ) &&
-         ( ctl_ptr->generate_image != TRUE ) ) {
-
-        HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, \
-                    "generate_image field corrupted?")
-    }
-
-    /* at present, max image size is always limited only by cache size,
-     * and hence the max_image_size field must always be zero.
-     */
-    if ( ctl_ptr->max_image_size != 0 ) {
-
-        HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, \
-                    "unexpected max_image_size field.")
-    }
-
-    if ( (ctl_ptr->flags & ~H5C_CI__ALL_FLAGS) != 0 ) {
-
-        HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, "unknown flag set.")
-    }
-
-done:
-
-    FUNC_LEAVE_NOAPI(ret_value)
-
-} /* H5C_validate_cache_image_config() */
-
-#endif /* new code */ /* JRM */
-
-
 /*-------------------------------------------------------------------------
  * Function:    H5C_validate_resize_config()
  *
@@ -5618,6 +5351,11 @@ H5C_adjust_flush_dependency_rc(H5C_cache_entry_t * cache_entry,
     HDassert(old_child_height < H5C__NUM_FLUSH_DEP_HEIGHTS);
     HDassert(old_child_height != new_child_height);
     HDassert(new_child_height < H5C__NUM_FLUSH_DEP_HEIGHTS);
+#if 1 /* new code */ /* JRM */
+    HDassert(cache_entry->magic == H5C__H5C_CACHE_ENTRY_T_MAGIC);
+    HDassert(cache_entry->cache_ptr);
+    HDassert(cache_entry->cache_ptr->magic == H5C__H5C_T_MAGIC);
+#endif /* new code */ /* JRM */
 
     /* Adjust ref. counts for entry's flush dependency children heights */
     cache_entry->child_flush_dep_height_rc[new_child_height]++;
@@ -5634,6 +5372,10 @@ H5C_adjust_flush_dependency_rc(H5C_cache_entry_t * cache_entry,
 
         /* Set new flush dependency height of entry */
         cache_entry->flush_dep_height = new_child_height + 1;
+
+#if 1 /* new code */ /* JRM */
+	cache_entry->cache_ptr->entry_fd_height_change_counter++;
+#endif /* new code */ /* JRM */
     } /* end if */
     else {
         /* Check for child's flush dep. height decreasing and ref. count of
@@ -5644,6 +5386,10 @@ H5C_adjust_flush_dependency_rc(H5C_cache_entry_t * cache_entry,
                 && ((old_child_height + 1) == cache_entry->flush_dep_height)
                 && (0 == cache_entry->child_flush_dep_height_rc[old_child_height])) {
             int i;                      /* Local index variable */
+
+#if 1 /* new code */ /* JRM */
+	    cache_entry->cache_ptr->entry_fd_height_change_counter++;
+#endif /* new code */ /* JRM */
 
             /* Re-scan child flush dependency height ref. counts to determine
              *  this entry's height.
@@ -5788,6 +5534,9 @@ H5C_create_flush_dependency(void * parent_thing, void * child_thing)
 
         /* Increase flush dependency height of parent entry */
         parent_entry->flush_dep_height = child_entry->flush_dep_height + 1;
+#if 1 /* new code */ /* JRM */
+	cache_ptr->entry_fd_height_change_counter++;
+#endif /* new code */ /* JRM */
     } /* end if */
 
     /* Set parent for child entry */
@@ -5876,6 +5625,11 @@ H5C_destroy_flush_dependency(void *parent_thing, void * child_thing)
         for(i = (H5C__NUM_FLUSH_DEP_HEIGHTS - 1); i > (int)child_entry->flush_dep_height; i--)
             HDassert(0 == parent_entry->child_flush_dep_height_rc[i]);
 #endif /* NDEBUG */
+
+#if 1 /* new code */ /* JRM */
+	cache_ptr->entry_fd_height_change_counter++;
+#endif /* new code */ /* JRM */
+
         for(i = (int)child_entry->flush_dep_height; i >= 0; i--)
             /* Check for child flush dependencies of this height */
             if(parent_entry->child_flush_dep_height_rc[i] > 0)
@@ -8161,12 +7915,19 @@ H5C__flush_single_entry(const H5F_t *f, hid_t dxpl_id, H5C_cache_entry_t *entry_
                     int64_t saved_slist_size_increase;
 #endif /* H5C_DO_SANITY_CHECKS */
 
+#if 0 /* delete this if all goes well */ /* JRM */
                     H5C__UPDATE_STATS_FOR_MOVE(cache_ptr, entry_ptr)
+#endif /* delete this if all goes well */ /* JRM */
 
                     if(entry_ptr->addr == old_addr) {
                         /* we must update cache data structures for the 
                          * change in address.
                          */
+#if 1 /* new code */ /* JRM */
+			/* update stats and entries relocated counter */
+                        H5C__UPDATE_STATS_FOR_MOVE(cache_ptr, entry_ptr)
+		        cache_ptr->entries_relocated_counter++;
+#endif /* new code */ /* JRM */
 
                         /* delete the entry from the hash table and the slist */
                         H5C__DELETE_FROM_INDEX(cache_ptr, entry_ptr)
@@ -8233,7 +7994,7 @@ H5C__flush_single_entry(const H5F_t *f, hid_t dxpl_id, H5C_cache_entry_t *entry_
                  * slist was modified.
                  */
                 if(cache_ptr->slist_changed)
-                    cache_ptr->slist_change_in_pre_serialize = TRUE;
+                    cache_ptr->slist_change_in_serialize = TRUE;
 
 #if H5C_DO_MEMORY_SANITY_CHECKS
                 HDassert(0 == HDmemcmp(((uint8_t *)entry_ptr->image_ptr) + image_len, 
@@ -8494,65 +8255,6 @@ done:
 
     FUNC_LEAVE_NOAPI(ret_value)
 } /* H5C__flush_single_entry() */
-
-
-#if 1 /* new code */ /* JRM */
-/*-------------------------------------------------------------------------
- * Function:    H5C_load_cache_image
- *
- * Purpose:     Read the cache image superblock extension message and
- *		delete it.
- *
- *		Then load the cache image block at the specified location,
- *		decode it, and insert its contents into the metadata
- *		cache.
- *
- * Return:      Non-negative on success/Negative on failure
- *
- * Programmer:  John Mainzer
- *		7/6/15
- *
- *-------------------------------------------------------------------------
- */
-herr_t
-H5C_load_cache_image(H5F_t *    f,
-                     hid_t	dxpl_id)
-{
-    H5C_t *             cache_ptr;
-    herr_t		ret_value = SUCCEED;    /* Return value */
-
-    FUNC_ENTER_NOAPI(FAIL)
-
-    HDassert( f );
-    HDassert( f->shared );
-
-    cache_ptr = f->shared->cache;
-
-    HDassert( cache_ptr );
-    HDassert( cache_ptr->magic == H5C__H5C_T_MAGIC );
-
-    if ( cache_ptr->delete_image ) {
-
-        if ( H5F_super_ext_remove_msg(f, dxpl_id, H5O_MDCI_MSG_ID) < 0 )
-
-	    HGOTO_ERROR(H5E_CACHE, H5E_CANTREMOVE, FAIL, \
-         "can't remove metadata cache image message from superblock extension")
-    }
-
-    /* load metadata cache image */
-
-    /* decode metadata cache image */
-
-    if ( cache_ptr->delete_image ) { /* free metadata cache image */
-
-    }
-
-done:
-
-    FUNC_LEAVE_NOAPI(ret_value)
-
-} /* H5C_load_cache_image() */
-#endif /* new code */ /* JRM */
 
 
 /*-------------------------------------------------------------------------
@@ -8968,7 +8670,13 @@ H5C_load_entry(H5F_t *             f,
 
     entry->aux_next             = NULL;
     entry->aux_prev             = NULL;
-
+#if 1 /* new code */ /* JRM */
+    /* initialize cache image related fields */
+    entry->lru_rank		= 0;
+    entry->image_dirty		= FALSE;
+    entry->fd_parent_addr	= HADDR_UNDEF;
+    entry->fd_child_count	= 0;
+#endif /* new code */ /* JRM */
     H5C__RESET_CACHE_ENTRY_STATS(entry);
 
     ret_value = thing;
@@ -10202,72 +9910,6 @@ H5C_flush_marked_entries(H5F_t * f, hid_t dxpl_id)
 done:
     FUNC_LEAVE_NOAPI(ret_value)
 } /* H5C_flush_marked_entries */
-
-
-#if 1 /* new code */ /* JRM */
-/*-------------------------------------------------------------------------
- *
- * Function:    H5C__write_cache_image_superblock_msg
- *
- * Purpose:     Write the cache image superblock extension message, 
- *		creating if specified.
- *
- *		In general, the size and location of the cache image block
- *		will be unknow at the time that the cache image superblock
- *		message is created.  A subsequent call to this routine will
- *		be used to write the correct data.
- *
- * Return:      Non-negative on success/Negative on failure.
- *
- * Programmer:  John Mainzer, 7/4/15
- *
- *-------------------------------------------------------------------------
- */
-static herr_t
-H5C__write_cache_image_superblock_msg(H5F_t *f, hid_t dxpl_id, hbool_t create)
-{
-    H5C_t *		cache_ptr = NULL;
-    H5O_mdci_msg_t 	mdci_msg;	/* metadata cache image message */
-					/* to insert in the superblock  */
-					/* extension.			*/
-    unsigned	   	mesg_flags = 
-			(H5O_MSG_FLAG_FAIL_IF_UNKNOWN_AND_OPEN_FOR_WRITE | 
-		 	H5O_MSG_FLAG_FAIL_IF_UNKNOWN_ALWAYS);
-    herr_t              ret_value = SUCCEED;      /* Return value */
-
-    FUNC_ENTER_NOAPI_NOINIT
-
-    /* sanity checks */
-    HDassert(f);
-    HDassert(f->shared);
-    HDassert(f->shared->cache);
-
-    cache_ptr = f->shared->cache;
-
-    HDassert( cache_ptr );
-    HDassert( cache_ptr->magic == H5C__H5C_T_MAGIC );
-    HDassert( cache_ptr->close_warning_received );
-
-    /* Write data into the metadata cache image superblock extension message.
-     * Note that this data will be bogus when we first create the message.
-     * We will overwrite this data later in a second call to this function.
-     */
-    mdci_msg.addr = cache_ptr->image_addr;
-    mdci_msg.size = cache_ptr->image_len;
-
-    /* Write metadata cache image message to superblock extension */
-    if ( H5F_super_ext_write_msg(f, dxpl_id, &mdci_msg, 
-                                 H5O_MDCI_MSG_ID, create, mesg_flags) < 0 )
-
-        HGOTO_ERROR(H5E_CACHE, H5E_WRITEERROR, FAIL, \
-	    "can't write metadata cache image message to superblock extension")
-
-done:
-
-    FUNC_LEAVE_NOAPI(ret_value)
-
-} /* H5C__write_cache_image_superblock_msg() */
-#endif /* new code */ /* JRM */
 
 #if H5C_DO_TAGGING_SANITY_CHECKS
 
