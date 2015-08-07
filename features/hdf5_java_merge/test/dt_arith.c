@@ -415,7 +415,7 @@ static int my_isinf(int endian, unsigned char *val, size_t size,
  *-------------------------------------------------------------------------
  */
 static void
-fpe_handler(int UNUSED signo)
+fpe_handler(int H5_ATTR_UNUSED signo)
 {
     SKIPPED();
     HDputs("    Test skipped due to SIGFPE.");
@@ -488,7 +488,7 @@ reset_hdf5(void)
  *-------------------------------------------------------------------------
  */
 static H5T_conv_ret_t
-except_func(H5T_conv_except_t except_type, hid_t UNUSED src_id, hid_t UNUSED dst_id, void UNUSED *src_buf,
+except_func(H5T_conv_except_t except_type, hid_t H5_ATTR_UNUSED src_id, hid_t H5_ATTR_UNUSED dst_id, void H5_ATTR_UNUSED *src_buf,
 		 void *dst_buf, void *user_data)
 {
     H5T_conv_ret_t      ret = H5T_CONV_HANDLED;
@@ -677,7 +677,7 @@ test_hard_query(void)
  *-------------------------------------------------------------------------
  */
 static H5T_conv_ret_t
-expt_handle(H5T_conv_except_t except_type, hid_t UNUSED src_id, hid_t UNUSED dst_id, void UNUSED *src_buf,
+expt_handle(H5T_conv_except_t except_type, hid_t H5_ATTR_UNUSED src_id, hid_t H5_ATTR_UNUSED dst_id, void H5_ATTR_UNUSED *src_buf,
 		 void *dst_buf, void *user_data)
 {
     signed char         fill_value1 = 7;
@@ -5032,8 +5032,32 @@ run_int_fp_conv(const char *name)
 #endif
 #endif /* H5_SIZEOF_LONG!=H5_SIZEOF_INT */
 #if H5_SIZEOF_LONG_LONG!=H5_SIZEOF_LONG
+#if H5_LLONG_TO_LDOUBLE_CORRECT
     nerrors += test_conv_int_fp(name, TEST_NORMAL, H5T_NATIVE_LLONG, H5T_NATIVE_LDOUBLE);
+#else /* H5_LLONG_TO_LDOUBLE_CORRECT */
+    {
+        char		str[256];		/*hello string		*/
+
+        HDsnprintf(str, sizeof(str), "Testing %s %s -> %s conversions",
+                name, "long long", "long double");
+        printf("%-70s", str);
+        SKIPPED();
+        HDputs("    Test skipped due to compiler error in handling conversion.");
+    }
+#endif /* H5_LLONG_TO_LDOUBLE_CORRECT */
+#if H5_LLONG_TO_LDOUBLE_CORRECT
     nerrors += test_conv_int_fp(name, TEST_NORMAL, H5T_NATIVE_ULLONG, H5T_NATIVE_LDOUBLE);
+#else /* H5_LLONG_TO_LDOUBLE_CORRECT */
+    {
+        char		str[256];		/*hello string		*/
+
+        HDsnprintf(str, sizeof(str), "Testing %s %s -> %s conversions",
+                name, "unsigned long long", "long double");
+        printf("%-70s", str);
+        SKIPPED();
+        HDputs("    Test skipped due to compiler not handling conversion.");
+    }
+#endif /* H5_LLONG_TO_LDOUBLE_CORRECT */
 #endif
 #endif
 
@@ -5134,8 +5158,40 @@ run_fp_int_conv(const char *name)
 #endif /*H5_SIZEOF_LONG!=H5_SIZEOF_INT && H5_SIZEOF_LONG_DOUBLE!=0 */
 
 #if H5_SIZEOF_LONG_LONG!=H5_SIZEOF_LONG && H5_SIZEOF_LONG_DOUBLE!=0
+#ifdef H5_LDOUBLE_TO_LLONG_ACCURATE
         nerrors += test_conv_int_fp(name, test_values, H5T_NATIVE_LDOUBLE, H5T_NATIVE_LLONG);
+#else /*H5_LDOUBLE_TO_LLONG_ACCURATE*/
+        {
+            char		str[256];		/*string		*/
+
+            HDsnprintf(str, sizeof(str), "Testing %s %s -> %s conversions",
+                    name, "long double", "long long");
+            printf("%-70s", str);
+            SKIPPED();
+#if H5_SIZEOF_LONG_DOUBLE!=0
+            HDputs("    Test skipped due to hardware conversion error.");
+#else
+            HDputs("    Test skipped due to disabled long double.");
+#endif
+        }
+#endif /*H5_LDOUBLE_TO_LLONG_ACCURATE*/
+#if defined(H5_LDOUBLE_TO_LLONG_ACCURATE)
         nerrors += test_conv_int_fp(name, test_values, H5T_NATIVE_LDOUBLE, H5T_NATIVE_ULLONG);
+#else /*H5_LDOUBLE_TO_LLONG_ACCURATE*/
+        {
+            char		str[256];		/*string		*/
+
+            HDsnprintf(str, sizeof(str), "Testing %s %s -> %s conversions",
+                    name, "long double", "unsigned long long");
+            printf("%-70s", str);
+            SKIPPED();
+#if H5_SIZEOF_LONG_DOUBLE!=0
+            HDputs("    Test skipped due to hardware conversion error.");
+#else
+            HDputs("    Test skipped due to disabled long double.");
+#endif
+        }
+#endif /*H5_LDOUBLE_TO_LLONG_ACCURATE*/
 #endif
 #endif
 #ifndef H5_VMS

@@ -24,7 +24,7 @@ import org.junit.rules.TestName;
 
 public class TestH5Lcreate {
     @Rule public TestName testname = new TestName();
-    private static final String H5_EXTFILE = "test/hdf5lib/h5ex_g_iterate.hdf";
+    private static final String H5_EXTFILE = "h5ex_g_iterate.hdf";
     private static final String H5_FILE = "test.h5";
     private static final int DIM_X = 4;
     private static final int DIM_Y = 6;
@@ -152,19 +152,19 @@ public class TestH5Lcreate {
 
     @After
     public void deleteH5file() throws HDF5LibraryException {
-        if (H5gid > 0) 
+        if (H5gid > 0)
             try {H5.H5Gclose(H5gid);} catch (Exception ex) {}
-        if (H5gcpl > 0) 
+        if (H5gcpl > 0)
             try {H5.H5Pclose(H5gcpl);} catch (Exception ex) {}
-        if (H5did2 > 0) 
+        if (H5did2 > 0)
             try {H5.H5Dclose(H5did2);} catch (Exception ex) {}
-        if (H5dsid > 0) 
+        if (H5dsid > 0)
             try {H5.H5Sclose(H5dsid);} catch (Exception ex) {}
-        if (H5did1 > 0) 
+        if (H5did1 > 0)
             try {H5.H5Dclose(H5did1);} catch (Exception ex) {}
-        if (H5fid > 0) 
+        if (H5fid > 0)
             try {H5.H5Fclose(H5fid);} catch (Exception ex) {}
-        if (H5fcpl > 0) 
+        if (H5fcpl > 0)
             try {H5.H5Pclose(H5fcpl);} catch (Exception ex) {}
 
         _deleteFile(H5_FILE);
@@ -310,7 +310,7 @@ public class TestH5Lcreate {
     public void testH5Lget_val_soft() {
         String[] link_value = {null, null};
         int link_type = -1;
-        
+
         _createSoftLink(H5fid, "/G1/DS2", H5fid, "L1", HDF5Constants.H5P_DEFAULT, HDF5Constants.H5P_DEFAULT);
         try {
             link_type = H5.H5Lget_val(H5fid, "L1", link_value, HDF5Constants.H5P_DEFAULT);
@@ -421,7 +421,7 @@ public class TestH5Lcreate {
     public void testH5Lget_val_external(){
         String[] link_value = {null,null};
         int link_type = -1;
-        
+
         _createExternalLink(H5fid, H5_EXTFILE, "DT1", H5fid, "L1", HDF5Constants.H5P_DEFAULT, HDF5Constants.H5P_DEFAULT);
         try {
             link_type = H5.H5Lget_val(H5fid, "L1", link_value, HDF5Constants.H5P_DEFAULT);
@@ -505,7 +505,7 @@ public class TestH5Lcreate {
         H5L_info_t link_info = null;
         String[] link_value = {null,null};
         int link_type = -1;
-        
+
         _createSoftLink(H5fid, "/G1/DS2", H5fid, "LS", HDF5Constants.H5P_DEFAULT, HDF5Constants.H5P_DEFAULT);
         try {
             link_info = H5.H5Lget_info_by_idx(H5fid, "/", HDF5Constants.H5_INDEX_NAME, HDF5Constants.H5_ITER_INC, 2, HDF5Constants.H5P_DEFAULT);
@@ -533,7 +533,7 @@ public class TestH5Lcreate {
         H5L_info_t link_info = null;
         String[] link_value = {null,null};
         int link_type = -1;
- 
+
         try {
             int order = H5.H5Pget_link_creation_order(H5fcpl);
             assertTrue("creation order :"+order, order == HDF5Constants.H5P_CRT_ORDER_TRACKED+HDF5Constants.H5P_CRT_ORDER_INDEXED);
@@ -569,7 +569,7 @@ public class TestH5Lcreate {
         H5L_info_t link_info = null;
         String[] link_value = {null,null};
         int link_type = -1;
-        
+
         _createExternalLink(H5fid, H5_EXTFILE, "DT1", H5fid, "LE", HDF5Constants.H5P_DEFAULT, HDF5Constants.H5P_DEFAULT);
         try {
             link_info = H5.H5Lget_info_by_idx(H5fid, "/", HDF5Constants.H5_INDEX_NAME, HDF5Constants.H5_ITER_INC, 2, HDF5Constants.H5P_DEFAULT);
@@ -598,7 +598,7 @@ public class TestH5Lcreate {
         H5L_info_t link_info = null;
         String[] link_value = {null,null};
         int link_type = -1;
-        
+
         _createExternalLink(H5fid, H5_EXTFILE, "DT1", H5fid, "LE", HDF5Constants.H5P_DEFAULT, HDF5Constants.H5P_DEFAULT);
         try {
             link_info = H5.H5Lget_info_by_idx(H5fid, "/", HDF5Constants.H5_INDEX_CRT_ORDER, HDF5Constants.H5_ITER_INC, 2, HDF5Constants.H5P_DEFAULT);
@@ -708,7 +708,7 @@ public class TestH5Lcreate {
             err.printStackTrace();
             fail("H5.H5Lvisit_create: H5Pget_link_creation_order " + err);
         }
-        
+
         _createHardLink(H5fid, H5fid, "/G1/DS2", H5fid, "CPY1", HDF5Constants.H5P_DEFAULT, HDF5Constants.H5P_DEFAULT);
         _createExternalLink(H5fid, H5_EXTFILE, "DT1", H5fid, "LE", HDF5Constants.H5P_DEFAULT, HDF5Constants.H5P_DEFAULT);
         _createSoftLink(H5fid, "/G1/DS2", H5fid, "LS", HDF5Constants.H5P_DEFAULT, HDF5Constants.H5P_DEFAULT);
@@ -760,7 +760,7 @@ public class TestH5Lcreate {
             err.printStackTrace();
             fail("H5.H5Literate_create: H5Pget_link_creation_order " + err);
         }
-        
+
         _createHardLink(H5fid, H5fid, "/G1/DS2", H5fid, "CPY1", HDF5Constants.H5P_DEFAULT, HDF5Constants.H5P_DEFAULT);
         _createExternalLink(H5fid, H5_EXTFILE, "DT1", H5fid, "LE", HDF5Constants.H5P_DEFAULT, HDF5Constants.H5P_DEFAULT);
         _createSoftLink(H5fid, "/G1/DS2", H5fid, "LS", HDF5Constants.H5P_DEFAULT, HDF5Constants.H5P_DEFAULT);

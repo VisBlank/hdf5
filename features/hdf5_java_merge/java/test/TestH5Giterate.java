@@ -16,7 +16,7 @@ import org.junit.rules.TestName;
 
 public class TestH5Giterate {
     @Rule public TestName testname = new TestName();
-    private static final String H5_FILE = "test/hdf5lib/h5ex_g_iterate.hdf";
+    private static final String H5_FILE = "h5ex_g_iterate.hdf";
     long H5fid = -1;
 
     private final long _openGroup(long fid, String name) {

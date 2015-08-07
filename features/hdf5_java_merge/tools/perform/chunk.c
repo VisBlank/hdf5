@@ -33,13 +33,13 @@
 #   include <string.h>
 #endif
 
-
-#if !defined(H5_HAVE_ATTRIBUTE) || defined __cplusplus
+/* Solaris Studio defines attribute, but for the attributes we need */
+#if !defined(H5_HAVE_ATTRIBUTE) || defined __cplusplus || defined(__SUNPRO_C)
 #   undef __attribute__
 #   define __attribute__(X) /*void*/
-#   define UNUSED /*void*/
+#   define H5_ATTR_UNUSED /*void*/
 #else
-#   define UNUSED __attribute__((unused))
+#   define H5_ATTR_UNUSED __attribute__((unused))
 #endif
 
 #define FILE_NAME	"chunk.h5"
@@ -78,7 +78,7 @@ static hid_t	fapl_g = -1;
 
 /* Local function prototypes */
 static size_t
-counter (unsigned UNUSED flags, size_t cd_nelmts,
+counter (unsigned H5_ATTR_UNUSED flags, size_t cd_nelmts,
 	 const unsigned *cd_values, size_t nbytes,
 	 size_t *buf_size, void **buf);
 
@@ -111,9 +111,9 @@ const H5Z_class2_t H5Z_COUNTER[1] = {{
  *-------------------------------------------------------------------------
  */
 static size_t
-counter (unsigned UNUSED flags, size_t UNUSED cd_nelmts,
-	 const unsigned UNUSED *cd_values, size_t nbytes,
-	 size_t UNUSED *buf_size, void UNUSED **buf)
+counter (unsigned H5_ATTR_UNUSED flags, size_t H5_ATTR_UNUSED cd_nelmts,
+	 const unsigned H5_ATTR_UNUSED *cd_values, size_t nbytes,
+	 size_t H5_ATTR_UNUSED *buf_size, void H5_ATTR_UNUSED **buf)
 {
     nio_g += nbytes;
     return nbytes;

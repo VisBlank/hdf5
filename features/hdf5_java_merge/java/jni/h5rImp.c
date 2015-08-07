@@ -1,23 +1,19 @@
-/****************************************************************************
- * NCSA HDF                                                                 *
- * National Comptational Science Alliance                                   *
- * University of Illinois at Urbana-Champaign                               *
- * 605 E. Springfield, Champaign IL 61820                                   *
- *                                                                          *
- * For conditions of distribution and use, see the accompanying             *
- * hdf-java/COPYING file.                                                   *
- *                                                                          *
- ****************************************************************************/
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * Copyright by The HDF Group.                                               *
+ * Copyright by the Board of Trustees of the University of Illinois.         *
+ * All rights reserved.                                                      *
+ *                                                                           *
+ * This file is part of HDF Java Products. The full HDF Java copyright       *
+ * notice, including terms governing use, modification, and redistribution,  *
+ * is contained in the file, COPYING.  COPYING can be found at the root of   *
+ * the source code distribution tree. You can also access it online  at      *
+ * http://www.hdfgroup.org/products/licenses.html.  If you do not have       *
+ * access to the file, you may request a copy from help@hdfgroup.org.        *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 /*
- *  This code is the C-interface called by Java programs to access the
- *  Reference API Functions of the HDF5 library.
- *
- *  Each routine wraps a single HDF entry point, generally with the
- *  analogous arguments and return codes.
- *
  *  For details of the HDF libraries, see the HDF Documentation at:
- *   http://hdf.ncsa.uiuc.edu/HDF5/doc/
+ *    http://hdfdfgroup.org/HDF5/doc/
  *
  */
 #ifdef __cplusplus
@@ -31,7 +27,7 @@ extern "C" {
 
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5Rcreate
  * Signature: ([BJLjava/lang/String;IJ)I
  */
@@ -94,7 +90,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Rcreate
 }
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    _H5Rdereference
  * Signature: (JJI[B)J
  */
@@ -135,7 +131,7 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Rdereference
 }
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5Rget_region
  * Signature: (JI[B)J
  */
@@ -177,7 +173,7 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Rget_1region
 }
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5G_obj_t H5Rget_obj_type
  * Signature: (JI[B)I
  */
@@ -214,7 +210,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Rget_1obj_1type
 }
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    int H5Rget_obj_type2
  * Signature: (JI[B[I)I
  */
@@ -265,7 +261,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Rget_1obj_1type2
 }
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5Rget_name
  * Signature: (JI[B[Ljava/lang/String;J)J
  */

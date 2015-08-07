@@ -12,12 +12,6 @@
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 /*
- *  This code is the C-interface called by Java programs to access the
- *  Link Object API Functions of the HDF5 library.
- *
- *  Each routine wraps a single HDF entry point, generally with the
- *  analogous arguments and return codes.
- *
  *  For details of the HDF libraries, see the HDF Documentation at:
  *    http://hdfdfgroup.org/HDF5/doc/
  *
@@ -48,7 +42,7 @@ extern "C" {
 #endif
     
     /*
-     * Class:     ncsa_hdf_hdf5lib_H5
+     * Class:     hdf_hdf5lib_H5
      * Method:    H5Lcopy
      * Signature: (JLjava/lang/String;JLjava/lang/String;JJ)V
      */
@@ -98,7 +92,7 @@ extern "C" {
     }
     
     /*
-     * Class:     ncsa_hdf_hdf5lib_H5
+     * Class:     hdf_hdf5lib_H5
      * Method:    H5Lcreate_external
      * Signature: (Ljava/lang/String;Ljava/lang/String;JLjava/lang/String;JJ)V
      */
@@ -165,7 +159,7 @@ extern "C" {
   }
     
     /*
-     * Class:     ncsa_hdf_hdf5lib_H5
+     * Class:     hdf_hdf5lib_H5
      * Method:    H5Lcreate_hard
      * Signature: (JLjava/lang/String;JLjava/lang/String;JJ)V
      */
@@ -215,7 +209,7 @@ extern "C" {
     }
     
     /*
-     * Class:     ncsa_hdf_hdf5lib_H5
+     * Class:     hdf_hdf5lib_H5
      * Method:    H5Lcreate_soft
      * Signature: (Ljava/lang/String;JLjava/lang/String;JJ)V
      */
@@ -265,7 +259,7 @@ extern "C" {
     }
     
     /*
-     * Class:     ncsa_hdf_hdf5lib_H5
+     * Class:     hdf_hdf5lib_H5
      * Method:    H5Ldelete
      * Signature: (JLjava/lang/String;J)V
      */
@@ -298,7 +292,7 @@ extern "C" {
     }
     
     /*
-     * Class:     ncsa_hdf_hdf5lib_H5
+     * Class:     hdf_hdf5lib_H5
      * Method:    H5Ldelete_by_idx
      * Signature: (JLjava/lang/String;IIJJ)V
      */
@@ -332,7 +326,7 @@ extern "C" {
     }
     
     /*
-     * Class:     ncsa_hdf_hdf5lib_H5
+     * Class:     hdf_hdf5lib_H5
      * Method:    H5Lexists
      * Signature: (JLjava/lang/String;J)Z
      */
@@ -370,9 +364,9 @@ extern "C" {
     }
     
     /*
-     * Class:     ncsa_hdf_hdf5lib_H5
+     * Class:     hdf_hdf5lib_H5
      * Method:    H5Lget_info
-     * Signature: (JLjava/lang/String;J)Lncsa/hdf/hdf5lib/structs/H5L_info_t;
+     * Signature: (JLjava/lang/String;J)Lhdf/hdf5lib/structs/H5L_info_t;
      */
     JNIEXPORT jobject JNICALL Java_hdf_hdf5lib_H5_H5Lget_1info
     (JNIEnv *env, jclass clss, jlong loc_id, jstring name, jlong access_id)
@@ -407,7 +401,7 @@ extern "C" {
         }
 
         // get a reference to your class if you don't have it already
-        cls = ENVPTR->FindClass(ENVPAR "ncsa/hdf/hdf5lib/structs/H5L_info_t");
+        cls = ENVPTR->FindClass(ENVPAR "hdf/hdf5lib/structs/H5L_info_t");
         if (cls == 0) {
            h5JNIFatalError( env, "JNI error: GetObjectClass failed\n");
            return NULL;
@@ -431,9 +425,9 @@ extern "C" {
     }
     
     /*
-     * Class:     ncsa_hdf_hdf5lib_H5
+     * Class:     hdf_hdf5lib_H5
      * Method:    H5Lget_info_by_idx
-     * Signature: (JLjava/lang/String;IIJJ)Lncsa/hdf/hdf5lib/structs/H5L_info_t;
+     * Signature: (JLjava/lang/String;IIJJ)Lhdf/hdf5lib/structs/H5L_info_t;
      */
     JNIEXPORT jobject JNICALL Java_hdf_hdf5lib_H5_H5Lget_1info_1by_1idx
     (JNIEnv *env, jclass clss, jlong loc_id, jstring name, jint index_field, jint order, jlong link_n, jlong access_id)
@@ -468,7 +462,7 @@ extern "C" {
         }
 
         // get a reference to your class if you don't have it already
-        cls = ENVPTR->FindClass(ENVPAR "ncsa/hdf/hdf5lib/structs/H5L_info_t");
+        cls = ENVPTR->FindClass(ENVPAR "hdf/hdf5lib/structs/H5L_info_t");
         if (cls == 0) {
             h5JNIFatalError(env, "JNI error: GetObjectClass failed\n");
            return NULL;
@@ -492,7 +486,7 @@ extern "C" {
     }
     
     /*
-     * Class:     ncsa_hdf_hdf5lib_H5
+     * Class:     hdf_hdf5lib_H5
      * Method:    H5Lget_name_by_idx
      * Signature: (JLjava/lang/String;IIJJ)Ljava/lang/String;
      */
@@ -557,7 +551,7 @@ extern "C" {
     }
     
     /*
-     * Class:     ncsa_hdf_hdf5lib_H5
+     * Class:     hdf_hdf5lib_H5
      * Method:    H5Lget_val
      * Signature: (JLjava/lang/String;[Ljava/lang/String;J)I
      */
@@ -659,7 +653,7 @@ extern "C" {
     }
     
     /*
-     * Class:     ncsa_hdf_hdf5lib_H5
+     * Class:     hdf_hdf5lib_H5
      * Method:    H5Lget_val_by_idx
      * Signature: (JLjava/lang/String;IIJ[Ljava/lang/String;J)I
      */
@@ -760,7 +754,7 @@ extern "C" {
     }
     
     /*
-     * Class:     ncsa_hdf_hdf5lib_H5
+     * Class:     hdf_hdf5lib_H5
      * Method:    H5Lmove
      * Signature: (JLjava/lang/String;JLjava/lang/String;JJ)V
      */
@@ -830,7 +824,7 @@ extern "C" {
            JVMPTR->DetachCurrentThread(JVMPAR);
            return -1;
         }
-        mid = CBENVPTR->GetMethodID(CBENVPAR cls, "callback", "(JLjava/lang/String;Lncsa/hdf/hdf5lib/structs/H5L_info_t;Lncsa/hdf/hdf5lib/callbacks/H5L_iterate_t;)I");
+        mid = CBENVPTR->GetMethodID(CBENVPAR cls, "callback", "(JLjava/lang/String;Lhdf/hdf5lib/structs/H5L_info_t;Lhdf/hdf5lib/callbacks/H5L_iterate_t;)I");
         if (mid == 0) {
             /* printf("JNI H5L_iterate_cb error: GetMethodID failed\n"); */
             JVMPTR->DetachCurrentThread(JVMPAR);
@@ -839,7 +833,7 @@ extern "C" {
         str = CBENVPTR->NewStringUTF(CBENVPAR name);
 
         // get a reference to your class if you don't have it already
-        cls = CBENVPTR->FindClass(CBENVPAR "ncsa/hdf/hdf5lib/structs/H5L_info_t");
+        cls = CBENVPTR->FindClass(CBENVPAR "hdf/hdf5lib/structs/H5L_info_t");
         if (cls == 0) {
             /* printf("JNI H5L_iterate_cb error: GetObjectClass info failed\n"); */
            JVMPTR->DetachCurrentThread(JVMPAR);
@@ -869,7 +863,7 @@ extern "C" {
     }
     
     /*
-     * Class:     ncsa_hdf_hdf5lib_H5
+     * Class:     hdf_hdf5lib_H5
      * Method:    H5Lvisit
      * Signature: (JIILjava/lang/Object;Ljava/lang/Object;)I
      */
@@ -902,7 +896,7 @@ extern "C" {
     }
     
     /*
-     * Class:     ncsa_hdf_hdf5lib_H5
+     * Class:     hdf_hdf5lib_H5
      * Method:    H5Lvisit_by_name
      * Signature: (JLjava/lang/String;IILjava/lang/Object;Ljava/lang/Object;J)I
      */
@@ -950,7 +944,7 @@ extern "C" {
     }
     
     /*
-     * Class:     ncsa_hdf_hdf5lib_H5
+     * Class:     hdf_hdf5lib_H5
      * Method:    H5Literate
      * Signature: (JIIJLjava/lang/Object;Ljava/lang/Object;)I
      */
@@ -984,7 +978,7 @@ extern "C" {
     }
     
     /*
-     * Class:     ncsa_hdf_hdf5lib_H5
+     * Class:     hdf_hdf5lib_H5
      * Method:    H5Literate_by_name
      * Signature: (JLjava/lang/String;IIJLjava/lang/Object;Ljava/lang/Object;J)I
      */

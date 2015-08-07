@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package test;
 
@@ -28,7 +28,7 @@ import org.junit.rules.TestName;
 
 /**
  * @author xcao
- * 
+ *
  */
 public class TestH5 {
     @Rule public TestName testname = new TestName();
@@ -83,7 +83,6 @@ public class TestH5 {
 
         assertFalse(H5F_ACC_RDONLY == HDF5Constants.H5F_ACC_RDWR);
         assertFalse(H5F_OBJ_FILE == HDF5Constants.H5F_OBJ_GROUP);
-
     }
 
     /**
@@ -175,7 +174,7 @@ public class TestH5 {
      */
     @Test
     public void testH5check_version() {
-        int majnum = 1, minnum = 9, relnum = 192;
+        int majnum = 1, minnum = 9, relnum = 0;
 
         try {
             H5.H5check_version(majnum, minnum, relnum);
@@ -191,7 +190,7 @@ public class TestH5 {
             fail("H5.H5check_version failed: " + err);
         }
     }
-    
+
     @Test
     public void testIsSerializable() {
         H5 test = new H5();
@@ -209,9 +208,9 @@ public class TestH5 {
         assertTrue(out.toByteArray().length > 0);
 
     }
-    
+
     @SuppressWarnings("static-access")
-    @Test 
+    @Test
     public void serializeToDisk()
     {
         try {
@@ -225,13 +224,13 @@ public class TestH5 {
         catch (Exception ex) {
             fail("Exception thrown during test: " + ex.toString());
         }
-        
+
         try {
             FileInputStream fis = new FileInputStream("temph5.ser");
             ObjectInputStream ois = new ObjectInputStream(fis);
             H5 test = (hdf.hdf5lib.H5) ois.readObject();
             ois.close();
-            
+
             assertTrue("H5.LIB_VERSION[0]", test.LIB_VERSION[0]==H5.LIB_VERSION[0]);
             assertTrue("H5.LIB_VERSION[1]", test.LIB_VERSION[1]==H5.LIB_VERSION[1]);
 //            assertTrue("H5.LIB_VERSION[2]", test.LIB_VERSION[2]==H5.LIB_VERSION[2]);

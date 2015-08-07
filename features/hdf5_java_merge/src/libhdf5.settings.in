@@ -54,9 +54,6 @@ Languages:
 @BUILD_CXX_CONDITIONAL_TRUE@             Shared C++ Library: @enable_shared@
 @BUILD_CXX_CONDITIONAL_TRUE@             Static C++ Library: @enable_static@
 
-            Java (JNI) Wrappers: @HDF_JNI@
-@BUILD_JNI_CONDITIONAL_TRUE@                      JNI Flags: @JNIFLAGS@
-
 Features:
 ---------
                   Parallel HDF5: @PARALLEL@

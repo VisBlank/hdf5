@@ -11,6 +11,12 @@
  * access to the file, you may request a copy from help@hdfgroup.org.        *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+/*
+ *  For details of the HDF libraries, see the HDF Documentation at:
+ *    http://hdfdfgroup.org/HDF5/doc/
+ *
+ */
+
 #include "H5version.h"
 #include <string.h>
 

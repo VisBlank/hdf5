@@ -30,10 +30,6 @@ package hdf.hdf5lib;
  * link value (the name of the pointed-to object with the null terminator);
  * otherwise linklen will be zero. Other fields may be added to this structure
  * in the future.
- * <p>
- * For details of the HDF5 libraries, see the HDF5 Documentation at: <a
- * href="http://hdf.ncsa.uiuc.edu/HDF5/doc/"
- * >http://hdf.ncsa.uiuc.edu/HDF5/doc/</a>
  */
 
 public class HDF5GroupInfo {

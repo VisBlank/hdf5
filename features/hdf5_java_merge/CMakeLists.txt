@@ -47,7 +47,7 @@ endif ()
 #   dependencies to this variable so that external projects pick them up
 #
 # HDF5_EXTERNAL_LIB_PREFIX :
-#   If the parent project needs to install hdf libraries, but avoid 
+#   If the parent project needs to install hdf libraries, but avoid
 #   name conflicts with system versions, then a prefix may be added
 #   to ensure that the correct versions configured are used.
 #
@@ -71,8 +71,8 @@ endif ()
 #   # Setup all necessary overrides for zlib so that HDF5 uses our
 #   # internally compiled zlib rather than any other version
 #   if (HDF5_ENABLE_Z_LIB_SUPPORT)
-#     # We must tell the main HDF5 library that it depends on our zlib 
-#     set (HDF5_LIB_DEPENDENCIES vtkzlib)    
+#     # We must tell the main HDF5 library that it depends on our zlib
+#     set (HDF5_LIB_DEPENDENCIES vtkzlib)
 #     # Override the zlib header file
 #     if (VTK_USE_SYSTEM_ZLIB)
 #       set (H5_ZLIB_HEADER "zlib.h")
@@ -83,10 +83,11 @@ endif ()
 #       set (ZLIB_LIBRARIES vtkzlib)
 #     endif (VTK_USE_SYSTEM_ZLIB)
 #   endif (HDF5_ENABLE_Z_LIB_SUPPORT)
-# 
+#
 #   # Add the sub project
 #   add_subdirectory (Utilities/hdf5-1.8)
 #-----------------------------------------------------------------------------
+string(TIMESTAMP CONFIG_DATE "%Y-%m-%d")
 
 #-----------------------------------------------------------------------------
 # Allow Visual Studio solution directories
@@ -144,21 +145,33 @@ set (HDF5_JAVA_TEST_LIB_NAME    "${HDF5_EXTERNAL_LIB_PREFIX}${HDF5_JAVA_TEST_LIB
 #-----------------------------------------------------------------------------
 # Set the target names of all the libraries
 #-----------------------------------------------------------------------------
-set (HDF5_LIB_TARGET              ${HDF5_LIB_CORENAME})
-set (HDF5_TEST_LIB_TARGET         ${HDF5_TEST_LIB_CORENAME})
-set (HDF5_CPP_LIB_TARGET          ${HDF5_CPP_LIB_CORENAME})
-set (HDF5_HL_LIB_TARGET           ${HDF5_HL_LIB_CORENAME})
-set (HDF5_HL_CPP_LIB_TARGET       ${HDF5_HL_CPP_LIB_CORENAME})
-set (HDF5_TOOLS_LIB_TARGET        ${HDF5_TOOLS_LIB_CORENAME})
-set (HDF5_F90_LIB_TARGET          ${HDF5_F90_LIB_CORENAME})
-set (HDF5_F90_C_LIB_TARGET        ${HDF5_F90_C_LIB_CORENAME})
-set (HDF5_F90_TEST_LIB_TARGET     ${HDF5_F90_TEST_LIB_CORENAME})
-set (HDF5_F90_C_TEST_LIB_TARGET   ${HDF5_F90_C_TEST_LIB_CORENAME})
-set (HDF5_HL_F90_LIB_TARGET       ${HDF5_HL_F90_LIB_CORENAME})
-set (HDF5_HL_F90_C_LIB_TARGET     ${HDF5_HL_F90_C_LIB_CORENAME})
-set (HDF5_JAVA_JNI_LIB_TARGET     ${HDF5_JAVA_JNI_LIB_CORENAME})
-set (HDF5_JAVA_HDF5_LIB_TARGET    ${HDF5_JAVA_HDF5_LIB_CORENAME})
-set (HDF5_JAVA_TEST_LIB_TARGET    ${HDF5_JAVA_TEST_LIB_CORENAME})
+set (HDF5_LIB_TARGET              "${HDF5_LIB_CORENAME}-static")
+set (HDF5_TEST_LIB_TARGET         "${HDF5_TEST_LIB_CORENAME}-static")
+set (HDF5_CPP_LIB_TARGET          "${HDF5_CPP_LIB_CORENAME}-static")
+set (HDF5_HL_LIB_TARGET           "${HDF5_HL_LIB_CORENAME}-static")
+set (HDF5_HL_CPP_LIB_TARGET       "${HDF5_HL_CPP_LIB_CORENAME}-static")
+set (HDF5_TOOLS_LIB_TARGET        "${HDF5_TOOLS_LIB_CORENAME}-static")
+set (HDF5_F90_LIB_TARGET          "${HDF5_F90_LIB_CORENAME}-static")
+set (HDF5_F90_C_LIB_TARGET        "${HDF5_F90_C_LIB_CORENAME}-static")
+set (HDF5_F90_TEST_LIB_TARGET     "${HDF5_F90_TEST_LIB_CORENAME}-static")
+set (HDF5_F90_C_TEST_LIB_TARGET   "${HDF5_F90_C_TEST_LIB_CORENAME}-static")
+set (HDF5_HL_F90_LIB_TARGET       "${HDF5_HL_F90_LIB_CORENAME}-static")
+set (HDF5_HL_F90_C_LIB_TARGET     "${HDF5_HL_F90_C_LIB_CORENAME}-static")
+set (HDF5_JAVA_JNI_LIB_TARGET     "${HDF5_JAVA_JNI_LIB_CORENAME}")
+set (HDF5_JAVA_HDF5_LIB_TARGET    "${HDF5_JAVA_HDF5_LIB_CORENAME}")
+set (HDF5_JAVA_TEST_LIB_TARGET    "${HDF5_JAVA_TEST_LIB_CORENAME}")
+set (HDF5_LIBSH_TARGET            "${HDF5_LIB_CORENAME}-shared")
+set (HDF5_TEST_LIBSH_TARGET       "${HDF5_TEST_LIB_CORENAME}-shared")
+set (HDF5_CPP_LIBSH_TARGET        "${HDF5_CPP_LIB_CORENAME}-shared")
+set (HDF5_HL_LIBSH_TARGET         "${HDF5_HL_LIB_CORENAME}-shared")
+set (HDF5_HL_CPP_LIBSH_TARGET     "${HDF5_HL_CPP_LIB_CORENAME}-shared")
+set (HDF5_TOOLS_LIBSH_TARGET      "${HDF5_TOOLS_LIB_CORENAME}-shared")
+set (HDF5_F90_LIBSH_TARGET        "${HDF5_F90_LIB_CORENAME}-shared")
+set (HDF5_F90_C_LIBSH_TARGET      "${HDF5_F90_C_LIB_CORENAME}-shared")
+set (HDF5_F90_TEST_LIBSH_TARGET   "${HDF5_F90_TEST_LIB_CORENAME}-shared")
+set (HDF5_F90_C_TEST_LIBSH_TARGET "${HDF5_F90_C_TEST_LIB_CORENAME}-shared")
+set (HDF5_HL_F90_LIBSH_TARGET     "${HDF5_HL_F90_LIB_CORENAME}-shared")
+set (HDF5_HL_F90_C_LIBSH_TARGET   "${HDF5_HL_F90_C_LIB_CORENAME}-shared")
 
 #-----------------------------------------------------------------------------
 # Define some CMake variables for use later in the project
@@ -182,42 +195,44 @@ set (HDF5_JAVA_LOGGING_JAR         ${HDF5_SOURCE_DIR}/java/lib/slf4j-api-1.7.5.j
 set (HDF5_JAVA_LOGGING_NOP_JAR     ${HDF5_SOURCE_DIR}/java/lib/ext/slf4j-nop-1.7.5.jar)
 set (HDF5_JAVA_LOGGING_SIMPLE_JAR  ${HDF5_SOURCE_DIR}/java/lib/ext/slf4j-simple-1.7.5.jar)
 
+if (APPLE)
+  option (HDFJAVA_BUILD_FRAMEWORKS "Create a Mac OSX Framework" OFF)
+endif (APPLE)
+
 if (NOT HDF5_INSTALL_BIN_DIR)
   set (HDF5_INSTALL_BIN_DIR bin)
 endif (NOT HDF5_INSTALL_BIN_DIR)
 if (NOT HDF5_INSTALL_LIB_DIR)
-  set (HDF5_INSTALL_LIB_DIR lib)
   if (APPLE)
-    option (HDF5_PACK_MACOSX_BUNDLE "Create a Mac OSX Application Bundle" OFF)
-    if (HDFJ5_PACK_MACOSX_BUNDLE)
+    if (HDF5_BUILD_FRAMEWORKS)
       set (HDF5_INSTALL_JAR_DIR ../Java)
-    else (HDF5_PACK_MACOSX_BUNDLE)
+    else (HDF5_BUILD_FRAMEWORKS)
       set (HDF5_INSTALL_JAR_DIR lib)
-    endif (HDF5_PACK_MACOSX_BUNDLE)
+    endif (HDF5_BUILD_FRAMEWORKS)
+    set (HDF5_INSTALL_FMWK_DIR ${CMAKE_INSTALL_FRAMEWORK_PREFIX})
   else (APPLE)
     set (HDF5_INSTALL_JAR_DIR lib)
   endif (APPLE)
+  set (HDF5_INSTALL_LIB_DIR lib)
 endif (NOT HDF5_INSTALL_LIB_DIR)
 if (NOT HDF5_INSTALL_INCLUDE_DIR)
   set (HDF5_INSTALL_INCLUDE_DIR include)
 endif (NOT HDF5_INSTALL_INCLUDE_DIR)
 if (NOT HDF5_INSTALL_DATA_DIR)
   if (NOT WIN32)
+    if (APPLE)
+      if (HDF5_BUILD_FRAMEWORKS)
+        set (HDF5_INSTALL_EXTRA_DIR ../SharedSupport)
+      else (HDF5_BUILD_FRAMEWORKS)
+        set (HDF5_INSTALL_EXTRA_DIR share)
+      endif (HDF5_BUILD_FRAMEWORKS)
+      set (HDF5_INSTALL_FWRK_DIR ${CMAKE_INSTALL_FRAMEWORK_PREFIX})
+    endif (APPLE)
     set (HDF5_INSTALL_DATA_DIR share)
     set (HDF5_INSTALL_CMAKE_DIR share/cmake)
-    if (APPLE)
-      if (HDF5_PACK_MACOSX_BUNDLE)
-        set (HDF5_INSTALL_EXTRA_DIR ../SharedSupport)
-      else (HDF5_PACK_MACOSX_BUNDLE)
-        set (HDF5_INSTALL_EXTRA_DIR share)
-      endif (HDF5_PACK_MACOSX_BUNDLE)
-    else (APPLE)
-      set (HDF5_INSTALL_EXTRA_DIR share)
-    endif (APPLE)
   else (NOT WIN32)
     set (HDF5_INSTALL_DATA_DIR ".")
     set (HDF5_INSTALL_CMAKE_DIR cmake)
-    set (HDF5_INSTALL_EXTRA_DIR ".")
   endif (NOT WIN32)
 endif (NOT HDF5_INSTALL_DATA_DIR)
 
@@ -290,6 +305,11 @@ if (NOT HDF5_EXTERNALLY_CONFIGURED)
   set (CMAKE_Fortran_MODULE_DIRECTORY
       ${PROJECT_BINARY_DIR}/bin CACHE PATH "Single Directory for all fortran modules."
   )
+  if (WIN32)
+    set (CMAKE_TEST_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${CMAKE_BUILD_TYPE})
+  else (WIN32)
+    set (CMAKE_TEST_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+  endif (WIN32)
 else (NOT HDF5_EXTERNALLY_CONFIGURED)
   # if we are externally configured, but the project uses old cmake scripts
   # this may not be set and utilities like H5detect will fail
@@ -300,7 +320,7 @@ endif (NOT HDF5_EXTERNALLY_CONFIGURED)
 
 #-----------------------------------------------------------------------------
 # Targets built within this project are exported at Install time for use
-# by other projects using FindHDF5. 
+# by other projects using FindHDF5.
 #-----------------------------------------------------------------------------
 if (NOT HDF5_EXPORTED_TARGETS)
   set (HDF5_EXPORTED_TARGETS "hdf5-targets")
@@ -324,20 +344,23 @@ include (${HDF_RESOURCES_DIR}/ConfigureChecks.cmake)
 set (CMAKE_INCLUDE_CURRENT_DIR_IN_INTERFACE ON)
 
 #-----------------------------------------------------------------------------
-# Option to Build Shared/Static libs, default is static
+# Mac OS X Options
 #-----------------------------------------------------------------------------
-option (BUILD_SHARED_LIBS "Build Shared Libraries" OFF)
-set (LIB_TYPE STATIC)
+option (HDF5_BUILD_FRAMEWORKS "TRUE to build as frameworks libraries, FALSE to build according to BUILD_SHARED_LIBS" TRUE)
+if (HDF5_BUILD_FRAMEWORKS AND NOT BUILD_SHARED_LIBS)
+  set (BUILD_SHARED_LIBS ON CACHE BOOL "Build Shared Libraries")
+endif (HDF5_BUILD_FRAMEWORKS AND NOT BUILD_SHARED_LIBS)
+
+#-----------------------------------------------------------------------------
+# Option to Build Shared and Static libs, default is static
+#-----------------------------------------------------------------------------
+option (BUILD_SHARED_LIBS "Build Shared Libraries" ON)
 set (H5_ENABLE_SHARED_LIB NO)
-set (H5_ENABLE_STATIC_LIB NO)
 if (BUILD_SHARED_LIBS)
-  set (LIB_TYPE SHARED)
-  set (H5_BUILT_AS_DYNAMIC_LIB 1)
   set (H5_ENABLE_SHARED_LIB YES)
-else (BUILD_SHARED_LIBS)
-  set (H5_BUILT_AS_STATIC_LIB 1)
-  set (H5_ENABLE_STATIC_LIB YES)
+  set (LINK_SHARED_LIBS ${LINK_LIBS})
 endif (BUILD_SHARED_LIBS)
+set (H5_ENABLE_STATIC_LIB YES)
 set (CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 #-----------------------------------------------------------------------------
@@ -358,7 +381,7 @@ option (HDF5_ENABLE_COVERAGE "Enable code coverage for Libraries and Programs" O
 if (HDF5_ENABLE_COVERAGE)
   set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0 -fprofile-arcs -ftest-coverage")
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 -fprofile-arcs -ftest-coverage")
-  set (LDFLAGS "${LDFLAGS} -fprofile-arcs -ftest-coverage")   
+  set (LDFLAGS "${LDFLAGS} -fprofile-arcs -ftest-coverage")
 endif (HDF5_ENABLE_COVERAGE)
 
 #-----------------------------------------------------------------------------
@@ -367,7 +390,7 @@ endif (HDF5_ENABLE_COVERAGE)
 # option (HDF5_ENABLE_USING_DMALLOC "Indicate that dmalloc is used" OFF)
 # if (HDF5_ENABLE_USING_DMALLOC)
 #   find_package (DMALLOC)
-#   set (H5_HAVE_DMALLOC DMALLOC_FOUND)   
+#   set (H5_HAVE_DMALLOC DMALLOC_FOUND)
 # endif (HDF5_ENABLE_USING_DMALLOC)
 
 #-----------------------------------------------------------------------------
@@ -375,7 +398,7 @@ endif (HDF5_ENABLE_COVERAGE)
 #-----------------------------------------------------------------------------
 option (HDF5_ENABLE_USING_MEMCHECKER "Indicate that a memory checker is used" OFF)
 if (HDF5_ENABLE_USING_MEMCHECKER)
-  set (H5_USING_MEMCHECKER 1)   
+  set (H5_USING_MEMCHECKER 1)
 endif (HDF5_ENABLE_USING_MEMCHECKER)
 
 #-----------------------------------------------------------------------------
@@ -383,9 +406,9 @@ endif (HDF5_ENABLE_USING_MEMCHECKER)
 #-----------------------------------------------------------------------------
 option (HDF5_ENABLE_DEPRECATED_SYMBOLS "Enable deprecated public API symbols" ON)
 if (HDF5_ENABLE_DEPRECATED_SYMBOLS)
-  set (H5_NO_DEPRECATED_SYMBOLS 0)   
+  set (H5_NO_DEPRECATED_SYMBOLS 0)
 else (HDF5_ENABLE_DEPRECATED_SYMBOLS)
-  set (H5_NO_DEPRECATED_SYMBOLS 1)   
+  set (H5_NO_DEPRECATED_SYMBOLS 1)
 endif (HDF5_ENABLE_DEPRECATED_SYMBOLS)
 
 #-----------------------------------------------------------------------------
@@ -487,6 +510,7 @@ endif (HDF5_ENABLE_PARALLEL)
 # Parallel IO usage requires MPI to be Linked and Included
 if (H5_HAVE_PARALLEL)
   set (LINK_LIBS ${LINK_LIBS} ${MPI_C_LIBRARIES})
+  set (LINK_SHARED_LIBS ${LINK_SHARED_LIBS} ${MPI_C_LIBRARIES})
   if (MPI_C_LINK_FLAGS)
     set (CMAKE_EXE_LINKER_FLAGS "${MPI_C_LINK_FLAGS} ${CMAKE_EXE_LINKER_FLAGS}")
   endif (MPI_C_LINK_FLAGS)
@@ -533,7 +557,7 @@ if (NOT HDF5_EXTERNALLY_CONFIGURED)
     if (HDF5_ENABLE_Z_LIB_SUPPORT AND ZLIB_FOUND)
       PACKAGE_ZLIB_LIBRARY (${HDF5_ALLOW_EXTERNAL_SUPPORT})
     endif (HDF5_ENABLE_Z_LIB_SUPPORT AND ZLIB_FOUND)
-    
+
     if (HDF5_ENABLE_SZIP_SUPPORT AND SZIP_FOUND)
       PACKAGE_SZIP_LIBRARY (${HDF5_ALLOW_EXTERNAL_SUPPORT})
     endif (HDF5_ENABLE_SZIP_SUPPORT AND SZIP_FOUND)
@@ -541,7 +565,7 @@ if (NOT HDF5_EXTERNALLY_CONFIGURED)
 endif (NOT HDF5_EXTERNALLY_CONFIGURED)
 #-----------------------------------------------------------------------------
 # Option to use threadsafe
-# Note: Currently CMake only allows configuring of threadsafe on 
+# Note: Currently CMake only allows configuring of threadsafe on
 # non-Cygwin WINDOWS.
 #-----------------------------------------------------------------------------
 if (WIN32)
@@ -575,7 +599,7 @@ endif (WIN32)
 
 # -----------------------------------------------------------------------
 # wrapper script variables
-# 
+#
 #set (CFLAGS "${C_DEFINES}")
 #set (CXXFLAGS "${CXX_DEFINES}")
 
@@ -587,9 +611,15 @@ add_subdirectory (${HDF5_SOURCE_DIR}/src ${PROJECT_BINARY_DIR}/src)
 if (HDF5_ALLOW_EXTERNAL_SUPPORT MATCHES "SVN" OR HDF5_ALLOW_EXTERNAL_SUPPORT MATCHES "TGZ")
   if (ZLIB_FOUND AND ZLIB_USE_EXTERNAL)
     ADD_DEPENDENCIES (${HDF5_LIB_TARGET} ZLIB)
+    if (BUILD_SHARED_LIBS)
+      add_dependencies (${HDF5_LIBSH_TARGET} ZLIB)
+    endif (BUILD_SHARED_LIBS)
   endif (ZLIB_FOUND AND ZLIB_USE_EXTERNAL)
   if (SZIP_FOUND AND SZIP_USE_EXTERNAL)
     ADD_DEPENDENCIES (${HDF5_LIB_TARGET} SZIP)
+    if (BUILD_SHARED_LIBS)
+      add_dependencies (${HDF5_LIBSH_TARGET} SZIP)
+    endif (BUILD_SHARED_LIBS)
   endif (SZIP_FOUND AND SZIP_USE_EXTERNAL)
 endif (HDF5_ALLOW_EXTERNAL_SUPPORT MATCHES "SVN" OR HDF5_ALLOW_EXTERNAL_SUPPORT MATCHES "TGZ")
 
@@ -622,7 +652,7 @@ if (BUILD_TESTING)
     option (HDF5_TEST_FHEAP_VFD "Execute tests with different VFDs" ON)
     mark_as_advanced (HDF5_TEST_FHEAP_VFD)
   endif (HDF5_TEST_VFD)
-  
+
   include (${HDF5_SOURCE_DIR}/CTestConfig.cmake)
   configure_file (${HDF_RESOURCES_DIR}/CTestCustom.cmake ${HDF5_BINARY_DIR}/CTestCustom.ctest @ONLY)
 endif (BUILD_TESTING)
@@ -682,7 +712,7 @@ if (EXISTS "${HDF5_SOURCE_DIR}/fortran" AND IS_DIRECTORY "${HDF5_SOURCE_DIR}/for
 
     # -----------------------------------------------------------------------
     # wrapper script variables
-    # 
+    #
 #    set (FCFLAGS "${Fortran_DEFINES}")
 
     add_subdirectory (${HDF5_SOURCE_DIR}/fortran ${PROJECT_BINARY_DIR}/fortran)
@@ -719,7 +749,7 @@ if (EXISTS "${HDF5_SOURCE_DIR}/c++" AND IS_DIRECTORY "${HDF5_SOURCE_DIR}/c++")
 endif (EXISTS "${HDF5_SOURCE_DIR}/c++" AND IS_DIRECTORY "${HDF5_SOURCE_DIR}/c++")
 
 #-----------------------------------------------------------------------------
-# Check if Fortran's default real is double precision. If it is and HL is 
+# Check if Fortran's default real is double precision. If it is and HL is
 # being built then configure should fail due to bug HDFFV-889.
 #-----------------------------------------------------------------------------
 if (HDF5_BUILD_FORTRAN AND HDF5_BUILD_HL_LIB)

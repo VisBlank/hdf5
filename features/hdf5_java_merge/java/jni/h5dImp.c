@@ -12,12 +12,6 @@
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 /*
- *  This code is the C-interface called by Java programs to access the
- *  Dataset Object API Functions of HDF5 library.
- *
- *  Each routine wraps a single HDF entry point, generally with the
- *  analogous arguments and return codes.
- *
  *  For details of the HDF libraries, see the HDF Documentation at:
  *    http://hdfdfgroup.org/HDF5/doc/
  *
@@ -49,6 +43,12 @@ extern "C" {
   #define CHDIR chdir
   #define GETCWD getcwd
 #endif
+
+#ifdef H5_HAVE_WIN32_API
+  #define strtoll(S,R,N)     _strtoi64(S,R,N)
+  #define strtoull(S,R,N)    _strtoui64(S,R,N)
+  #define strtof(S,R)    atof(S)
+#endif /* H5_HAVE_WIN32_API */
 
 #ifdef __cplusplus
   #define CBENVPTR (cbenv)
@@ -152,7 +152,7 @@ herr_t H5DreadVL_notstr (JNIEnv *env, hid_t did, hid_t tid, hid_t mem_sid, hid_t
 }
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    _H5Dcreate
  * Signature: (JLjava/lang/String;JJJ)J
  */
@@ -185,7 +185,7 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Dcreate
 }
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5Dchdir_ext
  * Signature: (Ljava/lang/String;)I
  */
@@ -217,7 +217,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Dchdir_1ext
 }
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5Dgetdir_1ext
  * Signature: ([Ljava/lang/String;I)I
  */
@@ -253,7 +253,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Dgetdir_1ext
 }
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    _H5Dopen
  * Signature: (JLjava/lang/String;)J
  */
@@ -286,7 +286,7 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Dopen
 }
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    _H5Dget_space
  * Signature: (J)J
  */
@@ -304,7 +304,7 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Dget_1space
 }
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    _H5Dget_type
  * Signature: (J)J
  */
@@ -322,7 +322,7 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Dget_1type
 }
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    _H5Dget_create_plist
  * Signature: (J)J
  */
@@ -354,7 +354,7 @@ htri_t H5Tdetect_variable_str(hid_t tid) {
 }
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5Dread
  * Signature: (JJJJJ[BZ)I
  */
@@ -407,7 +407,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Dread
 }
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5Dwrite
  * Signature: (JJJJJ[BZ)I
  */
@@ -443,7 +443,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Dwrite
 }
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5Dextend
  * Signature: (J[B)I
  */
@@ -500,7 +500,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Dextend
 }
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    _H5Dclose
  * Signature: (J)I
  */
@@ -519,7 +519,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5__1H5Dclose
 }
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5Dget_storage_size
  * Signature: (J)J
  */
@@ -536,7 +536,7 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5_H5Dget_1storage_1size
 
 /*
  * Copies the content of one dataset to another dataset
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5Dcopy
  * Signature: (JJ)I
  */
@@ -607,7 +607,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Dcopy
 
 /*
  * Copies the content of one dataset to another dataset
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5Dvlen_get_buf_size
  * Signature: (JJJ[I)I
  */
@@ -646,7 +646,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Dvlen_1get_1buf_1size
 }
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5Dvlen_reclaim
  * Signature: (JJJ[B)I
  */
@@ -684,7 +684,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Dvlen_1reclaim
  ***************************************************************/
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    _H5Dget_space_status
  * Signature: (J[I)I
  */
@@ -734,7 +734,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5__1H5Dget_1space_1status
     ////////////////////////////////////////////////////////////////////
 */
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5Dread_short
  * Signature: (JJJJJ[SZ)I
  */
@@ -786,7 +786,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Dread_1short
 }
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5Dread_int
  * Signature: (JJJJJ[IZ)I
  */
@@ -838,7 +838,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Dread_1int
 }
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5Dread_long
  * Signature: (JJJJJ[JZ)I
  */
@@ -890,7 +890,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Dread_1long
 }
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5Dread_float
  * Signature: (JJJJJ[FZ)I
  */
@@ -942,7 +942,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Dread_1float
 }
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5Dread_double
  * Signature: (JJJJJ[DZ)I
  */
@@ -993,7 +993,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Dread_1double
 }
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5Dread_string
  * Signature: (JJJJJ[Ljava/lang/String;)I
  */
@@ -1073,7 +1073,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Dread_1string
 }
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5Dwrite_short
  * Signature: (JJJJJ[SZ)I
  */
@@ -1109,7 +1109,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Dwrite_1short
 }
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5Dwrite_int
  * Signature: (JJJJJ[IZ)I
  */
@@ -1145,7 +1145,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Dwrite_1int
 }
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5Dwrite_long
  * Signature: (JJJJJ[JZ)I
  */
@@ -1180,7 +1180,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Dwrite_1long
 }
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5Dwrite_float
  * Signature: (JJJJJ[FZ)I
  */
@@ -1215,7 +1215,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Dwrite_1float
 }
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5Dwrite_double
  * Signature: (JJJJJ[DZ)I
  */
@@ -1251,7 +1251,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Dwrite_1double
 
 // Rosetta Biosoftware
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5DwriteString
  * Signature: (JJJJJ[Ljava/lang/String;)I
  */
@@ -1316,7 +1316,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5DwriteString
 }
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5DwriteNotString
  * Signature: (JJJJJ[BZ)I
  */
@@ -1411,7 +1411,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5DwriteNotString
 /* old version */
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5DreadVL
  * Signature: (JJJJJ[Ljava/lang/String;)I
  */
@@ -1577,7 +1577,7 @@ herr_t H5DreadVL_str (JNIEnv *env, hid_t did, hid_t tid, hid_t mem_sid, hid_t
 }
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5Dread_reg_ref
  * Signature: (JJJJJ[Ljava/lang/String;)I
  */
@@ -1633,7 +1633,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Dread_1reg_1ref (JNIEnv *env, jclas
 }
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5Dread_reg_ref_data
  * Signature: (JJJJJ[Ljava/lang/String;)I
  */
@@ -1709,7 +1709,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Dread_1reg_1ref_1data (JNIEnv *env,
 }
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    _H5Dcreate2
  * Signature: (JLjava/lang/String;JJJJJ)J
  */
@@ -1741,7 +1741,7 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Dcreate2
 }
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    _H5Dopen2
  * Signature: (JLjava/lang/String;J)J
  */
@@ -1773,7 +1773,7 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Dopen2
 }
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    _H5Dcreate_anon
  * Signature: (JJJJJ)J
  */
@@ -1790,7 +1790,7 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Dcreate_1anon
 }
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5Dget_space_status
  * Signature: (J)I;
  */
@@ -1808,7 +1808,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Dget_1space_1status
 }
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5Dget_access_plist
  * Signature: (J)J
  */
@@ -1825,7 +1825,7 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5_H5Dget_1access_1plist
 }
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5Dget_offset
  * Signature: (J)J
  */
@@ -1842,7 +1842,7 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5_H5Dget_1offset
 }
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5Dvlen_get_buf_size_long
  * Signature: (JJJ)J
  */
@@ -1864,7 +1864,7 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5_H5Dvlen_1get_1buf_1size_1long
 }
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5Dfill
  * Signature: ([BJ[BJJ)V
  */
@@ -1917,7 +1917,7 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Dfill
 }
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5Dset_extent
  * Signature: (J[J)V
  */
@@ -1981,7 +1981,7 @@ herr_t H5D_iterate_cb(void* elem, hid_t elem_id, unsigned ndim, const hsize_t *p
        JVMPTR->DetachCurrentThread(JVMPAR);
        return -1;
     }
-    mid = CBENVPTR->GetMethodID(CBENVPAR cls, "callback", "([BJI[JLncsa/hdf/hdf5lib/callbacks/H5D_iterate_t;)I");
+    mid = CBENVPTR->GetMethodID(CBENVPAR cls, "callback", "([BJI[JLhdf/hdf5lib/callbacks/H5D_iterate_t;)I");
     if (mid == 0) {
         JVMPTR->DetachCurrentThread(JVMPAR);
         return -1;
@@ -2020,7 +2020,7 @@ herr_t H5D_iterate_cb(void* elem, hid_t elem_id, unsigned ndim, const hsize_t *p
 }
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5Diterate
  * Signature: ([BJJLjava/lang/Object;Ljava/lang/Object;)I
  */

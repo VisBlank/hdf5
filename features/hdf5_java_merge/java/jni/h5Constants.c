@@ -11,6 +11,12 @@
  * access to the file, you may request a copy from help@hdfgroup.org.        *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+/*
+ *  For details of the HDF libraries, see the HDF Documentation at:
+ *    http://hdfdfgroup.org/HDF5/doc/
+ *
+ */
+
 #ifdef __cplusplus
 extern "C" {
 #endif

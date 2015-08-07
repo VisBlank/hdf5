@@ -12,12 +12,6 @@
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 /*
- *  This code is the C-interface called by Java programs to access the
- *  Group Object API Functions of the HDF5 library.
- *
- *  Each routine wraps a single HDF entry point, generally with the
- *  analogous arguments and return codes.
- *
  *  For details of the HDF libraries, see the HDF Documentation at:
  *    http://hdfdfgroup.org/HDF5/doc/
  *
@@ -69,7 +63,7 @@ typedef struct info_all
 } info_all_t;
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    _H5Gcreate
  * Signature: (JLjava/lang/String;J)J
  */
@@ -102,7 +96,7 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Gcreate
 }
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    _H5Gopen
  * Signature: (JLjava/lang/String;)J
  */
@@ -135,7 +129,7 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Gopen
 }
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    _H5Gclose
  * Signature: (J)I
  */
@@ -152,7 +146,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5__1H5Gclose
 }
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5Glink
  * Signature: (JILjava/lang/String;Ljava/lang/String;)I
  */
@@ -196,7 +190,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Glink
 }
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5Glink
  * Signature: (JLjava/lang/String;IJLjava/lang/String;)I
  */
@@ -241,7 +235,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Glink2
 }
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5Gunlink
  * Signature: (JLjava/lang/String;)I
  */
@@ -275,7 +269,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Gunlink
 }
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5Gmove
  * Signature: (JLjava/lang/String;Ljava/lang/String;)I
  */
@@ -317,7 +311,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Gmove
 }
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5Gget_objinfo
  * Signature: (JLjava/lang/String;Z[J[J[I[J)I
  */
@@ -442,7 +436,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Gget_1objinfo
 }
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5Gget_linkval
  * Signature: (JLjava/lang/String;I[Ljava/lang/String;)I
  */
@@ -502,7 +496,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Gget_1linkval
 }
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5Gset_comment
  * Signature: (JLjava/lang/String;Ljava/lang/String;)I
  */
@@ -545,7 +539,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Gset_1comment
 }
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5Gget_comment
  * Signature: (JLjava/lang/String;I[Ljava/lang/String;)I
  */
@@ -613,7 +607,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Gget_1comment
  ***************************************************************/
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5Gget_num_objs
  * Signature: (J[J)I
  */
@@ -663,7 +657,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Gget_1num_1objs
 }
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5Gget_objname_by_idx
  * Signature: (JJ[Ljava/lang/String;J)J
  */
@@ -710,7 +704,7 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5_H5Gget_1objname_1by_1idx
 
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5Gget_objtype_by_idx
  * Signature: (JJ)I
  */
@@ -740,7 +734,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Gget_1objtype_1by_1idx
 /////////////////////////////////////////////////////////////////////////////////
 */
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5Gget_obj_info_full
  * Signature: (JLjava/lang/String;[Ljava/lang/String;[I[I[J[JIII)I
  */
@@ -879,7 +873,7 @@ error:
 }
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5Gget_obj_info_max
  * Signature: (J[Ljava/lang/String;[I[I[JJI)I
  */
@@ -1099,7 +1093,7 @@ jobject create_H5G_info_t(JNIEnv *env, H5G_info_t group_info)
     jobject obj;
     jfieldID fid_storage_type, fid_nlinks, fid_max_corder, fid_mounted;
 
-    cls = ENVPTR->FindClass(ENVPAR "ncsa/hdf/hdf5lib/structs/H5G_info_t");
+    cls = ENVPTR->FindClass(ENVPAR "hdf/hdf5lib/structs/H5G_info_t");
     if (cls == NULL) return NULL;
 
     obj = ENVPTR->AllocObject(ENVPAR cls);
@@ -1126,7 +1120,7 @@ jobject create_H5G_info_t(JNIEnv *env, H5G_info_t group_info)
 }
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    _H5Gcreate2
  * Signature: (JLjava/lang/String;JJJ)J
  */
@@ -1160,7 +1154,7 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Gcreate2
 }
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    _H5Gcreate_anon
  * Signature: (JJJ)J
  */
@@ -1178,7 +1172,7 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Gcreate_1anon
 }
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    _H5Gopen2
  * Signature: (JLjava/lang/String;J)J
  */
@@ -1212,7 +1206,7 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Gopen2
 
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5Gget_create_plist
  * Signature: (J)J
  */
@@ -1231,9 +1225,9 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5_H5Gget_1create_1plist
 }
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5Gget_info
- * Signature: (J)Lncsa/hdf/hdf5lib/structs/H5G_info_t;
+ * Signature: (J)Lhdf/hdf5lib/structs/H5G_info_t;
  */
 JNIEXPORT jobject JNICALL Java_hdf_hdf5lib_H5_H5Gget_1info
   (JNIEnv *env, jclass cls, jlong loc_id)
@@ -1252,9 +1246,9 @@ JNIEXPORT jobject JNICALL Java_hdf_hdf5lib_H5_H5Gget_1info
 }
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5Gget_info_by_name
- * Signature: (JLjava/lang/String;J)Lncsa/hdf/hdf5lib/structs/H5G_info_t;
+ * Signature: (JLjava/lang/String;J)Lhdf/hdf5lib/structs/H5G_info_t;
  */
 JNIEXPORT jobject JNICALL Java_hdf_hdf5lib_H5_H5Gget_1info_1by_1name
   (JNIEnv *env, jclass cls, jlong loc_id, jstring name, jlong lapl_id)
@@ -1289,9 +1283,9 @@ JNIEXPORT jobject JNICALL Java_hdf_hdf5lib_H5_H5Gget_1info_1by_1name
 }
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5Gget_info_by_idx
- * Signature: (JLjava/lang/String;IIJJ)Lncsa/hdf/hdf5lib/structs/H5G_info_t;
+ * Signature: (JLjava/lang/String;IIJJ)Lhdf/hdf5lib/structs/H5G_info_t;
  */
 JNIEXPORT jobject JNICALL Java_hdf_hdf5lib_H5_H5Gget_1info_1by_1idx
   (JNIEnv *env, jclass cls, jlong loc_id, jstring name, jint index_type,

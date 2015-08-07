@@ -26,7 +26,7 @@ AC_PREREQ([2.69])
 ## NOTE: Do not forget to change the version number here when we do a
 ## release!!!
 ##
-AC_INIT([HDF5], [1.9.218], [help@hdfgroup.org])
+AC_INIT([HDF5], [1.9.227], [help@hdfgroup.org])
 AC_CONFIG_SRCDIR([src/H5.c])
 AC_CONFIG_HEADER([src/H5config.h])
 
@@ -39,17 +39,16 @@ AM_INIT_AUTOMAKE([foreign])
 AM_SILENT_RULES([yes])
 
 ## AM_MAINTAINER_MODE turns off "rebuild rules" that contain dependencies
-## for Makefiles, configure, src/H5config.h, etc. If AM_MAINTAINER_MODE
-## is enabled, these files will be rebuilt if out of date. This is a
-## problem because if users try to build on a machine with
+## for Makefiles, configure, src/H5config.h, etc.  If AM_MAINTAINER_MODE
+## is *not* included here, these files will be rebuilt if out of date.
+## This is a problem because if users try to build on a machine with
 ## the wrong versions of autoconf and automake, these files will be
 ## rebuilt with the wrong versions and bad things can happen.
 ## Also, CVS doesn't preserve dependencies between timestamps, so
 ## Makefiles will often think rebuilding needs to occur when it doesn't.
-##
-## By default, it is enabled. Users can configure with
-## --disable-maintainer-mode to prevent running the autotools.
-AM_MAINTAINER_MODE([enable])
+## Developers should './configure --enable-maintainer-mode' to turn on
+## rebuild rules.
+AM_MAINTAINER_MODE
 
 ## ----------------------------------------------------------------------
 ## Set prefix default (install directory) to a directory in the build area.
@@ -797,6 +796,32 @@ case "X-$RPATH" in
 esac
 
 ## ----------------------------------------------------------------------
+## pmake will throw an error if variables are undefined in a Makefile.
+## These errors can be changed to warnings using the -V flag.
+##
+AC_SUBST([AM_MAKEFLAGS]) AM_MAKEFLAGS=""
+
+## Don't run test if MAKE is defined but is the empty string
+if test -n "${MAKE-make}"; then 
+
+  AC_MSG_CHECKING([whether make will build with undefined variables])
+
+  cat >maketest <<EOF
+foo: \$(UNDEFINED) \$(UNDEFINED2)
+	@echo \$(UNDEFINED3) works
+EOF
+
+  if (${MAKE-make} -f maketest foo) >/dev/null 2>&1; then
+    AC_MSG_RESULT([yes])
+  else
+    AC_MSG_RESULT([no, setting -V flag])
+    AM_MAKEFLAGS="\-V"
+  fi
+
+  rm maketest
+fi
+
+## ----------------------------------------------------------------------
 ## Production flags?  Save the value in $CONFIG_MODE so we have it for
 ## the record.
 ##
@@ -1444,17 +1469,6 @@ AC_ARG_ENABLE([threadsafe],
 ## with the thread-safety option because the lock is not hoisted
 ## into the higher-level API calls.
 
-## --enable-threadsafe is incompatible with --enable-hl unless
-## --enable-unsupported has been specified on the configure line.
-##
-## Note that the high-level library is enabled by default so most
-## users will have to add --disable-hl to the configure options.
-if test "X${ALLOW_UNSUPPORTED}" != "Xyes"; then
-  if test "X${HDF5_HL}" = "Xyes" -a "X${enable_threadsafe}" = "Xyes"; then
-    AC_MSG_ERROR([The thread-safe library is incompatible with the high-level library. --enable-unsupported will allow building the high-level library, though this configuration is not supported by The HDF Group. Alternatively,--disable-hl can be used to prevent building the high-level library (recommended).])
-  fi
-fi
-
 ## The --enable-threadsafe flag is not compatible with --enable-cxx.
 ## If the user tried to specify both flags, throw an error, unless
 ## they also provided the --enable-unsupported flag.
@@ -1705,7 +1719,27 @@ AC_CHECK_FUNCS([tmpfile asprintf vasprintf vsnprintf waitpid])
 ## Check compiler characteristics
 ##
 AC_C_CONST
-AC_C_INLINE
+
+AC_MSG_CHECKING([if the compiler understands  __inline__])
+AC_COMPILE_IFELSE(
+    [AC_LANG_SOURCE([[static __inline__ void f(void){return;};]])],
+    [AC_DEFINE([HAVE___INLINE__], [1], [Define if the compiler understands __inline__]) AC_MSG_RESULT([yes])],
+    [AC_MSG_RESULT([no])]
+)
+
+AC_MSG_CHECKING([if the compiler understands __inline])
+AC_COMPILE_IFELSE(
+    [AC_LANG_SOURCE([[static __inline void f(void){return;};]])],
+    [AC_DEFINE([HAVE___INLINE], [1], [Define if the compiler understands __inline]) AC_MSG_RESULT([yes])],
+    [AC_MSG_RESULT([no])]
+)
+
+AC_MSG_CHECKING([if the compiler understands inline])
+AC_COMPILE_IFELSE(
+    [AC_LANG_SOURCE([[static inline void f(void){return;};]])],
+    [AC_DEFINE([HAVE_INLINE], [1], [Define if the compiler understands inline]) AC_MSG_RESULT([yes])],
+    [AC_MSG_RESULT([no])]
+)
 
 AC_MSG_CHECKING([for __attribute__ extension])
 AC_TRY_COMPILE(,[int __attribute__((unused)) x],
@@ -2182,9 +2216,10 @@ fi
 ## ----------------------------------------------------------------------
 ## Check if Direct I/O driver is enabled by --enable-direct-vfd
 ##
-## ----------------------------------------------------------------------
-## Check if Direct I/O driver is enabled by --enable-direct-vfd
-##
+
+## Check these regardless. If the checks are moved inside the main
+## direct VFD block, the output is nested.
+
 AC_CACHE_VAL([hdf5_cv_direct_io],
     AC_CHECK_DECL([O_DIRECT], [hdf5_cv_direct_io=yes], [hdf5_cv_direct_io=no], [[#include <fcntl.h>]]))
 AC_CACHE_VAL([hdf5_cv_posix_memalign],
@@ -2257,6 +2292,27 @@ if test "$DCONV_EXCEPTION" = "yes"; then
   AC_MSG_RESULT([yes])
   AC_DEFINE([WANT_DCONV_EXCEPTION], [1],
             [Check exception handling functions during data conversions])
+else
+  AC_MSG_RESULT([no])
+fi
+
+## ----------------------------------------------------------------------
+## Decide whether the data accuracy has higher priority during data
+## conversions.  If not, some hard conversions will still be prefered even
+## though the data may be wrong (for example, some compilers don't 
+## support denormalized floating values) to maximize speed.
+## 
+AC_MSG_CHECKING([whether data accuracy is guaranteed during data conversions])
+AC_ARG_ENABLE([dconv-accuracy],
+              [AS_HELP_STRING([--enable-dconv-accuracy],
+                              [if data accuracy is guaranteed during 
+                              data conversions [default=yes]])],
+              [DATA_ACCURACY=$enableval], [DATA_ACCURACY=yes])
+
+if test "$DATA_ACCURACY" = "yes"; then
+  AC_MSG_RESULT([yes])
+  AC_DEFINE([WANT_DATA_ACCURACY], [1],
+            [Data accuracy is prefered to speed during data conversions])
 else
   AC_MSG_RESULT([no])
 fi
@@ -2435,6 +2491,138 @@ fi
 if test ${hdf5_cv_long_to_ldouble_special} = "yes"; then
   AC_DEFINE([LONG_TO_LDOUBLE_SPECIAL], [1],
             [Define if your system can convert (unsigned) long to long double values with special algorithm.])
+  AC_MSG_RESULT([yes])
+else
+  AC_MSG_RESULT([no])
+fi
+
+## ----------------------------------------------------------------------
+## Set the flag to indicate that the machine can accurately convert
+## 'long double' to '(unsigned) long long' values.  (This flag should
+## be set for all machines, except for Mac OS 10.4, SGI IRIX64 6.5 and
+## Powerpc Linux using XL compilers.
+## When the bit sequence of long double is 0x4351ccf385ebc8a0bfcc2a3c...,
+## the values of (unsigned)long long start to go wrong on these
+## two machines.  Adjusting it higher to 0x4351ccf385ebc8a0dfcc... or
+## 0x4351ccf385ebc8a0ffcc... will make the converted values wildly wrong.
+## This test detects this wrong behavior and disable the test.
+##
+AC_MSG_CHECKING([if correctly converting long double to (unsigned) long long values])
+
+if test ${ac_cv_sizeof_long_double} = 0; then
+   hdf5_cv_ldouble_to_llong_accurate=${hdf5_cv_ldouble_to_llong_accurate=no}
+else
+   AC_CACHE_VAL([hdf5_cv_ldouble_to_llong_accurate],
+        [AC_TRY_RUN([
+        int main(void)
+        {
+            long double         ld = 20041683600089727.779961L;
+            long long           ll;
+            unsigned long long  ull;
+            unsigned char       s[16];
+            int                 ret = 0;
+            
+            if(sizeof(long double) == 16) {
+                /*make sure the long double type is the same as the failing type 
+                 *which has 16 bytes in size and 11 bits of exponent.  If it is,
+                 *the bit sequence should be like below.  It's not 
+                 *a decent way to check but this info isn't available. */   
+                memcpy(s, &ld, 16);
+                if(s[0]==0x43 && s[1]==0x51 && s[2]==0xcc && s[3]==0xf3 &&
+                    s[4]==0x85 && s[5]==0xeb && s[6]==0xc8 && s[7]==0xa0 &&
+                    s[8]==0xbf && s[9]==0xcc && s[10]==0x2a && s[11]==0x3c) {
+
+                    /*slightly adjust the bit sequence (s[8]=0xdf).  The converted
+                     *values will go wild on Mac OS 10.4 and IRIX64 6.5.*/ 
+                    s[0]=0x43; s[1]=0x51; s[2]=0xcc; s[3]=0xf3;
+                    s[4]=0x85; s[5]=0xeb; s[6]=0xc8; s[7]=0xa0;
+                    s[8]=0xdf; s[9]=0xcc; s[10]=0x2a; s[11]=0x3c;
+                    s[12]=0x3d; s[13]=0x85; s[14]=0x56; s[15]=0x20;
+
+                    memcpy(&ld, s, 16);
+                    ll = (long long)ld;
+                    ull = (unsigned long long)ld;
+                    
+                    if(ll != 20041683600089728 || ull != 20041683600089728)
+                        ret = 1;
+                }    
+            }    
+    done:
+            exit(ret);
+        }
+        ], [hdf5_cv_ldouble_to_llong_accurate=yes], [hdf5_cv_ldouble_to_llong_accurate=no],)])
+fi
+
+if test ${hdf5_cv_ldouble_to_llong_accurate} = "yes"; then
+  AC_DEFINE([LDOUBLE_TO_LLONG_ACCURATE], [1],
+            [Define if your system can convert long double to (unsigned) long long values correctly.])
+  AC_MSG_RESULT([yes])
+else
+  AC_MSG_RESULT([no])
+fi
+
+
+## ----------------------------------------------------------------------
+## Set the flag to indicate that the machine can accurately convert
+## '(unsigned) long long' to 'long double' values.  (This flag should be
+## set for all machines, except for Mac OS 10.4 and Powerpc Linux using
+## XL compilers.
+## When the bit sequences are 003fff..., 007fff..., 00ffff..., 01ffff...,
+## ..., 7fffff..., the converted values are twice as big as they should be.
+##
+AC_MSG_CHECKING([if correctly converting (unsigned) long long to long double values])
+
+if test ${ac_cv_sizeof_long_double} = 0; then
+   hdf5_cv_llong_to_ldouble_correct=${hdf5_cv_llong_to_ldouble_correct=no}
+else
+   AC_CACHE_VAL([hdf5_cv_llong_to_ldouble_correct],
+        [AC_TRY_RUN([
+        int main(void)
+        {
+            long double         ld;
+            long long           ll;
+            unsigned long long  ull;
+            unsigned char       s[16];
+            int                 flag=0, ret=0;
+        
+            /*Determine if long double has 16 byte in size, 11 bit exponent, and
+             *the bias is 0x3ff */ 
+            if(sizeof(long double) == 16) { 
+                ld = 1.0L;
+                memcpy(s, &ld, 16);
+                if(s[0]==0x3f && s[1]==0xf0 && s[2]==0x00 && s[3]==0x00 &&
+                    s[4]==0x00 && s[5]==0x00 && s[6]==0x00 && s[7]==0x00) 
+                    flag = 1; 
+            }
+             
+            if(flag==1 && sizeof(long long)==8) {
+                ll = 0x01ffffffffffffffLL;
+                ld = (long double)ll;
+                memcpy(s, &ld, 16);
+                /*Check if the bit sequence is as supposed to be*/
+                if(s[0]!=0x43 || s[1]!=0x7f || s[2]!=0xff || s[3]!=0xff ||
+                    s[4]!=0xff || s[5]!=0xff || s[6]!=0xff || s[7]!=0xff ||
+                    s[8]!=0xf0 || s[9]!=0x00 || s[10]!=0x00 || s[11]!=0x00)
+                    ret = 1;
+            }        
+            if(flag==1 && sizeof(unsigned long long)==8) {
+                ull = 0x01ffffffffffffffULL;
+                ld = (long double)ull;
+                memcpy(s, &ld, 16);
+                if(s[0]!=0x43 || s[1]!=0x7f || s[2]!=0xff || s[3]!=0xff ||
+                    s[4]!=0xff || s[5]!=0xff || s[6]!=0xff || s[7]!=0xff ||
+                    s[8]!=0xf0 || s[9]!=0x00 || s[10]!=0x00 || s[11]!=0x00)
+                    ret = 1;
+            }        
+    done:
+            exit(ret);
+        }
+        ], [hdf5_cv_llong_to_ldouble_correct=yes], [hdf5_cv_llong_to_ldouble_correct=no],)])
+fi
+
+if test ${hdf5_cv_llong_to_ldouble_correct} = "yes"; then
+  AC_DEFINE([LLONG_TO_LDOUBLE_CORRECT], [1],
+            [Define if your system can convert (unsigned) long long to long double values correctly.])
   AC_MSG_RESULT([yes])
 else
   AC_MSG_RESULT([no])
@@ -2919,16 +3107,6 @@ fi
 if test "X$HDF_CXX" = "Xyes"; then
   chmod 755 c++/src/h5c++
 fi
-
-## We don't want inline defined for C++ compilers
-## Don't worry about the C++ ifdef wrappers in the H5pubconf file, since
-## 'H5_inline' isn't a C++ keyword.
-cat >> src/H5config.h <<EOF
-
-#if defined(__cplusplus) && defined(inline)
-#undef inline
-#endif
-EOF
 
 ## HDF5 configure code created by autotools with gcc 4.9.2 is adding problematic
 ## linker flags:  -l with no library name; -l <libname>, specifically gfortran or m.

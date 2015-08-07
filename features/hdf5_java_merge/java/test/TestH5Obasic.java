@@ -21,7 +21,7 @@ import org.junit.rules.TestName;
 
 public class TestH5Obasic {
     @Rule public TestName testname = new TestName();
-    private static final String H5_FILE = "test/hdf5lib/h5ex_g_iterate.hdf";
+    private static final String H5_FILE = "h5ex_g_iterate.hdf";
     private static long H5la_ds1 = -1;
     private static long H5la_l1 = -1;
     private static long H5la_dt1 = -1;
@@ -65,11 +65,11 @@ public class TestH5Obasic {
     public void testH5Oget_info_dataset() {
         long oid = -1;
         H5O_info_t obj_info = null;
-        
+
         try {
             oid = H5.H5Oopen(H5fid, "DS1", HDF5Constants.H5P_DEFAULT);
             obj_info = H5.H5Oget_info(oid);
-        } 
+        }
         catch (Throwable err) {
             err.printStackTrace();
             fail("H5.H5Oget_info: " + err);
@@ -143,10 +143,10 @@ public class TestH5Obasic {
     @Test
     public void testH5Oget_info_by_name_dataset() {
         H5O_info_t obj_info = null;
-        
+
         try {
             obj_info = H5.H5Oget_info_by_name(H5fid, "DS1", HDF5Constants.H5P_DEFAULT);
-        } 
+        }
         catch (Throwable err) {
             err.printStackTrace();
             fail("H5.H5Oget_info: " + err);
@@ -224,7 +224,7 @@ public class TestH5Obasic {
         try {
             oid = H5.H5Oopen(H5fid, "DS1", HDF5Constants.H5P_DEFAULT);
             obj_info = H5.H5Oget_info(oid);
-        } 
+        }
         catch (Throwable err) {
             err.printStackTrace();
             fail("testH5Oget_info_by_idx_n0:H5.H5Oget_info: " + err);

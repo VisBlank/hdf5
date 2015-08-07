@@ -12,12 +12,6 @@
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 /*
- *  This code is the C-interface called by Java programs to access the
- *  Link Object API Functions of the HDF5 library.
- *
- *  Each routine wraps a single HDF entry point, generally with the
- *  analogous arguments and return codes.
- *
  *  For details of the HDF libraries, see the HDF Documentation at:
  *    http://hdfdfgroup.org/HDF5/doc/
  *
@@ -48,7 +42,7 @@ extern "C" {
 #endif
 
     /*
-     * Class:     ncsa_hdf_hdf5lib_H5
+     * Class:     hdf_hdf5lib_H5
      * Method:    _H5Oopen
      * Signature: (JLjava/lang/String;J)J
      */
@@ -81,7 +75,7 @@ extern "C" {
     }
 
     /*
-     * Class:     ncsa_hdf_hdf5lib_H5
+     * Class:     hdf_hdf5lib_H5
      * Method:    _H5Oclose
      * Signature: (J)I
      */
@@ -98,7 +92,7 @@ extern "C" {
     }
     
     /*
-     * Class:     ncsa_hdf_hdf5lib_H5
+     * Class:     hdf_hdf5lib_H5
      * Method:    H5Ocopy
      * Signature: (JLjava/lang/String;JLjava/lang/String;JJ)V
      */
@@ -148,9 +142,9 @@ extern "C" {
     }
     
     /*
-     * Class:     ncsa_hdf_hdf5lib_H5
+     * Class:     hdf_hdf5lib_H5
      * Method:    H5Oget_info
-     * Signature: (J)Lncsa/hdf/hdf5lib/structs/H5O_info_t;
+     * Signature: (J)Lhdf/hdf5lib/structs/H5O_info_t;
      */
     JNIEXPORT jobject JNICALL Java_hdf_hdf5lib_H5_H5Oget_1info
     (JNIEnv *env, jclass clss, jlong loc_id)
@@ -173,7 +167,7 @@ extern "C" {
         }
 
         // get a reference to the H5_hdr_info_t class
-        cls = ENVPTR->FindClass(ENVPAR "ncsa/hdf/hdf5lib/structs/H5O_hdr_info_t");
+        cls = ENVPTR->FindClass(ENVPAR "hdf/hdf5lib/structs/H5O_hdr_info_t");
         if (cls == 0) {
            h5JNIFatalError( env, "JNI error: GetObjectClass H5O_hdr_info_t failed\n");
            return NULL;
@@ -197,7 +191,7 @@ extern "C" {
         hdrinfobuf = ENVPTR->NewObjectA(ENVPAR cls, constructor, args);
 
         // get a reference to the H5_ih_info_t class
-        cls = ENVPTR->FindClass(ENVPAR "ncsa/hdf/hdf5lib/structs/H5_ih_info_t");
+        cls = ENVPTR->FindClass(ENVPAR "hdf/hdf5lib/structs/H5_ih_info_t");
         if (cls == 0) {
            h5JNIFatalError( env, "JNI error: GetObjectClass H5_ih_info_t failed\n");
            return NULL;
@@ -216,13 +210,13 @@ extern "C" {
         ihinfobuf2 = ENVPTR->NewObjectA(ENVPAR cls, constructor, args);
 
         // get a reference to the H5O_info_t class
-        cls = ENVPTR->FindClass(ENVPAR "ncsa/hdf/hdf5lib/structs/H5O_info_t");
+        cls = ENVPTR->FindClass(ENVPAR "hdf/hdf5lib/structs/H5O_info_t");
         if (cls == 0) {
            h5JNIFatalError( env, "JNI error: GetObjectClass H5O_info_t failed\n");
            return NULL;
         }
         // get a reference to the constructor; the name is <init>
-        constructor = ENVPTR->GetMethodID(ENVPAR cls, "<init>", "(JJIIJJJJJLncsa/hdf/hdf5lib/structs/H5O_hdr_info_t;Lncsa/hdf/hdf5lib/structs/H5_ih_info_t;Lncsa/hdf/hdf5lib/structs/H5_ih_info_t;)V");
+        constructor = ENVPTR->GetMethodID(ENVPAR cls, "<init>", "(JJIIJJJJJLhdf/hdf5lib/structs/H5O_hdr_info_t;Lhdf/hdf5lib/structs/H5_ih_info_t;Lhdf/hdf5lib/structs/H5_ih_info_t;)V");
         if (constructor == 0) {
             h5JNIFatalError( env, "JNI error: GetMethodID H5O_info_t failed\n");
            return NULL;
@@ -245,9 +239,9 @@ extern "C" {
     }
     
     /*
-     * Class:     ncsa_hdf_hdf5lib_H5
+     * Class:     hdf_hdf5lib_H5
      * Method:    H5Oget_info_by_name
-     * Signature: (JLjava/lang/String;J)Lncsa/hdf/hdf5lib/structs/H5O_info_t;
+     * Signature: (JLjava/lang/String;J)Lhdf/hdf5lib/structs/H5O_info_t;
      */
     JNIEXPORT jobject JNICALL Java_hdf_hdf5lib_H5_H5Oget_1info_1by_1name
     (JNIEnv *env, jclass clss, jlong loc_id, jstring name, jlong access_id)
@@ -285,7 +279,7 @@ extern "C" {
         }
 
         // get a reference to the H5_hdr_info_t class
-        cls = ENVPTR->FindClass(ENVPAR "ncsa/hdf/hdf5lib/structs/H5O_hdr_info_t");
+        cls = ENVPTR->FindClass(ENVPAR "hdf/hdf5lib/structs/H5O_hdr_info_t");
         if (cls == 0) {
            h5JNIFatalError( env, "JNI error: GetObjectClass H5O_hdr_info_t failed\n");
            return NULL;
@@ -309,7 +303,7 @@ extern "C" {
         hdrinfobuf = ENVPTR->NewObjectA(ENVPAR cls, constructor, args);
 
         // get a reference to the H5_ih_info_t class
-        cls = ENVPTR->FindClass(ENVPAR "ncsa/hdf/hdf5lib/structs/H5_ih_info_t");
+        cls = ENVPTR->FindClass(ENVPAR "hdf/hdf5lib/structs/H5_ih_info_t");
         if (cls == 0) {
            h5JNIFatalError( env, "JNI error: GetObjectClass H5_ih_info_t failed\n");
            return NULL;
@@ -328,13 +322,13 @@ extern "C" {
         ihinfobuf2 = ENVPTR->NewObjectA(ENVPAR cls, constructor, args);
 
         // get a reference to the H5O_info_t class
-        cls = ENVPTR->FindClass(ENVPAR "ncsa/hdf/hdf5lib/structs/H5O_info_t");
+        cls = ENVPTR->FindClass(ENVPAR "hdf/hdf5lib/structs/H5O_info_t");
         if (cls == 0) {
            h5JNIFatalError( env, "JNI error: GetObjectClass H5O_info_t failed\n");
            return NULL;
         }
         // get a reference to the constructor; the name is <init>
-        constructor = ENVPTR->GetMethodID(ENVPAR cls, "<init>", "(JJIIJJJJJLncsa/hdf/hdf5lib/structs/H5O_hdr_info_t;Lncsa/hdf/hdf5lib/structs/H5_ih_info_t;Lncsa/hdf/hdf5lib/structs/H5_ih_info_t;)V");
+        constructor = ENVPTR->GetMethodID(ENVPAR cls, "<init>", "(JJIIJJJJJLhdf/hdf5lib/structs/H5O_hdr_info_t;Lhdf/hdf5lib/structs/H5_ih_info_t;Lhdf/hdf5lib/structs/H5_ih_info_t;)V");
         if (constructor == 0) {
             h5JNIFatalError( env, "JNI error: GetMethodID H5O_info_t failed\n");
            return NULL;
@@ -357,9 +351,9 @@ extern "C" {
     }
     
     /*
-     * Class:     ncsa_hdf_hdf5lib_H5
+     * Class:     hdf_hdf5lib_H5
      * Method:    H5Oget_info_by_idx
-     * Signature: (JLjava/lang/String;IIJJ)Lncsa/hdf/hdf5lib/structs/H5O_info_t;
+     * Signature: (JLjava/lang/String;IIJJ)Lhdf/hdf5lib/structs/H5O_info_t;
      */
     JNIEXPORT jobject JNICALL Java_hdf_hdf5lib_H5_H5Oget_1info_1by_1idx
     (JNIEnv *env, jclass clss, jlong loc_id, jstring name, jint index_field, jint order, jlong link_n, jlong access_id)
@@ -397,7 +391,7 @@ extern "C" {
         }
 
         // get a reference to the H5_hdr_info_t class
-        cls = ENVPTR->FindClass(ENVPAR "ncsa/hdf/hdf5lib/structs/H5O_hdr_info_t");
+        cls = ENVPTR->FindClass(ENVPAR "hdf/hdf5lib/structs/H5O_hdr_info_t");
         if (cls == 0) {
            h5JNIFatalError( env, "JNI error: GetObjectClass H5O_hdr_info_t failed\n");
            return NULL;
@@ -421,7 +415,7 @@ extern "C" {
         hdrinfobuf = ENVPTR->NewObjectA(ENVPAR cls, constructor, args);
 
         // get a reference to the H5_ih_info_t class
-        cls = ENVPTR->FindClass(ENVPAR "ncsa/hdf/hdf5lib/structs/H5_ih_info_t");
+        cls = ENVPTR->FindClass(ENVPAR "hdf/hdf5lib/structs/H5_ih_info_t");
         if (cls == 0) {
            h5JNIFatalError( env, "JNI error: GetObjectClass H5_ih_info_t failed\n");
            return NULL;
@@ -440,13 +434,13 @@ extern "C" {
         ihinfobuf2 = ENVPTR->NewObjectA(ENVPAR cls, constructor, args);
 
         // get a reference to the H5O_info_t class
-        cls = ENVPTR->FindClass(ENVPAR "ncsa/hdf/hdf5lib/structs/H5O_info_t");
+        cls = ENVPTR->FindClass(ENVPAR "hdf/hdf5lib/structs/H5O_info_t");
         if (cls == 0) {
            h5JNIFatalError( env, "JNI error: GetObjectClass H5O_info_t failed\n");
            return NULL;
         }
         // get a reference to the constructor; the name is <init>
-        constructor = ENVPTR->GetMethodID(ENVPAR cls, "<init>", "(JJIIJJJJJLncsa/hdf/hdf5lib/structs/H5O_hdr_info_t;Lncsa/hdf/hdf5lib/structs/H5_ih_info_t;Lncsa/hdf/hdf5lib/structs/H5_ih_info_t;)V");
+        constructor = ENVPTR->GetMethodID(ENVPAR cls, "<init>", "(JJIIJJJJJLhdf/hdf5lib/structs/H5O_hdr_info_t;Lhdf/hdf5lib/structs/H5_ih_info_t;Lhdf/hdf5lib/structs/H5_ih_info_t;)V");
         if (constructor == 0) {
             h5JNIFatalError( env, "JNI error: GetMethodID H5O_info_t failed\n");
            return NULL;
@@ -469,7 +463,7 @@ extern "C" {
     }
     
     /*
-     * Class:     ncsa_hdf_hdf5lib_H5
+     * Class:     hdf_hdf5lib_H5
      * Method:    H5Olink
      * Signature: (JJLjava/lang/String;JJ)V
      */
@@ -527,7 +521,7 @@ extern "C" {
            JVMPTR->DetachCurrentThread(JVMPAR);
            return -1;
         }
-        mid = CBENVPTR->GetMethodID(CBENVPAR cls, "callback", "(JLjava/lang/String;Lncsa/hdf/hdf5lib/structs/H5O_info_t;Lncsa/hdf/hdf5lib/callbacks/H5O_iterate_t;)I");
+        mid = CBENVPTR->GetMethodID(CBENVPAR cls, "callback", "(JLjava/lang/String;Lhdf/hdf5lib/structs/H5O_info_t;Lhdf/hdf5lib/callbacks/H5O_iterate_t;)I");
         if (mid == 0) {
             /* printf("JNI H5O_iterate_cb error: GetMethodID failed\n"); */
             JVMPTR->DetachCurrentThread(JVMPAR);
@@ -536,7 +530,7 @@ extern "C" {
         str = CBENVPTR->NewStringUTF(CBENVPAR name);
 
         // get a reference to the H5_hdr_info_t class
-        cls = CBENVPTR->FindClass(CBENVPAR "ncsa/hdf/hdf5lib/structs/H5O_hdr_info_t");
+        cls = CBENVPTR->FindClass(CBENVPAR "hdf/hdf5lib/structs/H5O_hdr_info_t");
         if (cls == 0) {
             JVMPTR->DetachCurrentThread(JVMPAR);
            return -1;
@@ -560,7 +554,7 @@ extern "C" {
         hdrinfobuf = CBENVPTR->NewObjectA(CBENVPAR cls, constructor, args);
 
         // get a reference to the H5_ih_info_t class
-        cls = CBENVPTR->FindClass(CBENVPAR "ncsa/hdf/hdf5lib/structs/H5_ih_info_t");
+        cls = CBENVPTR->FindClass(CBENVPAR "hdf/hdf5lib/structs/H5_ih_info_t");
         if (cls == 0) {
             JVMPTR->DetachCurrentThread(JVMPAR);
            return -1;
@@ -579,13 +573,13 @@ extern "C" {
         ihinfobuf2 = CBENVPTR->NewObjectA(CBENVPAR cls, constructor, args);
 
         // get a reference to the H5O_info_t class
-        cls = CBENVPTR->FindClass(CBENVPAR "ncsa/hdf/hdf5lib/structs/H5O_info_t");
+        cls = CBENVPTR->FindClass(CBENVPAR "hdf/hdf5lib/structs/H5O_info_t");
         if (cls == 0) {
             JVMPTR->DetachCurrentThread(JVMPAR);
            return -1;
         }
         // get a reference to the constructor; the name is <init>
-        constructor = CBENVPTR->GetMethodID(CBENVPAR cls, "<init>", "(JJIIJJJJJLncsa/hdf/hdf5lib/structs/H5O_hdr_info_t;Lncsa/hdf/hdf5lib/structs/H5_ih_info_t;Lncsa/hdf/hdf5lib/structs/H5_ih_info_t;)V");
+        constructor = CBENVPTR->GetMethodID(CBENVPAR cls, "<init>", "(JJIIJJJJJLhdf/hdf5lib/structs/H5O_hdr_info_t;Lhdf/hdf5lib/structs/H5_ih_info_t;Lhdf/hdf5lib/structs/H5_ih_info_t;)V");
         if (constructor == 0) {
             JVMPTR->DetachCurrentThread(JVMPAR);
            return -1;
@@ -611,7 +605,7 @@ extern "C" {
     }
     
     /*
-     * Class:     ncsa_hdf_hdf5lib_H5
+     * Class:     hdf_hdf5lib_H5
      * Method:    H5Ovisit
      * Signature: (JIILjava/lang/Object;Ljava/lang/Object;)I
      */
@@ -644,7 +638,7 @@ extern "C" {
     }
     
     /*
-     * Class:     ncsa_hdf_hdf5lib_H5
+     * Class:     hdf_hdf5lib_H5
      * Method:    H5Ovisit_by_name
      * Signature: (JLjava/lang/String;IILjava/lang/Object;Ljava/lang/Object;J)I
      */
@@ -692,7 +686,7 @@ extern "C" {
     }
 
     /*
-     * Class:     ncsa_hdf_hdf5lib_H5
+     * Class:     hdf_hdf5lib_H5
      * Method:    H5Oset_comment
      * Signature: (JLjava/lang/String;)V
      */
@@ -724,7 +718,7 @@ extern "C" {
     }
 
     /*
-     * Class:     ncsa_hdf_hdf5lib_H5
+     * Class:     hdf_hdf5lib_H5
      * Method:    H5Oset_comment_by_name
      * Signature: (JLjava/lang/String;Ljava/lang/String;J)V
      */
@@ -769,7 +763,7 @@ extern "C" {
     }
 
     /*
-     * Class:     ncsa_hdf_hdf5lib_H5
+     * Class:     hdf_hdf5lib_H5
      * Method:    H5Oget_comment
      * Signature: (J)Ljava/lang/String;
      */
@@ -820,7 +814,7 @@ extern "C" {
     }
 
     /*
-     * Class:     ncsa_hdf_hdf5lib_H5
+     * Class:     hdf_hdf5lib_H5
      * Method:    H5Oget_comment_by_name
      * Signature: (JLjava/lang/String;J)Ljava/lang/String;
      */

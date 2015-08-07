@@ -1,23 +1,19 @@
-/****************************************************************************
- * NCSA HDF                                                                 *
- * National Comptational Science Alliance                                   *
- * University of Illinois at Urbana-Champaign                               *
- * 605 E. Springfield, Champaign IL 61820                                   *
- *                                                                          *
- * For conditions of distribution and use, see the accompanying             *
- * hdf-java/COPYING file.                                                   *
- *                                                                          *
- ****************************************************************************/
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * Copyright by The HDF Group.                                               *
+ * Copyright by the Board of Trustees of the University of Illinois.         *
+ * All rights reserved.                                                      *
+ *                                                                           *
+ * This file is part of HDF Java Products. The full HDF Java copyright       *
+ * notice, including terms governing use, modification, and redistribution,  *
+ * is contained in the file, COPYING.  COPYING can be found at the root of   *
+ * the source code distribution tree. You can also access it online  at      *
+ * http://www.hdfgroup.org/products/licenses.html.  If you do not have       *
+ * access to the file, you may request a copy from help@hdfgroup.org.        *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 /*
- *  This code is the C-interface called by Java programs to access the
- *  Identifier API Functions of the HDF5 library.
- *
- *  Each routine wraps a single HDF entry point, generally with the
- *  analogous arguments and return codes.
- *
  *  For details of the HDF libraries, see the HDF Documentation at:
- *   http://hdf.ncsa.uiuc.edu/HDF5/doc/
+ *    http://hdfdfgroup.org/HDF5/doc/
  *
  */
 
@@ -31,7 +27,7 @@ extern "C" {
 #include "h5jni.h"
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5Iget_type
  * Signature: (J)I
  */
@@ -54,7 +50,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Iget_1type
  **********************************************************************/
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5Iget_name
  * Signature: (JLjava/lang/String;J)J
  */
@@ -94,7 +90,7 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5_H5Iget_1name
 
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5Iget_ref
  * Signature: (J)I
  */
@@ -110,7 +106,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Iget_1ref
 }
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5Iinc_ref
  * Signature: (J)I
  */
@@ -126,7 +122,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Iinc_1ref
 }
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5Idec_1ref
  * Signature: (J)I
  */
@@ -150,7 +146,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Idec_1ref
  **********************************************************************/
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5Iget_file_id
  * Signature: (J)J
  */
@@ -176,7 +172,7 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5_H5Iget_1file_1id
  **********************************************************************/
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5Iget_type_ref
  * Signature: (I)I
  */
@@ -197,7 +193,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Iget_1type_1ref
 }
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5Inmembers
  * Signature: (I)I
  */
@@ -218,7 +214,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Inmembers
 }
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5Iis_valid
  * Signature: (J)Z
  */
@@ -241,7 +237,7 @@ JNIEXPORT jboolean JNICALL Java_hdf_hdf5lib_H5_H5Iis_1valid
     }
 }
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5Itype_exists
  * Signature: (I)Z
  */

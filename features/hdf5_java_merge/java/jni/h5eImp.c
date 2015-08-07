@@ -11,6 +11,12 @@
  * access to the file, you may request a copy from help@hdfgroup.org.        *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+/*
+ *  For details of the HDF libraries, see the HDF Documentation at:
+ *    http://hdfdfgroup.org/HDF5/doc/
+ *
+ */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -34,7 +40,7 @@ extern "C" {
 #include "h5eImp.h"
 
     /*
-     * Class:     ncsa_hdf_hdf5lib_H5
+     * Class:     hdf_hdf5lib_H5
      * Method:    H5Eauto_is_v2
      * Signature: (J)Z
      */
@@ -57,7 +63,7 @@ extern "C" {
     }
 
     /*
-     * Class:     ncsa_hdf_hdf5lib_H5
+     * Class:     hdf_hdf5lib_H5
      * Method:    H5Eregister_class
      * Signature: (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)J
      */
@@ -108,7 +114,7 @@ extern "C" {
     }
 
     /*
-     * Class:     ncsa_hdf_hdf5lib_H5
+     * Class:     hdf_hdf5lib_H5
      * Method:    H5Eunregister_class
      * Signature: (J)V
      */
@@ -128,7 +134,7 @@ extern "C" {
     }
 
     /*
-     * Class:     ncsa_hdf_hdf5lib_H5
+     * Class:     hdf_hdf5lib_H5
      * Method:    H5Eclose_msg
      * Signature: (J)V
      */
@@ -148,7 +154,7 @@ extern "C" {
     }
 
     /*
-     * Class:     ncsa_hdf_hdf5lib_H5
+     * Class:     hdf_hdf5lib_H5
      * Method:    H5Ecreate_msg
      * Signature: (JILjava/lang/String;)J
      */
@@ -183,7 +189,7 @@ extern "C" {
     }
 
     /*
-     * Class:     ncsa_hdf_hdf5lib_H5
+     * Class:     hdf_hdf5lib_H5
      * Method:    H5Ecreate_stack
      * Signature: ()J
      */
@@ -200,7 +206,7 @@ extern "C" {
     }
 
     /*
-     * Class:     ncsa_hdf_hdf5lib_H5
+     * Class:     hdf_hdf5lib_H5
      * Method:    H5Eget_current_stack
      * Signature: ()J
      */
@@ -216,7 +222,7 @@ extern "C" {
     }
 
     /*
-     * Class:     ncsa_hdf_hdf5lib_H5
+     * Class:     hdf_hdf5lib_H5
      * Method:    H5Eclose_stack
      * Signature: (J)V
      */
@@ -236,7 +242,7 @@ extern "C" {
     }
 
     /*
-     * Class:     ncsa_hdf_hdf5lib_H5
+     * Class:     hdf_hdf5lib_H5
      * Method:    H5Eprint1
      * Signature: (Ljava/lang/Object;)V
      */
@@ -255,7 +261,7 @@ extern "C" {
     }
 
     /*
-     * Class:     ncsa_hdf_hdf5lib_H5
+     * Class:     hdf_hdf5lib_H5
      * Method:    H5Eprint2
      * Signature: (JLjava/lang/Object;)V
      */
@@ -278,7 +284,7 @@ extern "C" {
     }
 
     /*
-     * Class:     ncsa_hdf_hdf5lib_H5
+     * Class:     hdf_hdf5lib_H5
      * Method:    H5Eget_class_name
      * Signature: (J)Ljava/lang/String;
      */
@@ -326,7 +332,7 @@ extern "C" {
     }
 
     /*
-     * Class:     ncsa_hdf_hdf5lib_H5
+     * Class:     hdf_hdf5lib_H5
      * Method:    H5Eset_current_stack
      * Signature: (J)V
      */
@@ -347,7 +353,7 @@ extern "C" {
     }
 
     /*
-     * Class:     ncsa_hdf_hdf5lib_H5
+     * Class:     hdf_hdf5lib_H5
      * Method:    H5Epop
      * Signature: (JJ)V
      */
@@ -368,7 +374,7 @@ extern "C" {
     }
 
     /*
-     * Class:     ncsa_hdf_hdf5lib_H5
+     * Class:     hdf_hdf5lib_H5
      * Method:    H5Eclear2
      * Signature: (J)V
      */
@@ -389,7 +395,7 @@ extern "C" {
     }
 
     /*
-     * Class:     ncsa_hdf_hdf5lib_H5
+     * Class:     hdf_hdf5lib_H5
      * Method:    H5Eget_msg
      * Signature: (J[I)Ljava/lang/String;
      */
@@ -453,7 +459,7 @@ extern "C" {
     }
 
     /*
-     * Class:     ncsa_hdf_hdf5lib_H5
+     * Class:     hdf_hdf5lib_H5
      * Method:    H5Eget_num
      * Signature: (J)J
      */

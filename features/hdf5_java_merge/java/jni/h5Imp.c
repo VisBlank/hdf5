@@ -1,4 +1,4 @@
-/****************************************************************************
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Copyright by The HDF Group.                                               *
  * Copyright by the Board of Trustees of the University of Illinois.         *
  * All rights reserved.                                                      *
@@ -9,7 +9,14 @@
  * the source code distribution tree. You can also access it online  at      *
  * http://www.hdfgroup.org/products/licenses.html.  If you do not have       *
  * access to the file, you may request a copy from help@hdfgroup.org.        *
- ****************************************************************************/
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+/*
+ *  For details of the HDF libraries, see the HDF Documentation at:
+ *    http://hdfdfgroup.org/HDF5/doc/
+ *
+ */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -21,9 +28,6 @@ extern "C" {
  *  Each routine wraps a single HDF entry point, generally with the
  *  analogous arguments and return codes.
  *
- *  For details of the HDF libraries, see the HDF Documentation at:
- *   http://hdf.ncsa.uiuc.edu/HDF5/doc/
- *
  */
 
 #include "hdf5.h"
@@ -34,7 +38,7 @@ extern "C" {
 */
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5open
  * Signature: ()I
  */
@@ -50,7 +54,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5open
 }
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5close
  * Signature: ()I
  */
@@ -66,7 +70,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5close
 }
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5dont_atexit
  * Signature: ()I
  */
@@ -81,7 +85,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5dont_1atexit
 }
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5get_libversion
  * Signature: ([I)I
  */
@@ -132,7 +136,7 @@ void catch_abrt()
 }
 #endif
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5check_version
  * Signature: (III)I
  */
@@ -173,7 +177,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5check_1version
 
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5garbage_collect
  * Signature: ()I
  *
@@ -190,7 +194,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5garbage_1collect
 }
 
 /*
- * Class:     ncsa_hdf_hdf5lib_H5
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5set_free_list_limits
  * Signature: (IIIIII)I
  */
