@@ -1,4 +1,14 @@
 
+## Check for non-standard extenstion quadmath.h
+
+CHECK_INCLUDE_FILES(quadmath.h C_HAVE_QUADMATH)
+
+if (${C_HAVE_QUADMATH})
+  set(HAVE_QUADMATH 1)
+else ()
+  set(HAVE_QUADMATH 0)
+endif()
+
 #
 # This file provides functions for HDF5 specific Fortran support.
 #
@@ -463,17 +473,19 @@ string(REGEX REPLACE "\n" ";" PROG_OUTPUT "${PROG_OUTPUT}")
 list(GET PROG_OUTPUT 0 LDBL_DIG)
 list(GET PROG_OUTPUT 1 FLT128_DIG)
 
-if(SIZEOF___FLOAT128 EQUAL 0)
+if(SIZEOF___FLOAT128 EQUAL 0 OR FLT128_DIG EQUAL 0)
+  SET(H5_HAVE_FLOAT128 0)
+  SET(SIZEOF___FLOAT128 0)
   set(H5_PAC_C_MAX_REAL_PRECISION ${LDBL_DIG})
-else (SIZEOF___FLOAT128 EQUAL 0)
+else ()
   set(H5_PAC_C_MAX_REAL_PRECISION ${FLT128_DIG})
-endif(SIZEOF___FLOAT128 EQUAL 0)
+endif()
 
 
 # Setting definition if there is a 16 byte fortran integer
 string(FIND ${PAC_FC_ALL_INTEGER_KINDS_SIZEOF} "16" pos)
 if(${pos} EQUAL -1)
   set(HAVE_Fortran_INTEGER_SIZEOF_16 0)
-else (${pos} EQUAL -1)
+else ()
   set(HAVE_Fortran_INTEGER_SIZEOF_16 1)
-endif (${pos} EQUAL -1)
+endif ()
