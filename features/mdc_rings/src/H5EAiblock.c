@@ -231,7 +231,8 @@ HDfprintf(stderr, "%s: iblock->size = %Zu\n", FUNC, iblock->size);
     } /* end if */
 
     /* Cache the new extensible array index block */
-    if(H5AC_insert_entry(hdr->f, dxpl_id, H5AC_EARRAY_IBLOCK, iblock_addr, iblock, H5AC__NO_FLAGS_SET) < 0)
+    if(H5AC_insert_entry(hdr->f, dxpl_id, H5AC_EARRAY_IBLOCK, iblock_addr, iblock, 
+                         H5AC__NO_FLAGS_SET, H5AC_RING_USER) < 0)
 	H5E_THROW(H5E_CANTINSERT, "can't add extensible array index block to cache")
 
     /* Update extensible array index block statistics */
@@ -292,7 +293,8 @@ HDfprintf(stderr, "%s: Called\n", FUNC);
     HDassert((flags & (unsigned)(~H5AC__READ_ONLY_FLAG)) == 0);
 
     /* Protect the index block */
-    if(NULL == (ret_value = (H5EA_iblock_t *)H5AC_protect(hdr->f, dxpl_id, H5AC_EARRAY_IBLOCK, hdr->idx_blk_addr, hdr, flags)))
+    if(NULL == (ret_value = (H5EA_iblock_t *)H5AC_protect(hdr->f, dxpl_id, H5AC_EARRAY_IBLOCK, 
+                                                          hdr->idx_blk_addr, hdr, flags, H5AC_RING_USER)))
         H5E_THROW(H5E_CANTPROTECT, "unable to protect extensible array index block, address = %llu", (unsigned long long)hdr->idx_blk_addr)
 
 CATCH

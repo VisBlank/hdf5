@@ -157,7 +157,8 @@ H5B2_create(H5F_t *f, hid_t dxpl_id, const H5B2_create_t *cparam, void *ctx_udat
     cache_udata.f = f;
     cache_udata.addr = hdr_addr;
     cache_udata.ctx_udata = ctx_udata;
-    if(NULL == (hdr = (H5B2_hdr_t *)H5AC_protect(f, dxpl_id, H5AC_BT2_HDR, hdr_addr, &cache_udata, H5AC__NO_FLAGS_SET)))
+    if(NULL == (hdr = (H5B2_hdr_t *)H5AC_protect(f, dxpl_id, H5AC_BT2_HDR, hdr_addr, &cache_udata, 
+                                                 H5AC__NO_FLAGS_SET, H5AC_RING_USER)))
         HGOTO_ERROR(H5E_BTREE, H5E_CANTPROTECT, NULL, "unable to load B-tree header")
 
     /* Point v2 B-tree wrapper at header and bump it's ref count */
@@ -218,7 +219,8 @@ H5B2_open(H5F_t *f, hid_t dxpl_id, haddr_t addr, void *ctx_udata)
     cache_udata.f = f;
     cache_udata.addr = addr;
     cache_udata.ctx_udata = ctx_udata;
-    if(NULL == (hdr = (H5B2_hdr_t *)H5AC_protect(f, dxpl_id, H5AC_BT2_HDR, addr, &cache_udata, H5AC__READ_ONLY_FLAG)))
+    if(NULL == (hdr = (H5B2_hdr_t *)H5AC_protect(f, dxpl_id, H5AC_BT2_HDR, addr, &cache_udata, 
+                                                 H5AC__READ_ONLY_FLAG, H5AC_RING_USER)))
 	HGOTO_ERROR(H5E_BTREE, H5E_CANTPROTECT, NULL, "unable to load B-tree header")
 
     /* Check for pending heap deletion */
@@ -1278,7 +1280,8 @@ H5B2_close(H5B2_t *bt2, hid_t dxpl_id)
 
         /* Lock the v2 B-tree header into memory */
         /* (OK to pass in NULL for callback context, since we know the header must be in the cache) */
-        if(NULL == (hdr = (H5B2_hdr_t *)H5AC_protect(bt2->f, dxpl_id, H5AC_BT2_HDR, bt2_addr, NULL, H5AC__NO_FLAGS_SET)))
+        if(NULL == (hdr = (H5B2_hdr_t *)H5AC_protect(bt2->f, dxpl_id, H5AC_BT2_HDR, bt2_addr, NULL, 
+                                                     H5AC__NO_FLAGS_SET, H5AC_RING_USER)))
             HGOTO_ERROR(H5E_BTREE, H5E_CANTPROTECT, FAIL, "unable to protect v2 B-tree header")
 
         /* Set the shared v2 B-tree header's file context for this operation */
@@ -1356,7 +1359,8 @@ HDfprintf(stderr, "%s: addr = %a\n", FUNC, addr);
     cache_udata.f = f;
     cache_udata.addr = addr;
     cache_udata.ctx_udata = ctx_udata;
-    if(NULL == (hdr = (H5B2_hdr_t *)H5AC_protect(f, dxpl_id, H5AC_BT2_HDR, addr, &cache_udata, H5AC__NO_FLAGS_SET)))
+    if(NULL == (hdr = (H5B2_hdr_t *)H5AC_protect(f, dxpl_id, H5AC_BT2_HDR, addr, &cache_udata, 
+                                                 H5AC__NO_FLAGS_SET, H5AC_RING_USER)))
         HGOTO_ERROR(H5E_BTREE, H5E_CANTPROTECT, FAIL, "unable to protect v2 B-tree header")
 
     /* Remember the callback & context for later */

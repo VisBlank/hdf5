@@ -186,7 +186,7 @@ HDmemset(dblock->blk, 0, dblock->size);
     } /* end else */
 
     /* Cache the new fractal heap direct block */
-    if(H5AC_insert_entry(hdr->f, dxpl_id, H5AC_FHEAP_DBLOCK, dblock_addr, dblock, H5AC__NO_FLAGS_SET) < 0)
+    if(H5AC_insert_entry(hdr->f, dxpl_id, H5AC_FHEAP_DBLOCK, dblock_addr, dblock, H5AC__NO_FLAGS_SET, H5AC_RING_USER) < 0)
 	HGOTO_ERROR(H5E_HEAP, H5E_CANTINIT, FAIL, "can't add fractal heap direct block to cache")
 
     /* Increase the allocated heap size */
@@ -495,7 +495,7 @@ H5HF_man_dblock_protect(H5HF_hdr_t *hdr, hid_t dxpl_id, haddr_t dblock_addr,
     } /* end else */
 
     /* Protect the direct block */
-    if(NULL == (dblock = (H5HF_direct_t *)H5AC_protect(hdr->f, dxpl_id, H5AC_FHEAP_DBLOCK, dblock_addr, &udata, flags)))
+    if(NULL == (dblock = (H5HF_direct_t *)H5AC_protect(hdr->f, dxpl_id, H5AC_FHEAP_DBLOCK, dblock_addr, &udata, flags, H5AC_RING_USER)))
         HGOTO_ERROR(H5E_HEAP, H5E_CANTPROTECT, NULL, "unable to protect fractal heap direct block")
 
     /* Set the return value */

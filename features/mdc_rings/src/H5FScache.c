@@ -481,7 +481,7 @@ H5FS__cache_hdr_pre_serialize(const H5F_t *f, hid_t dxpl_id, void *_thing,
                     HGOTO_ERROR(H5E_FSPACE, H5E_NOSPACE, FAIL, "file allocation failed for free space sections")
 
                 fspace->alloc_sect_size = (size_t)fspace->sect_size;
-		if(H5AC_insert_entry((H5F_t *)f, dxpl_id, H5AC_FSPACE_SINFO, fspace->sect_addr, fspace->sinfo, H5AC__NO_FLAGS_SET) < 0)
+		if(H5AC_insert_entry((H5F_t *)f, dxpl_id, H5AC_FSPACE_SINFO, fspace->sect_addr, fspace->sinfo, H5AC__NO_FLAGS_SET, H5AC_RING_FSM) < 0)
                     HGOTO_ERROR(H5E_FSPACE, H5E_CANTINIT, FAIL, "can't add free space sections to cache")
 
                 HDassert(fspace->sinfo->cache_info.size == fspace->alloc_sect_size);

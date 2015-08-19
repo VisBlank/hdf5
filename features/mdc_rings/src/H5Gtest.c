@@ -686,7 +686,7 @@ H5G_verify_cached_stabs_test_cb(H5F_t *f, hid_t dxpl_id,
     HDassert(H5F_addr_defined(addr));
 
     /* Load the node */
-    if(NULL == (sn = (H5G_node_t *)H5AC_protect(f, dxpl_id, H5AC_SNODE, addr, f, H5AC__READ_ONLY_FLAG)))
+    if(NULL == (sn = (H5G_node_t *)H5AC_protect(f, dxpl_id, H5AC_SNODE, addr, f, H5AC__READ_ONLY_FLAG, H5AC_RING_USER)))
         HGOTO_ERROR(H5E_SYM, H5E_CANTLOAD, H5_ITER_ERROR, "unable to load symbol table node")
 
     /* Check each target object to see if its stab message (if present) matches

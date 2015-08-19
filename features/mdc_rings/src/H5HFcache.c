@@ -2584,7 +2584,8 @@ H5HF__cache_verify_hdr_descendants_clean(H5F_t *f, hid_t dxpl_id,
                      * in this case, since we know that the entry is in cache,
                      * we can pass NULL udata.
 		     */
-                    if(NULL == (root_iblock = (H5HF_indirect_t *)H5AC_protect(f, dxpl_id, H5AC_FHEAP_IBLOCK, root_iblock_addr, NULL, H5C__READ_ONLY_FLAG)))
+                    if(NULL == (root_iblock = (H5HF_indirect_t *)H5AC_protect(f, dxpl_id, H5AC_FHEAP_IBLOCK, root_iblock_addr, 
+                                                                              NULL, H5C__READ_ONLY_FLAG, H5AC_RING_USER)))
                         HGOTO_ERROR(H5E_HEAP, H5E_CANTPROTECT, FAIL, "H5AC_protect() faild.")
                     unprotect_root_iblock = TRUE;
 		} /* end if */
@@ -2645,7 +2646,7 @@ H5HF__cache_verify_hdr_descendants_clean(H5F_t *f, hid_t dxpl_id,
                      * in this case, since we know that the entry is in cache,
                      * we can pass NULL udata.
                      */
-                    if(NULL == (iblock = (H5HF_indirect_t *)H5AC_protect(f, dxpl_id, H5AC_FHEAP_IBLOCK, root_iblock_addr, NULL, H5C__READ_ONLY_FLAG)))
+                    if(NULL == (iblock = (H5HF_indirect_t *)H5AC_protect(f, dxpl_id, H5AC_FHEAP_IBLOCK, root_iblock_addr, NULL, H5C__READ_ONLY_FLAG, H5AC_RING_USER)))
                         HGOTO_ERROR(H5E_HEAP, H5E_CANTPROTECT, FAIL, "H5AC_protect() faild.")
                     unprotect_root_iblock = TRUE;
                     HDassert(iblock == root_iblock);
@@ -3035,7 +3036,7 @@ H5HF__cache_verify_descendant_iblocks_clean(H5F_t *f, hid_t dxpl_id,
 			    /* in this case, since we know that the      */
 			    /* entry is in cache, we can pass NULL udata */
 
-			    if(NULL == (child_iblock = (H5HF_indirect_t *) H5AC_protect(f, dxpl_id, H5AC_FHEAP_IBLOCK, child_iblock_addr, NULL, H5C__READ_ONLY_FLAG)))
+			    if(NULL == (child_iblock = (H5HF_indirect_t *) H5AC_protect(f, dxpl_id, H5AC_FHEAP_IBLOCK, child_iblock_addr, NULL, H5C__READ_ONLY_FLAG, H5AC_RING_USER)))
                                 HGOTO_ERROR(H5E_HEAP, H5E_CANTPROTECT, FAIL, "H5AC_protect() faild.")
 			    unprotect_child_iblock = TRUE;
 			} /* end if */

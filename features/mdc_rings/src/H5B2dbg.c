@@ -125,7 +125,8 @@ H5B2__hdr_debug(H5F_t *f, hid_t dxpl_id, haddr_t addr, FILE *stream, int indent,
     cache_udata.f = f;
     cache_udata.addr = addr;
     cache_udata.ctx_udata = dbg_ctx;
-    if(NULL == (hdr = (H5B2_hdr_t *)H5AC_protect(f, dxpl_id, H5AC_BT2_HDR, addr, &cache_udata, H5AC__READ_ONLY_FLAG)))
+    if(NULL == (hdr = (H5B2_hdr_t *)H5AC_protect(f, dxpl_id, H5AC_BT2_HDR, addr, &cache_udata, 
+                                                 H5AC__READ_ONLY_FLAG, H5AC_RING_USER)))
 	HGOTO_ERROR(H5E_BTREE, H5E_CANTLOAD, FAIL, "unable to load B-tree header")
 
     /* Set file pointer for this B-tree operation */
@@ -244,7 +245,8 @@ H5B2__int_debug(H5F_t *f, hid_t dxpl_id, haddr_t addr, FILE *stream, int indent,
     cache_udata.f = f;
     cache_udata.addr = hdr_addr;
     cache_udata.ctx_udata = dbg_ctx;
-    if(NULL == (hdr = (H5B2_hdr_t *)H5AC_protect(f, dxpl_id, H5AC_BT2_HDR, hdr_addr, &cache_udata, H5AC__READ_ONLY_FLAG)))
+    if(NULL == (hdr = (H5B2_hdr_t *)H5AC_protect(f, dxpl_id, H5AC_BT2_HDR, hdr_addr, &cache_udata, 
+                                                 H5AC__READ_ONLY_FLAG, H5AC_RING_USER)))
 	HGOTO_ERROR(H5E_BTREE, H5E_CANTLOAD, FAIL, "unable to load B-tree header")
 
     /* Set file pointer for this B-tree operation */
@@ -379,7 +381,8 @@ H5B2__leaf_debug(H5F_t *f, hid_t dxpl_id, haddr_t addr, FILE *stream, int indent
     cache_udata.f = f;
     cache_udata.addr = hdr_addr;
     cache_udata.ctx_udata = dbg_ctx;
-    if(NULL == (hdr = (H5B2_hdr_t *)H5AC_protect(f, dxpl_id, H5AC_BT2_HDR, hdr_addr, &cache_udata, H5AC__READ_ONLY_FLAG)))
+    if(NULL == (hdr = (H5B2_hdr_t *)H5AC_protect(f, dxpl_id, H5AC_BT2_HDR, hdr_addr, &cache_udata, 
+                                                 H5AC__READ_ONLY_FLAG, H5AC_RING_USER)))
 	HGOTO_ERROR(H5E_BTREE, H5E_CANTPROTECT, FAIL, "unable to protect B-tree header")
 
     /* Set file pointer for this B-tree operation */

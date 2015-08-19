@@ -3398,7 +3398,7 @@ insert_entry(H5F_t * file_ptr,
 	entry_ptr->is_dirty = TRUE;
 
         result = H5C_insert_entry(file_ptr, H5P_DATASET_XFER_DEFAULT,
-	        &(types[type]), entry_ptr->addr, (void *)entry_ptr, flags);
+                                  &(types[type]), entry_ptr->addr, (void *)entry_ptr, flags, 0);
 
         if ( ( result < 0 ) ||
              ( entry_ptr->header.is_protected ) ||
@@ -3652,7 +3652,7 @@ protect_entry(H5F_t * file_ptr,
         HDassert( !(entry_ptr->is_protected) );
 
         cache_entry_ptr = (H5C_cache_entry_t *)H5C_protect(file_ptr, H5P_DATASET_XFER_DEFAULT,
-                &(types[type]), entry_ptr->addr, &entry_ptr->addr, H5C__NO_FLAGS_SET);
+                                                           &(types[type]), entry_ptr->addr, &entry_ptr->addr, H5C__NO_FLAGS_SET, 0);
 
         if ( ( cache_entry_ptr != (void *)entry_ptr ) ||
              ( !(entry_ptr->header.is_protected) ) ||
@@ -3749,7 +3749,7 @@ protect_entry_ro(H5F_t * file_ptr,
 		    ( entry_ptr->ro_ref_count > 0 ) ) );
 
         cache_entry_ptr = (H5C_cache_entry_t *)H5C_protect(file_ptr, H5P_DATASET_XFER_DEFAULT,
-                &(types[type]), entry_ptr->addr, &entry_ptr->addr, H5C__READ_ONLY_FLAG);
+                                                           &(types[type]), entry_ptr->addr, &entry_ptr->addr, H5C__READ_ONLY_FLAG, 0);
 
         if ( ( cache_entry_ptr != (void *)entry_ptr ) ||
              ( !(entry_ptr->header.is_protected) ) ||

@@ -500,7 +500,7 @@ H5HF_hdr_create(H5F_t *f, hid_t dxpl_id, const H5HF_create_t *cparam)
 	HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, HADDR_UNDEF, "file allocation failed for fractal heap header")
 
     /* Cache the new fractal heap header */
-    if(H5AC_insert_entry(f, dxpl_id, H5AC_FHEAP_HDR, hdr->heap_addr, hdr, H5AC__NO_FLAGS_SET) < 0)
+    if(H5AC_insert_entry(f, dxpl_id, H5AC_FHEAP_HDR, hdr->heap_addr, hdr, H5AC__NO_FLAGS_SET, H5AC_RING_USER) < 0)
 	HGOTO_ERROR(H5E_HEAP, H5E_CANTINSERT, HADDR_UNDEF, "can't add fractal heap header to cache")
 
     /* Set address of heap header to return */
@@ -549,7 +549,7 @@ H5HF_hdr_protect(H5F_t *f, hid_t dxpl_id, haddr_t addr, unsigned flags)
     cache_udata.dxpl_id = dxpl_id;
 
     /* Lock the heap header into memory */
-    if(NULL == (hdr = (H5HF_hdr_t *)H5AC_protect(f, dxpl_id, H5AC_FHEAP_HDR, addr, &cache_udata, flags)))
+    if(NULL == (hdr = (H5HF_hdr_t *)H5AC_protect(f, dxpl_id, H5AC_FHEAP_HDR, addr, &cache_udata, flags, H5AC_RING_USER)))
         HGOTO_ERROR(H5E_HEAP, H5E_CANTPROTECT, NULL, "unable to protect fractal heap header")
 
     /* Set the header's address */

@@ -3124,7 +3124,7 @@ insert_entry(H5C_t * cache_ptr,
         entry_ptr->dirty = TRUE;
 
         result = H5AC_insert_entry(file_ptr, H5P_DATASET_XFER_DEFAULT, &(types[0]),
-               entry_ptr->base_addr, (void *)(&(entry_ptr->header)), flags);
+                                   entry_ptr->base_addr, (void *)(&(entry_ptr->header)), flags, 0);
 
         if ( ( result < 0 ) ||
              ( entry_ptr->header.type != &(types[0]) ) ||
@@ -3525,7 +3525,7 @@ lock_entry(H5F_t * file_ptr,
                                         H5P_DATASET_XFER_DEFAULT,
                                         &(types[0]), entry_ptr->base_addr,
                                         &entry_ptr->base_addr, 
-                                        H5AC__NO_FLAGS_SET);
+                                        H5AC__NO_FLAGS_SET, 0);
 
         if ( ( cache_entry_ptr != (void *)(&(entry_ptr->header)) ) ||
              ( entry_ptr->header.type != &(types[0]) ) ||

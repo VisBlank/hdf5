@@ -321,7 +321,8 @@ H5F__super_read(H5F_t *f, hid_t dxpl_id)
     udata.drvrinfo_removed = FALSE;
 
     /* Look up the superblock */
-    if(NULL == (sblock = (H5F_super_t *)H5AC_protect(f, dxpl_id, H5AC_SUPERBLOCK, (haddr_t)0, &udata, rw_flags)))
+    if(NULL == (sblock = (H5F_super_t *)H5AC_protect(f, dxpl_id, H5AC_SUPERBLOCK, (haddr_t)0, &udata, 
+                                                     rw_flags, H5C_RING_SB)))
         HGOTO_ERROR(H5E_FILE, H5E_CANTPROTECT, FAIL, "unable to load superblock")
 
     /* Pin the superblock in the cache */
@@ -442,7 +443,8 @@ H5F__super_read(H5F_t *f, hid_t dxpl_id)
                         "set end of space allocation request failed")
 
         /* Look up the driver info block */
-        if(NULL == (drvinfo = (H5O_drvinfo_t *)H5AC_protect(f, dxpl_id, H5AC_DRVRINFO, sblock->driver_addr, &drvrinfo_udata, rw_flags)))
+        if(NULL == (drvinfo = (H5O_drvinfo_t *)H5AC_protect(f, dxpl_id, H5AC_DRVRINFO, sblock->driver_addr, &drvrinfo_udata, 
+                                                            rw_flags, H5C_RING_USER)))
             HGOTO_ERROR(H5E_FILE, H5E_CANTPROTECT, FAIL, "unable to load driver info block")
 
         /* Loading the driver info block is enough to set up the right info */
@@ -831,7 +833,8 @@ H5F__super_init(H5F_t *f, hid_t dxpl_id)
         HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, FAIL, "unable to set EOA value for superblock")
 
     /* Insert superblock into cache, pinned */
-    if(H5AC_insert_entry(f, dxpl_id, H5AC_SUPERBLOCK, (haddr_t)0, sblock, H5AC__PIN_ENTRY_FLAG | H5AC__FLUSH_LAST_FLAG | H5AC__FLUSH_COLLECTIVELY_FLAG) < 0)
+    if(H5AC_insert_entry(f, dxpl_id, H5AC_SUPERBLOCK, (haddr_t)0, sblock, 
+                         H5AC__PIN_ENTRY_FLAG | H5AC__FLUSH_LAST_FLAG | H5AC__FLUSH_COLLECTIVELY_FLAG, H5C_RING_SB) < 0)
         HGOTO_ERROR(H5E_CACHE, H5E_CANTINS, FAIL, "can't add superblock to cache")
     sblock_in_cache = TRUE;
 
@@ -966,7 +969,9 @@ H5F__super_init(H5F_t *f, hid_t dxpl_id)
             H5_CHECKED_ASSIGN(drvinfo->len, size_t, H5FD_sb_size(f->shared->lf), hsize_t);
 
             /* Insert driver info block into cache */
-            if(H5AC_insert_entry(f, dxpl_id, H5AC_DRVRINFO, sblock->driver_addr, drvinfo, H5AC__PIN_ENTRY_FLAG | H5AC__FLUSH_LAST_FLAG | H5AC__FLUSH_COLLECTIVELY_FLAG) < 0)
+            if(H5AC_insert_entry(f, dxpl_id, H5AC_DRVRINFO, sblock->driver_addr, drvinfo, 
+                                 H5AC__PIN_ENTRY_FLAG | H5AC__FLUSH_LAST_FLAG | H5AC__FLUSH_COLLECTIVELY_FLAG,
+                                 H5C_RING_USER) < 0)
                 HGOTO_ERROR(H5E_FILE, H5E_CANTINS, FAIL, "can't add driver info block to cache")
             drvinfo_in_cache = TRUE;
             f->shared->drvinfo = drvinfo;

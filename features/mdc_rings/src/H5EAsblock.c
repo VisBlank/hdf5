@@ -232,7 +232,7 @@ HDfprintf(stderr, "%s: sblock->block_off = %Hu\n", FUNC, sblock->block_off);
     H5VM_array_fill(sblock->dblk_addrs, &tmp_addr, sizeof(haddr_t), sblock->ndblks);
 
     /* Cache the new extensible array super block */
-    if(H5AC_insert_entry(hdr->f, dxpl_id, H5AC_EARRAY_SBLOCK, sblock_addr, sblock, H5AC__NO_FLAGS_SET) < 0)
+    if(H5AC_insert_entry(hdr->f, dxpl_id, H5AC_EARRAY_SBLOCK, sblock_addr, sblock, H5AC__NO_FLAGS_SET, H5AC_RING_USER) < 0)
 	H5E_THROW(H5E_CANTINSERT, "can't add extensible array super block to cache")
 
     /* Update extensible array super block statistics */
@@ -300,7 +300,7 @@ HDfprintf(stderr, "%s: Called\n", FUNC);
     udata.sblk_addr = sblk_addr;
 
     /* Protect the super block */
-    if(NULL == (ret_value = (H5EA_sblock_t *)H5AC_protect(hdr->f, dxpl_id, H5AC_EARRAY_SBLOCK, sblk_addr, &udata, flags)))
+    if(NULL == (ret_value = (H5EA_sblock_t *)H5AC_protect(hdr->f, dxpl_id, H5AC_EARRAY_SBLOCK, sblk_addr, &udata, flags, H5AC_RING_USER)))
         H5E_THROW(H5E_CANTPROTECT, "unable to protect extensible array super block, address = %llu", (unsigned long long)sblk_addr)
 
 CATCH

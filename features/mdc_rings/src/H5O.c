@@ -1260,7 +1260,7 @@ H5O_create(H5F_t *f, hid_t dxpl_id, size_t size_hint, size_t initial_rc,
     H5_BEGIN_TAG(dxpl_id, oh_addr, FAIL);
 
     /* Cache object header */
-    if(H5AC_insert_entry(f, dxpl_id, H5AC_OHDR, oh_addr, oh, insert_flags) < 0)
+    if(H5AC_insert_entry(f, dxpl_id, H5AC_OHDR, oh_addr, oh, insert_flags, H5AC_RING_USER) < 0)
         HGOTO_ERROR_TAG(H5E_OHDR, H5E_CANTINSERT, FAIL, "unable to cache object header")
     oh = NULL;
 
@@ -1694,7 +1694,7 @@ H5O_protect(const H5O_loc_t *loc, hid_t dxpl_id, unsigned prot_flags)
     udata.common.addr = loc->addr;
 
     /* Lock the object header into the cache */
-    if(NULL == (oh = (H5O_t *)H5AC_protect(loc->file, dxpl_id, H5AC_OHDR, loc->addr, &udata, prot_flags)))
+    if(NULL == (oh = (H5O_t *)H5AC_protect(loc->file, dxpl_id, H5AC_OHDR, loc->addr, &udata, prot_flags, H5AC_RING_USER)))
 	HGOTO_ERROR(H5E_OHDR, H5E_CANTPROTECT, NULL, "unable to load object header")
 
     /* Check if there are any continuation messages to process */
@@ -1731,7 +1731,7 @@ H5O_protect(const H5O_loc_t *loc, hid_t dxpl_id, unsigned prot_flags)
             /* (which adds to the object header) */
             chk_udata.common.addr = cont_msg_info.msgs[curr_msg].addr;
             chk_udata.size = cont_msg_info.msgs[curr_msg].size;
-            if(NULL == (chk_proxy = (H5O_chunk_proxy_t *)H5AC_protect(loc->file, dxpl_id, H5AC_OHDR_CHK, cont_msg_info.msgs[curr_msg].addr, &chk_udata, prot_flags)))
+            if(NULL == (chk_proxy = (H5O_chunk_proxy_t *)H5AC_protect(loc->file, dxpl_id, H5AC_OHDR_CHK, cont_msg_info.msgs[curr_msg].addr, &chk_udata, prot_flags, H5AC_RING_USER)))
                 HGOTO_ERROR(H5E_OHDR, H5E_CANTPROTECT, NULL, "unable to load object header chunk")
 
             /* Sanity check */

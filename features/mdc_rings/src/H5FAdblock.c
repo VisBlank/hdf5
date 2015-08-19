@@ -223,7 +223,8 @@ HDfprintf(stderr, "%s: dblock->size = %Zu\n", FUNC, dblock->size);
             H5E_THROW(H5E_CANTSET, "can't set fixed array data block elements to class's fill value")
 
     /* Cache the new fixed array data block */
-    if(H5AC_insert_entry(hdr->f, dxpl_id, H5AC_FARRAY_DBLOCK, dblock_addr, dblock, H5AC__NO_FLAGS_SET) < 0)
+    if(H5AC_insert_entry(hdr->f, dxpl_id, H5AC_FARRAY_DBLOCK, dblock_addr, dblock, 
+                         H5AC__NO_FLAGS_SET, H5AC_RING_USER) < 0)
 	H5E_THROW(H5E_CANTINSERT, "can't add fixed array data block to cache")
 
     /* Mark the header dirty (for updating statistics) */
@@ -284,7 +285,8 @@ HDfprintf(stderr, "%s: Called\n", FUNC);
     udata.dblk_addr = dblk_addr;
 
     /* Protect the data block */
-    if(NULL == (ret_value = (H5FA_dblock_t *)H5AC_protect(hdr->f, dxpl_id, H5AC_FARRAY_DBLOCK, dblk_addr, &udata, flags)))
+    if(NULL == (ret_value = (H5FA_dblock_t *)H5AC_protect(hdr->f, dxpl_id, H5AC_FARRAY_DBLOCK, 
+                                                          dblk_addr, &udata, flags, H5AC_RING_USER)))
         H5E_THROW(H5E_CANTPROTECT, "unable to protect fixed array data block, address = %llu", (unsigned long long)dblk_addr)
 
 CATCH

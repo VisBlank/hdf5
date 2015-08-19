@@ -724,7 +724,7 @@ done:
  */
 herr_t
 H5AC_insert_entry(H5F_t *f, hid_t dxpl_id, const H5AC_class_t *type, haddr_t addr,
-    void *thing, unsigned int flags)
+                  void *thing, unsigned int flags, H5AC_ring_t ring)
 {
 #if H5AC__TRACE_FILE_ENABLED
     char          	trace[128] = "";
@@ -762,7 +762,7 @@ H5AC_insert_entry(H5F_t *f, hid_t dxpl_id, const H5AC_class_t *type, haddr_t add
 #endif /* H5AC__TRACE_FILE_ENABLED */
 
     /* Insert entry into metadata cache */
-    if(H5C_insert_entry(f, dxpl_id, type, addr, thing, flags) < 0)
+    if(H5C_insert_entry(f, dxpl_id, type, addr, thing, flags, (H5C_ring_t)ring) < 0)
         HGOTO_ERROR(H5E_CACHE, H5E_CANTINS, FAIL, "H5C_insert_entry() failed")
 
 #if H5AC__TRACE_FILE_ENABLED
@@ -1058,7 +1058,7 @@ done:
  */
 void *
 H5AC_protect(H5F_t *f, hid_t dxpl_id, const H5AC_class_t *type, haddr_t addr,
-    void *udata, unsigned flags)
+             void *udata, unsigned flags, H5AC_ring_t ring)
 {
     void *		thing;          /* Pointer to native data structure for entry */
 #if H5AC__TRACE_FILE_ENABLED
@@ -1104,7 +1104,7 @@ H5AC_protect(H5F_t *f, hid_t dxpl_id, const H5AC_class_t *type, haddr_t addr,
 		(int)(type->id), flags);
 #endif /* H5AC__TRACE_FILE_ENABLED */
 
-    if(NULL == (thing = H5C_protect(f, dxpl_id, type, addr, udata, flags)))
+    if(NULL == (thing = H5C_protect(f, dxpl_id, type, addr, udata, flags, (H5C_ring_t)ring)))
         HGOTO_ERROR(H5E_CACHE, H5E_CANTPROTECT, NULL, "H5C_protect() failed.")
 
 #if H5AC__TRACE_FILE_ENABLED
