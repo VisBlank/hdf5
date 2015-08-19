@@ -244,7 +244,7 @@ HDfprintf(stderr, "%s: fspace->alloc_sect_size = %Hu, fspace->sect_size = %Hu\n"
                 cache_udata.dxpl_id = dxpl_id;
                 cache_udata.fspace = fspace;
                 if(NULL == (fspace->sinfo = (H5FS_sinfo_t *)H5AC_protect(f, dxpl_id, H5AC_FSPACE_SINFO, fspace->sect_addr, &cache_udata, 
-                                                                         H5AC__NO_FLAGS_SET, H5C_RING_FSM)))
+                                                                         H5AC__NO_FLAGS_SET, H5AC_RING_FSM)))
                     HGOTO_ERROR(H5E_FSPACE, H5E_CANTPROTECT, FAIL, "unable to load free space sections")
 
                 /* Switch the access mode we have */
@@ -267,7 +267,7 @@ HDfprintf(stderr, "%s: Reading in existing sections, fspace->sect_addr = %a\n", 
             cache_udata.dxpl_id = dxpl_id;
             cache_udata.fspace = fspace;
             if(NULL == (fspace->sinfo = (H5FS_sinfo_t *)H5AC_protect(f, dxpl_id, H5AC_FSPACE_SINFO, fspace->sect_addr, &cache_udata, 
-                                                                     accmode, H5C_RING_FSM)))
+                                                                     accmode, H5AC_RING_FSM)))
                 HGOTO_ERROR(H5E_FSPACE, H5E_CANTPROTECT, FAIL, "unable to load free space sections")
 
             /* Remember that we protected the section info & the access mode */

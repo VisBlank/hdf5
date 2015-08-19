@@ -439,7 +439,7 @@ H5G__ent_convert(H5F_t *f, hid_t dxpl_id, H5HL_t *heap, const char *name,
 
                     /* Check if a symbol table message exists */
                     if((stab_exists = H5O_msg_exists(&targ_oloc, H5O_STAB_ID,
-                            dxpl_id)) < 0)
+                                                     dxpl_id, H5AC_RING_US)) < 0)
                         HGOTO_ERROR(H5E_SYM, H5E_NOTFOUND, FAIL, "unable to check for STAB message")
 
                     HDassert(!stab_exists);
@@ -460,7 +460,7 @@ H5G__ent_convert(H5F_t *f, hid_t dxpl_id, H5HL_t *heap, const char *name,
                 targ_oloc.addr = lnk->u.hard.addr;
 
                 /* Get the object header */
-                if(NULL == (oh = H5O_protect(&targ_oloc, dxpl_id, H5AC__READ_ONLY_FLAG)))
+                if(NULL == (oh = H5O_protect(&targ_oloc, dxpl_id, H5AC__READ_ONLY_FLAG, H5AC_RING_US)))
                     HGOTO_ERROR(H5E_SYM, H5E_CANTPROTECT, FAIL, "unable to protect target object header")
 
                 /* Check if a symbol table message exists */

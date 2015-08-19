@@ -230,7 +230,7 @@ H5O_attr_create(const H5O_loc_t *loc, hid_t dxpl_id, H5A_t *attr)
     HDassert(attr);
 
     /* Pin the object header */
-    if(NULL == (oh = H5O_pin(loc, dxpl_id)))
+    if(NULL == (oh = H5O_pin(loc, dxpl_id, H5AC_RING_US)))
 	HGOTO_ERROR(H5E_ATTR, H5E_CANTPIN, FAIL, "unable to pin object header")
 
     /* Check if this object already has attribute information */
@@ -483,7 +483,7 @@ H5O_attr_open_by_name(const H5O_loc_t *loc, const char *name, hid_t dxpl_id)
     HDassert(name);
 
     /* Protect the object header to iterate over */
-    if(NULL == (oh = H5O_protect(loc, dxpl_id, H5AC__READ_ONLY_FLAG)))
+    if(NULL == (oh = H5O_protect(loc, dxpl_id, H5AC__READ_ONLY_FLAG, H5AC_RING_US)))
 	HGOTO_ERROR(H5E_ATTR, H5E_CANTPROTECT, NULL, "unable to load object header")
 
     /* Check for attribute info stored */
@@ -632,7 +632,7 @@ H5O_attr_open_by_idx(const H5O_loc_t *loc, H5_index_t idx_type,
         HGOTO_ERROR(H5E_ATTR, H5E_BADITER, NULL, "can't locate attribute")
 
     /* Protect the object header to iterate over */
-    if(NULL == (oh = H5O_protect(loc, dxpl_id, H5AC__READ_ONLY_FLAG)))
+    if(NULL == (oh = H5O_protect(loc, dxpl_id, H5AC__READ_ONLY_FLAG, H5AC_RING_US)))
 	HGOTO_ERROR(H5E_ATTR, H5E_CANTPROTECT, NULL, "unable to load object header")
 
     /* Find out whether it has already been opened.  If it has, close the object
@@ -943,7 +943,7 @@ H5O_attr_write(const H5O_loc_t *loc, hid_t dxpl_id, H5A_t *attr)
     HDassert(attr);
 
     /* Pin the object header */
-    if(NULL == (oh = H5O_pin(loc, dxpl_id)))
+    if(NULL == (oh = H5O_pin(loc, dxpl_id, H5AC_RING_US)))
 	HGOTO_ERROR(H5E_ATTR, H5E_CANTPIN, FAIL, "unable to pin object header")
 
     /* Check for attribute info stored */
@@ -1191,7 +1191,7 @@ H5O_attr_rename(const H5O_loc_t *loc, hid_t dxpl_id, const char *old_name,
     HDassert(new_name);
 
     /* Pin the object header */
-    if(NULL == (oh = H5O_pin(loc, dxpl_id)))
+    if(NULL == (oh = H5O_pin(loc, dxpl_id, H5AC_RING_US)))
 	HGOTO_ERROR(H5E_ATTR, H5E_CANTPIN, FAIL, "unable to pin object header")
 
     /* Check for attribute info stored */
@@ -1283,7 +1283,7 @@ H5O_attr_iterate_real(hid_t loc_id, const H5O_loc_t *loc, hid_t dxpl_id,
     HDassert(attr_op);
 
     /* Protect the object header to iterate over */
-    if(NULL == (oh = H5O_protect(loc, dxpl_id, H5AC__READ_ONLY_FLAG)))
+    if(NULL == (oh = H5O_protect(loc, dxpl_id, H5AC__READ_ONLY_FLAG, H5AC_RING_US)))
 	HGOTO_ERROR(H5E_ATTR, H5E_CANTPROTECT, FAIL, "unable to load object header")
 
     /* Check for attribute info stored */
@@ -1577,7 +1577,7 @@ H5O_attr_remove(const H5O_loc_t *loc, const char *name, hid_t dxpl_id)
     HDassert(name);
 
     /* Pin the object header */
-    if(NULL == (oh = H5O_pin(loc, dxpl_id)))
+    if(NULL == (oh = H5O_pin(loc, dxpl_id, H5AC_RING_US)))
 	HGOTO_ERROR(H5E_ATTR, H5E_CANTPIN, FAIL, "unable to pin object header")
 
     /* Check for attribute info stored */
@@ -1661,7 +1661,7 @@ H5O_attr_remove_by_idx(const H5O_loc_t *loc, H5_index_t idx_type,
     HDassert(loc);
 
     /* Pin the object header */
-    if(NULL == (oh = H5O_pin(loc, dxpl_id)))
+    if(NULL == (oh = H5O_pin(loc, dxpl_id, H5AC_RING_US)))
 	HGOTO_ERROR(H5E_ATTR, H5E_CANTPIN, FAIL, "unable to pin object header")
 
     /* Check for attribute info stored */
@@ -1846,7 +1846,7 @@ H5O_attr_exists(const H5O_loc_t *loc, const char *name, hid_t dxpl_id)
     HDassert(name);
 
     /* Protect the object header to iterate over */
-    if(NULL == (oh = H5O_protect(loc, dxpl_id, H5AC__READ_ONLY_FLAG)))
+    if(NULL == (oh = H5O_protect(loc, dxpl_id, H5AC__READ_ONLY_FLAG, H5AC_RING_US)))
 	HGOTO_ERROR(H5E_ATTR, H5E_CANTPROTECT, FAIL, "unable to load object header")
 
     /* Check for attribute info stored */
@@ -2000,7 +2000,7 @@ H5O_attr_count(const H5O_loc_t *loc, hid_t dxpl_id)
     HDassert(loc);
 
     /* Protect the object header to iterate over */
-    if(NULL == (oh = H5O_protect(loc, dxpl_id, H5AC__READ_ONLY_FLAG)))
+    if(NULL == (oh = H5O_protect(loc, dxpl_id, H5AC__READ_ONLY_FLAG, H5AC_RING_US)))
 	HGOTO_ERROR(H5E_ATTR, H5E_CANTPROTECT, FAIL, "unable to load object header")
 
     /* Retrieve # of attributes on object */

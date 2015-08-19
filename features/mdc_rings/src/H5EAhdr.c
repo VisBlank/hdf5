@@ -436,7 +436,7 @@ HDfprintf(stderr, "%s: Called\n", FUNC);
 
     /* Cache the new extensible array header */
     if(H5AC_insert_entry(f, dxpl_id, H5AC_EARRAY_HDR, hdr->addr, hdr, 
-                         H5AC__NO_FLAGS_SET, H5AC_RING_USER) < 0)
+                         H5AC__NO_FLAGS_SET, H5AC_RING_US) < 0)
 	H5E_THROW(H5E_CANTINSERT, "can't add extensible array header to cache")
 
     /* Set address of array header to return */
@@ -647,7 +647,7 @@ H5EA__hdr_protect(H5F_t *f, hid_t dxpl_id, haddr_t ea_addr, void *ctx_udata,
 
     /* Protect the header */
     if(NULL == (ret_value = (H5EA_hdr_t *)H5AC_protect(f, dxpl_id, H5AC_EARRAY_HDR, ea_addr, 
-                                                       &udata, flags, H5AC_RING_USER)))
+                                                       &udata, flags, H5AC_RING_US)))
         H5E_THROW(H5E_CANTPROTECT, "unable to protect extensible array header, address = %llu", (unsigned long long)ea_addr)
 
 CATCH

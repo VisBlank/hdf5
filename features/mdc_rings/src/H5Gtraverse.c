@@ -662,11 +662,11 @@ H5G_traverse_real(const H5G_loc_t *_loc, const char *name, unsigned target,
 
                 /* Check for the parent group having a group info message */
                 /* (OK if not found) */
-                if((exists = H5O_msg_exists(grp_loc.oloc, H5O_GINFO_ID, dxpl_id)) < 0)
+                if((exists = H5O_msg_exists(grp_loc.oloc, H5O_GINFO_ID, dxpl_id, H5AC_RING_US)) < 0)
                     HGOTO_ERROR(H5E_SYM, H5E_CANTGET, FAIL, "unable to read object header")
                 if(exists) {
                     /* Get the group info for parent group */
-                    if(NULL == H5O_msg_read(grp_loc.oloc, H5O_GINFO_ID, &par_ginfo, dxpl_id))
+                    if(NULL == H5O_msg_read(grp_loc.oloc, H5O_GINFO_ID, &par_ginfo, dxpl_id, H5AC_RING_US))
                         HGOTO_ERROR(H5E_SYM, H5E_CANTGET, FAIL, "group info message not present")
 
                     /* Use parent group info settings */
@@ -696,11 +696,11 @@ H5G_traverse_real(const H5G_loc_t *_loc, const char *name, unsigned target,
 
                 /* Check for the parent group having a filter pipeline message */
                 /* (OK if not found) */
-                if((exists = H5O_msg_exists(grp_loc.oloc, H5O_PLINE_ID, dxpl_id)) < 0)
+                if((exists = H5O_msg_exists(grp_loc.oloc, H5O_PLINE_ID, dxpl_id, H5AC_RING_US)) < 0)
                     HGOTO_ERROR(H5E_SYM, H5E_CANTGET, FAIL, "unable to read object header")
                 if(exists) {
                     /* Get the filter pipeline for parent group */
-                    if(NULL == H5O_msg_read(grp_loc.oloc, H5O_PLINE_ID, &par_pline, dxpl_id))
+                    if(NULL == H5O_msg_read(grp_loc.oloc, H5O_PLINE_ID, &par_pline, dxpl_id, H5AC_RING_US))
                         HGOTO_ERROR(H5E_SYM, H5E_CANTGET, FAIL, "filter pipeline message not present")
 
                     /* Use parent filter pipeline settings */

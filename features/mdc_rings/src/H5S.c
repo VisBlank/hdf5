@@ -1084,7 +1084,7 @@ H5S_read(const H5O_loc_t *loc, hid_t dxpl_id)
     if(NULL == (ds = H5FL_CALLOC(H5S_t)))
         HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, NULL, "memory allocation failed")
 
-    if(H5O_msg_read(loc, H5O_SDSPACE_ID, &(ds->extent), dxpl_id) == NULL)
+    if(H5O_msg_read(loc, H5O_SDSPACE_ID, &(ds->extent), dxpl_id, H5AC_RING_US) == NULL)
         HGOTO_ERROR(H5E_DATASPACE, H5E_CANTINIT, NULL, "unable to load dataspace info from dataset header")
 
     /* Default to entire dataspace being selected */

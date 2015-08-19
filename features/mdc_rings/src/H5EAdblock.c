@@ -207,7 +207,7 @@ HDfprintf(stderr, "%s: dblock->block_off = %Hu\n", FUNC, dblock->block_off);
 
     /* Cache the new extensible array data block */
     if(H5AC_insert_entry(hdr->f, dxpl_id, H5AC_EARRAY_DBLOCK, dblock_addr, dblock, 
-                         H5AC__NO_FLAGS_SET, H5AC_RING_USER) < 0)
+                         H5AC__NO_FLAGS_SET, H5AC_RING_US) < 0)
 	H5E_THROW(H5E_CANTINSERT, "can't add extensible array data block to cache")
 
     /* Update extensible array data block statistics */
@@ -330,7 +330,7 @@ HDfprintf(stderr, "%s: Called\n", FUNC);
 
     /* Protect the data block */
     if(NULL == (ret_value = (H5EA_dblock_t *)H5AC_protect(hdr->f, dxpl_id, H5AC_EARRAY_DBLOCK, 
-                                                          dblk_addr, &udata, flags, H5AC_RING_USER)))
+                                                          dblk_addr, &udata, flags, H5AC_RING_US)))
         H5E_THROW(H5E_CANTPROTECT, "unable to protect extensible array data block, address = %llu", (unsigned long long)dblk_addr)
 
 CATCH

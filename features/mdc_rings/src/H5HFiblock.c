@@ -1137,7 +1137,7 @@ H5HF_man_iblock_create(H5HF_hdr_t *hdr, hid_t dxpl_id, H5HF_indirect_t *par_iblo
     iblock->max_child = 0;
 
     /* Cache the new indirect block */
-    if(H5AC_insert_entry(hdr->f, dxpl_id, H5AC_FHEAP_IBLOCK, *addr_p, iblock, H5AC__NO_FLAGS_SET, H5AC_RING_USER) < 0)
+    if(H5AC_insert_entry(hdr->f, dxpl_id, H5AC_FHEAP_IBLOCK, *addr_p, iblock, H5AC__NO_FLAGS_SET, H5AC_RING_US) < 0)
 	HGOTO_ERROR(H5E_HEAP, H5E_CANTINIT, FAIL, "can't add fractal heap indirect block to cache")
 
 done:
@@ -1246,7 +1246,7 @@ H5HF_man_iblock_protect(H5HF_hdr_t *hdr, hid_t dxpl_id, haddr_t iblock_addr,
 
         /* Protect the indirect block */
         if(NULL == (iblock = (H5HF_indirect_t *)H5AC_protect(hdr->f, dxpl_id, H5AC_FHEAP_IBLOCK, iblock_addr, 
-                                                             &cache_udata, flags, H5AC_RING_USER)))
+                                                             &cache_udata, flags, H5AC_RING_US)))
             HGOTO_ERROR(H5E_HEAP, H5E_CANTPROTECT, NULL, "unable to protect fractal heap indirect block")
 
         /* Set the indirect block's address */

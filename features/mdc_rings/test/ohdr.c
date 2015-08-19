@@ -80,31 +80,31 @@ test_cont(char *filename, hid_t fapl)
 	goto error;
     }
 
-    if(H5O_create(f, H5P_DATASET_XFER_DEFAULT, (size_t)H5O_MIN_SIZE, (size_t)0, H5P_GROUP_CREATE_DEFAULT, &oh_locA/*out*/) < 0)
+    if(H5O_create(f, H5P_DATASET_XFER_DEFAULT, (size_t)H5O_MIN_SIZE, (size_t)0, H5P_GROUP_CREATE_DEFAULT, H5AC_RING_US, &oh_locA/*out*/) < 0)
             FAIL_STACK_ERROR
 
-    if(H5O_create(f, H5P_DATASET_XFER_DEFAULT, (size_t)H5O_MIN_SIZE, (size_t)0, H5P_GROUP_CREATE_DEFAULT, &oh_locB/*out*/) < 0)
+    if(H5O_create(f, H5P_DATASET_XFER_DEFAULT, (size_t)H5O_MIN_SIZE, (size_t)0, H5P_GROUP_CREATE_DEFAULT, H5AC_RING_US, &oh_locB/*out*/) < 0)
             FAIL_STACK_ERROR
 
     time_new = 11111111;
 
-    if(H5O_msg_create(&oh_locA, H5O_NAME_ID, 0, 0, &long_name, H5P_DATASET_XFER_DEFAULT) < 0)
+    if(H5O_msg_create(&oh_locA, H5O_NAME_ID, 0, 0, &long_name, H5P_DATASET_XFER_DEFAULT, H5AC_RING_US) < 0)
 	FAIL_STACK_ERROR
 
-    if(H5O_msg_create(&oh_locB, H5O_MTIME_ID, 0, 0, &time_new, H5P_DATASET_XFER_DEFAULT) < 0)
+    if(H5O_msg_create(&oh_locB, H5O_MTIME_ID, 0, 0, &time_new, H5P_DATASET_XFER_DEFAULT, H5AC_RING_US) < 0)
 	FAIL_STACK_ERROR
-    if(H5O_msg_create(&oh_locB, H5O_MTIME_ID, 0, 0, &time_new, H5P_DATASET_XFER_DEFAULT) < 0)
+    if(H5O_msg_create(&oh_locB, H5O_MTIME_ID, 0, 0, &time_new, H5P_DATASET_XFER_DEFAULT, H5AC_RING_US) < 0)
 	FAIL_STACK_ERROR
-    if(H5O_msg_create(&oh_locB, H5O_MTIME_ID, 0, 0, &time_new, H5P_DATASET_XFER_DEFAULT) < 0)
-	FAIL_STACK_ERROR
-
-    if(H5O_msg_create(&oh_locA, H5O_MTIME_NEW_ID, 0, 0, &time_new, H5P_DATASET_XFER_DEFAULT) < 0)
+    if(H5O_msg_create(&oh_locB, H5O_MTIME_ID, 0, 0, &time_new, H5P_DATASET_XFER_DEFAULT, H5AC_RING_US) < 0)
 	FAIL_STACK_ERROR
 
-    if(H5O_msg_create(&oh_locB, H5O_MTIME_ID, 0, 0, &time_new, H5P_DATASET_XFER_DEFAULT) < 0)
+    if(H5O_msg_create(&oh_locA, H5O_MTIME_NEW_ID, 0, 0, &time_new, H5P_DATASET_XFER_DEFAULT, H5AC_RING_US) < 0)
+	FAIL_STACK_ERROR
+
+    if(H5O_msg_create(&oh_locB, H5O_MTIME_ID, 0, 0, &time_new, H5P_DATASET_XFER_DEFAULT, H5AC_RING_US) < 0)
         FAIL_STACK_ERROR
 
-    if(H5O_msg_create(&oh_locA, H5O_NAME_ID, 0, 0, &short_name, H5P_DATASET_XFER_DEFAULT) < 0)
+    if(H5O_msg_create(&oh_locA, H5O_NAME_ID, 0, 0, &short_name, H5P_DATASET_XFER_DEFAULT, H5AC_RING_US) < 0)
 	FAIL_STACK_ERROR
 
     if(1 != H5O_link(&oh_locA, 1, H5P_DATASET_XFER_DEFAULT))
@@ -116,15 +116,15 @@ test_cont(char *filename, hid_t fapl)
     if(H5O_expunge_chunks_test(&oh_locA, H5P_DATASET_XFER_DEFAULT) < 0)
 	FAIL_STACK_ERROR
 
-    if(H5O_get_hdr_info(&oh_locA, H5P_DATASET_XFER_DEFAULT, &hdr_info) < 0)
+    if(H5O_get_hdr_info(&oh_locA, H5P_DATASET_XFER_DEFAULT, H5AC_RING_US, &hdr_info) < 0)
 	FAIL_STACK_ERROR
     nchunks = hdr_info.nchunks;
 
     /* remove the 1st H5O_NAME_ID message */
-    if(H5O_msg_remove(&oh_locA, H5O_NAME_ID, 0, FALSE, H5P_DATASET_XFER_DEFAULT) < 0)
+    if(H5O_msg_remove(&oh_locA, H5O_NAME_ID, 0, FALSE, H5P_DATASET_XFER_DEFAULT, H5AC_RING_US) < 0)
 	FAIL_STACK_ERROR
 
-    if(H5O_get_hdr_info(&oh_locA, H5P_DATASET_XFER_DEFAULT, &hdr_info) < 0)
+    if(H5O_get_hdr_info(&oh_locA, H5P_DATASET_XFER_DEFAULT, H5AC_RING_US, &hdr_info) < 0)
 	FAIL_STACK_ERROR
 
     if(hdr_info.nchunks >= nchunks)
@@ -215,7 +215,7 @@ test_ohdr_cache(char *filename, hid_t fapl)
 
     /* Create an object header */
     HDmemset(&oh_loc, 0, sizeof(oh_loc));
-    if(H5O_create(f, my_dxpl, (size_t)2048, (size_t)1, H5P_GROUP_CREATE_DEFAULT, &oh_loc/*out*/) < 0)
+    if(H5O_create(f, my_dxpl, (size_t)2048, (size_t)1, H5P_GROUP_CREATE_DEFAULT, H5AC_RING_US, &oh_loc/*out*/) < 0)
         FAIL_STACK_ERROR
 
     /* Query object header information */
@@ -239,7 +239,7 @@ test_ohdr_cache(char *filename, hid_t fapl)
 
     /* Create object header message in new object header */
     time_new = 11111111;
-    if(H5O_msg_create(&oh_loc, H5O_MTIME_NEW_ID, 0, 0, &time_new, my_dxpl) < 0)
+    if(H5O_msg_create(&oh_loc, H5O_MTIME_NEW_ID, 0, 0, &time_new, my_dxpl, H5AC_RING_US) < 0)
         FAIL_STACK_ERROR
 
     /* Create object (local heap) that occupies most of cache */
@@ -363,7 +363,7 @@ main(void)
          */
         TESTING("object header creation");
         HDmemset(&oh_loc, 0, sizeof(oh_loc));
-        if(H5O_create(f, H5P_DATASET_XFER_DEFAULT, (size_t)64, (size_t)0, H5P_GROUP_CREATE_DEFAULT, &oh_loc/*out*/) < 0)
+        if(H5O_create(f, H5P_DATASET_XFER_DEFAULT, (size_t)64, (size_t)0, H5P_GROUP_CREATE_DEFAULT, H5AC_RING_US, &oh_loc/*out*/) < 0)
             FAIL_STACK_ERROR
         PASSED();
 
@@ -371,7 +371,7 @@ main(void)
         /* create a new message */
         TESTING("message creation");
         time_new = 11111111;
-        if(H5O_msg_create(&oh_loc, H5O_MTIME_NEW_ID, 0, 0, &time_new, H5P_DATASET_XFER_DEFAULT) < 0)
+        if(H5O_msg_create(&oh_loc, H5O_MTIME_NEW_ID, 0, 0, &time_new, H5P_DATASET_XFER_DEFAULT, H5AC_RING_US) < 0)
             FAIL_STACK_ERROR
         if(1 != H5O_link(&oh_loc, 1, H5P_DATASET_XFER_DEFAULT))
             FAIL_STACK_ERROR
@@ -379,7 +379,7 @@ main(void)
             FAIL_STACK_ERROR
         if(H5AC_expunge_entry(f, H5P_DATASET_XFER_DEFAULT, H5AC_OHDR, oh_loc.addr, H5AC__NO_FLAGS_SET) < 0)
             FAIL_STACK_ERROR
-        if(NULL == H5O_msg_read(&oh_loc, H5O_MTIME_NEW_ID, &ro, H5P_DATASET_XFER_DEFAULT))
+        if(NULL == H5O_msg_read(&oh_loc, H5O_MTIME_NEW_ID, &ro, H5P_DATASET_XFER_DEFAULT, H5AC_RING_US))
             FAIL_STACK_ERROR
         if(ro != time_new)
             TEST_ERROR
@@ -391,19 +391,19 @@ main(void)
          */
         TESTING("message modification");
         time_new = 33333333;
-        if(H5O_msg_write(&oh_loc, H5O_MTIME_NEW_ID, 0, 0, &time_new, H5P_DATASET_XFER_DEFAULT) < 0)
+        if(H5O_msg_write(&oh_loc, H5O_MTIME_NEW_ID, 0, 0, &time_new, H5P_DATASET_XFER_DEFAULT, H5AC_RING_US) < 0)
             FAIL_STACK_ERROR
         if(H5AC_flush(f, H5P_DATASET_XFER_DEFAULT) < 0)
             FAIL_STACK_ERROR
         if(H5AC_expunge_entry(f, H5P_DATASET_XFER_DEFAULT, H5AC_OHDR, oh_loc.addr, H5AC__NO_FLAGS_SET) < 0)
             FAIL_STACK_ERROR
-        if(NULL == H5O_msg_read(&oh_loc, H5O_MTIME_NEW_ID, &ro, H5P_DATASET_XFER_DEFAULT))
+        if(NULL == H5O_msg_read(&oh_loc, H5O_MTIME_NEW_ID, &ro, H5P_DATASET_XFER_DEFAULT, H5AC_RING_US))
             FAIL_STACK_ERROR
         if(ro != time_new)
             TEST_ERROR
 
         /* Make certain that chunk #0 in the object header can be encoded with a 1-byte size */
-        if(H5O_get_hdr_info(&oh_loc, H5P_DATASET_XFER_DEFAULT, &hdr_info) < 0)
+        if(H5O_get_hdr_info(&oh_loc, H5P_DATASET_XFER_DEFAULT, H5AC_RING_US, &hdr_info) < 0)
             FAIL_STACK_ERROR
         if(hdr_info.space.total >=256)
             TEST_ERROR
@@ -421,7 +421,7 @@ main(void)
         TESTING("object header overflow in memory");
         for(i = 0; i < 40; i++) {
             time_new = (i + 1) * 1000 + 1000000;
-            if(H5O_msg_create(&oh_loc, H5O_MTIME_ID, 0, 0, &time_new, H5P_DATASET_XFER_DEFAULT) < 0)
+            if(H5O_msg_create(&oh_loc, H5O_MTIME_ID, 0, 0, &time_new, H5P_DATASET_XFER_DEFAULT, H5AC_RING_US) < 0)
                 FAIL_STACK_ERROR
         } /* end for */
         if(H5AC_flush(f, H5P_DATASET_XFER_DEFAULT) < 0)
@@ -430,7 +430,7 @@ main(void)
             FAIL_STACK_ERROR
 
         /* Make certain that chunk #0 in the object header will be encoded with a 2-byte size */
-        if(H5O_get_hdr_info(&oh_loc, H5P_DATASET_XFER_DEFAULT, &hdr_info) < 0)
+        if(H5O_get_hdr_info(&oh_loc, H5P_DATASET_XFER_DEFAULT, H5AC_RING_US, &hdr_info) < 0)
             FAIL_STACK_ERROR
         if(hdr_info.space.total < 256)
             TEST_ERROR
@@ -465,7 +465,7 @@ main(void)
         TESTING("object header overflow on disk");
         for(i = 0; i < 10; i++) {
             time_new = (i + 1) * 1000 + 10;
-            if(H5O_msg_create(&oh_loc, H5O_MTIME_NEW_ID, 0, 0, &time_new, H5P_DATASET_XFER_DEFAULT) < 0)
+            if(H5O_msg_create(&oh_loc, H5O_MTIME_NEW_ID, 0, 0, &time_new, H5P_DATASET_XFER_DEFAULT, H5AC_RING_US) < 0)
                 FAIL_STACK_ERROR
             if(H5AC_flush(f, H5P_DATASET_XFER_DEFAULT) < 0)
                 FAIL_STACK_ERROR
@@ -478,13 +478,13 @@ main(void)
          * Delete all time messages.
          */
         TESTING("message deletion");
-        if(H5O_msg_remove(&oh_loc, H5O_MTIME_NEW_ID, H5O_ALL, TRUE, H5P_DATASET_XFER_DEFAULT) < 0)
+        if(H5O_msg_remove(&oh_loc, H5O_MTIME_NEW_ID, H5O_ALL, TRUE, H5P_DATASET_XFER_DEFAULT, H5AC_RING_US) < 0)
             FAIL_STACK_ERROR
-        if(H5O_msg_remove(&oh_loc, H5O_MTIME_ID, H5O_ALL, TRUE, H5P_DATASET_XFER_DEFAULT) < 0)
+        if(H5O_msg_remove(&oh_loc, H5O_MTIME_ID, H5O_ALL, TRUE, H5P_DATASET_XFER_DEFAULT, H5AC_RING_US) < 0)
             FAIL_STACK_ERROR
-        if(H5O_msg_read(&oh_loc, H5O_MTIME_NEW_ID, &ro, H5P_DATASET_XFER_DEFAULT))
+        if(H5O_msg_read(&oh_loc, H5O_MTIME_NEW_ID, &ro, H5P_DATASET_XFER_DEFAULT, H5AC_RING_US))
             FAIL_STACK_ERROR
-        if(H5O_msg_read(&oh_loc, H5O_MTIME_ID, &ro, H5P_DATASET_XFER_DEFAULT))
+        if(H5O_msg_read(&oh_loc, H5O_MTIME_ID, &ro, H5P_DATASET_XFER_DEFAULT, H5AC_RING_US))
             FAIL_STACK_ERROR
         PASSED();
 
@@ -495,23 +495,23 @@ main(void)
          */
         TESTING("constant message handling");
         time_new = 22222222;
-        if(H5O_msg_create(&oh_loc, H5O_MTIME_NEW_ID, H5O_MSG_FLAG_CONSTANT, 0, &time_new, H5P_DATASET_XFER_DEFAULT) < 0)
+        if(H5O_msg_create(&oh_loc, H5O_MTIME_NEW_ID, H5O_MSG_FLAG_CONSTANT, 0, &time_new, H5P_DATASET_XFER_DEFAULT, H5AC_RING_US) < 0)
             FAIL_STACK_ERROR
         if(H5AC_flush(f, H5P_DATASET_XFER_DEFAULT) < 0)
             FAIL_STACK_ERROR
         if(H5AC_expunge_entry(f, H5P_DATASET_XFER_DEFAULT, H5AC_OHDR, oh_loc.addr, H5AC__NO_FLAGS_SET) < 0)
             FAIL_STACK_ERROR
-        if(NULL == H5O_msg_read(&oh_loc, H5O_MTIME_NEW_ID, &ro, H5P_DATASET_XFER_DEFAULT))
+        if(NULL == H5O_msg_read(&oh_loc, H5O_MTIME_NEW_ID, &ro, H5P_DATASET_XFER_DEFAULT, H5AC_RING_US))
             FAIL_STACK_ERROR
         if(ro != time_new)
             TEST_ERROR
         time_new = 33333333;
         H5E_BEGIN_TRY {
-            ret = H5O_msg_write(&oh_loc, H5O_MTIME_NEW_ID, 0, 0, &time_new, H5P_DATASET_XFER_DEFAULT);
+            ret = H5O_msg_write(&oh_loc, H5O_MTIME_NEW_ID, 0, 0, &time_new, H5P_DATASET_XFER_DEFAULT, H5AC_RING_US);
         } H5E_END_TRY;
         if(ret >= 0)
             TEST_ERROR
-        if(H5O_msg_remove(&oh_loc, H5O_MTIME_NEW_ID, H5O_ALL, TRUE, H5P_DATASET_XFER_DEFAULT) < 0)
+        if(H5O_msg_remove(&oh_loc, H5O_MTIME_NEW_ID, H5O_ALL, TRUE, H5P_DATASET_XFER_DEFAULT, H5AC_RING_US) < 0)
             FAIL_STACK_ERROR
         PASSED();
 
@@ -527,14 +527,14 @@ main(void)
          */
         TESTING("locking messages");
         HDmemset(&oh_loc, 0, sizeof(oh_loc));
-        if(H5O_create(f, H5P_DATASET_XFER_DEFAULT, (size_t)64, (size_t)0, H5P_GROUP_CREATE_DEFAULT, &oh_loc/*out*/) < 0)
+        if(H5O_create(f, H5P_DATASET_XFER_DEFAULT, (size_t)64, (size_t)0, H5P_GROUP_CREATE_DEFAULT, H5AC_RING_US, &oh_loc/*out*/) < 0)
             FAIL_STACK_ERROR
         if(1 != H5O_link(&oh_loc, 1, H5P_DATASET_XFER_DEFAULT))
             FAIL_STACK_ERROR
 
         /* Create second object header, to guarantee that first object header uses multiple chunks */
         HDmemset(&oh_loc2, 0, sizeof(oh_loc2));
-        if(H5O_create(f, H5P_DATASET_XFER_DEFAULT, (size_t)64, (size_t)0, H5P_GROUP_CREATE_DEFAULT, &oh_loc2/*out*/) < 0)
+        if(H5O_create(f, H5P_DATASET_XFER_DEFAULT, (size_t)64, (size_t)0, H5P_GROUP_CREATE_DEFAULT, H5AC_RING_US, &oh_loc2/*out*/) < 0)
             FAIL_STACK_ERROR
         if(1 != H5O_link(&oh_loc2, 1, H5P_DATASET_XFER_DEFAULT))
             FAIL_STACK_ERROR
@@ -542,19 +542,19 @@ main(void)
         /* Fill object header with messages, creating multiple chunks */
         for(i = 0; i < 10; i++) {
             time_new = (i + 1) * 1000 + 10;
-            if(H5O_msg_create(&oh_loc, H5O_MTIME_NEW_ID, 0, 0, &time_new, H5P_DATASET_XFER_DEFAULT) < 0)
+            if(H5O_msg_create(&oh_loc, H5O_MTIME_NEW_ID, 0, 0, &time_new, H5P_DATASET_XFER_DEFAULT, H5AC_RING_US) < 0)
                 FAIL_STACK_ERROR
         } /* end for */
 
         /* Get # of object header chunks */
-        if(H5O_get_hdr_info(&oh_loc, H5P_DATASET_XFER_DEFAULT, &hdr_info) < 0)
+        if(H5O_get_hdr_info(&oh_loc, H5P_DATASET_XFER_DEFAULT, H5AC_RING_US, &hdr_info) < 0)
             FAIL_STACK_ERROR
         if(hdr_info.nchunks != 2)
             TEST_ERROR
 
         /* Add message to lock to object header */
         time_new = 11111111;
-        if(H5O_msg_create(&oh_loc, H5O_MTIME_ID, 0, 0, &time_new, H5P_DATASET_XFER_DEFAULT) < 0)
+        if(H5O_msg_create(&oh_loc, H5O_MTIME_ID, 0, 0, &time_new, H5P_DATASET_XFER_DEFAULT, H5AC_RING_US) < 0)
             FAIL_STACK_ERROR
 
         /* Verify chunk index for message */
@@ -577,7 +577,7 @@ main(void)
         /* Delete all the other messages, which would move the message into
          * chunk #0, if it wasn't locked
          */
-        if(H5O_msg_remove(&oh_loc, H5O_MTIME_NEW_ID, H5O_ALL, TRUE, H5P_DATASET_XFER_DEFAULT) < 0)
+        if(H5O_msg_remove(&oh_loc, H5O_MTIME_NEW_ID, H5O_ALL, TRUE, H5P_DATASET_XFER_DEFAULT, H5AC_RING_US) < 0)
             FAIL_STACK_ERROR
 
         /* Verify chunk index for message */
@@ -605,21 +605,21 @@ main(void)
 
         /* Open first object header */
         HDmemset(&oh_loc, 0, sizeof(oh_loc));
-        if(H5O_create(f, H5P_DATASET_XFER_DEFAULT, (size_t)64, (size_t)0, H5P_GROUP_CREATE_DEFAULT, &oh_loc/*out*/) < 0)
+        if(H5O_create(f, H5P_DATASET_XFER_DEFAULT, (size_t)64, (size_t)0, H5P_GROUP_CREATE_DEFAULT, H5AC_RING_US, &oh_loc/*out*/) < 0)
             FAIL_STACK_ERROR
         if(1 != H5O_link(&oh_loc, 1, H5P_DATASET_XFER_DEFAULT))
             FAIL_STACK_ERROR
 
         /* Create second object header, to guarantee that first object header uses multiple chunks */
         HDmemset(&oh_loc2, 0, sizeof(oh_loc2));
-        if(H5O_create(f, H5P_DATASET_XFER_DEFAULT, (size_t)64, (size_t)0, H5P_GROUP_CREATE_DEFAULT, &oh_loc2/*out*/) < 0)
+        if(H5O_create(f, H5P_DATASET_XFER_DEFAULT, (size_t)64, (size_t)0, H5P_GROUP_CREATE_DEFAULT, H5AC_RING_US, &oh_loc2/*out*/) < 0)
             FAIL_STACK_ERROR
         if(1 != H5O_link(&oh_loc2, 1, H5P_DATASET_XFER_DEFAULT))
             FAIL_STACK_ERROR
 
         /* Add message to move to object header */
         time_new = 11111111;
-        if(H5O_msg_create(&oh_loc, H5O_MTIME_ID, 0, 0, &time_new, H5P_DATASET_XFER_DEFAULT) < 0)
+        if(H5O_msg_create(&oh_loc, H5O_MTIME_ID, 0, 0, &time_new, H5P_DATASET_XFER_DEFAULT, H5AC_RING_US) < 0)
             FAIL_STACK_ERROR
 
         /* Verify chunk index for message */
@@ -636,12 +636,12 @@ main(void)
         /* (would normally move locked message to new chunk) */
         for(i = 0; i < 10; i++) {
             time_new = (i + 1) * 1000 + 10;
-            if(H5O_msg_create(&oh_loc, H5O_MTIME_NEW_ID, 0, 0, &time_new, H5P_DATASET_XFER_DEFAULT) < 0)
+            if(H5O_msg_create(&oh_loc, H5O_MTIME_NEW_ID, 0, 0, &time_new, H5P_DATASET_XFER_DEFAULT, H5AC_RING_US) < 0)
                 FAIL_STACK_ERROR
         } /* end for */
 
         /* Get # of object header chunks */
-        if(H5O_get_hdr_info(&oh_loc, H5P_DATASET_XFER_DEFAULT, &hdr_info) < 0)
+        if(H5O_get_hdr_info(&oh_loc, H5P_DATASET_XFER_DEFAULT, H5AC_RING_US, &hdr_info) < 0)
             FAIL_STACK_ERROR
         if(hdr_info.nchunks != 2)
             TEST_ERROR

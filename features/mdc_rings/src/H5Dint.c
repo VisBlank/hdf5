@@ -849,12 +849,12 @@ H5D__update_oh_info(H5F_t *file, hid_t dxpl_id, H5D_t *dset, hid_t dapl_id)
         ohdr_size += layout->storage.u.compact.size;
 
     /* Create an object header for the dataset */
-    if(H5O_create(file, dxpl_id, ohdr_size, (size_t)1, dset->shared->dcpl_id, oloc/*out*/) < 0)
+    if(H5O_create(file, dxpl_id, ohdr_size, (size_t)1, dset->shared->dcpl_id, H5AC_RING_US, oloc/*out*/) < 0)
         HGOTO_ERROR(H5E_DATASET, H5E_CANTINIT, FAIL, "unable to create dataset object header")
     HDassert(file == dset->oloc.file);
 
     /* Pin the object header */
-    if(NULL == (oh = H5O_pin(oloc, dxpl_id)))
+    if(NULL == (oh = H5O_pin(oloc, dxpl_id, H5AC_RING_US)))
         HGOTO_ERROR(H5E_DATASET, H5E_CANTPIN, FAIL, "unable to pin dataset object header")
 
     /* Write the dataspace header message */
@@ -1128,7 +1128,7 @@ done:
                 if(H5O_close(&(new_dset->oloc)) < 0)
                     HDONE_ERROR(H5E_DATASET, H5E_CLOSEERROR, NULL, "unable to release object header")
                 if(file) {
-                    if(H5O_delete(file, dxpl_id, new_dset->oloc.addr) < 0)
+                    if(H5O_delete(file, dxpl_id, new_dset->oloc.addr, H5AC_RING_US) < 0)
                         HDONE_ERROR(H5E_DATASET, H5E_CANTDELETE, NULL, "unable to delete object header")
                 } /* end if */
             } /* end if */
@@ -1281,7 +1281,7 @@ H5D__open_oid(H5D_t *dataset, hid_t dapl_id, hid_t dxpl_id)
         HGOTO_ERROR(H5E_DATASET, H5E_CANTOPENOBJ, FAIL, "unable to open")
 
     /* Get the type and space */
-    if(NULL == (dataset->shared->type = (H5T_t *)H5O_msg_read(&(dataset->oloc), H5O_DTYPE_ID, NULL, dxpl_id)))
+    if(NULL == (dataset->shared->type = (H5T_t *)H5O_msg_read(&(dataset->oloc), H5O_DTYPE_ID, NULL, dxpl_id, H5AC_RING_US)))
         HGOTO_ERROR(H5E_DATASET, H5E_CANTINIT, FAIL, "unable to load type info from dataset header")
 
     if(H5T_set_loc(dataset->shared->type, dataset->oloc.file, H5T_LOC_DISK) < 0)
@@ -1313,18 +1313,18 @@ H5D__open_oid(H5D_t *dataset, hid_t dapl_id, hid_t dxpl_id)
     fill_prop = &dataset->shared->dcpl_cache.fill;
 
     /* Try to get the new fill value message from the object header */
-    if((msg_exists = H5O_msg_exists(&(dataset->oloc), H5O_FILL_NEW_ID, dxpl_id)) < 0)
+    if((msg_exists = H5O_msg_exists(&(dataset->oloc), H5O_FILL_NEW_ID, dxpl_id, H5AC_RING_US)) < 0)
         HGOTO_ERROR(H5E_DATASET, H5E_CANTGET, FAIL, "can't check if message exists")
     if(msg_exists) {
-        if(NULL == H5O_msg_read(&(dataset->oloc), H5O_FILL_NEW_ID, fill_prop, dxpl_id))
+        if(NULL == H5O_msg_read(&(dataset->oloc), H5O_FILL_NEW_ID, fill_prop, dxpl_id, H5AC_RING_US))
             HGOTO_ERROR(H5E_DATASET, H5E_CANTGET, FAIL, "can't retrieve message")
     } /* end if */
     else {
 	/* For backward compatibility, try to retrieve the old fill value message */
-        if((msg_exists = H5O_msg_exists(&(dataset->oloc), H5O_FILL_ID, dxpl_id)) < 0)
+        if((msg_exists = H5O_msg_exists(&(dataset->oloc), H5O_FILL_ID, dxpl_id, H5AC_RING_US)) < 0)
             HGOTO_ERROR(H5E_DATASET, H5E_CANTGET, FAIL, "can't check if message exists")
         if(msg_exists) {
-            if(NULL == H5O_msg_read(&(dataset->oloc), H5O_FILL_ID, fill_prop, dxpl_id))
+            if(NULL == H5O_msg_read(&(dataset->oloc), H5O_FILL_ID, fill_prop, dxpl_id, H5AC_RING_US))
                 HGOTO_ERROR(H5E_DATASET, H5E_CANTGET, FAIL, "can't retrieve message")
         } /* end if */
         else {
@@ -2402,7 +2402,7 @@ H5D__flush_real(H5D_t *dataset, hid_t dxpl_id)
         unsigned update_flags = H5O_UPDATE_TIME;        /* Modification time flag */
 
         /* Pin the object header */
-        if(NULL == (oh = H5O_pin(&dataset->oloc, dxpl_id)))
+        if(NULL == (oh = H5O_pin(&dataset->oloc, dxpl_id, H5AC_RING_US)))
             HGOTO_ERROR(H5E_DATASET, H5E_CANTPIN, FAIL, "unable to pin dataset object header")
 
         /* Update the layout on disk, if it's been changed */

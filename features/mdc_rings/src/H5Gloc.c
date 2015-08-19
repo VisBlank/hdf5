@@ -779,19 +779,19 @@ H5G_loc_set_comment_cb(H5G_loc_t H5_ATTR_UNUSED *grp_loc/*in*/, const char H5_AT
         HGOTO_ERROR(H5E_SYM, H5E_NOTFOUND, FAIL, "name doesn't exist")
 
     /* Check for existing comment message */
-    if((exists = H5O_msg_exists(obj_loc->oloc, H5O_NAME_ID, udata->dxpl_id)) < 0)
+    if((exists = H5O_msg_exists(obj_loc->oloc, H5O_NAME_ID, udata->dxpl_id, H5AC_RING_US)) < 0)
 	HGOTO_ERROR(H5E_SYM, H5E_NOTFOUND, FAIL, "unable to read object header")
 
     /* Remove the previous comment message if any */
     if(exists)
-        if(H5O_msg_remove(obj_loc->oloc, H5O_NAME_ID, 0, TRUE, udata->dxpl_id) < 0)
+        if(H5O_msg_remove(obj_loc->oloc, H5O_NAME_ID, 0, TRUE, udata->dxpl_id, H5AC_RING_US) < 0)
             HGOTO_ERROR(H5E_SYM, H5E_CANTDELETE, FAIL, "unable to delete existing comment object header message")
 
     /* Add the new message */
     if(udata->comment && *udata->comment) {
         /* Casting away const OK -QAK */
 	comment.s = (char *)udata->comment;
-	if(H5O_msg_create(obj_loc->oloc, H5O_NAME_ID, 0, H5O_UPDATE_TIME, &comment, udata->dxpl_id) < 0)
+	if(H5O_msg_create(obj_loc->oloc, H5O_NAME_ID, 0, H5O_UPDATE_TIME, &comment, udata->dxpl_id, H5AC_RING_US) < 0)
 	    HGOTO_ERROR(H5E_OHDR, H5E_CANTINIT, FAIL, "unable to set comment object header message")
     } /* end if */
 
@@ -871,7 +871,7 @@ H5G_loc_get_comment_cb(H5G_loc_t H5_ATTR_UNUSED *grp_loc/*in*/, const char H5_AT
 
     /* Query object comment */
     comment.s = NULL;
-    if(NULL == H5O_msg_read(obj_loc->oloc, H5O_NAME_ID, &comment, udata->dxpl_id)) {
+    if(NULL == H5O_msg_read(obj_loc->oloc, H5O_NAME_ID, &comment, udata->dxpl_id, H5AC_RING_US)) {
 	if(udata->comment && udata->bufsize > 0)
             udata->comment[0] = '\0';
 	udata->comment_size = 0;

@@ -237,7 +237,7 @@ H5G_mkroot(H5F_t *f, hid_t dxpl_id, hbool_t create_root)
             /* Check for the situation where the symbol table is cached but does
              * not exist.  This can happen if, for example, an external link is
              * added to the root group. */
-            if((stab_exists = H5O_msg_exists(root_loc.oloc, H5O_STAB_ID, dxpl_id)) < 0)
+            if((stab_exists = H5O_msg_exists(root_loc.oloc, H5O_STAB_ID, dxpl_id, H5AC_RING_US)) < 0)
                 HGOTO_ERROR(H5E_SYM, H5E_CANTGET, FAIL, "can't check if symbol table message exists")
 
             /* Remove the cache if the stab does not exist */
@@ -274,12 +274,12 @@ H5G_mkroot(H5F_t *f, hid_t dxpl_id, hbool_t create_root)
         /* Check if the stab message exists.  It's possible for the root group
          * to use the latest version while the superblock is an old version.
          * If stab_exists is not -1 then we have already checked. */
-        if(stab_exists == -1 && (stab_exists = H5O_msg_exists(root_loc.oloc, H5O_STAB_ID, dxpl_id)) < 0)
+        if(stab_exists == -1 && (stab_exists = H5O_msg_exists(root_loc.oloc, H5O_STAB_ID, dxpl_id, H5AC_RING_US)) < 0)
             HGOTO_ERROR(H5E_SYM, H5E_CANTGET, FAIL, "can't check if symbol table message exists")
 
         if(stab_exists) {
             /* Read the root group's symbol table message */
-            if(NULL == H5O_msg_read(root_loc.oloc, H5O_STAB_ID, &stab, dxpl_id))
+            if(NULL == H5O_msg_read(root_loc.oloc, H5O_STAB_ID, &stab, dxpl_id, H5AC_RING_US))
                 HGOTO_ERROR(H5E_SYM, H5E_BADMESG, FAIL, "unable to read symbol table message")
 
             /* Update the root group symbol table entry */

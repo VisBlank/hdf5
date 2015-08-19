@@ -234,7 +234,7 @@ done:
                 HDONE_ERROR(H5E_DATATYPE, H5E_CLOSEERROR, FAIL, "unable to release object header")
 
             /* Remove the datatype's object header from the file */
-            if(H5O_delete(dt->sh_loc.file, dxpl_id, dt->sh_loc.u.loc.oh_addr) < 0)
+            if(H5O_delete(dt->sh_loc.file, dxpl_id, dt->sh_loc.u.loc.oh_addr, H5AC_RING_US) < 0)
                 HDONE_ERROR(H5E_DATATYPE, H5E_CANTDELETE, FAIL, "unable to delete object header")
 
             /* Mark datatype as being back in memory */
@@ -392,9 +392,10 @@ H5T__commit(H5F_t *file, H5T_t *type, hid_t tcpl_id, hid_t dxpl_id)
      * Create the object header and open it for write access. Insert the data
      * type message and then give the object header a name.
      */
-    if(H5O_create(file, dxpl_id, dtype_size, (size_t)1, tcpl_id, &temp_oloc) < 0)
+    if(H5O_create(file, dxpl_id, dtype_size, (size_t)1, tcpl_id, H5AC_RING_US, &temp_oloc) < 0)
 	HGOTO_ERROR(H5E_DATATYPE, H5E_CANTINIT, FAIL, "unable to create datatype object header")
-    if(H5O_msg_create(&temp_oloc, H5O_DTYPE_ID, H5O_MSG_FLAG_CONSTANT | H5O_MSG_FLAG_DONTSHARE, H5O_UPDATE_TIME, type, dxpl_id) < 0)
+    if(H5O_msg_create(&temp_oloc, H5O_DTYPE_ID, H5O_MSG_FLAG_CONSTANT | H5O_MSG_FLAG_DONTSHARE, 
+                      H5O_UPDATE_TIME, type, dxpl_id, H5AC_RING_US) < 0)
 	HGOTO_ERROR(H5E_DATATYPE, H5E_CANTINIT, FAIL, "unable to update type header message")
 
     /* Copy the new object header's location into the datatype, taking ownership of it */
@@ -432,7 +433,7 @@ done:
                 HDONE_ERROR(H5E_DATATYPE, H5E_CANTDEC, FAIL, "unable to decrement refcount on newly created object")
 	    if(H5O_close(&(type->oloc)) < 0)
                 HDONE_ERROR(H5E_DATATYPE, H5E_CLOSEERROR, FAIL, "unable to release object header")
-            if(H5O_delete(file, dxpl_id, type->sh_loc.u.loc.oh_addr) < 0)
+            if(H5O_delete(file, dxpl_id, type->sh_loc.u.loc.oh_addr, H5AC_RING_US) < 0)
                 HDONE_ERROR(H5E_DATATYPE, H5E_CANTDELETE, FAIL, "unable to delete object header")
 	    type->sh_loc.type = H5O_SHARE_TYPE_UNSHARED;
 	} /* end if */
@@ -832,7 +833,7 @@ H5T_open_oid(const H5G_loc_t *loc, hid_t dxpl_id)
 	HGOTO_ERROR(H5E_DATATYPE, H5E_CANTOPENOBJ, NULL, "unable to open named datatype")
 
     /* Deserialize the datatype message into a datatype in memory */
-    if(NULL == (dt = (H5T_t *)H5O_msg_read(loc->oloc, H5O_DTYPE_ID, NULL, dxpl_id)))
+    if(NULL == (dt = (H5T_t *)H5O_msg_read(loc->oloc, H5O_DTYPE_ID, NULL, dxpl_id, H5AC_RING_US)))
 	HGOTO_ERROR(H5E_DATATYPE, H5E_CANTINIT, NULL, "unable to load type message from object header")
 
     /* Mark the type as named and open */

@@ -114,7 +114,7 @@ static herr_t H5O__copy_mesg(H5F_t *f, hid_t dxpl_id, H5O_t *oh, size_t idx,
  */
 herr_t
 H5O_msg_create(const H5O_loc_t *loc, unsigned type_id, unsigned mesg_flags,
-    unsigned update_flags, void *mesg, hid_t dxpl_id)
+               unsigned update_flags, void *mesg, hid_t dxpl_id, H5AC_ring_t ring)
 {
     H5O_t *oh = NULL;                   /* Object header */
     herr_t ret_value = SUCCEED;         /* Return value */
@@ -128,7 +128,7 @@ H5O_msg_create(const H5O_loc_t *loc, unsigned type_id, unsigned mesg_flags,
     HDassert(mesg);
 
     /* Pin the object header */
-    if(NULL == (oh = H5O_pin(loc, dxpl_id)))
+    if(NULL == (oh = H5O_pin(loc, dxpl_id, ring)))
 	HGOTO_ERROR(H5E_OHDR, H5E_CANTPIN, FAIL, "unable to pin object header")
 
     /* Go append message to object header */
@@ -257,7 +257,7 @@ done:
  */
 herr_t
 H5O_msg_write(const H5O_loc_t *loc, unsigned type_id, unsigned mesg_flags,
-    unsigned update_flags, void *mesg, hid_t dxpl_id)
+              unsigned update_flags, void *mesg, hid_t dxpl_id, H5AC_ring_t ring)
 {
     H5O_t *oh = NULL;                   /* Object header to use */
     const H5O_msg_class_t *type;        /* Actual H5O class type for the ID */
@@ -277,7 +277,7 @@ H5O_msg_write(const H5O_loc_t *loc, unsigned type_id, unsigned mesg_flags,
     HDassert(0 == (mesg_flags & ~H5O_MSG_FLAG_BITS));
 
     /* Pin the object header */
-    if(NULL == (oh = H5O_pin(loc, dxpl_id)))
+    if(NULL == (oh = H5O_pin(loc, dxpl_id, ring)))
 	HGOTO_ERROR(H5E_OHDR, H5E_CANTPIN, FAIL, "unable to pin object header")
 
     /* Call the "real" modify routine */
@@ -462,7 +462,7 @@ done:
  */
 void *
 H5O_msg_read(const H5O_loc_t *loc, unsigned type_id, void *mesg,
-    hid_t dxpl_id)
+             hid_t dxpl_id, H5AC_ring_t ring)
 {
     H5O_t *oh = NULL;                   /* Object header to use */
     void *ret_value;                    /* Return value */
@@ -476,7 +476,7 @@ H5O_msg_read(const H5O_loc_t *loc, unsigned type_id, void *mesg,
     HDassert(type_id < NELMTS(H5O_msg_class_g));
 
     /* Get the object header */
-    if(NULL == (oh = H5O_protect(loc, dxpl_id, H5AC__READ_ONLY_FLAG)))
+    if(NULL == (oh = H5O_protect(loc, dxpl_id, H5AC__READ_ONLY_FLAG, ring)))
 	HGOTO_ERROR(H5E_OHDR, H5E_CANTPROTECT, NULL, "unable to protect object header")
 
     /* Call the "real" read routine */
@@ -784,7 +784,7 @@ done:
  *-------------------------------------------------------------------------
  */
 int
-H5O_msg_count(const H5O_loc_t *loc, unsigned type_id, hid_t dxpl_id)
+H5O_msg_count(const H5O_loc_t *loc, unsigned type_id, hid_t dxpl_id, H5AC_ring_t ring)
 {
     H5O_t *oh = NULL;           /* Object header to operate on */
     const H5O_msg_class_t *type;        /* Actual H5O class type for the ID */
@@ -802,7 +802,7 @@ H5O_msg_count(const H5O_loc_t *loc, unsigned type_id, hid_t dxpl_id)
     HDassert(type);
 
     /* Load the object header */
-    if(NULL == (oh = H5O_protect(loc, dxpl_id, H5AC__READ_ONLY_FLAG)))
+    if(NULL == (oh = H5O_protect(loc, dxpl_id, H5AC__READ_ONLY_FLAG, ring)))
 	HGOTO_ERROR(H5E_OHDR, H5E_CANTPROTECT, FAIL, "unable to protect object header")
 
     /* Count the messages of the correct type */
@@ -872,7 +872,7 @@ H5O_msg_count_real(const H5O_t *oh, const H5O_msg_class_t *type)
  *-------------------------------------------------------------------------
  */
 htri_t
-H5O_msg_exists(const H5O_loc_t *loc, unsigned type_id, hid_t dxpl_id)
+H5O_msg_exists(const H5O_loc_t *loc, unsigned type_id, hid_t dxpl_id, H5AC_ring_t ring)
 {
     H5O_t	*oh = NULL;             /* Object header for location */
     htri_t      ret_value;              /* Return value */
@@ -884,7 +884,7 @@ H5O_msg_exists(const H5O_loc_t *loc, unsigned type_id, hid_t dxpl_id)
     HDassert(type_id < NELMTS(H5O_msg_class_g));
 
     /* Load the object header */
-    if(NULL == (oh = H5O_protect(loc, dxpl_id, H5AC__READ_ONLY_FLAG)))
+    if(NULL == (oh = H5O_protect(loc, dxpl_id, H5AC__READ_ONLY_FLAG, ring)))
 	HGOTO_ERROR(H5E_OHDR, H5E_CANTPROTECT, FAIL, "unable to protect object header")
 
     /* Call the "real" exists routine */
@@ -963,7 +963,7 @@ done:
  */
 herr_t
 H5O_msg_remove(const H5O_loc_t *loc, unsigned type_id, int sequence, hbool_t adj_link,
-    hid_t dxpl_id)
+               hid_t dxpl_id, H5AC_ring_t ring)
 {
     H5O_t *oh = NULL;                   /* Pointer to actual object header */
     const H5O_msg_class_t *type;            /* Actual H5O class type for the ID */
@@ -981,7 +981,7 @@ H5O_msg_remove(const H5O_loc_t *loc, unsigned type_id, int sequence, hbool_t adj
     HDassert(type);
 
     /* Pin the object header */
-    if(NULL == (oh = H5O_pin(loc, dxpl_id)))
+    if(NULL == (oh = H5O_pin(loc, dxpl_id, ring)))
 	HGOTO_ERROR(H5E_OHDR, H5E_CANTPIN, FAIL, "unable to pin object header")
 
     /* Call the "real" remove routine */
@@ -1033,7 +1033,7 @@ H5O_msg_remove_op(const H5O_loc_t *loc, unsigned type_id, int sequence,
     HDassert(type);
 
     /* Pin the object header */
-    if(NULL == (oh = H5O_pin(loc, dxpl_id)))
+    if(NULL == (oh = H5O_pin(loc, dxpl_id, H5AC_RING_US)))
 	HGOTO_ERROR(H5E_OHDR, H5E_CANTPIN, FAIL, "unable to pin object header")
 
     /* Call the "real" remove routine */
@@ -1224,7 +1224,7 @@ H5O_msg_iterate(const H5O_loc_t *loc, unsigned type_id,
     HDassert(op);
 
     /* Protect the object header to iterate over */
-    if(NULL == (oh = H5O_protect(loc, dxpl_id, H5AC__READ_ONLY_FLAG)))
+    if(NULL == (oh = H5O_protect(loc, dxpl_id, H5AC__READ_ONLY_FLAG, H5AC_RING_US)))
 	HGOTO_ERROR(H5E_OHDR, H5E_CANTPROTECT, FAIL, "unable to protect object header")
 
     /* Call the "real" iterate routine */
@@ -2289,7 +2289,7 @@ H5O_msg_get_chunkno(const H5O_loc_t *loc, unsigned type_id, hid_t dxpl_id)
     HDassert(type);
 
     /* Get the object header */
-    if(NULL == (oh = H5O_protect(loc, dxpl_id, H5AC__READ_ONLY_FLAG)))
+    if(NULL == (oh = H5O_protect(loc, dxpl_id, H5AC__READ_ONLY_FLAG, H5AC_RING_US)))
 	HGOTO_ERROR(H5E_OHDR, H5E_CANTPROTECT, FAIL, "unable to protect object header")
 
     /* Locate message of correct type */
@@ -2344,7 +2344,7 @@ H5O_msg_lock(const H5O_loc_t *loc, unsigned type_id, hid_t dxpl_id)
     HDassert(type);
 
     /* Get the object header */
-    if(NULL == (oh = H5O_protect(loc, dxpl_id, H5AC__READ_ONLY_FLAG)))
+    if(NULL == (oh = H5O_protect(loc, dxpl_id, H5AC__READ_ONLY_FLAG, H5AC_RING_US)))
 	HGOTO_ERROR(H5E_OHDR, H5E_CANTPROTECT, FAIL, "unable to protect object header")
 
     /* Locate message of correct type */
@@ -2402,7 +2402,7 @@ H5O_msg_unlock(const H5O_loc_t *loc, unsigned type_id, hid_t dxpl_id)
     HDassert(type);
 
     /* Get the object header */
-    if(NULL == (oh = H5O_protect(loc, dxpl_id, H5AC__READ_ONLY_FLAG)))
+    if(NULL == (oh = H5O_protect(loc, dxpl_id, H5AC__READ_ONLY_FLAG, H5AC_RING_US)))
 	HGOTO_ERROR(H5E_OHDR, H5E_CANTPROTECT, FAIL, "unable to protect object header")
 
     /* Locate message of correct type */

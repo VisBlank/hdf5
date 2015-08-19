@@ -180,7 +180,7 @@ H5O_shared_read(H5F_t *f, hid_t dxpl_id, H5O_t *open_oh, unsigned *ioflags,
                 HGOTO_ERROR(H5E_OHDR, H5E_READERROR, NULL, "unable to read message")
         } else
             /* The shared message is in another object header */
-            if(NULL == (ret_value = H5O_msg_read(&oloc, type->id, NULL, dxpl_id)))
+            if(NULL == (ret_value = H5O_msg_read(&oloc, type->id, NULL, dxpl_id, H5AC_RING_US)))
                 HGOTO_ERROR(H5E_OHDR, H5E_READERROR, NULL, "unable to read message")
     } /* end else */
 

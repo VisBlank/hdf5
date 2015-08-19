@@ -265,7 +265,7 @@ done:
                 HDONE_ERROR(H5E_SYM, H5E_CANTDEC, NULL, "unable to decrement refcount on newly created object")
             if(H5O_close(&(grp->oloc)) < 0)
                 HDONE_ERROR(H5E_SYM, H5E_CLOSEERROR, NULL, "unable to release object header")
-            if(H5O_delete(file, dxpl_id, grp->oloc.addr) < 0)
+            if(H5O_delete(file, dxpl_id, grp->oloc.addr, H5AC_RING_US) < 0)
                 HDONE_ERROR(H5E_SYM, H5E_CANTDELETE, NULL, "unable to delete object header")
         } /* end if */
         if(grp != NULL) {
@@ -472,8 +472,8 @@ H5G_open_oid(H5G_t *grp, hid_t dxpl_id)
     obj_opened = TRUE;
 
     /* Check if this object has the right message(s) to be treated as a group */
-    if((H5O_msg_exists(&(grp->oloc), H5O_STAB_ID, dxpl_id) <= 0)
-            && (H5O_msg_exists(&(grp->oloc), H5O_LINFO_ID, dxpl_id) <= 0))
+    if((H5O_msg_exists(&(grp->oloc), H5O_STAB_ID, dxpl_id, H5AC_RING_US) <= 0)
+       && (H5O_msg_exists(&(grp->oloc), H5O_LINFO_ID, dxpl_id, H5AC_RING_US) <= 0))
         HGOTO_ERROR(H5E_SYM, H5E_CANTOPENOBJ, FAIL, "not a group")
 
 done:

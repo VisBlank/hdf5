@@ -263,25 +263,25 @@ H5G__obj_create_real(H5F_t *f, hid_t dxpl_id, const H5O_ginfo_t *ginfo,
      * since nothing refers to it yet.	The link count will be
      * incremented if the object is added to the group directed graph.
      */
-    if(H5O_create(f, dxpl_id, hdr_size, (size_t)1, gcpl_id, oloc/*out*/) < 0)
+    if(H5O_create(f, dxpl_id, hdr_size, (size_t)1, gcpl_id, H5AC_RING_US, oloc/*out*/) < 0)
 	HGOTO_ERROR(H5E_SYM, H5E_CANTINIT, FAIL, "can't create header")
 
     /* Check for format of group to create */
     if(use_latest_format) {
         /* Insert link info message */
         /* (Casting away const OK - QAK) */
-        if(H5O_msg_create(oloc, H5O_LINFO_ID, 0, H5O_UPDATE_TIME, (void *)linfo, dxpl_id) < 0)
+        if(H5O_msg_create(oloc, H5O_LINFO_ID, 0, H5O_UPDATE_TIME, (void *)linfo, dxpl_id, H5AC_RING_US) < 0)
             HGOTO_ERROR(H5E_SYM, H5E_CANTINIT, FAIL, "can't create message")
 
         /* Insert group info message */
         /* (Casting away const OK - QAK) */
-        if(H5O_msg_create(oloc, H5O_GINFO_ID, H5O_MSG_FLAG_CONSTANT, 0, (void *)ginfo, dxpl_id) < 0)
+        if(H5O_msg_create(oloc, H5O_GINFO_ID, H5O_MSG_FLAG_CONSTANT, 0, (void *)ginfo, dxpl_id, H5AC_RING_US) < 0)
             HGOTO_ERROR(H5E_SYM, H5E_CANTINIT, FAIL, "can't create message")
 
         /* Insert pipeline message */
         if(pline && pline->nused)
             /* (Casting away const OK - QAK) */
-            if(H5O_msg_create(oloc, H5O_PLINE_ID, H5O_MSG_FLAG_CONSTANT, 0, (void *)pline, dxpl_id) < 0)
+            if(H5O_msg_create(oloc, H5O_PLINE_ID, H5O_MSG_FLAG_CONSTANT, 0, (void *)pline, dxpl_id, H5AC_RING_US) < 0)
                 HGOTO_ERROR(H5E_SYM, H5E_CANTINIT, FAIL, "can't create message")
     } /* end if */
     else {
@@ -330,11 +330,11 @@ H5G__obj_get_linfo(const H5O_loc_t *grp_oloc, H5O_linfo_t *linfo, hid_t dxpl_id)
     HDassert(linfo);
 
     /* Check for the group having a link info message */
-    if((ret_value = H5O_msg_exists(grp_oloc, H5O_LINFO_ID, dxpl_id)) < 0)
+    if((ret_value = H5O_msg_exists(grp_oloc, H5O_LINFO_ID, dxpl_id, H5AC_RING_US)) < 0)
 	HGOTO_ERROR(H5E_SYM, H5E_CANTGET, FAIL, "unable to read object header")
     if(ret_value) {
         /* Retrieve the "link info" structure */
-        if(NULL == H5O_msg_read(grp_oloc, H5O_LINFO_ID, linfo, dxpl_id))
+        if(NULL == H5O_msg_read(grp_oloc, H5O_LINFO_ID, linfo, dxpl_id, H5AC_RING_US))
             HGOTO_ERROR(H5E_SYM, H5E_CANTGET, FAIL, "link info message not present")
 
         /* Check if we don't know how many links there are */
@@ -502,7 +502,7 @@ H5G_obj_insert(const H5O_loc_t *grp_oloc, const char *name, H5O_link_t *obj_lnk,
             HGOTO_ERROR(H5E_SYM, H5E_CANTGETSIZE, FAIL, "can't get link size")
 
         /* Get the group info */
-        if(NULL == H5O_msg_read(grp_oloc, H5O_GINFO_ID, &ginfo, dxpl_id))
+        if(NULL == H5O_msg_read(grp_oloc, H5O_GINFO_ID, &ginfo, dxpl_id, H5AC_RING_US))
             HGOTO_ERROR(H5E_SYM, H5E_BADMESG, FAIL, "can't get group info")
 
         /* If there's still a small enough number of links, use the 'link' message */
@@ -519,10 +519,10 @@ H5G_obj_insert(const H5O_loc_t *grp_oloc, const char *name, H5O_link_t *obj_lnk,
             H5O_mesg_operator_t op;             /* Message operator */
 
             /* Get the pipeline message, if it exists */
-            if((pline_exists = H5O_msg_exists(grp_oloc, H5O_PLINE_ID, dxpl_id)) < 0)
+            if((pline_exists = H5O_msg_exists(grp_oloc, H5O_PLINE_ID, dxpl_id, H5AC_RING_US)) < 0)
                 HGOTO_ERROR(H5E_SYM, H5E_CANTGET, FAIL, "unable to read object header")
             if(pline_exists) {
-                if(NULL == H5O_msg_read(grp_oloc, H5O_PLINE_ID, &tmp_pline, dxpl_id))
+                if(NULL == H5O_msg_read(grp_oloc, H5O_PLINE_ID, &tmp_pline, dxpl_id, H5AC_RING_US))
                     HGOTO_ERROR(H5E_SYM, H5E_BADMESG, FAIL, "can't get link pipeline")
                 pline = &tmp_pline;
             } /* end if */
@@ -544,7 +544,7 @@ H5G_obj_insert(const H5O_loc_t *grp_oloc, const char *name, H5O_link_t *obj_lnk,
                 HGOTO_ERROR(H5E_SYM, H5E_NOTFOUND, FAIL, "error iterating over links")
 
             /* Remove all the 'link' messages */
-            if(H5O_msg_remove(grp_oloc, H5O_LINK_ID, H5O_ALL, FALSE, dxpl_id) < 0)
+            if(H5O_msg_remove(grp_oloc, H5O_LINK_ID, H5O_ALL, FALSE, dxpl_id, H5AC_RING_US) < 0)
                 HGOTO_ERROR(H5E_SYM, H5E_CANTDELETE, FAIL, "unable to delete link messages")
 
             use_new_dense = TRUE;
@@ -560,11 +560,12 @@ H5G_obj_insert(const H5O_loc_t *grp_oloc, const char *name, H5O_link_t *obj_lnk,
             /* Convert group to "new format" group, in order to hold the information */
 
             /* Insert link info message */
-            if(H5O_msg_create(grp_oloc, H5O_LINFO_ID, 0, 0, &new_linfo, dxpl_id) < 0)
+            if(H5O_msg_create(grp_oloc, H5O_LINFO_ID, 0, 0, &new_linfo, dxpl_id, H5AC_RING_US) < 0)
                 HGOTO_ERROR(H5E_SYM, H5E_CANTINIT, FAIL, "can't create message")
 
             /* Insert group info message */
-            if(H5O_msg_create(grp_oloc, H5O_GINFO_ID, H5O_MSG_FLAG_CONSTANT, H5O_UPDATE_TIME, &new_ginfo, dxpl_id) < 0)
+            if(H5O_msg_create(grp_oloc, H5O_GINFO_ID, H5O_MSG_FLAG_CONSTANT, H5O_UPDATE_TIME, 
+                              &new_ginfo, dxpl_id, H5AC_RING_US) < 0)
                 HGOTO_ERROR(H5E_SYM, H5E_CANTINIT, FAIL, "can't create message")
 
             /* Set up user data for iteration */
@@ -576,7 +577,7 @@ H5G_obj_insert(const H5O_loc_t *grp_oloc, const char *name, H5O_link_t *obj_lnk,
                 HGOTO_ERROR(H5E_SYM, H5E_CANTNEXT, FAIL, "error iterating over old format links")
 
             /* Remove the symbol table message from the group */
-            if(H5O_msg_remove(grp_oloc, H5O_STAB_ID, 0, FALSE, dxpl_id) < 0)
+            if(H5O_msg_remove(grp_oloc, H5O_STAB_ID, 0, FALSE, dxpl_id, H5AC_RING_US) < 0)
                 HGOTO_ERROR(H5E_SYM, H5E_CANTDELETE, FAIL, "unable to delete old format link storage")
 
             /* Recursively call this routine to insert the new link, since the
@@ -617,7 +618,7 @@ H5G_obj_insert(const H5O_loc_t *grp_oloc, const char *name, H5O_link_t *obj_lnk,
     /* Increment the number of objects in this group */
     if(!use_old_format) {
         linfo.nlinks++;
-        if(H5O_msg_write(grp_oloc, H5O_LINFO_ID, 0, H5O_UPDATE_TIME, &linfo, dxpl_id) < 0)
+        if(H5O_msg_write(grp_oloc, H5O_LINFO_ID, 0, H5O_UPDATE_TIME, &linfo, dxpl_id, H5AC_RING_US) < 0)
             HGOTO_ERROR(H5E_DATASPACE, H5E_CANTINIT, FAIL, "can't update link info message")
     } /* end if */
 
@@ -902,7 +903,7 @@ H5G_obj_remove_update_linfo(const H5O_loc_t *oloc, H5O_linfo_t *linfo, hid_t dxp
             H5O_ginfo_t ginfo;		/* Group info message            */
 
             /* Get the group info */
-            if(NULL == H5O_msg_read(oloc, H5O_GINFO_ID, &ginfo, dxpl_id))
+            if(NULL == H5O_msg_read(oloc, H5O_GINFO_ID, &ginfo, dxpl_id, H5AC_RING_US))
                 HGOTO_ERROR(H5E_SYM, H5E_BADMESG, FAIL, "can't get group info")
 
             /* Check if we should switch from dense storage back to link messages */
@@ -917,7 +918,7 @@ H5G_obj_remove_update_linfo(const H5O_loc_t *oloc, H5O_linfo_t *linfo, hid_t dxp
                     HGOTO_ERROR(H5E_SYM, H5E_CANTNEXT, FAIL, "error iterating over links")
 
                 /* Pin the object header */
-                if(NULL == (oh = H5O_pin(oloc, dxpl_id)))
+                if(NULL == (oh = H5O_pin(oloc, dxpl_id, H5AC_RING_US)))
                     HGOTO_ERROR(H5E_SYM, H5E_CANTPIN, FAIL, "unable to pin group object header")
 
                 /* Inspect links in table for ones that can't be converted back
@@ -959,7 +960,7 @@ H5G_obj_remove_update_linfo(const H5O_loc_t *oloc, H5O_linfo_t *linfo, hid_t dxp
     } /* end if */
 
     /* Update link info in the object header */
-    if(H5O_msg_write(oloc, H5O_LINFO_ID, 0, H5O_UPDATE_TIME, linfo, dxpl_id) < 0)
+    if(H5O_msg_write(oloc, H5O_LINFO_ID, 0, H5O_UPDATE_TIME, linfo, dxpl_id, H5AC_RING_US) < 0)
         HGOTO_ERROR(H5E_DATASPACE, H5E_CANTINIT, FAIL, "can't update link info message")
 
 done:

@@ -208,7 +208,7 @@ HDmemset(heap->chunk, 0, size);
 	HGOTO_ERROR(H5E_HEAP, H5E_CANTINIT, HADDR_UNDEF, "unable to add global heap collection to file's CWFS")
 
     /* Add the heap to the cache */
-    if(H5AC_insert_entry(f, dxpl_id, H5AC_GHEAP, addr, heap, H5AC__NO_FLAGS_SET, H5AC_RING_USER) < 0)
+    if(H5AC_insert_entry(f, dxpl_id, H5AC_GHEAP, addr, heap, H5AC__NO_FLAGS_SET, H5AC_RING_US) < 0)
 	HGOTO_ERROR(H5E_HEAP, H5E_CANTINIT, HADDR_UNDEF, "unable to cache global heap collection")
 
     ret_value = addr;
@@ -261,7 +261,7 @@ H5HG_protect(H5F_t *f, hid_t dxpl_id, haddr_t addr, unsigned flags)
     HDassert((flags & (unsigned)(~H5AC__READ_ONLY_FLAG)) == 0);
 
     /* Lock the heap into memory */
-    if(NULL == (heap = (H5HG_heap_t *)H5AC_protect(f, dxpl_id, H5AC_GHEAP, addr, f, flags, H5AC_RING_USER)))
+    if(NULL == (heap = (H5HG_heap_t *)H5AC_protect(f, dxpl_id, H5AC_GHEAP, addr, f, flags, H5AC_RING_US)))
         HGOTO_ERROR(H5E_HEAP, H5E_CANTPROTECT, NULL, "unable to protect global heap")
 
     /* Set the heap's address */
