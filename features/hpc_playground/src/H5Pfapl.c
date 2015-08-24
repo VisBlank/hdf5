@@ -176,7 +176,6 @@
 #define H5F_ACS_COLL_MD_READ_FLAG_ENC    H5P__encode_coll_md_read_flag_t
 #define H5F_ACS_COLL_MD_READ_FLAG_DEC    H5P__decode_coll_md_read_flag_t
 
-
 /******************/
 /* Local Typedefs */
 /******************/

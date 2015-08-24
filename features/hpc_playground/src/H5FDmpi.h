@@ -46,7 +46,6 @@ typedef enum H5FD_mpio_xfer_t {
 typedef enum H5FD_mpio_chunk_opt_t {
     H5FD_MPIO_CHUNK_DEFAULT = 0,
     H5FD_MPIO_CHUNK_ONE_IO,  		/*zero is the default*/
-    H5FD_MPIO_CHUNK_MULTI_IO
 } H5FD_mpio_chunk_opt_t;
 
 /* Type of collective I/O */

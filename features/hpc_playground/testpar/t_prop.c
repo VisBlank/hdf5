@@ -237,9 +237,6 @@ test_plist_ed(void)
     ret = H5Pset_dxpl_mpio_collective_opt(dxpl, H5FD_MPIO_INDIVIDUAL_IO);
     VRFY((ret >= 0), "H5Pset_dxpl_mpio_collective_opt succeeded");
 
-    ret = H5Pset_dxpl_mpio_chunk_opt(dxpl, H5FD_MPIO_CHUNK_MULTI_IO);
-    VRFY((ret >= 0), "H5Pset_dxpl_mpio_chunk_opt succeeded");
-
     ret = H5Pset_dxpl_mpio_chunk_opt_ratio(dxpl, 30);
     VRFY((ret >= 0), "H5Pset_dxpl_mpio_chunk_opt_ratio succeeded");
 

@@ -101,8 +101,8 @@ H5FL_DEFINE_STATIC(H5D_shared_t);
 /* Declare the external PQ free list for the sieve buffer information */
 H5FL_BLK_EXTERN(sieve_buf);
 
-/* Declare the external free list to manage the H5D_chunk_info_t struct */
-H5FL_EXTERN(H5D_chunk_info_t);
+/* Declare the external free list to manage the H5D_piece_info_t struct */
+H5FL_EXTERN(H5D_piece_info_t);
 
 /* Declare extern the free list to manage blocks of type conversion data */
 H5FL_BLK_EXTERN(type_conv);
@@ -465,7 +465,7 @@ done:
 /*-------------------------------------------------------------------------
  * Function:    H5D__get_space_status
  *
- * Purpose:     Returns the status of data space allocation.
+ * Purpose:     Returns the status of dataspace allocation.
  *
  * Return:
  *              Success:        Non-negative
@@ -1453,6 +1453,12 @@ H5D_close(H5D_t *dataset)
         /* Free cached information for each kind of dataset */
         switch(dataset->shared->layout.type) {
             case H5D_CONTIGUOUS:
+                /* Check for skip list for iterating over pieces during I/O to close */
+                if(dataset->shared->cache.sel_pieces) {
+                    HDassert(H5SL_count(dataset->shared->cache.sel_pieces) == 0);
+                    H5SL_close(dataset->shared->cache.sel_pieces);
+                    dataset->shared->cache.sel_pieces = NULL;
+                } /* end if */
                 break;
 
             case H5D_CHUNKED:
@@ -1463,6 +1469,13 @@ H5D_close(H5D_t *dataset)
                     dataset->shared->cache.chunk.sel_chunks = NULL;
                 } /* end if */
 
+                /* Check for skip list for iterating over pieces during I/O to close */
+                if(dataset->shared->cache.sel_pieces) {
+                    HDassert(H5SL_count(dataset->shared->cache.sel_pieces) == 0);
+                    H5SL_close(dataset->shared->cache.sel_pieces);
+                    dataset->shared->cache.sel_pieces = NULL;
+                } /* end if */
+
                 /* Check for cached single chunk dataspace */
                 if(dataset->shared->cache.chunk.single_space) {
                     (void)H5S_close(dataset->shared->cache.chunk.single_space);
@@ -1470,10 +1483,9 @@ H5D_close(H5D_t *dataset)
                 } /* end if */
 
                 /* Check for cached single element chunk info */
-                if(dataset->shared->cache.chunk.single_chunk_info) {
-                    dataset->shared->cache.chunk.single_chunk_info = H5FL_FREE(H5D_chunk_info_t, dataset->shared->cache.chunk.single_chunk_info);
-                    dataset->shared->cache.chunk.single_chunk_info = NULL;
-                } /* end if */
+                if(dataset->shared->cache.chunk.single_piece_info)
+                    dataset->shared->cache.chunk.single_piece_info = 
+                        H5FL_FREE(H5D_piece_info_t, dataset->shared->cache.chunk.single_piece_info);
 
                 /* Flush and destroy chunks in the cache. Continue to close even if 
                  * it fails. */
@@ -2105,6 +2117,7 @@ herr_t
 H5D__vlen_get_buf_size(void H5_ATTR_UNUSED *elem, hid_t type_id, unsigned H5_ATTR_UNUSED ndim, const hsize_t *point, void *op_data)
 {
     H5D_vlen_bufsize_t *vlen_bufsize = (H5D_vlen_bufsize_t *)op_data;
+    H5D_dset_info_t *dset_info = NULL;  /* Internal multi-dataset info placeholder */
     H5T_t *dt;                          /* Datatype for operation */
     herr_t ret_value = SUCCEED;         /* Return value */
 
@@ -2125,11 +2138,30 @@ H5D__vlen_get_buf_size(void H5_ATTR_UNUSED *elem, hid_t type_id, unsigned H5_ATT
     if(H5S_select_elements(vlen_bufsize->fspace, H5S_SELECT_SET, (size_t)1, point) < 0)
         HGOTO_ERROR(H5E_DATASET, H5E_CANTCREATE, FAIL, "can't select point")
 
-    /* Read in the point (with the custom VL memory allocator) */
-    if(H5D__read(vlen_bufsize->dset, type_id, vlen_bufsize->mspace, vlen_bufsize->fspace, vlen_bufsize->xfer_pid, vlen_bufsize->fl_tbuf) < 0)
-        HGOTO_ERROR(H5E_DATASET, H5E_READERROR, FAIL, "can't read point")
+    {
+        hid_t file_id;                      /* File ID for operation */
+
+        /* Alloc dset_info */
+        if(NULL == (dset_info = (H5D_dset_info_t *)H5MM_calloc(sizeof(H5D_dset_info_t))))
+            HGOTO_ERROR(H5E_DATASET, H5E_CANTALLOC, FAIL, "couldn't allocate dset info array buffer")
+
+        dset_info->dset = vlen_bufsize->dset;
+        dset_info->mem_space = vlen_bufsize->mspace;
+        dset_info->file_space = vlen_bufsize->fspace;
+        dset_info->u.rbuf = vlen_bufsize->fl_tbuf;
+        dset_info->mem_type_id = type_id;
+
+        /* Retrieve file_id */
+        file_id = H5F_FILE_ID(dset_info->dset->oloc.file);
+
+        /* Read in the point (with the custom VL memory allocator) */
+        if(H5D__read(file_id, vlen_bufsize->xfer_pid, 1, dset_info) < 0)
+            HGOTO_ERROR(H5E_DATASET, H5E_READERROR, FAIL, "can't read data")
+    }
 
 done:
+    if(dset_info)
+        H5MM_xfree(dset_info);
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5D__vlen_get_buf_size() */
 

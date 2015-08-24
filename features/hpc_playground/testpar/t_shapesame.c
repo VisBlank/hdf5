@@ -1530,7 +1530,6 @@ contig_hs_dr_pio_test__m2d_l2s(struct hs_dr_pio_test_vars_t * tv_ptr)
                     VRFY((ret >= 0), 
                          "H5Sselect_hyperslab() mem_large_ds_sid succeeded.");
 
-
                     /* verify that H5S_select_shape_same() reports the in
                      * memory slice through the cube selection and the
                      * on disk full square selections as having the same shape.
@@ -1595,7 +1594,6 @@ contig_hs_dr_pio_test__m2d_l2s(struct hs_dr_pio_test_vars_t * tv_ptr)
                         if ( ( n >= start_index ) && ( n <= stop_index ) ) {
 
                             if ( *ptr_1 != expected_value ) {
-
                                 mis_match = TRUE;
                             }
                             expected_value++;
@@ -1603,7 +1601,6 @@ contig_hs_dr_pio_test__m2d_l2s(struct hs_dr_pio_test_vars_t * tv_ptr)
                         } else {
 
                             if ( *ptr_1 != 0 ) {
-
                                 mis_match = TRUE;
                             }
                         }
@@ -1861,7 +1858,6 @@ contig_hs_dr_pio_test__m2d_s2l(struct hs_dr_pio_test_vars_t * tv_ptr)
                                               tv_ptr->block_ptr);
                     VRFY((ret != FAIL), 
                          "H5Sselect_hyperslab() target large ds slice succeeded");
-
 
                     /* verify that H5S_select_shape_same() reports the in
                      * memory small data set slice selection and the
@@ -5074,7 +5070,6 @@ int main(int argc, char **argv)
     TestInit(argv[0], usage, parse_options);
 
     /* Shape Same tests using contigous hyperslab */
-#if 1
     AddTest("sscontig1", sscontig1, NULL,
 	"Shape Same, contigous hyperslab, ind IO, contig datasets", PARATESTFILE);
     AddTest("sscontig2", sscontig2, NULL,
@@ -5083,7 +5078,6 @@ int main(int argc, char **argv)
 	"Shape Same, contigous hyperslab, ind IO, chunked datasets", PARATESTFILE);
     AddTest("sscontig4", sscontig4, NULL,
 	"Shape Same, contigous hyperslab, col IO, chunked datasets", PARATESTFILE);
-#endif
 
     /* Shape Same tests using checker board hyperslab */
     AddTest("sschecker1", sschecker1, NULL,
