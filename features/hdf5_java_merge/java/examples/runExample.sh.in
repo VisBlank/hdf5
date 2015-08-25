@@ -6,16 +6,13 @@
 HDFBLD_HOME=@abs_top_builddir@
 export HDFBLD_HOME
 
-# where Java is installed (requires jdk1.7.x)
+# where Java is installed (requires jdk1.4.x)
 JAVAPATH=@JAVABIN@
 export JAVAPATH
 
-###############################################################################
-#            DO NOT MODIFY BELOW THIS LINE
-###############################################################################
+RM=@RM@
 
-
-CPATH=".:"$HDFBLD_HOME"/lib/jhdf5.jar:"$HDFBLD_HOME"/lib/junit.jar:"$HDFBLD_HOME"/lib/hamcrest-core.jar:"$HDFBLD_HOME"/lib/slf4j-api-1.7.5.jar:"$HDFBLD_HOME"/lib/ext/slf4j-nop-1.7.5.jar"
+CPATH="..:"$HDFBLD_HOME"/lib/jhdf5.jar:"$HDFBLD_HOME"/lib/slf4j-api-1.7.5.jar:"$HDFBLD_HOME"/lib/ext/slf4j-nop-1.7.5.jar"
 
 TEST=/usr/bin/test
 if [ ! -x /usr/bin/test ]
@@ -69,4 +66,8 @@ case  $os_name in
         ;;
 esac
 
-(cd $HDFBLD_HOME/lib; $JAVAPATH/java -Xmx1024M -Djava.library.path=$HDFBLD_HOME"/lib/"$OS_NAME -ea org.junit.runner.JUnitCore test.TestAll)
+(cd $HDFBLD_HOME/lib/examples; $JAVAPATH/java -Xmx1024M -Djava.library.path=$HDFBLD_HOME"/lib/"$OS_NAME "$1" > "$1".out)
+if diff $HDFBLD_HOME/lib/examples/"$1".out testfiles/"$1".txt > /dev/null; 
+then exit 0
+else exit 1
+fi
