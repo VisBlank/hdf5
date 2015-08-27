@@ -2469,6 +2469,19 @@ done:
  *		instance of H5HF_hdr_t are clean.  Set *clean to 
  *		TRUE if this is the case, and to FALSE otherwise.
  *
+ *		Update -- 8/24/15
+ *
+ *		With the advent of the metadata cache image feature, it is
+ *		possible for the pre-serialize and serialize calls to be
+ *		invoked outside of a flush.  While this serialization
+ *		observes flush dependencies for the order of serialization,
+ *		the entries are not written to disk, and hence dirty entries
+ *		remain dirty.
+ *
+ *		To address this, updated the sanity checks in this function
+ *		to treat entries whose images are up to date as clean if 
+ *		a cache serialization is in progress.
+ *
  * Return:	Non-negative on success/Negative on failure
  *
  * Programmer:	John Mainzer
@@ -2558,7 +2571,13 @@ H5HF__cache_verify_hdr_descendants_clean(H5F_t *f, hid_t dxpl_id,
 
 	if(!root_iblock_in_cache) /* we are done */
 	    *clean = TRUE;
+#if 0 /* old code */ /* JRM */
 	else if(root_iblock_status & H5AC_ES__IS_DIRTY)
+#else /* new code */ /* JRM */
+        else if ((root_iblock_status & H5AC_ES__IS_DIRTY) &&
+                 (((root_iblock_status & H5AC_ES__IMAGE_IS_UP_TO_DATE) == 0) ||
+                  (!H5AC_get_serialization_in_progress(f))))
+#endif /* new code */ /* JRM */
 	    *clean = FALSE;
 	else { /* must examine children */
             hbool_t	unprotect_root_iblock = FALSE;
@@ -2703,7 +2722,14 @@ H5HF__cache_verify_hdr_descendants_clean(H5F_t *f, hid_t dxpl_id,
             if(0 != (root_dblock_status & H5AC_ES__IS_FLUSH_DEP_PARENT))
                 HGOTO_ERROR(H5E_HEAP, H5E_SYSTEM, FAIL, "root dblock in cache and is a flush dep parent.")
 
+#if 0 /* old code */ /* JRM */
 	    *clean = ! (root_dblock_status & H5AC_ES__IS_DIRTY);
+#else /* new code */ /* JRM */
+            *clean = !((root_dblock_status & H5AC_ES__IS_DIRTY) &&
+                       (((root_dblock_status & 
+                          H5AC_ES__IMAGE_IS_UP_TO_DATE) == 0) || 
+                        (!H5AC_get_serialization_in_progress(f))));
+#endif /* new code */ /* JRM */
 	} /* end if */
         else    /* root dblock not in cache */
 	    *clean = TRUE;
@@ -2817,6 +2843,19 @@ done:
  *		during the call.  Caller must ensure that this is 
  *		the case before the call.
  *
+ *              Update -- 8/24/15
+ *
+ *              With the advent of the metadata cache image feature, it is
+ *              possible for the pre-serialize and serialize calls to be
+ *              invoked outside of a flush.  While this serialization
+ *              observes flush dependencies for the order of serialization,
+ *              the entries are not written to disk, and hence dirty entries
+ *              remain dirty.
+ *
+ *              To address this, updated the sanity checks in this function
+ *              to treat entries whose images are up to date as clean if
+ *              a cache serialization is in progress.
+ *
  * Return:	Non-negative on success/Negative on failure
  *
  * Programmer:	John Mainzer
@@ -2871,7 +2910,13 @@ H5HF__cache_verify_iblocks_dblocks_clean(H5F_t *f, H5HF_indirect_t *iblock,
                 HDassert(dblock_status & H5AC_ES__IN_CACHE);
 
 	        *has_dblocks = TRUE;
+#if 0 /* old code */ /* JRM */
                 if(dblock_status & H5AC_ES__IS_DIRTY)
+#else /* new code */ /* JRM */
+                if((dblock_status & H5AC_ES__IS_DIRTY) &&
+                   (((dblock_status & H5AC_ES__IMAGE_IS_UP_TO_DATE) == 0) ||
+                     (!H5AC_get_serialization_in_progress(f))))
+#endif /* new code */ /* JRM */
 		    *clean = FALSE;
 
 	        /* If a child dblock is in cache, it must have a flush 
@@ -2921,6 +2966,19 @@ done:
  *		during the call.  Caller must ensure that this is 
  *		the case before the call.
  *
+ *              Update -- 8/24/15
+ *
+ *              With the advent of the metadata cache image feature, it is
+ *              possible for the pre-serialize and serialize calls to be
+ *              invoked outside of a flush.  While this serialization
+ *              observes flush dependencies for the order of serialization,
+ *              the entries are not written to disk, and hence dirty entries
+ *              remain dirty.
+ *
+ *              To address this, updated the sanity checks in this function
+ *              to treat entries whose images are up to date as clean if
+ *              a cache serialization is in progress.
+ *
  * Return:	Non-negative on success/Negative on failure
  *
  * Programmer:	John Mainzer
@@ -2967,7 +3025,14 @@ H5HF__cache_verify_descendant_iblocks_clean(H5F_t *f, hid_t dxpl_id,
 
 	    if(child_iblock_status & H5AC_ES__IN_CACHE) {
 	        *has_iblocks = TRUE;
+#if 0 /* old code */ /* JRM */
                 if(child_iblock_status & H5AC_ES__IS_DIRTY)
+#else /* new code */ /* JRM */
+               if((child_iblock_status & H5AC_ES__IS_DIRTY) &&
+                  (((child_iblock_status & 
+                     H5AC_ES__IMAGE_IS_UP_TO_DATE) == 0) ||
+                   (!H5AC_get_serialization_in_progress(f))))
+#endif /* new code */ /* JRM */
 		    *clean = FALSE;
 
                 /* if the child iblock is in cache and *clean is TRUE, 

@@ -41,7 +41,7 @@
 /**************************/
 
 /* Cache configuration settings */
-#define H5C__MAX_NUM_TYPE_IDS	28
+#define H5C__MAX_NUM_TYPE_IDS	29
 #define H5C__PREFIX_LEN		32
 
 /* This sanity checking constant was picked out of the air.  Increase
@@ -73,6 +73,7 @@
 #define H5C__CLASS_NO_IO_FLAG			((unsigned)0x4)
 #define H5C__CLASS_SKIP_READS			((unsigned)0x8)
 #define H5C__CLASS_SKIP_WRITES			((unsigned)0x10)
+#define H5C__CLASS_SKIP_MEM_TYPE_CHECKS		((unsigned)0x20)
 
 /* Flags for pre-serialize callback */
 #define H5C__SERIALIZE_NO_FLAGS_SET	((unsigned)0)
@@ -108,6 +109,10 @@
 /* Values for cache entry magic field */
 #define H5C__H5C_CACHE_ENTRY_T_MAGIC		0x005CAC0A
 #define H5C__H5C_CACHE_ENTRY_T_BAD_MAGIC	0xDeadBeef
+
+/* Values for image entry magic field */
+#define H5C__H5C_IMAGE_ENTRY_T_MAGIC		0x005CAC08
+#define H5C__H5C_IMAGE_ENTRY_T_BAD_MAGIC	0xBeefDead
 
 /* Cache configuration validation definitions */
 #define H5C_RESIZE_CFG__VALIDATE_GENERAL        0x1
@@ -386,6 +391,13 @@ typedef struct H5C_t H5C_t;
  *	H5C__CLASS_SKIP_WRITES: This flags is intended only for use in test
  *		code.  When it is set, writes of buffers prepared by the 
  *		serialize callback will be skipped.
+ *
+ *	H5C__CLASS_SKIP_MEM_TYPE_CHECKS: This flag is intended only for use
+ *		in test code.  When it is set, sanity checks to verify
+ *		agreement between class and expected disk mem type are 
+ *		skipped.  This allows us to create a new set of client
+ *		classes for testing that use the same ID space as the regular
+ *		client classes.
  *
  * GET_LOAD_SIZE: Pointer to the 'get load size' function.
  *
@@ -1504,10 +1516,25 @@ typedef herr_t (*H5C_log_flush_func_t)(H5C_t *cache_ptr, haddr_t addr,
  *
  * Fields supporting the cache image feature:
  *
- * The following fields are used to store about the entry which must 
+ * The following fields are used to store data about the entry which must 
  * be stored in the cache image block, but which will typically be either 
  * lost or heavily altered in the process of serializing the cache and 
  * preparing its contents to be copied into the cache image block.
+ *
+ * Some fields are also used in loading the contents of the metadata cache
+ * image back into the cache, and in managing such entries until they are 
+ * either protected by the library (at which point they become regular 
+ * entries) or are evicted.  See discussion of the prefetched field for 
+ * further details.
+ *
+ * include_in_image: Boolean flag indicating whether this entry should
+ *		be included in the metadata cache image.  This field should
+ *		always be false prior to the H5C_prep_for_file_close() call.
+ *		During that call, it should be set to TRUE for all entries
+ *		that are to be included in the metadata cache image.  At 
+ *		present, only the superblock, the superblock extension 
+ *		object header and its chunks (if any) are omitted from 
+ *		the image.
  *
  * lru_rank:	Rank of the entry in the LRU just prior to file close.
  *
@@ -1515,6 +1542,10 @@ typedef herr_t (*H5C_log_flush_func_t)(H5C_t *cache_ptr, haddr_t addr,
  *		and that entries not on the LRU at that time will have 
  *		either lru_rank -1 (if pinned) or 0 (if loaded during 
  *		the process of flushing the cache.
+ *
+ * image_index:	Index of the entry in the array of pointer to 
+ *		H5C_cache_entry_t pointed to by cache_ptr->image_entries,
+ *		or -1 if not referenced by that array.
  *
  * image_dirty: Boolean flag indicating whether the entry should be marked
  *		as dirty in the metadata cache image.  The flag is set to
@@ -1532,6 +1563,59 @@ typedef herr_t (*H5C_log_flush_func_t)(H5C_t *cache_ptr, haddr_t addr,
  *		dependency children.
  *
  *		In all other cases, the field is set to zero.
+ *
+ * prefetched:	Boolean flag indicating that the on disk image of the entry
+ *		has been loaded into the cache prior any request for the 
+ *		entry by the rest of the library.
+ *
+ *		As of this writing (8/10/15), this can only happen through 
+ *		the load of a cache image block, although other scenarios 
+ *		are contemplated for the use of this feature.  Note that 
+ *		unlike the usual prefetch situation, this means that a 
+ *		pre fetched entry can be dirty, and/or can be a party to 
+ *		flush dependency relationship(s).  This complicates matters 
+ *		somewhat.
+ *
+ *		The essential feature of a pre-fetched entry is that it 
+ *		consists only of a buffer containing the on disk image of 
+ *		the entry.  Thus it must be  deserialized before it can 
+ *		be passed back to the library on a protect call.  This 
+ *		task is handled by H5C_deserialized_prefetched_entry().
+ *		In essence, this routine calls the deserialize callback 
+ *		provided in the protect call with the on disk image, 
+ *		deletes the prefetched entry from the cache, and replaces
+ *		it with the deserialized entry returned by the deserialize
+ *		callback.
+ *
+ *		Further, if the prefetched entry is a flush dependency parent, 
+ *		all its flush dependency children (which must also be 
+ *		pre-fetched entries), must be tranfered to the new cache 
+ *		entry returned by the deserailization callback.
+ *
+ *		Finally, if the prefetched entry is a flush dependency child, 
+ *		this flush dependency must be destroyed prior to the 
+ *		deserialize call.
+ *
+ *		In addition to the above special processing on the first 
+ *		protect call on a prefetched entry (after which is no longer
+ *		a prefetched entry), prefetched entries also require special 
+ *		tretment on flush and evict.
+ *
+ *		On flush, a dirty prefetched entry must simply be written 
+ *		to disk and marked clean without any call to any client 
+ *		callback.
+ *
+ *		On eviction, if a prefetched entry is a flush dependency 
+ *		child, that flush dependency relationship must be destroyed
+ *		just prior to the eviction.  If the flush dependency code
+ *		is working properly, it should be impossible for any entry
+ *		that is a flush dependency parent to be evicted.
+ *
+ * prefetch_type_id: Integer field containing the type ID of the prefetched
+ *		entry.  This ID must match the ID of the type provided in any
+ *		protect call on the prefetched entry.
+ *
+ *		The value of this field is undefined in prefetched is FALSE.
  *
  * Cache entry stats collection fields:
  *
@@ -1598,10 +1682,14 @@ typedef struct H5C_cache_entry_t {
     struct H5C_cache_entry_t  *	aux_prev;
 #if 1 /* new code */ /* JRM */
     /* fields supporting cache image */
+    hbool_t			include_in_image;
     int32_t			lru_rank;
+    int32_t			image_index;
     hbool_t			image_dirty;
     haddr_t			fd_parent_addr;
     uint64_t			fd_child_count;
+    hbool_t			prefetched;
+    int				prefetch_type_id;
 #endif /* new code */ /* JRM */
 #if H5C_COLLECT_CACHE_ENTRY_STATS
     /* cache entry stats fields */
@@ -1611,6 +1699,86 @@ typedef struct H5C_cache_entry_t {
     int32_t			pins;
 #endif /* H5C_COLLECT_CACHE_ENTRY_STATS */
 } H5C_cache_entry_t;
+
+
+/****************************************************************************
+ *
+ * structure H5C_image_entry_t
+ *
+ * Instances of the H5C_image_entry_t structure are used to store data on
+ * metadatat cache entries used in the construction of the metadat cache 
+ * image block.  In essence this structure is a greatly simplified version
+ * of H5C_cache_entry_t.
+ *
+ * The fields of this structure are discussed individually below:
+ *
+ *						JRM - 8/5/15
+ *
+ * magic:	Unsigned 32 bit integer that must always be set to
+ *              H5C__H5C_IMAGE_ENTRY_T_MAGIC when the entry is valid.
+ *              The field must be set to H5C__H5C_IMAGE__ENTRY_T_BAD_MAGIC
+ *              just before the entry is freed.
+ *
+ * addr:	Base address of the cache entry on disk.
+ *
+ * size:	Length of the cache entry on disk in bytes.
+ *
+ * type_id:	Integer field containing the type ID of the entry.
+ *
+ * image_index:	Index of the entry in the array of pointer to 
+ *		H5C_cache_entry_t pointed to by cache_ptr->image_entries,
+ *		or -1 if not referenced by that array.
+ *
+ * lru_rank:	Rank of the entry in the LRU just prior to file close.
+ *
+ *		Note that the first entry on the LRU has lru_rank 1,
+ *		and that entries not on the LRU at that time will have 
+ *		either lru_rank -1 (if pinned) or 0 (if loaded during 
+ *		the process of flushing the cache.
+ *
+ * is_dirty:	Boolean flag indicating whether the contents of the cache
+ *		entry has been modified since the last time it was written
+ *		to disk as a regular piece of metadata.
+ *
+ * flush_dep_height:	The height of the entry, which is one greater than the
+ *		maximum height of any of its child entries..
+ *
+ * fd_parent_addr: If the entry is a child in a flush dependency relationship
+ *		when H5C_prep_for_file_close() is called, this field 
+ *		must contain the on disk address of the parent.
+ *
+ *		In all other cases, the field is set to HADDR_UNDEF.
+ *
+ * fd_child_count: If the entry is a parent in a flush dependency 
+ *		relationship, this field contains the number of flush 
+ *		dependency children.
+ *
+ *		In all other cases, the field is set to zero.
+ *
+ * image_ptr:	Pointer to void.  When not NULL, this field points to a
+ * 		dynamically allocated block of size bytes in which the
+ * 		on disk image of the metadata cache entry is stored.
+ *
+ * 		If the entry is dirty, the pre-serialize and serialize 
+ *		callbacks must be used to update this image before it is 
+ *		written to disk
+ *
+ *
+ ****************************************************************************/
+
+typedef struct H5C_image_entry_t {
+    uint32_t			magic;
+    haddr_t			addr;
+    size_t			size;
+    int32_t			type_id;
+    int32_t			image_index;
+    int32_t			lru_rank;
+    hbool_t			is_dirty;
+    unsigned			flush_dep_height;
+    haddr_t			fd_parent_addr;
+    uint64_t			fd_child_count;
+    void  		      *	image_ptr;
+} H5C_image_entry_t;
 
 /****************************************************************************
  *
@@ -1935,12 +2103,14 @@ typedef struct H5C_auto_size_ctl_t {
 
 #define H5C_CI__GEN_MDCI_SBE_MESG	((unsigned)0x0001)
 #define H5C_CI__GEN_MDC_IMAGE_BLK	((unsigned)0x0002)
+#define H5C_CI__SUPRESS_ENTRY_WRITES	((unsigned)0x0004)
+#define H5C_CI__WRITE_CACHE_IMAGE	((unsigned)0x0008)
 
 /* This #define must set all defined H5C_CI flags.  It is 
  * used in the default value for instances of H5C_cache_image_ctl_t.
  * This value will only be modified in test code.
  */
-#define H5C_CI__ALL_FLAGS		((unsigned)0x0003)
+#define H5C_CI__ALL_FLAGS		((unsigned)0x000F)
 
 #define H5C__DEFAULT_CACHE_IMAGE_CTL                      \
 {                                                         \
@@ -1983,6 +2153,7 @@ H5_DLL herr_t H5C_get_cache_auto_resize_config(const H5C_t *cache_ptr,
     H5C_auto_size_ctl_t *config_ptr);
 H5_DLL herr_t H5C_get_cache_image_config(const H5C_t * cache_ptr,
     H5C_cache_image_ctl_t *config_ptr);
+H5_DLL hbool_t H5C_get_serialization_in_progress(H5F_t * f);
 H5_DLL herr_t H5C_get_cache_size(H5C_t *cache_ptr, size_t *max_size_ptr,
     size_t *min_clean_size_ptr, size_t *cur_size_ptr,
     int32_t *cur_num_entries_ptr);
@@ -1990,7 +2161,8 @@ H5_DLL herr_t H5C_get_cache_hit_rate(H5C_t *cache_ptr, double *hit_rate_ptr);
 H5_DLL herr_t H5C_get_entry_status(const H5F_t *f, haddr_t addr,
     size_t *size_ptr, hbool_t *in_cache_ptr, hbool_t *is_dirty_ptr,
     hbool_t *is_protected_ptr, hbool_t *is_pinned_ptr,
-    hbool_t *is_flush_dep_parent_ptr, hbool_t *is_flush_dep_child_ptr);
+    hbool_t *is_flush_dep_parent_ptr, hbool_t *is_flush_dep_child_ptr,
+    hbool_t *image_up_to_date_ptr);
 H5_DLL herr_t H5C_get_evictions_enabled(const H5C_t *cache_ptr, hbool_t *evictions_enabled_ptr);
 H5_DLL void * H5C_get_aux_ptr(const H5C_t *cache_ptr);
 H5_DLL FILE *H5C_get_trace_file_ptr(const H5C_t *cache_ptr);

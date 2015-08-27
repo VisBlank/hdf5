@@ -88,6 +88,10 @@ static herr_t H5O_visit(hid_t loc_id, const char *obj_name, H5_index_t idx_type,
     hid_t dxpl_id);
 static herr_t H5O_get_hdr_info_real(const H5O_t *oh, H5O_hdr_info_t *hdr);
 static const H5O_obj_class_t *H5O_obj_class_real(H5O_t *oh);
+#if 1 /* new code */ /* JRM */
+static herr_t H5O_get_chunk_addrs_real(const H5O_t *oh, unsigned nchunks, 
+    haddr_t *addrs);
+#endif /* new code */ /* JRM */
 
 
 /*********************/
@@ -2651,6 +2655,99 @@ H5O_loc_free(H5O_loc_t *loc)
 done:
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5O_loc_free() */
+
+#if 1 /* new code */ /* JRM */
+
+/*-------------------------------------------------------------------------
+ * Function:	H5O_get_chunk_addrs
+ *
+ * Purpose:	Retrieve the addresses of all the chunks in the object 
+ *		header, and return then in the supplied array of haddr_t.
+ *		The supplied nchunks must match the 
+ *
+ * Return:	Success:	Non-negative
+ *		Failure:	Negative
+ *
+ * Programmer:	John Mainzer
+ *		8/1/15
+ *
+ *-------------------------------------------------------------------------
+ */
+herr_t
+H5O_get_chunk_addrs(const H5O_loc_t *loc, hid_t dxpl_id, unsigned nchunks, haddr_t *addrs)
+{
+    H5O_t *oh = NULL;                   /* Object header */
+    herr_t ret_value = SUCCEED;         /* Return value */
+
+    FUNC_ENTER_NOAPI(FAIL)
+
+    /* Check args */
+    HDassert(loc);
+
+    /* Get the object header */
+    if(NULL == (oh = H5O_protect(loc, dxpl_id, H5AC__READ_ONLY_FLAG)))
+	HGOTO_ERROR(H5E_OHDR, H5E_CANTLOAD, FAIL, "unable to load object header")
+
+    /* Get the chunk addresses */
+    if(H5O_get_chunk_addrs_real(oh, nchunks, addrs) < 0)
+        HGOTO_ERROR(H5E_OHDR, H5E_CANTGET, FAIL, "can't retrieve object chunk addresses")
+
+done:
+    if(oh && H5O_unprotect(loc, dxpl_id, oh, H5AC__NO_FLAGS_SET) < 0)
+	HDONE_ERROR(H5E_OHDR, H5E_PROTECT, FAIL, "unable to release object header")
+
+    FUNC_LEAVE_NOAPI(ret_value)
+} /* end H5O_get_chunk_addrs() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:	H5O_get_chunk_addrs_real
+ *
+ * Purpose:	Internal routine to retrieve the addresses of all chunks 
+ *		associated with the object header
+ *
+ * Return:	Success:	Non-negative
+ *		Failure:	Negative
+ *
+ * Programmer:	John Mainzer
+ *		8/1/15
+ *
+ *-------------------------------------------------------------------------
+ */
+static herr_t
+H5O_get_chunk_addrs_real(const H5O_t *oh, unsigned nchunks, haddr_t *addrs)
+{
+    const H5O_chunk_t *curr_chunk;	/* Pointer to current chunk being operated on */
+    unsigned actual_nchunks;		/* actual number of chunks -- must match nchunks */
+    unsigned u;                         /* Local index variable */
+    herr_t ret_value = SUCCEED;         /* Return value */
+
+    FUNC_ENTER_NOAPI(FAIL)
+
+    /* Check args */
+    HDassert(oh);
+    HDassert(addrs);
+
+    /* set actual nchunks */
+    H5_CHECKED_ASSIGN(actual_nchunks, unsigned, oh->nchunks, size_t);
+
+    if ( actual_nchunks != nchunks )
+	HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, \
+		    "supplied nchunks != actual nchunks.");
+
+    /* Iterate over all the chunks, making note of addresses */
+    for(u = 0, curr_chunk = &oh->chunk[0]; u < oh->nchunks; u++, curr_chunk++) {
+
+        addrs[u] = curr_chunk->addr;
+
+    } /* end for */
+
+done:
+
+    FUNC_LEAVE_NOAPI(ret_value)
+} /* end H5O_get_chunk_addrs_real() */
+
+#endif /* new code */ /* JRM */
 
 
 /*-------------------------------------------------------------------------

@@ -500,6 +500,10 @@ if ( ( (entry_ptr) == NULL ) ||                                                \
  *      common code within macros that update the maximum
  *      index, clean_index, and dirty_index statistics fields.
  *
+ *	JRM -- 8/20/15
+ *	Added macros to collect metadata cache and prefetch related
+ *	stats.
+ *
  ***********************************************************************/
 
 #define H5C__UPDATE_CACHE_HIT_RATE_STATS(cache_ptr, hit) \
@@ -588,6 +592,28 @@ if ( ( (entry_ptr) == NULL ) ||                                                \
 
 #define H5C__UPDATE_STATS_FOR_HASH_BUCKET_SCAN_RESTART(cache_ptr) \
 	((cache_ptr)->hash_bucket_scan_restarts)++;
+
+#define H5C__UPDATE_STATS_FOR_CACHE_IMAGE_CREATE(cache_ptr) \
+{                                                           \
+    (cache_ptr)->images_created++;                          \
+}
+
+#define H5C__UPDATE_STATS_FOR_CACHE_IMAGE_LOAD(cache_ptr) \
+{                                                         \
+    (cache_ptr)->images_loaded++;                         \
+}
+
+#define H5C__UPDATE_STATS_FOR_PREFETCH(cache_ptr, dirty) \
+{                                                        \
+    (cache_ptr)->prefetches++;                           \
+    if ( dirty )                                         \
+        (cache_ptr)->dirty_prefetches++;                 \
+}
+
+#define H5C__UPDATE_STATS_FOR_PREFETCH_HIT(cache_ptr) \
+{                                                     \
+    (cache_ptr)->prefetch_hits++;                     \
+}
 
 #if H5C_COLLECT_CACHE_ENTRY_STATS
 
@@ -811,6 +837,10 @@ if ( ( (entry_ptr) == NULL ) ||                                                \
 #define H5C__UPDATE_STATS_FOR_SLIST_SCAN_RESTART(cache_ptr)
 #define H5C__UPDATE_STATS_FOR_LRU_SCAN_RESTART(cache_ptr)
 #define H5C__UPDATE_STATS_FOR_HASH_BUCKET_SCAN_RESTART(cache_ptr)
+#define H5C__UPDATE_STATS_FOR_CACHE_IMAGE_CREATE(cache_ptr)
+#define H5C__UPDATE_STATS_FOR_CACHE_IMAGE_LOAD(cache_ptr)
+#define H5C__UPDATE_STATS_FOR_PREFETCH(cache_ptr, dirty)
+#define H5C__UPDATE_STATS_FOR_PREFETCH_HIT(cache_ptr)
 
 #endif /* H5C_COLLECT_CACHE_STATS */
 
@@ -1887,6 +1917,127 @@ if ( ( (cache_ptr)->index_size !=                                           \
 } /* H5C__UPDATE_RP_FOR_FLUSH */
 
 #endif /* H5C_MAINTAIN_CLEAN_AND_DIRTY_LRU_LISTS */
+
+
+#if 1 /* new code */ /* JRM */
+/*-------------------------------------------------------------------------
+ *
+ * Macro:	H5C__UPDATE_RP_FOR_INSERT_APPEND
+ *
+ * Purpose:     Update the replacement policy data structures for an
+ *		insertion of the specified cache entry.  
+ *
+ *		Unlike H5C__UPDATE_RP_FOR_INSERTION below, mark the 
+ *		new entry as the LEAST recently used entry, not the 
+ *		most recently used.  
+ *
+ *		For now at least, this macro should only be used in 
+ *		the reconstruction of the metadata cache from a cache 
+ *		image block.
+ *
+ *		At present, we only support the modified LRU policy, so
+ *		this function deals with that case unconditionally.  If
+ *		we ever support other replacement policies, the function
+ *		should switch on the current policy and act accordingly.
+ *
+ * Return:      N/A
+ *
+ * Programmer:  John Mainzer, 8/15/15
+ *
+ * Modifications:
+ *
+ *		None.
+ *
+ *-------------------------------------------------------------------------
+ */
+
+#if H5C_MAINTAIN_CLEAN_AND_DIRTY_LRU_LISTS
+
+#define H5C__UPDATE_RP_FOR_INSERT_APPEND(cache_ptr, entry_ptr, fail_val)   \
+{                                                                          \
+    HDassert( (cache_ptr) );                                               \
+    HDassert( (cache_ptr)->magic == H5C__H5C_T_MAGIC );                    \
+    HDassert( (entry_ptr) );                                               \
+    HDassert( !((entry_ptr)->is_protected) );                              \
+    HDassert( !((entry_ptr)->is_read_only) );                              \
+    HDassert( ((entry_ptr)->ro_ref_count) == 0 );                          \
+    HDassert( (entry_ptr)->size > 0 );                                     \
+                                                                           \
+    if ( (entry_ptr)->is_pinned ) {                                        \
+                                                                           \
+        H5C__DLL_PREPEND((entry_ptr), (cache_ptr)->pel_head_ptr,           \
+                         (cache_ptr)->pel_tail_ptr,                        \
+                         (cache_ptr)->pel_len,                             \
+                         (cache_ptr)->pel_size, (fail_val))                \
+                                                                           \
+    } else {                                                               \
+                                                                           \
+        /* modified LRU specific code */                                   \
+                                                                           \
+        /* insert the entry at the tail of the LRU list. */                \
+                                                                           \
+        H5C__DLL_APPEND((entry_ptr), (cache_ptr)->LRU_head_ptr,            \
+                        (cache_ptr)->LRU_tail_ptr,                         \
+		        (cache_ptr)->LRU_list_len,                         \
+                        (cache_ptr)->LRU_list_size, (fail_val))            \
+                                                                           \
+        /* insert the entry at the tail of the clean or dirty LRU list as  \
+         * appropriate.                                                    \
+         */                                                                \
+                                                                           \
+        if ( entry_ptr->is_dirty ) {                                       \
+            H5C__AUX_DLL_APPEND((entry_ptr), (cache_ptr)->dLRU_head_ptr,   \
+                                (cache_ptr)->dLRU_tail_ptr,                \
+                                (cache_ptr)->dLRU_list_len,                \
+                                (cache_ptr)->dLRU_list_size, (fail_val))   \
+        } else {                                                           \
+            H5C__AUX_DLL_APPEND((entry_ptr), (cache_ptr)->cLRU_head_ptr,   \
+                                (cache_ptr)->cLRU_tail_ptr,                \
+                                (cache_ptr)->cLRU_list_len,                \
+                                (cache_ptr)->cLRU_list_size, (fail_val))   \
+        }                                                                  \
+                                                                           \
+        /* End modified LRU specific code. */                              \
+    }                                                                      \
+}
+
+#else /* H5C_MAINTAIN_CLEAN_AND_DIRTY_LRU_LISTS */
+
+#define H5C__UPDATE_RP_FOR_INSERT_APPEND(cache_ptr, entry_ptr, fail_val)   \
+{                                                                          \
+    HDassert( (cache_ptr) );                                               \
+    HDassert( (cache_ptr)->magic == H5C__H5C_T_MAGIC );                    \
+    HDassert( (entry_ptr) );                                               \
+    HDassert( !((entry_ptr)->is_protected) );                              \
+    HDassert( !((entry_ptr)->is_read_only) );                              \
+    HDassert( ((entry_ptr)->ro_ref_count) == 0 );                          \
+    HDassert( (entry_ptr)->size > 0 );                                     \
+                                                                           \
+    if ( (entry_ptr)->is_pinned ) {                                        \
+                                                                           \
+        H5C__DLL_PREPEND((entry_ptr), (cache_ptr)->pel_head_ptr,           \
+                         (cache_ptr)->pel_tail_ptr,                        \
+                         (cache_ptr)->pel_len,                             \
+                         (cache_ptr)->pel_size, (fail_val))                \
+	                                                                   \
+    } else {                                                               \
+                                                                           \
+        /* modified LRU specific code */                                   \
+                                                                           \
+        /* insert the entry at the tail of the LRU list. */                \
+                                                                           \
+        H5C__DLL_APPEND((entry_ptr), (cache_ptr)->LRU_head_ptr,            \
+                        (cache_ptr)->LRU_tail_ptr,                         \
+			(cache_ptr)->LRU_list_len,                         \
+                        (cache_ptr)->LRU_list_size, (fail_val))            \
+                                                                           \
+        /* End modified LRU specific code. */                              \
+    }                                                                      \
+}
+
+#endif /* H5C_MAINTAIN_CLEAN_AND_DIRTY_LRU_LISTS */
+
+#endif /* new code */ /* JRM */
 
 
 /*-------------------------------------------------------------------------
@@ -3334,6 +3485,12 @@ if ( ( (cache_ptr)->index_size !=                                           \
  * image_ctl:	Instance of H5C_cache_image_ctl_t containing configuration
  * 		data for generation of a cache image on file close.
  *
+ * serialization_in_progress:  Boolean field that is set to TRUE iff
+ *		the cache is in the process of being serialized.  This 
+ *		field is needed to support the H5C_serialization_in_progress()
+ *		call, which is in turn required for sanity checks in some
+ *		cache clients.
+ *
  * close_warning_received: Boolean flag indicating that a file closing 
  *		warning has been received.
  *
@@ -3395,6 +3552,25 @@ if ( ( (cache_ptr)->index_size !=                                           \
  *
  * entry_fd_height_change_counter: Number of entries whose flush dependency
  *		height has changed since the last time this field was reset.
+ *
+ * The following fields are used assemble the cache image prior to 
+ * writing it to disk.
+ *
+ * num_entries_in_image: Integer field containing the number of entries
+ *		to be copied into the metadata cache image.  Note that 
+ *		this value will be less than the number of entries in 
+ *		the cache, and the superblock and its related entries 
+ *		are not written to the metadata cache image.
+ *
+ * image_entries: Pointer to a dynamically allocated array of instance of
+ *		H5C_image_entry_t of length num_entries_in_image, or NULL
+ *		if that array does not exist.  This array is used to
+ *		assemble entry data to be included in the image, and to 
+ *		sort them by flush dependency height and LRU rank.
+ * 
+ * image_buffer: Pointer to the dynamically allocated buffer of length
+ *		image_len in which the metadata cache image is assembled, 
+ *		or NULL if that	buffer does not exist.
  *
  *
  * Statistics collection fields:
@@ -3590,6 +3766,37 @@ if ( ( (cache_ptr)->index_size !=                                           \
  * entries_scanned_to_make_space: Number of entries scanned only when looking
  *              for entries to evict in order to make space in cache.
  *
+ *
+ * The following fields track statistics on cache images.  
+ *
+ * images_created:  Integer field containing the number of cache images
+ *		created since the last time statistics were reset.  
+ *
+ *		At present, this field must always be either 0 or 1.
+ *		Further, since cache images are only created at file 
+ *		close, this field should only be set at that time.
+ *
+ * images_loaded:  Integer field containing the number of cache images
+ *		loaded since the last time statistics were reset.
+ *
+ *		At present, this field must always be either 0 or 1.
+ *		Further, since cache images are only loaded at the 
+ *		time of the first protect or on file close, this value
+ *		should only change on those events.
+ *
+ *
+ * Fields for tracking prefetched entries.  Note that flushes and evictions
+ * of prefetched entries are tracked in the flushes and evictions arrays 
+ * discused above.
+ *
+ * prefetches:	Number of prefetched entries that are loaded to the 
+ *		cache.
+ *
+ * dirty_prefetches:  Number of dirty prefetched entries that are loaded
+ *		into the cache.
+ *
+ * prefetch_hits:  Number of prefetched entries that are actually used.
+ *
  * 
  * As entries are now capable of moving, loading, dirtying, and deleting 
  * other entries in their pre_serialize and serialize callbacks, it has 
@@ -3771,6 +3978,7 @@ struct H5C_t {
 
     /* fields supporting generation of a cache image on file close */
     H5C_cache_image_ctl_t	image_ctl;
+    hbool_t			serialization_in_progress;
     hbool_t			close_warning_received;
     hbool_t			load_image;
     hbool_t			delete_image;
@@ -3780,6 +3988,9 @@ struct H5C_t {
     int64_t			entries_inserted_counter;
     int64_t			entries_relocated_counter;
     int64_t			entry_fd_height_change_counter;
+    int32_t			num_entries_in_image;
+    H5C_image_entry_t *		image_entries;
+    void *                      image_buffer;
 
 #if H5C_COLLECT_CACHE_STATS
     /* stats fields */
@@ -3838,6 +4049,7 @@ struct H5C_t {
     int32_t                     max_entries_skipped_in_msic;
     int32_t                     max_entries_scanned_in_msic;
     int64_t                     entries_scanned_to_make_space;
+
  
     /* Fields for tracking skip list scan restarts */
     int64_t			slist_scan_restarts;
@@ -3845,6 +4057,17 @@ struct H5C_t {
     int64_t			hash_bucket_scan_restarts;
 #if 1 /* new code */ /* JRM */
     int64_t			index_scan_restarts;
+
+
+    /* Fields for tracking cache image operations */
+    int32_t			images_created;
+    int32_t			images_loaded;
+
+
+    /* Fields for tracking prefetched entries */
+    int64_t			prefetches;
+    int64_t			dirty_prefetches;
+    int64_t			prefetch_hits;
 #endif /* new code */ /* JRM */
 
 #if H5C_COLLECT_CACHE_ENTRY_STATS
@@ -3872,10 +4095,21 @@ struct H5C_t {
 /******************************/
 /* Package Private Prototypes */
 /******************************/
+H5_DLL herr_t H5C__flash_increase_cache_size(H5C_t * cache_ptr,
+    size_t old_entry_size, size_t new_entry_size);
+H5_DLL herr_t H5C_construct_cache_image_buffer(H5F_t * f, H5C_t * cache_ptr);
+H5_DLL herr_t H5C_deserialize_prefetched_entry(H5F_t * f, hid_t dxpl_id,
+    H5C_t * cache_ptr, H5C_cache_entry_t** entry_ptr_ptr, 
+    const H5C_class_t * type, haddr_t addr, void * udata);
 H5_DLL herr_t H5C__flush_single_entry(const H5F_t *f, hid_t dxpl_id,
     H5C_cache_entry_t *entry_ptr, unsigned flags, 
     int64_t *entry_size_change_ptr);
+H5_DLL herr_t H5C_free_image_entries_array(H5C_t * cache_ptr);
 H5_DLL herr_t H5C_load_cache_image(H5F_t *f, hid_t dxpl_id);
+H5_DLL herr_t H5C_make_space_in_cache(H5F_t * f, hid_t   dxpl_id,
+    size_t  space_needed, hbool_t write_permitted);
+H5_DLL herr_t H5C_tag_entry(H5C_t * cache_ptr, H5C_cache_entry_t * entry_ptr,
+    hid_t dxpl_id);
 
 #endif /* _H5Cpkg_H */
 

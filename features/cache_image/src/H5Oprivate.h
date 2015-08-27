@@ -700,6 +700,10 @@ H5_DLL herr_t H5O_touch_oh(H5F_t *f, hid_t dxpl_id, H5O_t *oh,
 H5_DLL herr_t H5O_bogus_oh(H5F_t *f, hid_t dxpl_id, H5O_t *oh, unsigned mesg_flags);
 #endif /* H5O_ENABLE_BOGUS */
 H5_DLL herr_t H5O_delete(H5F_t *f, hid_t dxpl_id, haddr_t addr);
+#if 1 /* new code */ /* JRM */
+H5_DLL herr_t H5O_get_chunk_addrs(const H5O_loc_t *loc, hid_t dxpl_id, 
+    unsigned nchunks, haddr_t *addrs);
+#endif /* new code */ /* JRM */
 H5_DLL herr_t H5O_get_hdr_info(const H5O_loc_t *oloc, hid_t dxpl_id, H5O_hdr_info_t *hdr);
 H5_DLL herr_t H5O_get_info(const H5O_loc_t *oloc, hid_t dxpl_id, hbool_t want_ih_info,
     H5O_info_t *oinfo);

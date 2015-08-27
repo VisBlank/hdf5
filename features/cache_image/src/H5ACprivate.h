@@ -81,6 +81,7 @@ typedef enum {
     H5AC_SUPERBLOCK_ID, /* file superblock                           */
     H5AC_DRVRINFO_ID,   /* driver info block (supplements superblock)*/
     H5AC_TEST_ID,	/*test entry -- not used for actual files    */
+    H5AC_PREFETCHED_ENTRY_ID, /*prefetched entry -- always internal to cache */
     H5AC_NTYPES		/* Number of types, must be last             */
 } H5AC_type_t;
 
@@ -144,9 +145,10 @@ typedef H5C_notify_action_t     H5AC_notify_action_t;
 #define H5AC__CLASS_COMPRESSED_FLAG	H5C__CLASS_COMPRESSED_FLAG
 
 /* The following flags should only appear in test code */
-#define H5AC__CLASS_NO_IO_FLAG		H5C__CLASS_NO_IO_FLAG
-#define H5AC__CLASS_SKIP_READS		H5C__CLASS_SKIP_READS
-#define H5AC__CLASS_SKIP_WRITES		H5C__CLASS_SKIP_WRITES
+#define H5AC__CLASS_NO_IO_FLAG		 H5C__CLASS_NO_IO_FLAG
+#define H5AC__CLASS_SKIP_READS		 H5C__CLASS_SKIP_READS
+#define H5AC__CLASS_SKIP_WRITES		 H5C__CLASS_SKIP_WRITES
+#define H5AC__CLASS_SKIP_MEM_TYPE_CHECKS H5C__CLASS_SKIP_MEM_TYPE_CHECKS
 
 typedef H5C_get_load_size_func_t	H5AC_get_load_size_func_t;
 typedef H5C_deserialize_func_t		H5AC_deserialize_func_t;
@@ -312,12 +314,13 @@ H5_DLLVAR hid_t H5AC_ind_dxpl_id;
  * H5AC_get_entry_status() call.
  */
 
-#define H5AC_ES__IN_CACHE	0x0001
-#define H5AC_ES__IS_DIRTY	0x0002
-#define H5AC_ES__IS_PROTECTED	0x0004
-#define H5AC_ES__IS_PINNED	0x0008
+#define H5AC_ES__IN_CACHE		0x0001
+#define H5AC_ES__IS_DIRTY		0x0002
+#define H5AC_ES__IS_PROTECTED		0x0004
+#define H5AC_ES__IS_PINNED		0x0008
 #define H5AC_ES__IS_FLUSH_DEP_PARENT	0x0010
 #define H5AC_ES__IS_FLUSH_DEP_CHILD	0x0020
+#define H5AC_ES__IMAGE_IS_UP_TO_DATE	0x0040
 
 
 /* external function declarations: */
@@ -327,6 +330,7 @@ H5_DLL herr_t H5AC_create(const H5F_t *f, H5AC_cache_config_t *config_ptr,
     H5AC_cache_image_config_t * image_config_ptr);
 H5_DLL herr_t H5AC_get_entry_status(const H5F_t *f, haddr_t addr,
     unsigned *status_ptr);
+H5_DLL hbool_t H5AC_get_serialization_in_progress(H5F_t * f);
 H5_DLL herr_t H5AC_insert_entry(H5F_t *f, hid_t dxpl_id, const H5AC_class_t *type,
     haddr_t addr, void *thing, unsigned int flags);
 H5_DLL herr_t H5AC_pin_protected_entry(void *thing);
@@ -364,6 +368,10 @@ H5_DLL herr_t H5AC_open_trace_file(H5AC_t *cache_ptr, const char *trace_file_nam
 H5_DLL herr_t H5AC_tag(hid_t dxpl_id, haddr_t metadata_tag, haddr_t *prev_tag);
 H5_DLL herr_t H5AC_retag_copied_metadata(const H5F_t *f, haddr_t metadata_tag);
 H5_DLL herr_t H5AC_ignore_tags(const H5F_t *f);
+H5_DLL herr_t H5AC_read_cache_image(H5F_t * f, hid_t dxpl_id, 
+    haddr_t image_addr, size_t image_len, void * image_buffer);
+H5_DLL herr_t H5AC_write_cache_image(H5F_t * f, hid_t dxpl_id, 
+    haddr_t image_addr, size_t image_len, void * image_buffer);
 
 #ifdef H5_HAVE_PARALLEL
 H5_DLL herr_t H5AC_add_candidate(H5AC_t * cache_ptr, haddr_t addr);

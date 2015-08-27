@@ -151,6 +151,118 @@ done:
     FUNC_LEAVE_NOAPI(ret_value)
 } /* H5F_super_ext_create() */
 
+#if 1 /* new code */ /* JRM */
+
+/*-------------------------------------------------------------------------
+ * Function:    H5F__super_ext_get_num_chunks
+ *
+ * Purpose:     Get the number of chunks in the superblock extension.
+ *
+ *		This is the actual number of chunks if the superblock 
+ *		extension exists, or zero if it does not.
+ *
+ * Return:      Success:        non-negative on success
+ *              Failure:        Negative
+ *
+ * Programmer:  John Mainzer 
+ *              Aug. 1, 2015
+ *
+ *-------------------------------------------------------------------------
+ */
+herr_t
+H5F__super_ext_get_num_chunks(H5F_t *f, hid_t dxpl_id, unsigned * nchunks_ptr)
+{
+    herr_t ret_value = SUCCEED;         /* Return value */
+
+    FUNC_ENTER_PACKAGE
+
+    /* Sanity check */
+    HDassert(f);
+    HDassert(f->shared);
+    HDassert(f->shared->sblock);
+    HDassert(nchunks_ptr);
+
+    /* get num chunks if extension exists */
+    if(H5F_addr_defined(f->shared->sblock->ext_addr)) {
+
+        H5O_loc_t ext_loc;      /* "Object location" for superblock extension */
+        H5O_hdr_info_t hdr_info; /* Object info for superblock extension */
+
+        /* Set up "fake" object location for superblock extension */
+        H5O_loc_reset(&ext_loc);
+        ext_loc.file = f;
+        ext_loc.addr = f->shared->sblock->ext_addr;
+
+        /* Get object header info for superblock extension */
+        if(H5O_get_hdr_info(&ext_loc, dxpl_id, &hdr_info) < 0)
+
+                HGOTO_ERROR(H5E_FILE, H5E_CANTGET, FAIL, \
+                            "unable to retrieve superblock extension info")
+
+        /* set num chunks */
+        *nchunks_ptr = hdr_info.nchunks;
+    } /* end if */
+    else
+        /* Set num chunks to zero */
+        *nchunks_ptr = 0;
+
+done:
+    FUNC_LEAVE_NOAPI(ret_value)
+
+} /* H5F__super_ext_get_num_chunks() */
+#endif /* new code */ /* JRM */
+
+#if 1 /* new code */ /* JRM */
+
+/*-------------------------------------------------------------------------
+ * Function:    H5F__super_ext_get_chunk_addrs
+ *
+ * Purpose:     Get the addresses of all chunks in the superblock 
+ *		extension.  nchunks must be positive, and addrs must
+ *		point to an array of haddr_t of length <= nchunks.
+ *
+ * Return:      Success:        non-negative on success
+ *              Failure:        Negative
+ *
+ * Programmer:  John Mainzer 
+ *              Aug. 1, 2015
+ *
+ *-------------------------------------------------------------------------
+ */
+herr_t
+H5F__super_ext_get_chunk_addrs(H5F_t *f, hid_t dxpl_id, unsigned nchunks,
+    haddr_t *addrs)
+{
+    H5O_loc_t ext_loc;      /* "Object location" for superblock extension */
+    herr_t ret_value = SUCCEED;         /* Return value */
+
+    FUNC_ENTER_PACKAGE
+
+    /* Sanity check */
+    HDassert(f);
+    HDassert(f->shared);
+    HDassert(f->shared->sblock);
+    HDassert(H5F_addr_defined(f->shared->sblock->ext_addr));
+    HDassert(nchunks > 0);
+    HDassert(addrs);
+
+    /* Set up "fake" object location for superblock extension */
+    H5O_loc_reset(&ext_loc);
+    ext_loc.file = f;
+    ext_loc.addr = f->shared->sblock->ext_addr;
+
+    /* Get object header chunk addresses */
+    if(H5O_get_chunk_addrs(&ext_loc, dxpl_id, nchunks, addrs) < 0)
+
+        HGOTO_ERROR(H5E_FILE, H5E_CANTGET, FAIL, \
+                    "unable to retrieve superblock chunk addresses")
+
+done:
+    FUNC_LEAVE_NOAPI(ret_value)
+
+} /* H5F__super_ext_get_chunk_addrs() */
+#endif /* new code */ /* JRM */
+
 
 /*-------------------------------------------------------------------------
  * Function:    H5F_super_ext_open

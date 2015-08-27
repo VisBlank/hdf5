@@ -124,7 +124,8 @@ static const char *H5AC_entry_type_names[H5AC_NTYPES] =
     "fixed array data block pages",
     "superblock",
     "driver info",
-    "test entry"	/* for testing only -- not used for actual files */
+    "test entry",	/* for testing only -- not used for actual files */
+    "prefetched entry"  /* internal to cache only */
 };
 
 
@@ -516,7 +517,7 @@ H5AC_dest(H5F_t *f, hid_t dxpl_id)
 #endif /* H5AC__TRACE_FILE_ENABLED */
 
 #ifdef H5_HAVE_PARALLEL
-    aux_ptr = H5C_get_aux_ptr(f->shared->cache);
+    aux_ptr = (H5AC_aux_t *)H5C_get_aux_ptr(f->shared->cache);
     if(aux_ptr)
         /* Sanity check */
         HDassert(aux_ptr->magic == H5AC__H5AC_AUX_T_MAGIC);
@@ -704,6 +705,7 @@ H5AC_get_entry_status(const H5F_t *f, haddr_t addr, unsigned *status)
     hbool_t	is_pinned;              /* Entry @ addr is in the cache and pinned */
     hbool_t	is_flush_dep_child;     /* Entry @ addr is in the cache and is a flush dependency child */
     hbool_t	is_flush_dep_parent;    /* Entry @ addr is in the cache and is a flush dependency parent */
+    hbool_t	image_is_up_to_date;    /* Entry @ addr is in the cache and has an up to date image */
     herr_t      ret_value = SUCCEED;      /* Return value */
 
     FUNC_ENTER_NOAPI(FAIL)
@@ -712,7 +714,8 @@ H5AC_get_entry_status(const H5F_t *f, haddr_t addr, unsigned *status)
         HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, "Bad param(s) on entry.")
 
     if(H5C_get_entry_status(f, addr, NULL, &in_cache, &is_dirty,
-            &is_protected, &is_pinned, &is_flush_dep_parent, &is_flush_dep_child) < 0)
+            &is_protected, &is_pinned, &is_flush_dep_parent, 
+            &is_flush_dep_child, &image_is_up_to_date) < 0)
         HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, "H5C_get_entry_status() failed.")
 
     if(in_cache) {
@@ -727,6 +730,8 @@ H5AC_get_entry_status(const H5F_t *f, haddr_t addr, unsigned *status)
 	    *status |= H5AC_ES__IS_FLUSH_DEP_PARENT;
 	if(is_flush_dep_child)
 	    *status |= H5AC_ES__IS_FLUSH_DEP_CHILD;
+	if(image_is_up_to_date)
+	    *status |= H5AC_ES__IMAGE_IS_UP_TO_DATE;
     } /* end if */
     else
         *status = 0;
@@ -734,6 +739,37 @@ H5AC_get_entry_status(const H5F_t *f, haddr_t addr, unsigned *status)
 done:
     FUNC_LEAVE_NOAPI(ret_value)
 } /* H5AC_get_entry_status() */
+
+#if 1 /* new code */ /* JRM */
+
+/*-------------------------------------------------------------------------
+ * Function:    H5AC_get_serialization_in_progress
+ *
+ * Purpose:     Return the current value of 
+ *              cache_ptr->serialization_in_progress.
+ *
+ * Return:      Current value of cache_ptr->serialization_in_progress.
+ *
+ * Programmer:  John Mainzer
+ *              8/24/15
+ *
+ *-------------------------------------------------------------------------
+ */
+hbool_t
+H5AC_get_serialization_in_progress(H5F_t * f)
+{
+    hbool_t ret_value;   /* Return value */
+
+    FUNC_ENTER_NOAPI_NOINIT_NOERR
+
+    /* Set return value */
+    ret_value = H5C_get_serialization_in_progress(f);
+
+    FUNC_LEAVE_NOAPI(ret_value)
+
+} /* H5AC_get_serialization_in_progress() */
+
+#endif /* new code */ /* JRM */
 
 
 /*-------------------------------------------------------------------------
@@ -804,7 +840,7 @@ H5AC_insert_entry(H5F_t *f, hid_t dxpl_id, const H5AC_class_t *type, haddr_t add
 {
     H5AC_aux_t *aux_ptr;
 
-    if(NULL != (aux_ptr = H5C_get_aux_ptr(f->shared->cache))) {
+    if(NULL != (aux_ptr = (H5AC_aux_t *)H5C_get_aux_ptr(f->shared->cache))) {
         /* Log the new entry */
         if(H5AC__log_inserted_entry((H5AC_info_t *)thing) < 0)
             HGOTO_ERROR(H5E_CACHE, H5E_CANTINS, FAIL, "H5AC__log_inserted_entry() failed")
@@ -908,7 +944,7 @@ H5AC_mark_entry_dirty(void *thing)
     H5C_t *cache_ptr = entry_ptr->cache_ptr;
     H5AC_aux_t *aux_ptr;
 
-    aux_ptr = H5C_get_aux_ptr(cache_ptr);
+    aux_ptr = (H5AC_aux_t *)H5C_get_aux_ptr(cache_ptr);
     if((!entry_ptr->is_dirty) && (!entry_ptr->is_protected) &&
              (entry_ptr->is_pinned) && (NULL != aux_ptr))
         if(H5AC__log_dirtied_entry(entry_ptr) < 0)
@@ -977,7 +1013,7 @@ H5AC_move_entry(H5F_t *f, const H5AC_class_t *type, haddr_t old_addr, haddr_t ne
 
 #ifdef H5_HAVE_PARALLEL
     /* Log moving the entry */
-    if(NULL != (aux_ptr = H5C_get_aux_ptr(f->shared->cache)))
+    if(NULL != (aux_ptr = (H5AC_aux_t *)H5C_get_aux_ptr(f->shared->cache)))
         if(H5AC__log_moved_entry(f, old_addr, new_addr) < 0)
             HGOTO_ERROR(H5E_CACHE, H5E_CANTUNPROTECT, FAIL, "can't log moved entry")
 #endif /* H5_HAVE_PARALLEL */
@@ -1238,6 +1274,86 @@ done:
 
 
 /*-------------------------------------------------------------------------
+ * Function:    H5AC_read_cache_image
+ *
+ * Purpose:	Load the metadata cache image from the specified location
+ *		in the file, and return it in the supplied buffer.
+ *
+ * Return:      Non-negative on success/Negative on failure
+ *
+ * Programmer:  John Mainzer
+ *              8/16/15
+ *
+ *-------------------------------------------------------------------------
+ */
+herr_t
+H5AC_read_cache_image(H5F_t * f, hid_t dxpl_id, haddr_t image_addr, 
+    size_t image_len, void * image_buffer)
+{
+#ifdef H5_HAVE_PARALLEL
+    H5AC_t *cache_ptr = NULL;
+    H5AC_aux_t *aux_ptr = NULL;
+#endif /* H5_HAVE_PARALLEL */
+    herr_t              ret_value = SUCCEED;    /* Return value */
+
+    FUNC_ENTER_NOAPI(FAIL)
+
+    HDassert(f);
+    HDassert(H5F_addr_defined(image_addr));
+    HDassert(image_len > 0);
+    HDassert(image_buffer);
+
+#ifdef H5_HAVE_PARALLEL
+    HDassert(f->shared);
+
+    cache_ptr = f->shared->cache;
+
+    HDassert(cache_ptr);
+
+    aux_ptr = (H5AC_aux_t *)H5C_get_aux_ptr(cache_ptr);
+
+    if ( ( NULL == aux_ptr ) ||
+         ( aux_ptr->mpi_rank == 0 ) ) {
+
+	HDassert((NULL == aux_ptr) || \
+                 (aux_ptr->magic == H5AC__H5AC_AUX_T_MAGIC));
+
+#endif /* H5_HAVE_PARALLEL */
+	/* read the buffer */
+        if ( H5F_block_read(f, H5FD_MEM_SUPER, image_addr, image_len,
+                            dxpl_id, image_buffer) < 0)
+
+            HGOTO_ERROR(H5E_CACHE, H5E_READERROR, FAIL,
+                        "Can't read metadata cache image block")
+
+#ifdef H5_HAVE_PARALLEL
+	if ( aux_ptr ) {
+
+	    /* broadcast cache image */
+	    if ( H5AC__broadcast_cache_image(cache_ptr, image_len, 
+                                             image_buffer) < 0 )
+
+		HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, \
+                            "Can't broadcast cache image contents.")
+        }
+    } else if ( aux_ptr ) {
+
+	/* receive metadata cache image */
+	if ( H5AC__receive_cache_image(cache_ptr, image_len, image_buffer) < 0 )
+
+	    HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, \
+                        "Can't receive cache image contents.")
+
+    }
+#endif /* H5_HAVE_PARALLEL */
+done:
+
+    FUNC_LEAVE_NOAPI(ret_value)
+
+} /* H5AC_read_cache_image() */
+
+
+/*-------------------------------------------------------------------------
  * Function:    H5AC_resize_entry
  *
  * Purpose:	Resize a pinned or protected entry.
@@ -1283,7 +1399,7 @@ H5AC_resize_entry(void *thing, size_t new_size)
     H5C_t *cache_ptr = entry_ptr->cache_ptr;
     H5AC_aux_t *aux_ptr;
 
-    aux_ptr = H5C_get_aux_ptr(cache_ptr);
+    aux_ptr = (H5AC_aux_t *)H5C_get_aux_ptr(cache_ptr);
     if((!entry_ptr->is_dirty) && (NULL != aux_ptr))
         if(H5AC__log_dirtied_entry(entry_ptr) < 0)
             HGOTO_ERROR(H5E_CACHE, H5E_CANTMARKDIRTY, FAIL, "can't log dirtied entry")
@@ -1347,6 +1463,70 @@ done:
 
     FUNC_LEAVE_NOAPI(ret_value)
 } /* H5AC_unpin_entry() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:    H5AC_write
+ *
+ * Purpose:	Write the supplied metadata cache image to the specified
+ *		location in file.
+ *
+ * Return:      Non-negative on success/Negative on failure
+ *
+ * Programmer:  John Mainzer
+ *              8/26/15
+ *
+ *-------------------------------------------------------------------------
+ */
+herr_t
+H5AC_write_cache_image(H5F_t * f, hid_t dxpl_id, haddr_t image_addr, 
+    size_t image_len, void * image_buffer)
+{
+#ifdef H5_HAVE_PARALLEL
+    H5AC_t *cache_ptr = NULL;
+    H5AC_aux_t *aux_ptr = NULL;
+#endif /* H5_HAVE_PARALLEL */
+    herr_t              ret_value = SUCCEED;    /* Return value */
+
+    FUNC_ENTER_NOAPI(FAIL)
+
+    HDassert(f);
+    HDassert(H5F_addr_defined(image_addr));
+    HDassert(image_len > 0);
+    HDassert(image_buffer);
+
+#ifdef H5_HAVE_PARALLEL
+    HDassert(f->shared);
+
+    cache_ptr = f->shared->cache;
+
+    HDassert(cache_ptr);
+
+    aux_ptr = (H5AC_aux_t *)H5C_get_aux_ptr(cache_ptr);
+
+    if ( ( NULL == aux_ptr ) ||
+         ( aux_ptr->mpi_rank == 0 ) ) {
+
+	HDassert((NULL == aux_ptr) || \
+                 (aux_ptr->magic == H5AC__H5AC_AUX_T_MAGIC));
+
+#endif /* H5_HAVE_PARALLEL */
+	/* write the buffer */
+	if ( H5F_block_write(f, H5FD_MEM_SUPER, image_addr, image_len, 
+                             dxpl_id, image_buffer) < 0 ) {
+
+                HGOTO_ERROR(H5E_CACHE, H5E_CANTFLUSH, FAIL, \
+                           "Can't write metadata cache image block to file.")
+        }
+#ifdef H5_HAVE_PARALLEL
+    }
+#endif /* H5_HAVE_PARALLEL */
+	
+done:
+
+    FUNC_LEAVE_NOAPI(ret_value)
+
+} /* H5AC_write_cache_image() */
 
 
 /*-------------------------------------------------------------------------
@@ -1492,7 +1672,7 @@ H5AC_unprotect(H5F_t *f, hid_t dxpl_id, const H5AC_class_t *type, haddr_t addr,
     } /* end if */
 
 #ifdef H5_HAVE_PARALLEL
-    if(NULL != (aux_ptr = H5C_get_aux_ptr(f->shared->cache))) {
+    if(NULL != (aux_ptr = (H5AC_aux_t *)H5C_get_aux_ptr(f->shared->cache))) {
         if(dirtied && ((H5AC_info_t *)thing)->is_dirty == FALSE)
             if(H5AC__log_dirtied_entry((H5AC_info_t *)thing) < 0)
                 HGOTO_ERROR(H5E_CACHE, H5E_CANTUNPROTECT, FAIL, "can't log dirtied entry")
@@ -1617,7 +1797,7 @@ H5AC_get_cache_auto_resize_config(const H5AC_t *cache_ptr,
 {
     H5AC_aux_t *aux_ptr;
 
-    aux_ptr = H5C_get_aux_ptr(cache_ptr);
+    aux_ptr = (H5AC_aux_t *)H5C_get_aux_ptr(cache_ptr);
     if((aux_ptr != NULL) && (aux_ptr->magic != H5AC__H5AC_AUX_T_MAGIC))
         HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, "Bad aux_ptr on entry.")
 }
@@ -1664,7 +1844,7 @@ H5AC_get_cache_auto_resize_config(const H5AC_t *cache_ptr,
 {
     H5AC_aux_t *aux_ptr;
 
-    if(NULL != (aux_ptr = H5C_get_aux_ptr(cache_ptr))) {
+    if(NULL != (aux_ptr = (H5AC_aux_t *)H5C_get_aux_ptr(cache_ptr))) {
         config_ptr->dirty_bytes_threshold = aux_ptr->dirty_bytes_threshold;
 	config_ptr->metadata_write_strategy = aux_ptr->metadata_write_strategy;
     } /* end if */
@@ -1806,7 +1986,7 @@ H5AC_set_cache_auto_resize_config(H5AC_t *cache_ptr, H5AC_cache_config_t *config
 {
     H5AC_aux_t *aux_ptr;
 
-    aux_ptr = H5C_get_aux_ptr(cache_ptr);
+    aux_ptr = (H5AC_aux_t *)H5C_get_aux_ptr(cache_ptr);
     if((aux_ptr != NULL) && (aux_ptr->magic != H5AC__H5AC_AUX_T_MAGIC))
         HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, "bad aux_ptr on entry.")
 }
@@ -1850,7 +2030,7 @@ H5AC_set_cache_auto_resize_config(H5AC_t *cache_ptr, H5AC_cache_config_t *config
 
     /* Set parallel configuration values */
     /* (Which are only held in the H5AC layer -QAK) */
-    if(NULL != (aux_ptr = H5C_get_aux_ptr(cache_ptr))) {
+    if(NULL != (aux_ptr = (H5AC_aux_t *)H5C_get_aux_ptr(cache_ptr))) {
         aux_ptr->dirty_bytes_threshold = config_ptr->dirty_bytes_threshold;
         aux_ptr->metadata_write_strategy = config_ptr->metadata_write_strategy;
     } /* end if */
@@ -2127,7 +2307,7 @@ H5AC_open_trace_file(H5AC_t *cache_ptr, const char *trace_file_name)
 {
     H5AC_aux_t * aux_ptr;
 
-    aux_ptr = H5C_get_aux_ptr(cache_ptr);
+    aux_ptr = (H5AC_aux_t *)H5C_get_aux_ptr(cache_ptr);
     if(aux_ptr == NULL)
         sprintf(file_name, "%s", trace_file_name);
     else {
@@ -2308,7 +2488,7 @@ H5_ATTR_UNUSED
     HDassert(f != NULL);
     HDassert(f->shared != NULL);
     HDassert(f->shared->cache != NULL);
-    aux_ptr = H5C_get_aux_ptr(f->shared->cache);
+    aux_ptr = (H5AC_aux_t *)H5C_get_aux_ptr(f->shared->cache);
     if(aux_ptr != NULL) {
         HDassert(aux_ptr->magic == H5AC__H5AC_AUX_T_MAGIC);
 
