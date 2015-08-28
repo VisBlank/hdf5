@@ -519,6 +519,7 @@ H5_DLLVAR const H5D_layout_ops_t H5D_LOPS_CONTIG[1];
 H5_DLLVAR const H5D_layout_ops_t H5D_LOPS_EFL[1];
 H5_DLLVAR const H5D_layout_ops_t H5D_LOPS_COMPACT[1];
 H5_DLLVAR const H5D_layout_ops_t H5D_LOPS_CHUNK[1];
+H5_DLLVAR const H5D_layout_ops_t H5D_LOPS_VIRTUAL[1];
 
 /* Chunked layout operations */
 H5_DLLVAR const H5D_chunk_ops_t H5D_COPS_BTREE[1];
@@ -534,6 +535,8 @@ H5_DLL H5D_t *H5D__create(H5F_t *file, hid_t type_id, const H5S_t *space,
     hid_t dcpl_id, hid_t dapl_id, hid_t dxpl_id);
 H5_DLL H5D_t *H5D__create_named(const H5G_loc_t *loc, const char *name,
     hid_t type_id, const H5S_t *space, hid_t lcpl_id, hid_t dcpl_id,
+    hid_t dapl_id, hid_t dxpl_id);
+H5_DLL H5D_t *H5D__open_name(const H5G_loc_t *loc, const char *name,
     hid_t dapl_id, hid_t dxpl_id);
 H5_DLL herr_t H5D__get_space_status(H5D_t *dset, H5D_space_status_t *allocation,
     hid_t dxpl_id);
@@ -557,6 +560,9 @@ H5_DLL herr_t H5D__flush_real(H5D_t *dataset, hid_t dxpl_id);
 H5_DLL herr_t H5D__read(H5D_t *dataset, hid_t mem_type_id,
     const H5S_t *mem_space, const H5S_t *file_space, hid_t dset_xfer_plist,
     void *buf/*out*/);
+H5_DLL herr_t H5D__write(H5D_t *dataset, hid_t mem_type_id,
+    const H5S_t *mem_space, const H5S_t *file_space, hid_t dset_xfer_plist,
+    const void *buf);
 
 /* Functions that perform direct serial I/O operations */
 H5_DLL herr_t H5D__select_read(const H5D_io_info_t *io_info,
@@ -605,7 +611,6 @@ H5_DLL herr_t H5D__contig_copy(H5F_t *f_src, const H5O_storage_contig_t *storage
 H5_DLL herr_t H5D__contig_delete(H5F_t *f, hid_t dxpl_id,
     const H5O_storage_t *store);
 
-
 /* Functions that operate on chunked dataset storage */
 H5_DLL htri_t H5D__chunk_cacheable(const H5D_io_info_t *io_info, haddr_t caddr,
     hbool_t write_op);
@@ -651,6 +656,17 @@ H5_DLL herr_t H5D__compact_fill(const H5D_t *dset, hid_t dxpl_id);
 H5_DLL herr_t H5D__compact_copy(H5F_t *f_src, H5O_storage_compact_t *storage_src,
     H5F_t *f_dst, H5O_storage_compact_t *storage_dst, H5T_t *src_dtype,
     H5O_copy_t *cpy_info, hid_t dxpl_id);
+
+/* Functions that operate on virtual dataset storage */
+H5_DLL herr_t H5D__virtual_copy_layout(H5O_layout_t *layout);
+H5_DLL herr_t H5D__virtual_set_extent_unlim(const H5D_t *dset, hid_t dxpl_id);
+H5_DLL herr_t H5D__virtual_reset_layout(H5O_layout_t *layout);
+H5_DLL herr_t H5D__virtual_delete(H5F_t *f, hid_t dxpl_id, H5O_storage_t *storage);
+H5_DLL herr_t H5D__virtual_copy(H5F_t *f_src, H5O_layout_t *layout_dst,
+    hid_t dxpl_id);
+H5_DLL herr_t H5D__virtual_init(H5F_t *f, hid_t dxpl_id, const H5D_t *dset,
+    hid_t dapl_id);
+H5_DLL hbool_t H5D__virtual_is_space_alloc(const H5O_storage_t *storage);
 
 /* Functions that operate on EFL (External File List)*/
 H5_DLL hbool_t H5D__efl_is_space_alloc(const H5O_storage_t *storage);
