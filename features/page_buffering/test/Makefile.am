@@ -41,7 +41,7 @@ check_SCRIPTS = $(TEST_SCRIPT)
 # the library yet. Move them to the end so that their failure do not block
 # other current library code tests.
 TEST_PROG= testhdf5 lheap ohdr stab gheap cache cache_api cache_tagging \
-           pool accum hyperslab istore bittests dt_arith \
+           pool accum hyperslab istore bittests dt_arith tpage_buffer\
            dtypes dsets cmpd_dset filter_fail extend external efc objcopy links unlink \
            big mtime fillval mount flush1 flush2 app_ref enum \
            set_extent ttsafe enc_dec_plist enc_dec_plist_with_endianess\

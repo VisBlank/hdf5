@@ -463,6 +463,9 @@
 #define H5F_ACS_FILE_IMAGE_INFO_NAME            "file_image_info" /* struct containing initial file image and callback info */
 #define H5F_ACS_CORE_WRITE_TRACKING_FLAG_NAME       "core_write_tracking_flag" /* Whether or not core VFD backing store write tracking is enabled */
 #define H5F_ACS_CORE_WRITE_TRACKING_PAGE_SIZE_NAME  "core_write_tracking_page_size" /* The page size in kiB when core VFD write tracking is enabled */
+#define H5F_ACS_PAGE_BUFFER_SIZE_NAME           "page_buffer_size" /* the maximum size for the page buffer cache */
+#define H5F_ACS_PAGE_BUFFER_MIN_META_PERC_NAME  "page_buffer_min_meta_perc" /* the min metadata percentage for the page buffer cache */
+#define H5F_ACS_PAGE_BUFFER_MIN_RAW_PERC_NAME   "page_buffer_min_raw_perc" /* the min raw data percentage for the page buffer cache */
 
 /* ======================== File Mount properties ====================*/
 #define H5F_MNT_SYM_LOCAL_NAME 		"local"                 /* Whether absolute symlinks local to file. */

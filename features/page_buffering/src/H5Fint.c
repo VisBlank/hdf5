@@ -198,6 +198,14 @@ H5F_get_access_plist(H5F_t *f, hbool_t app_ref)
         efc_size = H5F_efc_max_nfiles(f->shared->efc);
     if(H5P_set(new_plist, H5F_ACS_EFC_SIZE_NAME, &efc_size) < 0)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "can't set elink file cache size")
+    if(f->shared->page_buf) {
+        if(H5P_set(new_plist, H5F_ACS_PAGE_BUFFER_SIZE_NAME, &(f->shared->page_buf->max_size)) < 0)
+            HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "can't set page buffer size")
+        if(H5P_set(new_plist, H5F_ACS_PAGE_BUFFER_MIN_META_PERC_NAME, &(f->shared->page_buf->min_meta_perc)) < 0)
+            HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "can't set minimum metadata fraction of page buffer")
+        if(H5P_set(new_plist, H5F_ACS_PAGE_BUFFER_MIN_RAW_PERC_NAME, &(f->shared->page_buf->min_raw_perc)) < 0)
+            HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "can't set minimum raw data fraction of page buffer")
+    }
 
     /*
      * Since we're resetting the driver ID and info, close them if they
@@ -822,7 +830,7 @@ H5F_dest(H5F_t *f, hid_t dxpl_id, hbool_t flush)
                 HDONE_ERROR(H5E_FSPACE, H5E_CANTUNPIN, FAIL, "unable to unpin superblock")
             f->shared->sblock = NULL;
         } /* end if */
- 
+
         /* Remove shared file struct from list of open files */
         if(H5F_sfile_remove(f->shared) < 0)
             /* Push error, but keep going*/
@@ -832,6 +840,12 @@ H5F_dest(H5F_t *f, hid_t dxpl_id, hbool_t flush)
         if(H5AC_dest(f, dxpl_id))
             /* Push error, but keep going*/
             HDONE_ERROR(H5E_FILE, H5E_CANTRELEASE, FAIL, "problems closing file")
+
+        /* shutdown the page buffer cache if it exists */
+        if(f->shared->page_buf)
+            if(H5PB_dest(f, dxpl_id) < 0)
+                /* Push error, but keep going*/
+                HDONE_ERROR(H5E_FILE, H5E_CANTRELEASE, FAIL, "problems closing file")
 
         /*
          * Do not close the root group since we didn't count it, but free
@@ -968,6 +982,8 @@ H5F_open(const char *name, unsigned flags, hid_t fcpl_id, hid_t fapl_id,
     H5FD_class_t       *drvr;               /*file driver class info        */
     H5P_genplist_t     *a_plist;            /*file access property list     */
     H5F_close_degree_t  fc_degree;          /*file close degree             */
+    size_t              page_buf_size;
+    unsigned            page_buf_min_meta_perc, page_buf_min_raw_perc;
     H5F_t              *ret_value;          /*actual return value           */
 
     FUNC_ENTER_NOAPI(NULL)
@@ -1075,6 +1091,19 @@ H5F_open(const char *name, unsigned flags, hid_t fcpl_id, hid_t fapl_id,
     shared = file->shared;
     lf = shared->lf;
 
+    /* Get the file access property list, for future queries */
+    if(NULL == (a_plist = (H5P_genplist_t *)H5I_object(fapl_id)))
+        HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, NULL, "not file access property list")
+
+    if(H5P_get(a_plist, H5F_ACS_PAGE_BUFFER_SIZE_NAME, &page_buf_size) < 0)
+        HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, NULL, "can't get page buffer size")
+    if(page_buf_size) {
+        if(H5P_get(a_plist, H5F_ACS_PAGE_BUFFER_MIN_META_PERC_NAME, &page_buf_min_meta_perc) < 0)
+            HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, NULL, "can't get minimum metadata fraction of page buffer")
+        if(H5P_get(a_plist, H5F_ACS_PAGE_BUFFER_MIN_RAW_PERC_NAME, &page_buf_min_raw_perc) < 0)
+            HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, NULL, "can't get minimum raw data fraction of page buffer")
+    }
+
     /*
      * Read or write the file superblock, depending on whether the file is
      * empty or not.
@@ -1084,6 +1113,11 @@ H5F_open(const char *name, unsigned flags, hid_t fcpl_id, hid_t fapl_id,
          * We've just opened a fresh new file (or truncated one). We need
          * to create & write the superblock.
          */
+
+        /* create the page buffer before initializing the superblock */
+        if(page_buf_size)
+            if(H5PB_create(file, page_buf_size, page_buf_min_meta_perc, page_buf_min_raw_perc) < 0)
+                HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, NULL, "unable to create page buffer")
 
         /* Initialize information about the superblock and allocate space for it */
         /* (Writes superblock extension messages, if there are any) */
@@ -1101,14 +1135,15 @@ H5F_open(const char *name, unsigned flags, hid_t fcpl_id, hid_t fapl_id,
         if(H5F__super_read(file, dxpl_id) < 0)
 	    HGOTO_ERROR(H5E_FILE, H5E_READERROR, NULL, "unable to read superblock")
 
+        /* create the page buffer after reading the superblock */
+        if(page_buf_size)
+            if(H5PB_create(file, page_buf_size, page_buf_min_meta_perc, page_buf_min_raw_perc) < 0)
+                HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, NULL, "unable to create page buffer")
+
 	/* Open the root group */
 	if(H5G_mkroot(file, dxpl_id, FALSE) < 0)
 	    HGOTO_ERROR(H5E_FILE, H5E_CANTOPENFILE, NULL, "unable to read root group")
     } /* end if */
-
-    /* Get the file access property list, for future queries */
-    if(NULL == (a_plist = (H5P_genplist_t *)H5I_object(fapl_id)))
-        HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, NULL, "not file access property list")
 
     /*
      * Decide the file close degree.  If it's the first time to open the
@@ -1209,6 +1244,12 @@ H5F_flush(H5F_t *f, hid_t dxpl_id, hbool_t closing)
     if(H5FD_flush(f->shared->lf, dxpl_id, closing) < 0)
         /* Push error, but keep going*/
         HDONE_ERROR(H5E_IO, H5E_WRITEERROR, FAIL, "low level flush failed")
+
+    /* flush the page buffer if we are not closing (if we are, the flush is called in H5F_dest). */
+    if(!closing && f->shared->page_buf)
+        if(H5PB_flush(f, dxpl_id, closing) < 0)
+            /* Push error, but keep going*/
+            HDONE_ERROR(H5E_IO, H5E_WRITEERROR, FAIL, "page buffer flush failed")
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)

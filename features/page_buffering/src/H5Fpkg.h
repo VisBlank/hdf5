@@ -42,6 +42,7 @@
 #include "H5FSprivate.h"	/* File free space                      */
 #include "H5Gprivate.h"		/* Groups 			  	*/
 #include "H5Oprivate.h"         /* Object header messages               */
+#include "H5PBprivate.h"        /* Page buffer                          */
 #include "H5UCprivate.h"	/* Reference counted object functions	*/
 
 
@@ -199,6 +200,7 @@ struct H5F_file_t {
     unsigned long feature_flags; /* VFL Driver feature Flags            */
     haddr_t	maxaddr;	/* Maximum address for file             */
 
+    H5PB_t      *page_buf;	/* The page buffer cache 		*/
     H5AC_t      *cache;		/* The object cache	 		*/
     H5AC_cache_config_t
 		mdc_initCacheCfg; /* initial configuration for the      */

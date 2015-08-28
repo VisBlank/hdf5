@@ -347,6 +347,9 @@ int main(int argc, char **argv)
     AddTest("split", test_split_comm_access, NULL,
 	    "dataset using split communicators", PARATESTFILE);
 
+    AddTest("page_buffer", test_page_buffer_access, NULL,
+	    "page buffer usage in parallel", PARATESTFILE);
+
     AddTest("idsetw", dataset_writeInd, NULL,
 	    "dataset independent write", PARATESTFILE);
     AddTest("idsetr", dataset_readInd, NULL,

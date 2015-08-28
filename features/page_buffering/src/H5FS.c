@@ -835,7 +835,8 @@ H5FS_alloc_hdr(H5F_t *f, H5FS_t *fspace, haddr_t *fs_addr, hid_t dxpl_id)
     if(!H5F_addr_defined(fspace->addr)) {
 	/* Allocate space for the free space header */
         /* (The original version called H5MF_alloc(), but that may cause sect_size to change again) */
-	if(HADDR_UNDEF == (fspace->addr = H5MF_close_allocate(f, H5FD_MEM_FSPACE_HDR, dxpl_id, (hsize_t)H5FS_HEADER_SIZE(f))))
+	//if(HADDR_UNDEF == (fspace->addr = H5MF_close_allocate(f, H5FD_MEM_FSPACE_HDR, dxpl_id, (hsize_t)H5FS_HEADER_SIZE(f))))
+        if(HADDR_UNDEF == (fspace->addr = H5MF_alloc(f, H5FD_MEM_FSPACE_HDR, dxpl_id, (hsize_t)H5FS_HEADER_SIZE(f))))
 	    HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "file allocation failed for free space header")
 
 	/* Cache the new free space header (pinned) */
@@ -877,7 +878,8 @@ H5FS_alloc_sect(H5F_t *f, H5FS_t *fspace, hid_t dxpl_id)
 	/* Allocate space for section info from aggregator/vfd (or temp. address space) */
         /* (The original version called H5MF_alloc(), but that may cause sect_size to change again) */
         /* (This routine is only called during file close operations, so don't allocate from temp. address space) */
-	if(HADDR_UNDEF == (fspace->sect_addr = H5MF_close_allocate(f, H5FD_MEM_FSPACE_SINFO, dxpl_id, fspace->sect_size)))
+	//if(HADDR_UNDEF == (fspace->sect_addr = H5MF_close_allocate(f, H5FD_MEM_FSPACE_SINFO, dxpl_id, fspace->sect_size)))
+        if(HADDR_UNDEF == (fspace->sect_addr = H5MF_alloc(f, H5FD_MEM_FSPACE_SINFO, dxpl_id, fspace->sect_size)))
 	    HGOTO_ERROR(H5E_FSPACE, H5E_NOSPACE, FAIL, "file allocation failed for section info")
 	fspace->alloc_sect_size = fspace->sect_size;
 

@@ -743,7 +743,6 @@ HDfprintf(stderr, "%s: freeing node\n", FUNC);
 #ifdef H5MF_ALLOC_DEBUG_MORE
 HDfprintf(stderr, "%s: re-adding node, node->sect_info.size = %Hu\n", FUNC, node->sect_info.size);
 #endif /* H5MF_ALLOC_DEBUG_MORE */
-
 	    /* Re-add the section to the free-space manager */
 	    if(H5MF_add_sect(f, alloc_type, dxpl_id, fspace, node) < 0)
 		HGOTO_ERROR(H5E_RESOURCE, H5E_CANTINSERT, FAIL, "can't re-add section to file free space")
@@ -782,7 +781,6 @@ H5MF_alloc(H5F_t *f, H5FD_mem_t alloc_type, hid_t dxpl_id, hsize_t size)
 #ifdef H5MF_ALLOC_DEBUG
 HDfprintf(stderr, "%s: alloc_type = %u, size = %Hu\n", FUNC, (unsigned)alloc_type, size);
 #endif /* H5MF_ALLOC_DEBUG */
-
     /* check arguments */
     HDassert(f);
     HDassert(f->shared);
@@ -798,6 +796,7 @@ HDfprintf(stderr, "%s: alloc_type = %u, size = %Hu\n", FUNC, (unsigned)alloc_typ
 #ifdef H5MF_ALLOC_DEBUG_MORE
 HDfprintf(stderr, "%s: Check 1.0\n", FUNC);
 #endif /* H5MF_ALLOC_DEBUG_MORE */
+
     /* Check if the free space manager for the file has been initialized */
     if(!f->shared->fs.man[fs_type] && H5F_addr_defined(f->shared->fs.man_addr[fs_type])) {
 	/* Open the free-space manager */
@@ -884,8 +883,7 @@ H5MF_alloc_pagefs(H5F_t *f, H5FD_mem_t alloc_type, hid_t dxpl_id, hsize_t size)
 
 #ifdef H5MF_ALLOC_DEBUG
 HDfprintf(stderr, "%s: alloc_type = %u, size = %Hu\n", FUNC, (unsigned)alloc_type, size);
-#endif /* H4MF_ALLOC_DEBUG */
-
+#endif /* H5MF_ALLOC_DEBUG */
     /* Determine the free-space manager type for paged aggregation */
     ptype = H5MF_ALLOC_TO_FS_PAGE_TYPE(f, alloc_type, size);
 
@@ -1005,6 +1003,11 @@ HDfprintf(stderr, "%s: alloc_type = %u, size = %Hu\n", FUNC, (unsigned)alloc_typ
                         HGOTO_ERROR(H5E_RESOURCE, H5E_CANTINSERT, HADDR_UNDEF, "can't re-add section to file free space")
 
                     node = NULL;
+
+                    /* Insert the new page into the Page Buffer list of new pages so 
+                       we don't read an empty page from disk */
+                    if(f->shared->page_buf && H5PB_add_new_page(f, alloc_type, new_page) < 0)
+                        HGOTO_ERROR(H5E_RESOURCE, H5E_CANTINSERT, HADDR_UNDEF, "can't add new page to Page Buffer new page list")
 
                     ret_value = new_page;
                 } /* end else */
@@ -1554,6 +1557,7 @@ HDfprintf(stderr, "%s: Try to extend into the page end threshold = %t\n", FUNC, 
     } /* allow_extend */
 
 done:
+
 #ifdef H5MF_ALLOC_DEBUG
 HDfprintf(stderr, "%s: Leaving: ret_value = %t\n", FUNC, ret_value);
 #endif /* H5MF_ALLOC_DEBUG */
@@ -1907,6 +1911,39 @@ HDfprintf(stderr, "%s: Entering\n", FUNC);
 	if(H5MF_close_shrink_eoa(f, dxpl_id) < 0)
 	    HGOTO_ERROR(H5E_RESOURCE, H5E_CANTSHRINK, FAIL, "can't shrink eoa")
 
+#if 1
+        for(ptype = H5F_MEM_PAGE_GENERIC; (int)ptype >= H5F_MEM_PAGE_META; H5_DEC_ENUM(H5F_mem_page_t,ptype)) {
+            if(f->shared->fs.man[ptype]) {
+                H5FS_stat_t	fs_stat;		/* Information for free-space manager */
+
+                /* Query free space manager info for this type */
+                if(H5FS_stat_info(f, f->shared->fs.man[ptype], &fs_stat) < 0)
+                    HGOTO_ERROR(H5E_FSPACE, H5E_CANTRELEASE, FAIL, "can't get free-space info");
+
+                /* Are there sections to persist? */
+                if(fs_stat.serial_sect_count) {
+                    /* Allocate space for free-space manager header */
+                    if(H5FS_alloc_hdr(f, f->shared->fs.man[ptype], &f->shared->fs.man_addr[ptype], dxpl_id) < 0)
+                        HGOTO_ERROR(H5E_FSPACE, H5E_NOSPACE, FAIL, "can't allocated free-space header");
+
+                    /* Allocate space for free-space maanger section info header */
+                    if(H5FS_alloc_sect(f, f->shared->fs.man[ptype], dxpl_id) < 0)
+                        HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "can't allocate free-space section info");
+
+                    HDassert(f->shared->fs.man_addr[ptype]);
+                    fsinfo.fs_addr[ptype] = f->shared->fs.man_addr[ptype];
+                    update = TRUE;
+                } /* end if */
+            } /* end if */
+            else
+                if(H5F_addr_defined(f->shared->fs.man_addr[type])) {
+                    //*fsaddr = f->shared->fs.man_addr[type];
+                    update = TRUE;
+                } /* end else-if */
+        }
+#endif
+
+#if 0
 	/* Re-allocate free-space manager header and/or section info header */
 	for(ptype = H5F_MEM_PAGE_META; ptype < H5F_MEM_PAGE_NTYPES; H5_INC_ENUM(H5F_mem_page_t, ptype)) {
 	    haddr_t *fsaddr = &(fsinfo.fs_addr[ptype]);
@@ -1914,7 +1951,7 @@ HDfprintf(stderr, "%s: Entering\n", FUNC);
 	    if(H5MF_recreate_fstype(f, dxpl_id, (H5FD_mem_t)ptype, fsaddr, &update) < 0)
 		HGOTO_ERROR(H5E_FSPACE, H5E_CANTRELEASE, FAIL, "can't re-allocate the free space manager")
 	} /* end for */
-
+#endif
 	/* Update the file space info message in superblock extension object header */
 	if(update) {
 	    fsinfo.last_small = f->shared->fs.track_last_small;

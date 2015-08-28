@@ -194,7 +194,7 @@ H5FD_read(H5FD_t *file, const H5P_genplist_t *dxpl, H5FD_mem_t type, haddr_t add
     HDassert(file && file->cls);
     HDassert(TRUE == H5P_class_isa(H5P_CLASS(dxpl), H5P_CLS_DATASET_XFER_g));
     HDassert(buf);
-
+    //fprintf(stderr, "FD READ addr: %llu; size = %zu\n", addr, size);
 #ifndef H5_HAVE_PARALLEL
     /* Do not return early for Parallel mode since the I/O could be a */
     /* collective transfer. */
@@ -243,7 +243,7 @@ H5FD_write(H5FD_t *file, const H5P_genplist_t *dxpl, H5FD_mem_t type, haddr_t ad
     HDassert(file && file->cls);
     HDassert(TRUE == H5P_class_isa(H5P_CLASS(dxpl), H5P_CLS_DATASET_XFER_g));
     HDassert(buf);
-
+    //fprintf(stderr, "FD WRITE addr: %llu; size = %zu\n", addr, size);
 #ifndef H5_HAVE_PARALLEL
     /* Do not return early for Parallel mode since the I/O could be a */
     /* collective transfer. */

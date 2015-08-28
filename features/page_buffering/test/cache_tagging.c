@@ -1718,6 +1718,7 @@ check_attribute_rename_tags(hid_t fcpl, int type)
     /* Close and Reopen the file and group */
     if ( H5Gclose(gid) < 0 ) TEST_ERROR;
     if ( H5Fclose(fid) < 0 ) TEST_ERROR;
+
     if ( (fid = H5Fopen(FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0 ) TEST_ERROR;
     if ( (gid = H5Gopen2(fid, GROUPNAME, H5P_DEFAULT)) < 0 ) TEST_ERROR;
 

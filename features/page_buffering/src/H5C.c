@@ -595,6 +595,9 @@ H5C_apply_candidate_list(H5F_t * f,
             else {
                 entries_to_clear++;
                 entry_ptr->clear_on_unprotect = TRUE;
+                //if(f->shared->page_buf && 
+                //H5PB_update_entry(f->shared->page_buf, entry_ptr->addr, entry_ptr->size, entry_ptr->image) > 0)
+                //HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, "Failed to update PB with metadata cache\n");
             } /* end else */
         } /* end else */
     } /* end for */
@@ -3147,6 +3150,9 @@ H5C_mark_entries_as_clean(H5F_t *  f,
 
                 HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, "Can't clear entry.")
             }
+            //if(f->shared->page_buf && 
+            //H5PB_update_entry(f->shared->page_buf, entry_ptr->addr, entry_ptr->size, entry_ptr->image) > 0)
+            //HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, "Failed to update PB with metadata cache\n");
         } else {
 
             entry_ptr = entry_ptr->prev;

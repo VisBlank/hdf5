@@ -697,7 +697,6 @@ H5F_sblock_flush(H5F_t *f, hid_t dxpl_id, hbool_t destroy, haddr_t H5_ATTR_UNUSE
 #endif
 
     if(sblock->cache_info.is_dirty) {
-        H5P_genplist_t *dxpl;               /* DXPL object */
         uint8_t         buf[H5F_MAX_SUPERBLOCK_SIZE + H5F_MAX_DRVINFOBLOCK_SIZE];  /* Superblock & driver info blockencoding buffer */
         uint8_t        *p;                  /* Ptr into encoding buffer */
         haddr_t         rel_eof;            /* Relative EOF for file */
@@ -839,13 +838,9 @@ H5F_sblock_flush(H5F_t *f, hid_t dxpl_id, hbool_t destroy, haddr_t H5_ATTR_UNUSE
         /* Double check we didn't overrun the block (unlikely) */
         HDassert(superblock_size <= sizeof(buf));
 
-        /* Get the DXPL plist object for DXPL ID */
-        if(NULL == (dxpl = (H5P_genplist_t *)H5I_object(dxpl_id)))
-            HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "can't get property list")
-
         /* Write superblock */
         /* (always at relative address 0) */
-        if(H5FD_write(f->shared->lf, dxpl, H5FD_MEM_SUPER, (haddr_t)0, superblock_size, buf) < 0)
+        if(H5PB_write(f, H5FD_MEM_SUPER, (haddr_t)0, superblock_size, dxpl_id, buf) < 0)
             HGOTO_ERROR(H5E_IO, H5E_WRITEERROR, FAIL, "unable to write superblock")
 
         /* Check for newer version of superblock format & superblock extension */

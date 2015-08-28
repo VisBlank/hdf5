@@ -1174,7 +1174,7 @@ H5FD_multi_query(const H5FD_t *_f, unsigned long *flags /* out */)
     /* Set the VFL feature flags that this driver supports */
     if(flags) {
         *flags = 0;
-        *flags |= H5FD_FEAT_DATA_SIEVE;       /* OK to perform data sieving for faster raw data reads & writes */
+        //*flags |= H5FD_FEAT_DATA_SIEVE;       /* OK to perform data sieving for faster raw data reads & writes */
         *flags |= H5FD_FEAT_AGGREGATE_SMALLDATA; /* OK to aggregate "small" raw data allocations */
     } /* end if */
 
@@ -1560,10 +1560,13 @@ H5FD_multi_free(H5FD_t *_file, H5FD_mem_t type, hid_t dxpl_id, haddr_t addr, hsi
     H5Eclear2(H5E_DEFAULT);
 
     mmt = file->fa.memb_map[type];
-    if (H5FD_MEM_DEFAULT==mmt) mmt = type;
 
-    assert(addr>=file->fa.memb_addr[mmt]);
-    assert(addr+size<=file->memb_next[mmt]);
+    if (H5FD_MEM_DEFAULT==mmt) 
+        mmt = type;
+
+    //assert(addr>=file->fa.memb_addr[mmt]);
+    //assert(addr+size<=file->memb_next[mmt]);
+
     return H5FDfree(file->memb[mmt], mmt, dxpl_id, addr-file->fa.memb_addr[mmt], size);
 }
 

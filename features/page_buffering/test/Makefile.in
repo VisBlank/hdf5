@@ -184,13 +184,13 @@ am__EXEEXT_1 = testhdf5$(EXEEXT) lheap$(EXEEXT) ohdr$(EXEEXT) \
 	stab$(EXEEXT) gheap$(EXEEXT) cache$(EXEEXT) cache_api$(EXEEXT) \
 	cache_tagging$(EXEEXT) pool$(EXEEXT) accum$(EXEEXT) \
 	hyperslab$(EXEEXT) istore$(EXEEXT) bittests$(EXEEXT) \
-	dt_arith$(EXEEXT) dtypes$(EXEEXT) dsets$(EXEEXT) \
-	cmpd_dset$(EXEEXT) filter_fail$(EXEEXT) extend$(EXEEXT) \
-	external$(EXEEXT) efc$(EXEEXT) objcopy$(EXEEXT) links$(EXEEXT) \
-	unlink$(EXEEXT) big$(EXEEXT) mtime$(EXEEXT) fillval$(EXEEXT) \
-	mount$(EXEEXT) flush1$(EXEEXT) flush2$(EXEEXT) \
-	app_ref$(EXEEXT) enum$(EXEEXT) set_extent$(EXEEXT) \
-	ttsafe$(EXEEXT) enc_dec_plist$(EXEEXT) \
+	dt_arith$(EXEEXT) tpage_buffer$(EXEEXT) dtypes$(EXEEXT) \
+	dsets$(EXEEXT) cmpd_dset$(EXEEXT) filter_fail$(EXEEXT) \
+	extend$(EXEEXT) external$(EXEEXT) efc$(EXEEXT) \
+	objcopy$(EXEEXT) links$(EXEEXT) unlink$(EXEEXT) big$(EXEEXT) \
+	mtime$(EXEEXT) fillval$(EXEEXT) mount$(EXEEXT) flush1$(EXEEXT) \
+	flush2$(EXEEXT) app_ref$(EXEEXT) enum$(EXEEXT) \
+	set_extent$(EXEEXT) ttsafe$(EXEEXT) enc_dec_plist$(EXEEXT) \
 	enc_dec_plist_with_endianess$(EXEEXT) getname$(EXEEXT) \
 	vfd$(EXEEXT) ntypes$(EXEEXT) dangle$(EXEEXT) \
 	dtransform$(EXEEXT) reserved$(EXEEXT) cross_read$(EXEEXT) \
@@ -505,6 +505,10 @@ testmeta_SOURCES = testmeta.c
 testmeta_OBJECTS = testmeta.$(OBJEXT)
 testmeta_LDADD = $(LDADD)
 testmeta_DEPENDENCIES = libh5test.la $(LIBHDF5)
+tpage_buffer_SOURCES = tpage_buffer.c
+tpage_buffer_OBJECTS = tpage_buffer.$(OBJEXT)
+tpage_buffer_LDADD = $(LDADD)
+tpage_buffer_DEPENDENCIES = libh5test.la $(LIBHDF5)
 am_ttsafe_OBJECTS = ttsafe.$(OBJEXT) ttsafe_dcreate.$(OBJEXT) \
 	ttsafe_error.$(OBJEXT) ttsafe_cancel.$(OBJEXT) \
 	ttsafe_acreate.$(OBJEXT)
@@ -573,7 +577,7 @@ SOURCES = $(libdynlib1_la_SOURCES) $(libdynlib2_la_SOURCES) \
 	gheap.c hyperslab.c istore.c lheap.c links.c links_env.c mf.c \
 	mount.c mtime.c ntypes.c objcopy.c ohdr.c plugin.c pool.c \
 	reserved.c set_extent.c space_overflow.c stab.c \
-	tcheck_version.c $(testhdf5_SOURCES) testmeta.c \
+	tcheck_version.c $(testhdf5_SOURCES) testmeta.c tpage_buffer.c \
 	$(ttsafe_SOURCES) unlink.c unregister.c vfd.c
 DIST_SOURCES = $(am__libdynlib1_la_SOURCES_DIST) \
 	$(am__libdynlib2_la_SOURCES_DIST) \
@@ -592,7 +596,7 @@ DIST_SOURCES = $(am__libdynlib1_la_SOURCES_DIST) \
 	gheap.c hyperslab.c istore.c lheap.c links.c links_env.c mf.c \
 	mount.c mtime.c ntypes.c objcopy.c ohdr.c plugin.c pool.c \
 	reserved.c set_extent.c space_overflow.c stab.c \
-	tcheck_version.c $(testhdf5_SOURCES) testmeta.c \
+	tcheck_version.c $(testhdf5_SOURCES) testmeta.c tpage_buffer.c \
 	$(ttsafe_SOURCES) unlink.c unregister.c vfd.c
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
@@ -1108,7 +1112,7 @@ check_SCRIPTS = $(TEST_SCRIPT)
 # the library yet. Move them to the end so that their failure do not block
 # other current library code tests.
 TEST_PROG = testhdf5 lheap ohdr stab gheap cache cache_api cache_tagging \
-           pool accum hyperslab istore bittests dt_arith \
+           pool accum hyperslab istore bittests dt_arith tpage_buffer\
            dtypes dsets cmpd_dset filter_fail extend external efc objcopy links unlink \
            big mtime fillval mount flush1 flush2 app_ref enum \
            set_extent ttsafe enc_dec_plist enc_dec_plist_with_endianess\
@@ -1587,6 +1591,10 @@ testmeta$(EXEEXT): $(testmeta_OBJECTS) $(testmeta_DEPENDENCIES) $(EXTRA_testmeta
 	@rm -f testmeta$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(testmeta_OBJECTS) $(testmeta_LDADD) $(LIBS)
 
+tpage_buffer$(EXEEXT): $(tpage_buffer_OBJECTS) $(tpage_buffer_DEPENDENCIES) $(EXTRA_tpage_buffer_DEPENDENCIES) 
+	@rm -f tpage_buffer$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(tpage_buffer_OBJECTS) $(tpage_buffer_LDADD) $(LIBS)
+
 ttsafe$(EXEEXT): $(ttsafe_OBJECTS) $(ttsafe_DEPENDENCIES) $(EXTRA_ttsafe_DEPENDENCIES) 
 	@rm -f ttsafe$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(ttsafe_OBJECTS) $(ttsafe_LDADD) $(LIBS)
@@ -1701,6 +1709,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/titerate.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tmeta.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tmisc.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tpage_buffer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/trefer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/trefstr.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tselect.Po@am__quote@
@@ -2023,6 +2032,13 @@ bittests.log: bittests$(EXEEXT)
 dt_arith.log: dt_arith$(EXEEXT)
 	@p='dt_arith$(EXEEXT)'; \
 	b='dt_arith'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+tpage_buffer.log: tpage_buffer$(EXEEXT)
+	@p='tpage_buffer$(EXEEXT)'; \
+	b='tpage_buffer'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \

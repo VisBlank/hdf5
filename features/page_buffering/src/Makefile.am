@@ -89,6 +89,7 @@ libhdf5_la_SOURCES= H5.c H5checksum.c H5dbg.c H5system.c H5timer.c H5trace.c \
         H5Pfapl.c H5Pfcpl.c H5Pfmpl.c \
         H5Pgcpl.c H5Pint.c \
         H5Plapl.c H5Plcpl.c H5Pocpl.c H5Pocpypl.c H5Pstrcpl.c H5Ptest.c \
+        H5PB.c \
         H5PL.c \
         H5R.c H5Rdeprec.c \
         H5UC.c \
@@ -118,7 +119,7 @@ include_HEADERS = hdf5.h H5api_adpt.h H5overflow.h H5pubconf.h H5public.h H5vers
 	H5FDfamily.h H5FDlog.h H5FDmpi.h H5FDmpio.h \
         H5FDmulti.h H5FDsec2.h  H5FDstdio.h \
         H5Gpublic.h  H5Ipublic.h H5Lpublic.h \
-        H5MMpublic.h H5Opublic.h H5Ppublic.h \
+        H5MMpublic.h H5Opublic.h H5Ppublic.h H5PBpublic.h \
         H5PLextern.h H5PLpublic.h \
         H5Rpublic.h H5Spublic.h \
         H5Tpublic.h H5Zpublic.h
