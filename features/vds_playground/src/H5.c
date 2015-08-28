@@ -137,6 +137,13 @@ H5_init_library(void)
         if (mpi_initialized && !mpi_finalized) {
             int key_val;
 
+            /* make sure MPI-IO gets initialized before we add the
+               attribute. MSC - this is a ROMIO bug that is fixed, but
+               unreleased as of MPICH 3.1.4. ALL ROMIO comm_self
+               attributes should be inserted at MPI_Init(), but they
+               are not. */
+            MPI_File_delete(NULL, MPI_INFO_NULL);
+
             if(MPI_SUCCESS != (mpi_code = MPI_Comm_create_keyval(MPI_NULL_COPY_FN, 
                                                                  (MPI_Comm_delete_attr_function *)H5_mpi_delete_cb, 
                                                                  &key_val, NULL)))
