@@ -1113,14 +1113,54 @@ typedef herr_t (*H5C_write_permitted_func_t)(const H5F_t *f,
 typedef herr_t (*H5C_log_flush_func_t)(H5C_t *cache_ptr, haddr_t addr,
     hbool_t was_dirty, unsigned flags);
 
-/* Ring types for every metadata entry */
+/****************************************************************************
+ *
+ * enum H5C_ring_t
+ *
+ * The metadata cache uses the concept of rings to order the flushes of 
+ * classes of entries.  In this arrangement, each entry in the cache is 
+ * assigned to a ring, and on flush, the members of the outermost ring 
+ * are flushed first, followed by the next outermost, and so on with the
+ * members of the innermost ring being flushed last.  
+ *
+ * Note that flush dependencies are used to order flushes within rings.  
+ *
+ * Note also that at the conceptual level, rings are argueably superfluous,
+ * as a similar effect could be obtained via the flush dependency mechanism.  
+ * However, this would require all entries in the cache to participate in a 
+ * flush dependency -- with the implied setup and takedown overhead and 
+ * added complexity.  Further, the flush ordering between rings need only 
+ * be enforced on flush operations, and thus the use of flush dependencies 
+ * instead would apply unecessary constraints on flushes under normal 
+ * operating circumstances.
+ *
+ * As of this writing, all metadata entries pretaining to data sets and 
+ * groups must be flushed first, and are thus assigned to the outermost 
+ * ring.  
+ *
+ * Free space managers managing file space must be flushed next,
+ * and are assigned to the second outermost ring.
+ *
+ * The object header and associated chunks used to implement superblock 
+ * extension messages must be flushed next, and are thus assigned to 
+ * the third outermost ring.
+ *
+ * The superblock proper must be flushed last, and is thus assigned to 
+ * the innermost ring.
+ *
+ * The H5C_ring_t enum is used to define the rings.  Each entry must 
+ * be assigned to the appropriate ring on insertion or protect.
+ */
+
 typedef enum H5C_ring_t {
-    H5C_RING_USER = 0,
-    H5C_RING_FSM,
-    H5C_RING_SBE,
-    H5C_RING_SB,
-    H5C_RING_NTYPES
+    H5C_RING_UNDEFINED = 0, /* must never appear in an entry in the cache */
+    H5C_RING_USER      = 1,  /* outermost ring */
+    H5C_RING_FSM       = 2,
+    H5C_RING_SBE       = 3,
+    H5C_RING_SB        = 4,  /* innermost ring */
+    H5C_RING_NTYPES    = 5
 } H5C_ring_t;
+
 
 /****************************************************************************
  *
@@ -1385,6 +1425,25 @@ typedef enum H5C_ring_t {
  * 		is in the process of being flushed and destroyed.
  *
  *
+ * Fields supporting rings for flush ordering:
+ *
+ * All entries in the metadata cache are assigned to a ring.  On cache 
+ * flush, all entries in the outermost ring are flushed first, followed
+ * by all members of the next outermost ring, and so on until the 
+ * innermost ring is flushed.  Note that this ordering is ONLY applied 
+ * in flush and serialize calls.  Rings are ignored during normal operations
+ * in which entries are flushed as directed by the replacement policy.
+ *
+ * See the header comment on H5C_ring_t above for further details.
+ *
+ * Note that flush dependencies (see below) are used to order flushes
+ * within rings.  Unlike rings, flush dependencies are applied to ALL
+ * writes, not just those triggered by flush or serialize calls.
+ *
+ * ring:	Instance of H5C_ring_t indicating the ring to which this
+ *		entry is assigned.
+ *
+ *
  * Fields supporting the 'flush dependency' feature:
  *
  * Entries in the cache may have a 'flush dependency' on another entry in the
@@ -1551,6 +1610,8 @@ typedef struct H5C_cache_entry_t {
 #endif /* H5_HAVE_PARALLEL */
     hbool_t			flush_in_progress;
     hbool_t			destroy_in_progress;
+
+    /* fields supporting rings for purposes of flush ordering */
     H5C_ring_t                  ring;
 
     /* fields supporting the 'flush dependency' feature: */
