@@ -93,13 +93,28 @@ H5SM_get_mesg_count_test(H5F_t *f, hid_t dxpl_id, unsigned type_id,
         H5SM_index_header_t *header;        /* Index header for message type */
         H5SM_table_cache_ud_t cache_udata;  /* User-data for callback */
         ssize_t index_num;                  /* Table index for message type */
+        H5P_genplist_t *dxpl = NULL;
+        H5AC_ring_t ring, orig_ring = H5AC_RING_INV;
 
         /* Set up user data for callback */
         cache_udata.f = f;
 
+        /* Set the ring type in the DXPL */
+        if(NULL == (dxpl = (H5P_genplist_t *)H5I_object_verify(dxpl_id, H5I_GENPROP_LST)))
+            HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a property list");
+        if((H5P_get(dxpl, H5AC_RING_NAME, &orig_ring)) < 0)
+            HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, NULL, "unable to get property value");
+        ring = H5AC_RING_SBE;
+        if((H5P_set(dxpl, H5AC_RING_NAME, &ring)) < 0)
+            HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "unable to set property value");
+
         /* Look up the master SOHM table */
         if(NULL == (table = (H5SM_master_table_t *)H5AC_protect(f, dxpl_id, H5AC_SOHM_TABLE, H5F_SOHM_ADDR(f), &cache_udata, H5AC__READ_ONLY_FLAG)))
             HGOTO_ERROR(H5E_SOHM, H5E_CANTPROTECT, FAIL, "unable to load SOHM master table")
+
+        /* reset the ring type */
+        if((H5P_set(dxpl, H5AC_RING_NAME, &orig_ring)) < 0)
+            HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "unable to set property value");
 
         /* Find the correct index for this message type */
         if((index_num = H5SM_get_index(table, type_id)) < 0)

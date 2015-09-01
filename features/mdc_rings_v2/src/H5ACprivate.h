@@ -134,7 +134,8 @@ typedef enum {
 
 /* Aliases for the "ring" type and values */
 typedef H5C_ring_t       H5AC_ring_t;
-#define H5AC_RING_US   H5C_RING_USER
+#define H5AC_RING_INV    H5C_RING_UNDEFINED
+#define H5AC_RING_US     H5C_RING_USER
 #define H5AC_RING_FSM    H5C_RING_FSM
 #define H5AC_RING_SBE    H5C_RING_SBE
 #define H5AC_RING_SB     H5C_RING_SB
@@ -332,11 +333,11 @@ H5_DLL herr_t H5AC_create(const H5F_t *f, H5AC_cache_config_t *config_ptr);
 H5_DLL herr_t H5AC_get_entry_status(const H5F_t *f, haddr_t addr,
     unsigned *status_ptr);
 H5_DLL herr_t H5AC_insert_entry(H5F_t *f, hid_t dxpl_id, const H5AC_class_t *type,
-    haddr_t addr, void *thing, unsigned int flags, H5AC_ring_t ring);
+    haddr_t addr, void *thing, unsigned int flags);
 H5_DLL herr_t H5AC_pin_protected_entry(void *thing);
 H5_DLL herr_t H5AC_create_flush_dependency(void *parent_thing, void *child_thing);
 H5_DLL void * H5AC_protect(H5F_t *f, hid_t dxpl_id, const H5AC_class_t *type,
-    haddr_t addr, void *udata, unsigned flags, H5AC_ring_t ring);
+    haddr_t addr, void *udata, unsigned flags);
 H5_DLL herr_t H5AC_resize_entry(void *thing, size_t new_size);
 H5_DLL herr_t H5AC_unpin_entry(void *thing);
 H5_DLL herr_t H5AC_destroy_flush_dependency(void *parent_thing, void *child_thing);

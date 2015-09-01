@@ -515,6 +515,8 @@ H5F__cache_superblock_pre_serialize(const H5F_t *f, hid_t dxpl_id,
     size_t H5_ATTR_UNUSED *new_len, size_t H5_ATTR_UNUSED *new_compressed_len, 
     unsigned H5_ATTR_UNUSED *flags)
 {
+    H5P_genplist_t *dxpl = NULL;
+    H5AC_ring_t ring, orig_ring = H5AC_RING_INV;
     H5F_super_t *sblock = (H5F_super_t *)_thing; /* Pointer to the super block */
     herr_t ret_value = SUCCEED; /* Return value */
 
@@ -562,6 +564,15 @@ H5F__cache_superblock_pre_serialize(const H5F_t *f, hid_t dxpl_id,
                     if(H5FD_sb_encode(f->shared->lf, drvinfo.name, dbuf) < 0)
                         HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, FAIL, "unable to encode driver information")
 
+                    /* Set the ring type in the DXPL */
+                    if(NULL == (dxpl = (H5P_genplist_t *)H5I_object_verify(dxpl_id, H5I_GENPROP_LST)))
+                        HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a property list");
+                    if((H5P_get(dxpl, H5AC_RING_NAME, &orig_ring)) < 0)
+                        HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "unable to get property value");
+                    ring = H5AC_RING_SBE;
+                    if((H5P_set(dxpl, H5AC_RING_NAME, &ring)) < 0)
+                        HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "unable to set property value");
+
                     /* Write driver info information to the superblock extension */
                     drvinfo.len = driver_size;
                     drvinfo.buf = dbuf;
@@ -577,6 +588,8 @@ H5F__cache_superblock_pre_serialize(const H5F_t *f, hid_t dxpl_id,
     } /* end if */
 
 done:
+    if(orig_ring && H5P_set(dxpl, H5AC_RING_NAME, &orig_ring) < 0)
+        HDONE_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "unable to set property value");
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5FS_cache_superblock_pre_serialize() */
 

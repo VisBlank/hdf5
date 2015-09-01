@@ -36,7 +36,9 @@
 #include "H5ACprivate.h"        /* Metadata cache                       */
 #include "H5Eprivate.h"		/* Error handling		  	*/
 #include "H5FSpkg.h"		/* File free space			*/
+#include "H5Iprivate.h"		/* IDs                                  */
 #include "H5MFprivate.h"	/* File memory management		*/
+#include "H5Pprivate.h"		/* Property lists                       */
 
 /****************/
 /* Local Macros */
@@ -106,6 +108,8 @@ H5FS_t *
 H5FS_create(H5F_t *f, hid_t dxpl_id, haddr_t *fs_addr, const H5FS_create_t *fs_create,
     uint16_t nclasses, const H5FS_section_class_t *classes[], void *cls_init_udata, hsize_t alignment, hsize_t threshold)
 {
+    H5P_genplist_t *dxpl = NULL;
+    H5AC_ring_t ring, orig_ring = H5AC_RING_INV;
     H5FS_t *fspace = NULL;      /* New free space structure */
     H5FS_t *ret_value;          /* Return value */
 
@@ -138,6 +142,15 @@ HDfprintf(stderr, "%s: Creating free space manager, nclasses = %Zu\n", FUNC, ncl
 
     /* Check if the free space tracker is supposed to be persistant */
     if(fs_addr) {
+        /* Set the ring type in the DXPL */
+        if(NULL == (dxpl = (H5P_genplist_t *)H5I_object_verify(dxpl_id, H5I_GENPROP_LST)))
+            HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, NULL, "not a property list");
+        if((H5P_get(dxpl, H5AC_RING_NAME, &orig_ring)) < 0)
+            HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, NULL, "unable to get property value");
+        ring = H5AC_RING_FSM;
+        if((H5P_set(dxpl, H5AC_RING_NAME, &ring)) < 0)
+            HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, NULL, "unable to set property value");
+
         /* Allocate space for the free space header */
         if(HADDR_UNDEF == (fspace->addr = H5MF_alloc(f, H5FD_MEM_FSPACE_HDR, dxpl_id, (hsize_t)fspace->hdr_size)))
             HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, NULL, "file allocation failed for free space header")
@@ -160,6 +173,10 @@ HDfprintf(stderr, "%s: fspace = %p, fspace->addr = %a\n", FUNC, fspace, fspace->
 #endif /* H5FS_DEBUG */
 
 done:
+    /* reset the ring type */
+    if(orig_ring && H5P_set(dxpl, H5AC_RING_NAME, &orig_ring) < 0)
+        HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, NULL, "unable to set property value");
+
     if(!ret_value && fspace)
         if(H5FS__hdr_dest(fspace) < 0)
             HDONE_ERROR(H5E_FSPACE, H5E_CANTFREE, NULL, "unable to destroy free space header")
@@ -194,6 +211,8 @@ H5FS_t *
 H5FS_open(H5F_t *f, hid_t dxpl_id, haddr_t fs_addr, uint16_t nclasses,
     const H5FS_section_class_t *classes[], void *cls_init_udata, hsize_t alignment, hsize_t threshold)
 {
+    H5P_genplist_t *dxpl = NULL;
+    H5AC_ring_t ring, orig_ring = H5AC_RING_INV;
     H5FS_t *fspace = NULL;      /* New free space structure */
     H5FS_hdr_cache_ud_t cache_udata; /* User-data for metadata cache callback */
     H5FS_t *ret_value;          /* Return value */
@@ -214,6 +233,15 @@ HDfprintf(stderr, "%s: Opening free space manager, fs_addr = %a, nclasses = %Zu\
     cache_udata.classes = classes;
     cache_udata.cls_init_udata = cls_init_udata;
     cache_udata.addr = fs_addr;
+
+    /* Set the ring type in the DXPL */
+    if(NULL == (dxpl = (H5P_genplist_t *)H5I_object_verify(dxpl_id, H5I_GENPROP_LST)))
+        HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, NULL, "not a property list");
+    if((H5P_get(dxpl, H5AC_RING_NAME, &orig_ring)) < 0)
+        HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, NULL, "unable to get property value");
+    ring = H5AC_RING_FSM;
+    if((H5P_set(dxpl, H5AC_RING_NAME, &ring)) < 0)
+        HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, NULL, "unable to set property value");
 
     /* Protect the free space header */
     if(NULL == (fspace = (H5FS_t *)H5AC_protect(f, dxpl_id, H5AC_FSPACE_HDR, fs_addr, &cache_udata, H5AC__READ_ONLY_FLAG)))
@@ -242,6 +270,9 @@ HDfprintf(stderr, "%s: fspace->rc = %u\n", FUNC, fspace->rc);
     ret_value = fspace;
 
 done:
+    /* reset the ring type */
+    if(orig_ring && H5P_set(dxpl, H5AC_RING_NAME, &orig_ring) < 0)
+        HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, NULL, "unable to set property value");
     FUNC_LEAVE_NOAPI_TAG(ret_value, NULL)
 } /* H5FS_open() */
 
@@ -263,6 +294,8 @@ done:
 herr_t
 H5FS_delete(H5F_t *f, hid_t dxpl_id, haddr_t fs_addr)
 {
+    H5P_genplist_t *dxpl = NULL;
+    H5AC_ring_t ring, orig_ring = H5AC_RING_INV;
     H5FS_t *fspace = NULL;              /* Free space header loaded from file */
     H5FS_hdr_cache_ud_t cache_udata; /* User-data for metadata cache callback */
     herr_t ret_value = SUCCEED;         /* Return value */
@@ -285,48 +318,57 @@ HDfprintf(stderr, "%s: Deleting free space manager, fs_addr = %a\n", FUNC, fs_ad
     cache_udata.addr = fs_addr;
 
 #ifdef H5FS_DEBUG
-{
-    unsigned fspace_status = 0;      /* Free space section info's status in the metadata cache */
+    {
+        unsigned fspace_status = 0;      /* Free space section info's status in the metadata cache */
 
-    /* Sanity check */
-    HDassert(H5F_addr_defined(fs_addr));
+        /* Sanity check */
+        HDassert(H5F_addr_defined(fs_addr));
 
-    /* Check the free space section info's status in the metadata cache */
-    if(H5AC_get_entry_status(f, fs_addr, &fspace_status) < 0)
-        HGOTO_ERROR(H5E_HEAP, H5E_CANTGET, FAIL, "unable to check metadata cache status for free space section info")
+        /* Check the free space section info's status in the metadata cache */
+        if(H5AC_get_entry_status(f, fs_addr, &fspace_status) < 0)
+            HGOTO_ERROR(H5E_HEAP, H5E_CANTGET, FAIL, "unable to check metadata cache status for free space section info")
 
-    HDfprintf(stderr, "%s: fspace_status = %0x: ", FUNC, fspace_status);
-    if(fspace_status) {
-        hbool_t printed = FALSE;
+        HDfprintf(stderr, "%s: fspace_status = %0x: ", FUNC, fspace_status);
+        if(fspace_status) {
+            hbool_t printed = FALSE;
 
-        if(fspace_status & H5AC_ES__IN_CACHE) {
-            HDfprintf(stderr, "H5AC_ES__IN_CACHE");
+            if(fspace_status & H5AC_ES__IN_CACHE) {
+                HDfprintf(stderr, "H5AC_ES__IN_CACHE");
+                printed = TRUE;
+            } /* end if */
+            if(fspace_status & H5AC_ES__IS_DIRTY) {
+                HDfprintf(stderr, "%sH5AC_ES__IS_DIRTY", (printed ? " | " : ""));
+                printed = TRUE;
+            } /* end if */
+            if(fspace_status & H5AC_ES__IS_PROTECTED) {
+                HDfprintf(stderr, "%sH5AC_ES__IS_PROTECTED", (printed ? " | " : ""));
+                printed = TRUE;
+            } /* end if */
+            if(fspace_status & H5AC_ES__IS_PINNED) {
+                HDfprintf(stderr, "%sH5AC_ES__IS_PINNED", (printed ? " | " : ""));
             printed = TRUE;
+            } /* end if */
+            if(fspace_status & H5AC_ES__IS_FLUSH_DEP_PARENT) {
+                HDfprintf(stderr, "%sH5AC_ES__IS_FLUSH_DEP_PARENT", (printed ? " | " : ""));
+                printed = TRUE;
+            } /* end if */
+            if(fspace_status & H5AC_ES__IS_FLUSH_DEP_CHILD) {
+                HDfprintf(stderr, "%sH5AC_ES__IS_FLUSH_DEP_CHILD", (printed ? " | " : ""));
+                printed = TRUE;
+            } /* end if */
         } /* end if */
-        if(fspace_status & H5AC_ES__IS_DIRTY) {
-            HDfprintf(stderr, "%sH5AC_ES__IS_DIRTY", (printed ? " | " : ""));
-            printed = TRUE;
-        } /* end if */
-        if(fspace_status & H5AC_ES__IS_PROTECTED) {
-            HDfprintf(stderr, "%sH5AC_ES__IS_PROTECTED", (printed ? " | " : ""));
-            printed = TRUE;
-        } /* end if */
-        if(fspace_status & H5AC_ES__IS_PINNED) {
-            HDfprintf(stderr, "%sH5AC_ES__IS_PINNED", (printed ? " | " : ""));
-            printed = TRUE;
-        } /* end if */
-        if(fspace_status & H5AC_ES__IS_FLUSH_DEP_PARENT) {
-            HDfprintf(stderr, "%sH5AC_ES__IS_FLUSH_DEP_PARENT", (printed ? " | " : ""));
-            printed = TRUE;
-        } /* end if */
-        if(fspace_status & H5AC_ES__IS_FLUSH_DEP_CHILD) {
-            HDfprintf(stderr, "%sH5AC_ES__IS_FLUSH_DEP_CHILD", (printed ? " | " : ""));
-            printed = TRUE;
-        } /* end if */
-    } /* end if */
-    HDfprintf(stderr, "\n");
-}
+        HDfprintf(stderr, "\n");
+    }
 #endif /* H5FS_DEBUG */
+
+    /* Set the ring type in the DXPL */
+    if(NULL == (dxpl = (H5P_genplist_t *)H5I_object_verify(dxpl_id, H5I_GENPROP_LST)))
+        HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a property list");
+    if((H5P_get(dxpl, H5AC_RING_NAME, &orig_ring)) < 0)
+        HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, NULL, "unable to get property value");
+    ring = H5AC_RING_FSM;
+    if((H5P_set(dxpl, H5AC_RING_NAME, &ring)) < 0)
+        HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "unable to set property value");
 
     /* Protect the free space header */
     if(NULL == (fspace = (H5FS_t *)H5AC_protect(f, dxpl_id, H5AC_FSPACE_HDR, fs_addr, &cache_udata, H5AC__NO_FLAGS_SET)))
@@ -391,6 +433,10 @@ HDfprintf(stderr, "%s: Deleting free space section info from file\n", FUNC);
     } /* end if */
 
 done:
+    /* reset the ring type */
+    if(orig_ring && H5P_set(dxpl, H5AC_RING_NAME, &orig_ring) < 0)
+        HDONE_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "unable to set property value");
+
     if(fspace && H5AC_unprotect(f, dxpl_id, H5AC_FSPACE_HDR, fs_addr, fspace, H5AC__DELETED_FLAG | H5AC__FREE_FILE_SPACE_FLAG) < 0)
         HDONE_ERROR(H5E_FSPACE, H5E_CANTUNPROTECT, FAIL, "unable to release free space header")
 
@@ -416,6 +462,8 @@ done:
 herr_t
 H5FS_close(H5F_t *f, hid_t dxpl_id, H5FS_t *fspace)
 {
+    H5P_genplist_t *dxpl = NULL;
+    H5AC_ring_t ring, orig_ring = H5AC_RING_INV;
     herr_t ret_value = SUCCEED;         /* Return value */
 
     FUNC_ENTER_NOAPI_TAG(dxpl_id, H5AC__FREESPACE_TAG, FAIL)
@@ -465,6 +513,15 @@ HDfprintf(stderr, "%s: Real sections to store in file\n", FUNC);
 	    else
 		/* Sanity check that section info has address */
 		HDassert(H5F_addr_defined(fspace->sect_addr));
+
+            /* Set the ring type in the DXPL */
+            if(NULL == (dxpl = (H5P_genplist_t *)H5I_object_verify(dxpl_id, H5I_GENPROP_LST)))
+                HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a property list");
+            if((H5P_get(dxpl, H5AC_RING_NAME, &orig_ring)) < 0)
+                HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, NULL, "unable to get property value");
+            ring = H5AC_RING_FSM;
+            if((H5P_set(dxpl, H5AC_RING_NAME, &ring)) < 0)
+                HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "unable to set property value");
 
             /* Cache the free space section info */
             if(H5AC_insert_entry(f, dxpl_id, H5AC_FSPACE_SINFO, fspace->sect_addr, fspace->sinfo, H5AC__NO_FLAGS_SET) < 0)
@@ -576,6 +633,9 @@ HDfprintf(stderr, "%s: Section info is NOT for file free space\n", FUNC);
         HGOTO_ERROR(H5E_FSPACE, H5E_CANTDEC, FAIL, "unable to decrement ref. count on free space header")
 
 done:
+    /* reset the ring type */
+    if(orig_ring && H5P_set(dxpl, H5AC_RING_NAME, &orig_ring) < 0)
+        HDONE_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "unable to set property value");
 #ifdef H5FS_DEBUG
 HDfprintf(stderr, "%s: Leaving, ret_value = %d, fspace->rc = %u\n", FUNC, ret_value, fspace->rc);
 #endif /* H5FS_DEBUG */
@@ -835,6 +895,8 @@ done:
 herr_t
 H5FS_alloc_hdr(H5F_t *f, H5FS_t *fspace, haddr_t *fs_addr, hid_t dxpl_id)
 {
+    H5P_genplist_t *dxpl = NULL;
+    H5AC_ring_t ring, orig_ring = H5AC_RING_INV;
     herr_t	ret_value = SUCCEED;              /* Return value */
 
     FUNC_ENTER_NOAPI_TAG(dxpl_id, H5AC__FREESPACE_TAG, FAIL)
@@ -844,6 +906,15 @@ H5FS_alloc_hdr(H5F_t *f, H5FS_t *fspace, haddr_t *fs_addr, hid_t dxpl_id)
     HDassert(fspace);
 
     if(!H5F_addr_defined(fspace->addr)) {
+        /* Set the ring type in the DXPL */
+        if(NULL == (dxpl = (H5P_genplist_t *)H5I_object_verify(dxpl_id, H5I_GENPROP_LST)))
+            HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a property list");
+        if((H5P_get(dxpl, H5AC_RING_NAME, &orig_ring)) < 0)
+            HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, NULL, "unable to get property value");
+        ring = H5AC_RING_FSM;
+        if((H5P_set(dxpl, H5AC_RING_NAME, &ring)) < 0)
+            HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "unable to set property value");
+
 	/* Allocate space for the free space header */
 	if(HADDR_UNDEF == (fspace->addr = H5MF_alloc(f, H5FD_MEM_FSPACE_HDR, dxpl_id, (hsize_t)H5FS_HEADER_SIZE(f))))
 	    HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "file allocation failed for free space header")
@@ -857,6 +928,10 @@ H5FS_alloc_hdr(H5F_t *f, H5FS_t *fspace, haddr_t *fs_addr, hid_t dxpl_id)
 	*fs_addr = fspace->addr;
 
 done:
+    ring = H5AC_RING_US;
+    /* reset the ring type */
+    if(dxpl && H5P_set(dxpl, H5AC_RING_NAME, &ring) < 0)
+        HDONE_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "unable to set property value");
     FUNC_LEAVE_NOAPI_TAG(ret_value, FAIL)
 } /* H5FS_alloc_hdr() */
 
@@ -875,6 +950,8 @@ done:
 herr_t
 H5FS_alloc_sect(H5F_t *f, H5FS_t *fspace, hid_t dxpl_id)
 {
+    H5P_genplist_t *dxpl = NULL;
+    H5AC_ring_t ring, orig_ring = H5AC_RING_INV;
     herr_t	ret_value = SUCCEED;              /* Return value */
 
     FUNC_ENTER_NOAPI_TAG(dxpl_id, H5AC__FREESPACE_TAG, FAIL)
@@ -884,6 +961,15 @@ H5FS_alloc_sect(H5F_t *f, H5FS_t *fspace, hid_t dxpl_id)
     HDassert(fspace);
 
     if(!H5F_addr_defined(fspace->sect_addr) && fspace->sinfo && fspace->serial_sect_count > 0) {
+        /* Set the ring type in the DXPL */
+        if(NULL == (dxpl = (H5P_genplist_t *)H5I_object_verify(dxpl_id, H5I_GENPROP_LST)))
+            HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a property list");
+        if((H5P_get(dxpl, H5AC_RING_NAME, &orig_ring)) < 0)
+            HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, NULL, "unable to get property value");
+        ring = H5AC_RING_FSM;
+        if((H5P_set(dxpl, H5AC_RING_NAME, &ring)) < 0)
+            HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "unable to set property value");
+
 	/* Allocate space for section info from aggregator/vfd (or temp. address space) */
         /* (The original version called H5MF_alloc(), but that may cause sect_size to change again) */
         /* (This routine is only called during file close operations, so don't allocate from temp. address space) */
@@ -903,6 +989,9 @@ H5FS_alloc_sect(H5F_t *f, H5FS_t *fspace, hid_t dxpl_id)
     } /* end if */
 
 done:
+    /* reset the ring type */
+    if(orig_ring && H5P_set(dxpl, H5AC_RING_NAME, &orig_ring) < 0)
+        HDONE_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "unable to set property value");
     FUNC_LEAVE_NOAPI_TAG(ret_value, FAIL)
 } /* H5FS_alloc_sect() */
 
@@ -921,6 +1010,8 @@ done:
 herr_t
 H5FS_free(H5F_t *f, H5FS_t *fspace, hid_t dxpl_id)
 {
+    H5P_genplist_t *dxpl = NULL;
+    H5AC_ring_t ring, orig_ring = H5AC_RING_INV;
     haddr_t	saved_addr;             /* Previous address of item */
     unsigned    cache_flags;            /* Flags for unprotecting cache entries */
     herr_t	ret_value = SUCCEED;    /* Return value */
@@ -932,6 +1023,15 @@ H5FS_free(H5F_t *f, H5FS_t *fspace, hid_t dxpl_id)
     HDassert(fspace);
 
     cache_flags = H5AC__DELETED_FLAG | H5AC__TAKE_OWNERSHIP_FLAG;;
+
+    /* Set the ring type in the DXPL */
+    if(NULL == (dxpl = (H5P_genplist_t *)H5I_object_verify(dxpl_id, H5I_GENPROP_LST)))
+        HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a property list");
+    if((H5P_get(dxpl, H5AC_RING_NAME, &orig_ring)) < 0)
+        HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, NULL, "unable to get property value");
+    ring = H5AC_RING_FSM;
+    if((H5P_set(dxpl, H5AC_RING_NAME, &ring)) < 0)
+        HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "unable to set property value");
 
     if(H5F_addr_defined(fspace->sect_addr)) {
         hsize_t	saved_size;     /* Size of previous section info */
@@ -1011,6 +1111,9 @@ H5FS_free(H5F_t *f, H5FS_t *fspace, hid_t dxpl_id)
     } /* end if */
 
 done:
+    /* reset the ring type */
+    if(orig_ring && H5P_set(dxpl, H5AC_RING_NAME, &orig_ring) < 0)
+        HDONE_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "unable to set property value");
     FUNC_LEAVE_NOAPI_TAG(ret_value, FAIL)
 } /* H5FS_free() */
 

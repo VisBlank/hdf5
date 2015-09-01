@@ -724,13 +724,15 @@ done:
  */
 herr_t
 H5AC_insert_entry(H5F_t *f, hid_t dxpl_id, const H5AC_class_t *type, haddr_t addr,
-                  void *thing, unsigned int flags, H5AC_ring_t ring)
+                  void *thing, unsigned int flags)
 {
 #if H5AC__TRACE_FILE_ENABLED
     char          	trace[128] = "";
     size_t              trace_entry_size = 0;
     FILE *        	trace_file_ptr = NULL;
 #endif /* H5AC__TRACE_FILE_ENABLED */
+    H5AC_ring_t ring = H5C_RING_UNDEFINED;
+    H5P_genplist_t *dxpl = NULL;
     herr_t ret_value = SUCCEED;      /* Return value */
 
     FUNC_ENTER_NOAPI(FAIL)
@@ -760,6 +762,13 @@ H5AC_insert_entry(H5F_t *f, hid_t dxpl_id, const H5AC_class_t *type, haddr_t add
         sprintf(trace, "%s 0x%lx %d 0x%x", FUNC, (unsigned long)addr, type->id,
             flags);
 #endif /* H5AC__TRACE_FILE_ENABLED */
+
+    /* Get the dataset transfer property list */
+    if(NULL == (dxpl = (H5P_genplist_t *)H5I_object_verify(dxpl_id, H5I_GENPROP_LST)))
+        HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a property list");
+    /* Get the ring type from the DXPL */
+    if((H5P_get(dxpl, H5AC_RING_NAME, &ring)) < 0)
+        HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "unable to query property value");
 
     /* Insert entry into metadata cache */
     if(H5C_insert_entry(f, dxpl_id, type, addr, thing, flags, (H5C_ring_t)ring) < 0)
@@ -1058,7 +1067,7 @@ done:
  */
 void *
 H5AC_protect(H5F_t *f, hid_t dxpl_id, const H5AC_class_t *type, haddr_t addr,
-             void *udata, unsigned flags, H5AC_ring_t ring)
+             void *udata, unsigned flags)
 {
     void *		thing;          /* Pointer to native data structure for entry */
 #if H5AC__TRACE_FILE_ENABLED
@@ -1066,6 +1075,8 @@ H5AC_protect(H5F_t *f, hid_t dxpl_id, const H5AC_class_t *type, haddr_t addr,
     size_t		trace_entry_size = 0;
     FILE *              trace_file_ptr = NULL;
 #endif /* H5AC__TRACE_FILE_ENABLED */
+    H5P_genplist_t      *dxpl = NULL;
+    H5AC_ring_t         ring = 0;
     void *		ret_value;      /* Return value */
 
     FUNC_ENTER_NOAPI(NULL)
@@ -1103,6 +1114,13 @@ H5AC_protect(H5F_t *f, hid_t dxpl_id, const H5AC_class_t *type, haddr_t addr,
         sprintf(trace, "%s 0x%lx %d 0x%x", FUNC, (unsigned long)addr,
 		(int)(type->id), flags);
 #endif /* H5AC__TRACE_FILE_ENABLED */
+
+    /* Get the dataset transfer property list */
+    if(NULL == (dxpl = (H5P_genplist_t *)H5I_object_verify(dxpl_id, H5I_GENPROP_LST)))
+        HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a property list");
+    /* Get the ring type from the DXPL */
+    if((H5P_get(dxpl, H5AC_RING_NAME, &ring)) < 0)
+        HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "unable to query property value");
 
     if(NULL == (thing = H5C_protect(f, dxpl_id, type, addr, udata, flags, (H5C_ring_t)ring)))
         HGOTO_ERROR(H5E_CACHE, H5E_CANTPROTECT, NULL, "H5C_protect() failed.")

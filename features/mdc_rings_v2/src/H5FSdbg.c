@@ -39,7 +39,9 @@
 #include "H5Eprivate.h"		/* Error handling		  	*/
 #include "H5FSpkg.h"		/* File free space			*/
 #include "H5HFprivate.h"	/* Fractal heaps			*/
+#include "H5Iprivate.h"         /* IDs                                  */
 #include "H5MFprivate.h"	/* File memory management		*/
+#include "H5Pprivate.h"		/* Property lists                       */
 
 /****************/
 /* Local Macros */
@@ -96,6 +98,8 @@
 herr_t
 H5FS_debug(H5F_t *f, hid_t dxpl_id, haddr_t addr, FILE *stream, int indent, int fwidth)
 {
+    H5P_genplist_t *dxpl = NULL;
+    H5AC_ring_t ring, orig_ring = H5AC_RING_INV;
     H5FS_t	*fspace = NULL;         /* Free space header info */
     H5FS_hdr_cache_ud_t cache_udata;    /* User-data for cache callback */
     herr_t      ret_value = SUCCEED;    /* Return value */
@@ -118,11 +122,20 @@ H5FS_debug(H5F_t *f, hid_t dxpl_id, haddr_t addr, FILE *stream, int indent, int 
     cache_udata.cls_init_udata = NULL;
     cache_udata.addr = addr;
 
+    /* Set the ring type in the DXPL */
+    if(NULL == (dxpl = (H5P_genplist_t *)H5I_object_verify(dxpl_id, H5I_GENPROP_LST)))
+        HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a property list");
+    if((H5P_get(dxpl, H5AC_RING_NAME, &orig_ring)) < 0)
+        HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, NULL, "unable to get property value");
+    ring = H5AC_RING_FSM;
+    if((H5P_set(dxpl, H5AC_RING_NAME, &ring)) < 0)
+        HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "unable to set property value");
+
     /*
      * Load the free space header.
      */
     if(NULL == (fspace = (H5FS_t *)H5AC_protect(f, dxpl_id, H5AC_FSPACE_HDR, addr, &cache_udata, H5AC__READ_ONLY_FLAG)))
-	HGOTO_ERROR(H5E_FSPACE, H5E_CANTLOAD, FAIL, "unable to load free space header")
+	HGOTO_ERROR(H5E_FSPACE, H5E_CANTLOAD, FAIL, "unable to load free space header");
 
     /* Print opening message */
     HDfprintf(stream, "%*sFree Space Header...\n", indent, "");
@@ -172,6 +185,10 @@ H5FS_debug(H5F_t *f, hid_t dxpl_id, haddr_t addr, FILE *stream, int indent, int 
 	      fspace->alloc_sect_size);
 
 done:
+    /* reset ring type */
+    if(orig_ring && H5P_set(dxpl, H5AC_RING_NAME, &orig_ring) < 0)
+        HDONE_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "unable to set property value");
+
     if(fspace && H5AC_unprotect(f, dxpl_id, H5AC_FSPACE_HDR, addr, fspace, H5AC__NO_FLAGS_SET) < 0)
         HDONE_ERROR(H5E_FSPACE, H5E_PROTECT, FAIL, "unable to release free space header")
 
@@ -235,6 +252,8 @@ herr_t
 H5FS_sects_debug(H5F_t *f, hid_t dxpl_id, haddr_t H5_ATTR_UNUSED addr, FILE *stream, int indent, int fwidth,
     haddr_t fs_addr, haddr_t client_addr)
 {
+    H5P_genplist_t *dxpl = NULL; 
+    H5AC_ring_t ring, orig_ring = H5AC_RING_INV;
     H5FS_t	*fspace = NULL;         /* Free space header info */
     H5FS_client_t client;               /* The client of the free space */
     H5FS_hdr_cache_ud_t cache_udata;    /* User-data for cache callback */
@@ -260,11 +279,20 @@ H5FS_sects_debug(H5F_t *f, hid_t dxpl_id, haddr_t H5_ATTR_UNUSED addr, FILE *str
     cache_udata.cls_init_udata = NULL;
     cache_udata.addr = fs_addr;
 
+    /* Set the ring type in the DXPL */
+    if(NULL == (dxpl = (H5P_genplist_t *)H5I_object_verify(dxpl_id, H5I_GENPROP_LST)))
+        HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a property list");
+    if((H5P_get(dxpl, H5AC_RING_NAME, &orig_ring)) < 0)
+        HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, NULL, "unable to get property value");
+    ring = H5AC_RING_FSM;
+    if((H5P_set(dxpl, H5AC_RING_NAME, &ring)) < 0)
+        HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "unable to set property value");
+
     /*
      * Load the free space header.
      */
     if(NULL == (fspace = (H5FS_t *)H5AC_protect(f, dxpl_id, H5AC_FSPACE_HDR, fs_addr, &cache_udata, H5AC__READ_ONLY_FLAG)))
-	HGOTO_ERROR(H5E_FSPACE, H5E_CANTLOAD, FAIL, "unable to load free space header")
+	HGOTO_ERROR(H5E_FSPACE, H5E_CANTLOAD, FAIL, "unable to load free space header");
 
     /* Retrieve the client id */
     client = fspace->client;
@@ -301,6 +329,10 @@ H5FS_sects_debug(H5F_t *f, hid_t dxpl_id, haddr_t H5_ATTR_UNUSED addr, FILE *str
     } /* end switch */
 
 done:
+    /* reset ring type */
+    if(orig_ring && H5P_set(dxpl, H5AC_RING_NAME, &orig_ring) < 0)
+        HDONE_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "unable to set property value");
+
     if(fspace && H5AC_unprotect(f, dxpl_id, H5AC_FSPACE_HDR, fs_addr, fspace, H5AC__NO_FLAGS_SET) < 0)
         HDONE_ERROR(H5E_FSPACE, H5E_PROTECT, FAIL, "unable to release free space header")
 

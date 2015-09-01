@@ -3415,7 +3415,7 @@ H5C_protect(H5F_t *		f,
          ( H5C_validate_pinned_entry_list(cache_ptr) < 0 ) ||
          ( H5C_validate_lru_list(cache_ptr) < 0 ) ) {
 
-        HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, \
+        HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, NULL, \
                     "an extreme sanity check failed on entry.\n");
     }
 #endif /* H5C_DO_EXTREME_SANITY_CHECKS */
@@ -3430,8 +3430,11 @@ H5C_protect(H5F_t *		f,
     H5C__SEARCH_INDEX(cache_ptr, addr, entry_ptr, NULL)
 
     if ( entry_ptr != NULL ) {
-
-	HDassert(entry_ptr->ring == ring);
+        if(entry_ptr->ring != ring) {
+            //fprintf(stderr, "Ring Mismatch (%d, %d)\n", entry_ptr->ring, ring);
+            //fprintf(stderr, "addr = %llu, type = %s\n", entry_ptr->addr, entry_ptr->type->name);
+            HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, NULL, "ring type mismatch occured for cache entry\n");
+        }
 
         /* Check for trying to load the wrong type of entry from an address */
         if(entry_ptr->type != type)
@@ -8834,7 +8837,7 @@ H5C__flush_single_entry(const H5F_t *f, hid_t dxpl_id, H5C_cache_entry_t *entry_
         unsigned coll_meta;         /* Collective metadata write flag */
 
         /* Get the dataset transfer property list */
-        if(NULL == (dxpl = H5I_object(dxpl_id)))
+        if(NULL == (dxpl = (H5P_genplist_t *)H5I_object(dxpl_id)))
             HGOTO_ERROR(H5E_CACHE, H5E_BADTYPE, FAIL, "not a dataset transfer property list")
 
         /* Get the collective metadata write property */
