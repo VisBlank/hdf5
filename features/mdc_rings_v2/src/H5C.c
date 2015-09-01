@@ -2524,7 +2524,8 @@ H5C_insert_entry(H5F_t *             f,
                  const H5C_class_t * type,
                  haddr_t 	     addr,
                  void *		     thing,
-                 unsigned int        flags)
+                 unsigned int        flags,
+                 H5C_ring_t          ring)
 {
     H5C_t *             cache_ptr;
     herr_t		result;
@@ -3378,7 +3379,8 @@ H5C_protect(H5F_t *		f,
             const H5C_class_t * type,
             haddr_t 	        addr,
             void *              udata,
-	    unsigned		flags)
+	    unsigned		flags,
+            H5C_ring_t          ring)
 {
     H5C_t *		cache_ptr;
     hbool_t		hit;
@@ -3646,6 +3648,7 @@ H5C_protect(H5F_t *		f,
 
     HDassert( entry_ptr->addr == addr );
     HDassert( entry_ptr->type == type );
+    entry_ptr->ring  = ring;
 
     if ( entry_ptr->is_protected ) {
 
