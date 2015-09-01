@@ -193,6 +193,8 @@ typedef H5C_t	H5AC_t;
 #define H5AC_METADATA_TAG_SIZE           sizeof(haddr_t)
 #define H5AC_METADATA_TAG_DEF            H5AC__INVALID_TAG
 
+#define H5AC_RING_NAME  "H5AC_ring_type"
+
 /* Dataset transfer property list for flush calls */
 /* (Collective set, "block before metadata write" set and "library internal" set) */
 /* (Global variable declaration, definition is in H5AC.c) */
