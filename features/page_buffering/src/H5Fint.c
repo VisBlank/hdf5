@@ -627,6 +627,9 @@ H5F_new(H5F_file_t *shared, unsigned flags, hid_t fcpl_id, hid_t fapl_id, H5FD_t
 	f->shared->fs.last_small = f->shared->fs.track_last_small = 0;
 	f->shared->fs.pgend_meta_thres = H5F_FILE_SPACE_PGEND_META_THRES;
 
+        /* intialize point of no return */
+        f->shared->fs.point_of_no_return = FALSE;
+
 	/*
 	 * Copy the file creation and file access property lists into the
 	 * new file handle.  We do this early because some values might need
@@ -784,6 +787,9 @@ H5F_dest(H5F_t *f, hid_t dxpl_id, hbool_t flush)
     if(1 == f->shared->nrefs) {
         H5F_io_info_t fio_info;             /* I/O info for operation */
 
+        /* set the point of no return to true, since we are finalizing the free space changes */
+        f->shared->fs.point_of_no_return = TRUE;
+
         /* Flush at this point since the file will be closed.
          * Only try to flush the file if it was opened with write access, and if
          * the caller requested a flush.
@@ -823,6 +829,14 @@ H5F_dest(H5F_t *f, hid_t dxpl_id, hbool_t flush)
                         /* Push error, but keep going*/
                         HDONE_ERROR(H5E_CACHE, H5E_CANTFLUSH, FAIL, "unable to flush cache")
             } /* end if */
+
+            /* if it exists, unpin the driver information block cache entry,
+             * since we're about to destroy the cache 
+             */
+            if(f->shared->drvinfo)
+                if(H5AC_unpin_entry(f->shared->drvinfo) < 0)
+                    /* Push error, but keep going*/
+                    HDONE_ERROR(H5E_FSPACE, H5E_CANTUNPIN, FAIL, "unable to unpin drvinfo")
 
             /* Unpin the superblock, since we're about to destroy the cache */
             if(H5AC_unpin_entry(f->shared->sblock) < 0)
@@ -883,14 +897,6 @@ H5F_dest(H5F_t *f, hid_t dxpl_id, hbool_t flush)
         if(H5I_dec_ref(f->shared->fcpl_id) < 0)
             /* Push error, but keep going*/
             HDONE_ERROR(H5E_FILE, H5E_CANTDEC, FAIL, "can't close property list")
-
-        /* Only truncate the file on an orderly close, with write-access */
-        if(f->closing && (H5F_ACC_RDWR & H5F_INTENT(f))) {
-            /* Truncate the file to the current allocated size */
-            if(H5FD_truncate(f->shared->lf, dxpl_id, (unsigned)TRUE) < 0)
-                /* Push error, but keep going*/
-                HDONE_ERROR(H5E_FILE, H5E_WRITEERROR, FAIL, "low level truncate failed")
-        } /* end if */
 
         /* Close the file */
         if(H5FD_close(f->shared->lf) < 0)
@@ -1226,6 +1232,15 @@ H5F_flush(H5F_t *f, hid_t dxpl_id, hbool_t closing)
         HDONE_ERROR(H5E_FILE, H5E_CANTRELEASE, FAIL, "can't release file space")
 
     /* Flush the entire metadata cache */
+    if(H5AC_flush(f, dxpl_id) < 0)
+        /* Push error, but keep going*/
+        HDONE_ERROR(H5E_CACHE, H5E_CANTFLUSH, FAIL, "unable to flush metadata cache")
+
+    /* Truncate the file to the current allocated size */
+    if(H5FD_truncate(f->shared->lf, dxpl_id, closing) < 0)
+        HDONE_ERROR(H5E_FILE, H5E_WRITEERROR, FAIL, "low level truncate failed")
+
+    /* Flush the entire metadata cache again since the EOA could have changed in the truncate call. */
     if(H5AC_flush(f, dxpl_id) < 0)
         /* Push error, but keep going*/
         HDONE_ERROR(H5E_CACHE, H5E_CANTFLUSH, FAIL, "unable to flush metadata cache")
@@ -2165,4 +2180,36 @@ H5F__set_eoa(const H5F_t *f, H5F_mem_t type, haddr_t addr)
 done:
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5F__set_eoa() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:	H5F__set_paged_aggr
+ *
+ * Purpose:	Quick and dirty routine to set the file's paged_aggr mode
+ *
+ * Return:	Non-negative on success/Negative on failure
+ *
+ * Programmer:	Quincey Koziol <koziol@hdfgroup.org>
+ *		June 19, 2015
+ *
+ *-------------------------------------------------------------------------
+ */
+herr_t
+H5F__set_paged_aggr(const H5F_t *f, hbool_t paged)
+{
+    herr_t ret_value = SUCCEED;         /* Return value */
+
+    FUNC_ENTER_PACKAGE
+
+    /* Sanity check */
+    HDassert(f);
+    HDassert(f->shared);
+
+    /* Dispatch to driver */
+    if(H5FD_set_paged_aggr(f->shared->lf, paged) < 0)
+	HGOTO_ERROR(H5E_FILE, H5E_CANTSET, FAIL, "driver set paged aggre mode failed")
+
+done:
+    FUNC_LEAVE_NOAPI(ret_value)
+} /* end H5F__set_paged_aggr() */
 

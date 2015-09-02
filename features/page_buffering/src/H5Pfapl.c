@@ -3138,7 +3138,7 @@ H5Pset_page_buffer_size(hid_t plist_id, size_t buf_size, unsigned min_meta_perc,
     herr_t ret_value = SUCCEED;   /* return value */
 
     FUNC_ENTER_API(FAIL)
-    H5TRACE2("e", "iz", plist_id, buf_size);
+    H5TRACE4("e", "izIuIu", plist_id, buf_size, min_meta_perc, min_raw_perc);
 
     /* Get the plist structure */
     if(NULL == (plist = H5P_object_verify(plist_id, H5P_FILE_ACCESS)))
@@ -3184,7 +3184,7 @@ H5Pget_page_buffer_size(hid_t plist_id, size_t *buf_size, unsigned *min_meta_per
     herr_t ret_value = SUCCEED;   /* return value */
 
     FUNC_ENTER_API(FAIL)
-    H5TRACE2("e", "i*z", plist_id, buf_size);
+    H5TRACE4("e", "i*z*Iu*Iu", plist_id, buf_size, min_meta_perc, min_raw_perc);
 
     /* Get the plist structure */
     if(NULL == (plist = H5P_object_verify(plist_id, H5P_FILE_ACCESS)))

@@ -1151,3 +1151,25 @@ H5F_get_pgend_meta_thres(const H5F_t *f)
     FUNC_LEAVE_NOAPI(f->shared->fs.pgend_meta_thres)
 } /* end H5F_get_pgend_meta_thres() */
 
+
+/*-------------------------------------------------------------------------
+ * Function:	H5F_get_point_of_no_return
+ *
+ * Purpose:	Retrieve the 'point of no return' value for the file.
+ *
+ * Return:	Success:	Non-negative, the 'point_of_no_return'
+ * 		Failure:	(can't happen)
+ *
+ *-------------------------------------------------------------------------
+ */
+hbool_t
+H5F_get_point_of_no_return(const H5F_t *f)
+{
+    /* Use FUNC_ENTER_NOAPI_NOINIT_NOERR here to avoid performance issues */
+    FUNC_ENTER_NOAPI_NOINIT_NOERR
+
+    HDassert(f);
+    HDassert(f->shared);
+
+    FUNC_LEAVE_NOAPI(f->shared->fs.point_of_no_return)
+} /* end H5F_get_point_of_no_return() */

@@ -41,8 +41,20 @@
 
 /* Get needed headers */
 #include "H5Cprivate.h"         /* Cache                                */
+#include "H5FLprivate.h"        /* Free Lists                           */
 #include "H5SLprivate.h"        /* Skip lists */
 
+/*****************************/
+/* Package Private Variables */
+/*****************************/
+
+/* Declare extern the free list to manage the H5AC_aux_t struct */
+H5FL_EXTERN(H5AC_aux_t);
+
+
+/**************************/
+/* Package Private Macros */
+/**************************/
 
 #define H5AC_DEBUG_DIRTY_BYTES_CREATION	0
 
@@ -297,11 +309,6 @@
  *		To reitterate, this field is only used on process 0 -- it
  *		should be NULL on all other processes.
  *
- * d_slist_len: Integer field containing the number of entries in the
- *		dirty entry list.  This field should always contain the
- *		value 0 on all processes other than process 0.  It exists
- *		primarily for sanity checking.
- *
  * c_slist_ptr: Pointer to an instance of H5SL_t used to maintain a list
  *		of entries that were dirty, have been flushed
  *		to disk since the last clean entries broadcast, and are
@@ -312,11 +319,6 @@
  *		the next clean entries broadcast.  The list emptied after
  *		each broadcast.
  *
- * c_slist_len: Integer field containing the number of entries in the clean
- *		entries list (*c_slist_ptr).  This field should always
- *		contain the value 0 on all processes other than process 0.
- *		It exists primarily for sanity checking.
- *
  * The following two fields are used only when metadata_write_strategy
  * is H5AC_METADATA_WRITE_STRATEGY__DISTRIBUTED.
  *
@@ -324,9 +326,6 @@
  *		to construct a list of entries to be flushed at this sync
  *		point.  This list is then broadcast to the other processes,
  *		which then either flush or mark clean all entries on it.
- *
- * candidate_slist_len: Integer field containing the number of entries on the
- *		candidate list.  It exists primarily for sanity checking.
  *
  * write_done:  In the parallel test bed, it is necessary to ensure that
  *              all writes to the server process from cache 0 complete
@@ -394,15 +393,9 @@ typedef struct H5AC_aux_t
 
     H5SL_t *	d_slist_ptr;
 
-    int32_t	d_slist_len;
-
     H5SL_t *	c_slist_ptr;
 
-    int32_t	c_slist_len;
-
     H5SL_t *	candidate_slist_ptr;
-
-    int32_t	candidate_slist_len;
 
     void	(* write_done)(void);
 
@@ -410,6 +403,21 @@ typedef struct H5AC_aux_t
                                     haddr_t * written_entries_tbl);
 
 } H5AC_aux_t; /* struct H5AC_aux_t */
+
+/* Package scoped functions */
+H5_DLL herr_t H5AC__log_deleted_entry(const H5AC_info_t *entry_ptr);
+H5_DLL herr_t H5AC__log_dirtied_entry(const H5AC_info_t *entry_ptr);
+H5_DLL herr_t H5AC__log_flushed_entry(H5C_t *cache_ptr, haddr_t addr,
+    hbool_t was_dirty, unsigned flags);
+H5_DLL herr_t H5AC__log_inserted_entry(const H5AC_info_t *entry_ptr);
+H5_DLL herr_t H5AC__log_moved_entry(const H5F_t *f, haddr_t old_addr,
+    haddr_t new_addr);
+H5_DLL herr_t H5AC__flush_entries(H5F_t *f, hid_t dxpl_id);
+H5_DLL herr_t H5AC__run_sync_point(H5F_t *f, hid_t dxpl_id, int sync_point_op);
+H5_DLL herr_t H5AC__set_sync_point_done_callback(H5C_t *cache_ptr,
+    void (*sync_point_done)(int num_writes, haddr_t *written_entries_tbl));
+H5_DLL herr_t H5AC__set_write_done_callback(H5C_t * cache_ptr,
+    void (* write_done)(void));
 
 #endif /* H5_HAVE_PARALLEL */
 

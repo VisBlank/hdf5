@@ -4255,7 +4255,11 @@ H5T__conv_f_f(hid_t src_id, hid_t dst_id, H5T_cdata_t *cdata, size_t nelmts,
                         HGOTO_ERROR(H5E_DATATYPE, H5E_CANTCONVERT, FAIL, "can't handle conversion exception")
 
                     goto padding;
-#ifndef H5_VMS  /*Temporary solution to handle VAX special values*/
+                /* Temporary solution to handle VAX special values.
+                 * Note that even though we don't support VAX anymore, we
+                 * still need to handle legacy VAX files so this code must
+                 * remain in place.
+                 */
                 } else if (H5T__bit_find (s, src.u.f.epos, src.u.f.esize,
                                          H5T_BIT_LSB, FALSE)<0) {
                     /* NaN */
@@ -4280,7 +4284,6 @@ H5T__conv_f_f(hid_t src_id, hid_t dst_id, H5T_cdata_t *cdata, size_t nelmts,
                         HGOTO_ERROR(H5E_DATATYPE, H5E_CANTCONVERT, FAIL, "can't handle conversion exception")
 
                     goto padding;
-#endif /*H5_VMS*/
                 }
 
                 /*
@@ -7936,6 +7939,7 @@ H5T__conv_llong_double (hid_t src_id, hid_t dst_id, H5T_cdata_t *cdata,
  *
  *-------------------------------------------------------------------------
  */
+#if H5T_CONV_INTERNAL_LLONG_LDOUBLE
 herr_t
 H5T__conv_llong_ldouble (hid_t src_id, hid_t dst_id, H5T_cdata_t *cdata,
 		       size_t nelmts, size_t buf_stride,
@@ -7944,6 +7948,7 @@ H5T__conv_llong_ldouble (hid_t src_id, hid_t dst_id, H5T_cdata_t *cdata,
 {
     H5T_CONV_xF(LLONG, LDOUBLE, long long, long double, -, -);
 }
+#endif /* H5T_CONV_INTERNAL_LLONG_LDOUBLE */
 
 
 /*-------------------------------------------------------------------------
@@ -8011,6 +8016,7 @@ H5T__conv_ullong_double (hid_t src_id, hid_t dst_id, H5T_cdata_t *cdata,
  *
  *-------------------------------------------------------------------------
  */
+#if H5T_CONV_INTERNAL_ULLONG_LDOUBLE
 herr_t
 H5T__conv_ullong_ldouble (hid_t src_id, hid_t dst_id, H5T_cdata_t *cdata,
 		       size_t nelmts, size_t buf_stride,
@@ -8019,6 +8025,7 @@ H5T__conv_ullong_ldouble (hid_t src_id, hid_t dst_id, H5T_cdata_t *cdata,
 {
     H5T_CONV_xF(ULLONG, LDOUBLE, unsigned long long, long double, -, -);
 }
+#endif /*H5T_CONV_INTERNAL_ULLONG_LDOUBLE*/
 
 
 /*-------------------------------------------------------------------------
@@ -8792,6 +8799,7 @@ H5_GCC_DIAG_ON(float-equal)
  *
  *-------------------------------------------------------------------------
  */
+#if H5T_CONV_INTERNAL_LDOUBLE_LLONG
 herr_t
 H5T__conv_ldouble_llong (hid_t src_id, hid_t dst_id, H5T_cdata_t *cdata,
 		       size_t nelmts, size_t buf_stride,
@@ -8802,6 +8810,7 @@ H5_GCC_DIAG_OFF(float-equal)
     H5T_CONV_Fx(LDOUBLE, LLONG, long double, long long, LLONG_MIN, LLONG_MAX);
 H5_GCC_DIAG_ON(float-equal)
 }
+#endif /*H5T_CONV_INTERNAL_LDOUBLE_LLONG*/
 
 
 /*-------------------------------------------------------------------------
@@ -8819,6 +8828,7 @@ H5_GCC_DIAG_ON(float-equal)
  *
  *-------------------------------------------------------------------------
  */
+#if H5T_CONV_INTERNAL_LDOUBLE_ULLONG
 herr_t
 H5T__conv_ldouble_ullong (hid_t src_id, hid_t dst_id, H5T_cdata_t *cdata,
 		       size_t nelmts, size_t buf_stride,
@@ -8829,6 +8839,7 @@ H5_GCC_DIAG_OFF(float-equal)
     H5T_CONV_Fx(LDOUBLE, ULLONG, long double, unsigned long long, 0, ULLONG_MAX);
 H5_GCC_DIAG_ON(float-equal)
 }
+#endif /*H5T_CONV_INTERNAL_LDOUBLE_ULLONG*/
 
 
 /*-------------------------------------------------------------------------

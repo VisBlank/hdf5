@@ -30,6 +30,42 @@
 /* As FC_FUNC, but for C identifiers containing underscores. */
 #undef FC_FUNC_
 
+/* Define if Fortran C_LONG_DOUBLE is different from C_DOUBLE */
+#undef FORTRAN_C_LONG_DOUBLE_IS_UNIQUE
+
+/* Define if we have Fortran C_LONG_DOUBLE */
+#undef FORTRAN_HAVE_C_LONG_DOUBLE
+
+/* Define if we have Fortran intrinsic C_SIZEOF */
+#undef FORTRAN_HAVE_C_SIZEOF
+
+/* Define if we have Fortran intrinsic SIZEOF */
+#undef FORTRAN_HAVE_SIZEOF
+
+/* Define if we have Fortran intrinsic STORAGE_SIZE */
+#undef FORTRAN_HAVE_STORAGE_SIZE
+
+/* Determine the size of C long double */
+#undef FORTRAN_SIZEOF_LONG_DOUBLE
+
+/* Define Fortran compiler ID */
+#undef Fortran_COMPILER_ID
+
+/* Define valid Fortran INTEGER KINDs */
+#undef H5CONFIG_F_IKIND
+
+/* Define number of valid Fortran INTEGER KINDs */
+#undef H5CONFIG_F_NUM_IKIND
+
+/* Define number of valid Fortran REAL KINDs */
+#undef H5CONFIG_F_NUM_RKIND
+
+/* Define valid Fortran REAL KINDs */
+#undef H5CONFIG_F_RKIND
+
+/* Define valid Fortran REAL KINDs Sizeof */
+#undef H5CONFIG_F_RKIND_SIZEOF
+
 /* Define to 1 if you have the `alarm' function. */
 #undef HAVE_ALARM
 
@@ -82,6 +118,9 @@
 /* Define if support for szip filter is enabled */
 #undef HAVE_FILTER_SZIP
 
+/* Determine if __float128 is available */
+#undef HAVE_FLOAT128
+
 /* Define to 1 if you have the `fork' function. */
 #undef HAVE_FORK
 
@@ -112,6 +151,9 @@
 /* Define if the compiler understands the __FUNCTION__ keyword */
 #undef HAVE_FUNCTION
 
+/* Determine if INTEGER*16 is available */
+#undef HAVE_Fortran_INTEGER_SIZEOF_16
+
 /* Define to 1 if you have the `GetConsoleScreenBufferInfo' function. */
 #undef HAVE_GETCONSOLESCREENBUFFERINFO
 
@@ -132,6 +174,9 @@
 
 /* Define to 1 if you have the `get_fpc_csr' function. */
 #undef HAVE_GET_FPC_CSR
+
+/* Define if the compiler understands inline */
+#undef HAVE_INLINE
 
 /* Define if library will contain instrumentation to detect correct
    optimization operation */
@@ -208,6 +253,9 @@
 
 /* Define to 1 if you have the <pthread.h> header file. */
 #undef HAVE_PTHREAD_H
+
+/* Define to 1 if you have the <quadmath.h> header file. */
+#undef HAVE_QUADMATH_H
 
 /* Define to 1 if you have the `random' function. */
 #undef HAVE_RANDOM
@@ -356,12 +404,26 @@
 /* Define to 1 if you have the `_scrsize' function. */
 #undef HAVE__SCRSIZE
 
+/* Define if the compiler understands __inline */
+#undef HAVE___INLINE
+
+/* Define if the compiler understands __inline__ */
+#undef HAVE___INLINE__
+
 /* Define if HDF5's high-level library headers should be included in hdf5.h */
 #undef INCLUDE_HL
+
+/* Define if your system can convert long double to (unsigned) long long
+   values correctly. */
+#undef LDOUBLE_TO_LLONG_ACCURATE
 
 /* Define if your system converts long double to (unsigned) long values with
    special algorithm. */
 #undef LDOUBLE_TO_LONG_SPECIAL
+
+/* Define if your system can convert (unsigned) long long to long double
+   values correctly. */
+#undef LLONG_TO_LDOUBLE_CORRECT
 
 /* Define if your system can convert (unsigned) long to long double values
    with special algorithm. */
@@ -400,6 +462,12 @@
 
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
+
+/* Determine the maximum decimal precision in C */
+#undef PAC_C_MAX_REAL_PRECISION
+
+/* Define Fortran Maximum Real Decimal Precision */
+#undef PAC_FC_MAX_REAL_PRECISION
 
 /* Width for printf() for type `long long' or `__int64', use `ll' */
 #undef PRINTF_LL_WIDTH
@@ -518,6 +586,12 @@
 /* The size of `unsigned', as computed by sizeof. */
 #undef SIZEOF_UNSIGNED
 
+/* The size of `_Quad', as computed by sizeof. */
+#undef SIZEOF__QUAD
+
+/* The size of `__float128', as computed by sizeof. */
+#undef SIZEOF___FLOAT128
+
 /* The size of `__int64', as computed by sizeof. */
 #undef SIZEOF___INT64
 
@@ -545,6 +619,9 @@
 /* Version number of package */
 #undef VERSION
 
+/* Data accuracy is prefered to speed during data conversions */
+#undef WANT_DATA_ACCURACY
+
 /* Check exception handling functions during data conversions */
 #undef WANT_DCONV_EXCEPTION
 
@@ -568,12 +645,6 @@
 
 /* Define to empty if `const' does not conform to ANSI C. */
 #undef const
-
-/* Define to `__inline__' or `__inline' if that's what the C compiler
-   calls it, or to nothing if 'inline' is not supported under any name.  */
-#ifndef __cplusplus
-#undef inline
-#endif
 
 /* Define to `long int' if <sys/types.h> does not define. */
 #undef off_t

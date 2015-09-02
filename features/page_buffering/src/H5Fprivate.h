@@ -315,6 +315,8 @@
 #define H5F_ALIGNMENT(F)   	((F)->shared->alignment)
 #define H5F_THRESHOLD(F)   	((F)->shared->threshold)
 #define H5F_PGEND_META_THRES(F) ((F)->shared->fs.pgend_meta_thres)
+#define H5F_POINT_OF_NO_RETURN(F) ((F)->shared->fs.point_of_no_return)
+
 #else /* H5F_PACKAGE */
 #define H5F_INTENT(F)           (H5F_get_intent(F))
 #define H5F_OPEN_NAME(F)        (H5F_get_open_name(F))
@@ -360,6 +362,7 @@
 #define H5F_ALIGNMENT(F)    	(H5F_get_alignment(F))
 #define H5F_THRESHOLD(F)    	(H5F_get_threshold(F))
 #define H5F_PGEND_META_THRES(F) (H5F_get_pgend_meta_thres(F))
+#define H5F_POINT_OF_NO_RETURN(F) (H5F_get_point_of_no_return(F))
 #endif /* H5F_PACKAGE */
 
 
@@ -666,6 +669,7 @@ H5_DLL hid_t H5F_get_id(H5F_t *file, hbool_t app_ref);
 H5_DLL herr_t H5F_get_obj_count(const H5F_t *f, unsigned types, hbool_t app_ref, size_t *obj_id_count_ptr);
 H5_DLL herr_t H5F_get_obj_ids(const H5F_t *f, unsigned types, size_t max_objs, hid_t *oid_list, hbool_t app_ref, size_t *obj_id_count_ptr);
 H5_DLL hsize_t H5F_get_pgend_meta_thres(const H5F_t *f);
+H5_DLL hbool_t H5F_get_point_of_no_return(const H5F_t *f);
 
 /* Functions than retrieve values set/cached from the superblock/FCPL */
 H5_DLL haddr_t H5F_get_base_addr(const H5F_t *f);
