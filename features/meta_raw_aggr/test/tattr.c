@@ -10658,7 +10658,7 @@ test_attr(void)
                     MESSAGE(7, ("testing without shared attributes\n"));
                     my_fcpl = fcpl;
                 } /* end else */
-#if 1
+
                 /* General attribute tests */
                 test_attr_dense_create(my_fcpl, my_fapl);       /* Test dense attribute storage creation */
                 test_attr_dense_open(my_fcpl, my_fapl);         /* Test opening attributes in dense storage */
@@ -10666,9 +10666,7 @@ test_attr(void)
                 test_attr_dense_rename(my_fcpl, my_fapl);       /* Test renaming attributes in dense storage */
                 test_attr_dense_unlink(my_fcpl, my_fapl);       /* Test unlinking object with attributes in dense storage */
                 test_attr_dense_limits(my_fcpl, my_fapl);       /* Test dense attribute storage limits */
-#endif
                 test_attr_dense_dup_ids(my_fcpl, my_fapl);      /* Test duplicated IDs for dense attribute storage */
-#if 1
                 test_attr_big(my_fcpl, my_fapl);                /* Test storing big attribute */
                 test_attr_null_space(my_fcpl, my_fapl);         /* Test storing attribute with NULL dataspace */
                 test_attr_deprec(fcpl, my_fapl);                /* Test deprecated API routines */
@@ -10707,11 +10705,9 @@ test_attr(void)
                 test_attr_bug6(my_fcpl, my_fapl);               /* Test reading empty attribute */
                 test_attr_bug7(my_fcpl, my_fapl);               /* Test creating and deleting large attributes in ohdr chunk 0 */
                 test_attr_bug8(my_fcpl, my_fapl);               /* Test attribute expanding object header with undecoded messages */
-#endif
             } /* end for */
         } /* end if */
         else {
-#if 1
             /* General attribute tests */
             test_attr_big(fcpl, my_fapl);                       /* Test storing big attribute */
             test_attr_null_space(fcpl, my_fapl);                /* Test storing attribute with NULL dataspace */
@@ -10737,7 +10733,6 @@ test_attr(void)
              * header format and in fact fails if used with the old format, due
              * to the attributes being larger than 64K */
             test_attr_bug8(fcpl, my_fapl);                      /* Test attribute expanding object header with undecoded messages */
-#endif
         } /* end else */
     } /* end for */
 

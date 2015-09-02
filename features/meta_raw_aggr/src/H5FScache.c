@@ -595,6 +595,8 @@ H5FS__cache_hdr_pre_serialize(const H5F_t *f, hid_t dxpl_id, void *_thing,
     /* what ever happened above, set *flags to 0 */
     *flags = 0;
 
+    /* set the point of no return to TRUE */
+    fspace->point_of_no_return = TRUE;
 done:
     FUNC_LEAVE_NOAPI_TAG(ret_value, FAIL)
 } /* end H5FS__cache_hdr_pre_serialize() */
@@ -656,10 +658,12 @@ H5FS__cache_hdr_serialize(const H5F_t *f, void *_image, size_t len,
     fprintf(stderr, "fspace->alloc_sect_size = %d\n", fspace->alloc_sect_size);
     fprintf(stderr, "fspace->sect_size = %d\n", fspace->sect_size);
 #endif
-    HDassert((! H5F_addr_defined(fspace->sect_addr)) || 
-             (//(fspace->serial_sect_count > 0) && 
-              (fspace->sect_size > 0) && 
-              (fspace->alloc_sect_size == (size_t)fspace->sect_size)));
+
+    if(!fspace->point_of_no_return)
+        HDassert((! H5F_addr_defined(fspace->sect_addr)) || 
+                 ((fspace->serial_sect_count > 0) && 
+                  (fspace->sect_size > 0) && 
+                  (fspace->alloc_sect_size == (size_t)fspace->sect_size)));
 
     /* Magic number */
     HDmemcpy(image, H5FS_HDR_MAGIC, (size_t)H5_SIZEOF_MAGIC);
@@ -1052,8 +1056,9 @@ H5FS__cache_sinfo_pre_serialize(const H5F_t *f, hid_t dxpl_id, void *_thing,
     HDassert(new_len);
     HDassert(flags);
 
-    /* we shouldn't be called if the section info is empty */
-    //HDassert(fspace->serial_sect_count > 0);
+    /* we shouldn't be called if the section info is empty, unless we hit the point of no return. */
+    if(!fspace->point_of_no_return)
+        HDassert(fspace->serial_sect_count > 0);
 
     sinfo_addr = addr; /* this will change if we relocate the section data */
 

@@ -42,7 +42,6 @@ main(int argc, char *argv[])
 {
     /* Initialize testing framework */
     TestInit(argv[0], NULL, NULL);
-#if 1
     /* Tests are generally arranged from least to most complexity... */
     AddTest("config", test_configure, cleanup_configure, "Configure definitions", NULL);
     AddTest("metadata", test_metadata, cleanup_metadata, "Encoding/decoding metadata", NULL);
@@ -56,7 +55,6 @@ main(int argc, char *argv[])
     AddTest("h5s",  test_h5s,  cleanup_h5s,  "Dataspaces", NULL);
     AddTest("coords",  test_coords,  cleanup_coords,  "Dataspace coordinates", NULL);
     AddTest("sohm", test_sohm, cleanup_sohm,  "Shared Object Header Messages", NULL);
-#endif
     AddTest("attr", test_attr, cleanup_attr,  "Attributes", NULL);
     AddTest("select", test_select, cleanup_select,  "Selections", NULL);
     AddTest("time", test_time, cleanup_time,  "Time Datatypes", NULL);

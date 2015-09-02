@@ -644,6 +644,7 @@ H5FS__new(const H5F_t *f, uint16_t nclasses, const H5FS_section_class_t *classes
     fspace->addr = HADDR_UNDEF;
     fspace->hdr_size = (size_t)H5FS_HEADER_SIZE(f);
     fspace->sect_addr = HADDR_UNDEF;
+    fspace->point_of_no_return = FALSE;
 
     /* Set return value */
     ret_value = fspace;

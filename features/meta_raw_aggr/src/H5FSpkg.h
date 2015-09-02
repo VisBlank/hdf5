@@ -154,6 +154,10 @@ struct H5FS_t {
     /* Information for H5AC cache functions, _must_ be first field in structure */
     H5AC_info_t cache_info;
 
+    /* point of no return for writing the free space header even if it
+       has no sections */
+    hbool_t point_of_no_return;
+
 /* Stored information */
     /* Statistics about sections managed */
     hsize_t tot_space;          /* Total amount of space tracked              */
