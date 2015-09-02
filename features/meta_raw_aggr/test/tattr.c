@@ -522,7 +522,7 @@ test_attr_flush(hid_t fapl)
     ret=H5Aread(att, H5T_NATIVE_DOUBLE, &rdata);
     CHECK(ret, FAIL, "H5Awrite");
 
-    if(!DBL_ABS_EQUAL(rdata,0.0F))
+    if(!H5_DBL_ABS_EQUAL(rdata,0.0F))
         TestErrPrintf("attribute value wrong: rdata=%f, should be %f\n",rdata,(double)0.0F);
 
     ret=H5Fflush(fil, H5F_SCOPE_GLOBAL);
@@ -531,7 +531,7 @@ test_attr_flush(hid_t fapl)
     ret=H5Aread(att, H5T_NATIVE_DOUBLE, &rdata);
     CHECK(ret, FAIL, "H5Awrite");
 
-    if(!DBL_ABS_EQUAL(rdata,0.0F))
+    if(!H5_DBL_ABS_EQUAL(rdata,0.0F))
         TestErrPrintf("attribute value wrong: rdata=%f, should be %f\n",rdata,(double)0.0F);
 
     ret=H5Awrite(att, H5T_NATIVE_DOUBLE, &wdata);
@@ -540,7 +540,7 @@ test_attr_flush(hid_t fapl)
     ret=H5Aread(att, H5T_NATIVE_DOUBLE, &rdata);
     CHECK(ret, FAIL, "H5Awrite");
 
-    if(!DBL_ABS_EQUAL(rdata,wdata))
+    if(!H5_DBL_ABS_EQUAL(rdata,wdata))
         TestErrPrintf("attribute value wrong: rdata=%f, should be %f\n",rdata,wdata);
 
     ret=H5Sclose(spc);
@@ -1014,7 +1014,7 @@ test_attr_scalar_read(hid_t fapl)
     CHECK(ret, FAIL, "H5Aread");
 
     /* Verify the floating-poing value in this way to avoid compiler warning. */
-    if(!FLT_ABS_EQUAL(rdata, attr_data5))
+    if(!H5_FLT_ABS_EQUAL(rdata, attr_data5))
 	printf("*** UNEXPECTED VALUE from %s should be %f, but is %f at line %4d in %s\n",
 	    "H5Aread", (double)attr_data5, (double)rdata, (int)__LINE__, __FILE__);
 
@@ -1355,7 +1355,7 @@ test_attr_mult_read(hid_t fapl)
     for(i = 0; i < ATTR3_DIM1; i++)
         for(j = 0; j < ATTR3_DIM2; j++)
             for(k = 0; k < ATTR3_DIM3; k++)
-                if(!DBL_ABS_EQUAL(attr_data3[i][j][k], read_data3[i][j][k]))
+                if(!H5_DBL_ABS_EQUAL(attr_data3[i][j][k], read_data3[i][j][k]))
                     TestErrPrintf("%d: attribute data different: attr_data3[%d][%d][%d]=%f, read_data3[%d][%d][%d]=%f\n", __LINE__, i, j, k, attr_data3[i][j][k], i, j, k, read_data3[i][j][k]);
 
     /* Verify Name */
@@ -5919,9 +5919,9 @@ test_attr_delete_by_idx(hbool_t new_format, hid_t fcpl, hid_t fapl)
     CHECK(ret, FAIL, "H5Pget_attr_phase_change");
 
     /* Loop over operating on different indices on link fields */
-    for(idx_type = H5_INDEX_NAME; idx_type <=H5_INDEX_CRT_ORDER; idx_type++) {
+    for(idx_type = H5_INDEX_NAME; idx_type <= H5_INDEX_CRT_ORDER; H5_INC_ENUM(H5_index_t, idx_type)) {
         /* Loop over operating in different orders */
-        for(order = H5_ITER_INC; order <=H5_ITER_DEC; order++) {
+        for(order = H5_ITER_INC; order <= H5_ITER_DEC; H5_INC_ENUM(H5_iter_order_t, order)) {
             /* Loop over using index for creation order value */
             for(use_index = FALSE; use_index <= TRUE; use_index++) {
                 /* Print appropriate test message */
@@ -6868,9 +6868,9 @@ test_attr_iterate2(hbool_t new_format, hid_t fcpl, hid_t fapl)
     iter_info.visited = visited;
 
     /* Loop over operating on different indices on link fields */
-    for(idx_type = H5_INDEX_NAME; idx_type <=H5_INDEX_CRT_ORDER; idx_type++) {
+    for(idx_type = H5_INDEX_NAME; idx_type <= H5_INDEX_CRT_ORDER; H5_INC_ENUM(H5_index_t, idx_type)) {
         /* Loop over operating in different orders */
-        for(order = H5_ITER_INC; order <=H5_ITER_DEC; order++) {
+        for(order = H5_ITER_INC; order <= H5_ITER_DEC; H5_INC_ENUM(H5_iter_order_t, order)) {
             /* Loop over using index for creation order value */
             for(use_index = FALSE; use_index <= TRUE; use_index++) {
                 /* Print appropriate test message */
@@ -7223,9 +7223,9 @@ test_attr_open_by_idx(hbool_t new_format, hid_t fcpl, hid_t fapl)
     CHECK(ret, FAIL, "H5Pget_attr_phase_change");
 
     /* Loop over operating on different indices on link fields */
-    for(idx_type = H5_INDEX_NAME; idx_type <=H5_INDEX_CRT_ORDER; idx_type++) {
+    for(idx_type = H5_INDEX_NAME; idx_type <= H5_INDEX_CRT_ORDER; H5_INC_ENUM(H5_index_t, idx_type)) {
         /* Loop over operating in different orders */
-        for(order = H5_ITER_INC; order <=H5_ITER_DEC; order++) {
+        for(order = H5_ITER_INC; order <= H5_ITER_DEC; H5_INC_ENUM(H5_iter_order_t, order)) {
             /* Loop over using index for creation order value */
             for(use_index = FALSE; use_index <= TRUE; use_index++) {
                 /* Print appropriate test message */
@@ -10658,7 +10658,7 @@ test_attr(void)
                     MESSAGE(7, ("testing without shared attributes\n"));
                     my_fcpl = fcpl;
                 } /* end else */
-
+#if 1
                 /* General attribute tests */
                 test_attr_dense_create(my_fcpl, my_fapl);       /* Test dense attribute storage creation */
                 test_attr_dense_open(my_fcpl, my_fapl);         /* Test opening attributes in dense storage */
@@ -10666,8 +10666,9 @@ test_attr(void)
                 test_attr_dense_rename(my_fcpl, my_fapl);       /* Test renaming attributes in dense storage */
                 test_attr_dense_unlink(my_fcpl, my_fapl);       /* Test unlinking object with attributes in dense storage */
                 test_attr_dense_limits(my_fcpl, my_fapl);       /* Test dense attribute storage limits */
+#endif
                 test_attr_dense_dup_ids(my_fcpl, my_fapl);      /* Test duplicated IDs for dense attribute storage */
-
+#if 1
                 test_attr_big(my_fcpl, my_fapl);                /* Test storing big attribute */
                 test_attr_null_space(my_fcpl, my_fapl);         /* Test storing attribute with NULL dataspace */
                 test_attr_deprec(fcpl, my_fapl);                /* Test deprecated API routines */
@@ -10706,9 +10707,11 @@ test_attr(void)
                 test_attr_bug6(my_fcpl, my_fapl);               /* Test reading empty attribute */
                 test_attr_bug7(my_fcpl, my_fapl);               /* Test creating and deleting large attributes in ohdr chunk 0 */
                 test_attr_bug8(my_fcpl, my_fapl);               /* Test attribute expanding object header with undecoded messages */
+#endif
             } /* end for */
         } /* end if */
         else {
+#if 1
             /* General attribute tests */
             test_attr_big(fcpl, my_fapl);                       /* Test storing big attribute */
             test_attr_null_space(fcpl, my_fapl);                /* Test storing attribute with NULL dataspace */
@@ -10734,6 +10737,7 @@ test_attr(void)
              * header format and in fact fails if used with the old format, due
              * to the attributes being larger than 64K */
             test_attr_bug8(fcpl, my_fapl);                      /* Test attribute expanding object header with undecoded messages */
+#endif
         } /* end else */
     } /* end for */
 
