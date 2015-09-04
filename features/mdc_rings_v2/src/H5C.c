@@ -3431,7 +3431,7 @@ H5C_protect(H5F_t *		f,
 
     if ( entry_ptr != NULL ) {
         if(entry_ptr->ring != ring) {
-            //fprintf(stderr, "Ring Mismatch (%d, %d)\n", entry_ptr->ring, ring);
+            //fprintf(stderr, "Ring Mismatch (entry_ring = %d, calling ring = %d)\n", entry_ptr->ring, ring);
             //fprintf(stderr, "addr = %llu, type = %s\n", entry_ptr->addr, entry_ptr->type->name);
             HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, NULL, "ring type mismatch occured for cache entry\n");
         }

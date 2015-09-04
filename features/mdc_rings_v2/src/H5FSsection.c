@@ -34,10 +34,8 @@
 #include "H5private.h"		/* Generic Functions			*/
 #include "H5Eprivate.h"		/* Error handling		  	*/
 #include "H5FSpkg.h"		/* File free space			*/
-#include "H5Iprivate.h"         /* IDs                                  */
 #include "H5MFprivate.h"	/* File memory management		*/
-#include "H5Pprivate.h"		/* Property lists                       */
-#include "H5VMprivate.h"	/* Vectors and arrays 			*/
+#include "H5VMprivate.h"		/* Vectors and arrays 			*/
 
 
 /****************/
@@ -208,8 +206,6 @@ done:
 static herr_t
 H5FS_sinfo_lock(H5F_t *f, hid_t dxpl_id, H5FS_t *fspace, unsigned accmode)
 {
-    H5AC_ring_t ring, orig_ring = H5AC_RING_INV;
-    H5P_genplist_t *dxpl = NULL;
     H5FS_sinfo_cache_ud_t cache_udata; /* User-data for cache callback */
     herr_t ret_value = SUCCEED;    /* Return value */
 
@@ -243,21 +239,12 @@ HDfprintf(stderr, "%s: fspace->alloc_sect_size = %Hu, fspace->sect_size = %Hu\n"
                 if(H5AC_unprotect(f, dxpl_id, H5AC_FSPACE_SINFO, fspace->sect_addr, fspace->sinfo, H5AC__NO_FLAGS_SET) < 0)
                     HGOTO_ERROR(H5E_FSPACE, H5E_CANTUNPROTECT, FAIL, "unable to release free space section info")
 
-                /* Set the ring type in the DXPL */
-                if(NULL == (dxpl = (H5P_genplist_t *)H5I_object_verify(dxpl_id, H5I_GENPROP_LST)))
-                    HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a property list");
-                if((H5P_get(dxpl, H5AC_RING_NAME, &orig_ring)) < 0)
-                    HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, NULL, "unable to get property value");
-                ring = H5AC_RING_FSM;
-                if((H5P_set(dxpl, H5AC_RING_NAME, &ring)) < 0)
-                    HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "unable to set property value");
-
                 /* Re-protect the section info with read-write access */
                 cache_udata.f = f;
                 cache_udata.dxpl_id = dxpl_id;
                 cache_udata.fspace = fspace;
                 if(NULL == (fspace->sinfo = (H5FS_sinfo_t *)H5AC_protect(f, dxpl_id, H5AC_FSPACE_SINFO, fspace->sect_addr, &cache_udata, H5AC__NO_FLAGS_SET)))
-                    HGOTO_ERROR(H5E_FSPACE, H5E_CANTPROTECT, FAIL, "unable to load free space sections");
+                    HGOTO_ERROR(H5E_FSPACE, H5E_CANTPROTECT, FAIL, "unable to load free space sections")
 
                 /* Switch the access mode we have */
                 fspace->sinfo_accmode = H5AC__NO_FLAGS_SET;
@@ -272,24 +259,14 @@ HDfprintf(stderr, "%s: fspace->alloc_sect_size = %Hu, fspace->sect_size = %Hu\n"
             HDassert(H5F_addr_defined(fspace->addr));
 
 #ifdef H5FS_SINFO_DEBUG
-            HDfprintf(stderr, "%s: Reading in existing sections, fspace->sect_addr = %a\n", FUNC, fspace->sect_addr);
+HDfprintf(stderr, "%s: Reading in existing sections, fspace->sect_addr = %a\n", FUNC, fspace->sect_addr);
 #endif /* H5FS_SINFO_DEBUG */
-
-            /* Set the ring type in the DXPL */
-            if(NULL == (dxpl = (H5P_genplist_t *)H5I_object_verify(dxpl_id, H5I_GENPROP_LST)))
-                HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a property list");
-            if((H5P_get(dxpl, H5AC_RING_NAME, &orig_ring)) < 0)
-                HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, NULL, "unable to get property value");
-            ring = H5AC_RING_FSM;
-            if((H5P_set(dxpl, H5AC_RING_NAME, &ring)) < 0)
-                HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "unable to set property value");
-
             /* Protect the free space sections */
             cache_udata.f = f;
             cache_udata.dxpl_id = dxpl_id;
             cache_udata.fspace = fspace;
             if(NULL == (fspace->sinfo = (H5FS_sinfo_t *)H5AC_protect(f, dxpl_id, H5AC_FSPACE_SINFO, fspace->sect_addr, &cache_udata, accmode)))
-                HGOTO_ERROR(H5E_FSPACE, H5E_CANTPROTECT, FAIL, "unable to load free space sections");
+                HGOTO_ERROR(H5E_FSPACE, H5E_CANTPROTECT, FAIL, "unable to load free space sections")
 
             /* Remember that we protected the section info & the access mode */
             fspace->sinfo_protected = TRUE;
@@ -318,10 +295,6 @@ HDfprintf(stderr, "%s: Creating new section info\n", FUNC);
     fspace->sinfo_lock_count++;
 
 done:
-    /* reset ring type */
-    if(orig_ring && H5P_set(dxpl, H5AC_RING_NAME, &orig_ring) < 0)
-        HDONE_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "unable to set property value");
-
 #ifdef H5FS_SINFO_DEBUG
 HDfprintf(stderr, "%s: Leaving, fspace->addr = %a, fspace->sinfo = %p, fspace->sect_addr = %a\n", FUNC, fspace->addr, fspace->sinfo, fspace->sect_addr);
 HDfprintf(stderr, "%s: fspace->alloc_sect_size = %Hu, fspace->sect_size = %Hu\n", FUNC, fspace->alloc_sect_size, fspace->sect_size);

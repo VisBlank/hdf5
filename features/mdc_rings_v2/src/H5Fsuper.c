@@ -292,7 +292,7 @@ H5F__super_read(H5F_t *f, hid_t dxpl_id)
     if(NULL == (dxpl = (H5P_genplist_t *)H5I_object(dxpl_id)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "can't get property list")
     if((H5P_get(dxpl, H5AC_RING_NAME, &orig_ring)) < 0)
-        HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, NULL, "unable to get property value");
+        HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "unable to get property value");
 
     /* Find the superblock */
     if(H5FD_locate_signature(f->shared->lf, dxpl, &super_addr) < 0)
@@ -867,7 +867,7 @@ H5F__super_init(H5F_t *f, hid_t dxpl_id)
     if(NULL == (dxpl = (H5P_genplist_t *)H5I_object_verify(dxpl_id, H5I_GENPROP_LST)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a property list");
     if((H5P_get(dxpl, H5AC_RING_NAME, &orig_ring)) < 0)
-        HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, NULL, "unable to get property value");
+        HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "unable to get property value");
     ring = H5AC_RING_SB;
     if((H5P_set(dxpl, H5AC_RING_NAME, &ring)) < 0)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "unable to set property value");
@@ -1195,7 +1195,7 @@ H5F__super_size(H5F_t *f, hid_t dxpl_id, hsize_t *super_size, hsize_t *super_ext
             if(NULL == (dxpl = (H5P_genplist_t *)H5I_object_verify(dxpl_id, H5I_GENPROP_LST)))
                 HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a property list");
             if((H5P_get(dxpl, H5AC_RING_NAME, &orig_ring)) < 0)
-                HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, NULL, "unable to get property value");
+                HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "unable to get property value");
             ring = H5AC_RING_SBE;
             if((H5P_set(dxpl, H5AC_RING_NAME, &ring)) < 0)
                 HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "unable to set property value");
@@ -1253,7 +1253,7 @@ H5F_super_ext_write_msg(H5F_t *f, hid_t dxpl_id, void *mesg, unsigned id, hbool_
     if(NULL == (dxpl = (H5P_genplist_t *)H5I_object_verify(dxpl_id, H5I_GENPROP_LST)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a property list");
     if((H5P_get(dxpl, H5AC_RING_NAME, &orig_ring)) < 0)
-        HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, NULL, "unable to get property value");
+        HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "unable to get property value");
     ring = H5AC_RING_SBE;
     if((H5P_set(dxpl, H5AC_RING_NAME, &ring)) < 0)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "unable to set property value");
@@ -1342,7 +1342,7 @@ H5F_super_ext_remove_msg(H5F_t *f, hid_t dxpl_id, unsigned id)
     if(NULL == (dxpl = (H5P_genplist_t *)H5I_object_verify(dxpl_id, H5I_GENPROP_LST)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a property list");
     if((H5P_get(dxpl, H5AC_RING_NAME, &orig_ring)) < 0)
-        HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, NULL, "unable to get property value");
+        HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "unable to get property value");
     ring = H5AC_RING_SBE;
     if((H5P_set(dxpl, H5AC_RING_NAME, &ring)) < 0)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "unable to set property value");

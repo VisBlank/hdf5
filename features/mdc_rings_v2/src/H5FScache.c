@@ -37,7 +37,7 @@
 #include "H5ACprivate.h"        /* Metadata cache                       */
 #include "H5Eprivate.h"		/* Error handling		  	*/
 #include "H5FSpkg.h"		/* File free space			*/
-#include "H5Iprivate.h"		/* IDs                                  */
+#include "H5Iprivate.h"		/* IDs			  		*/
 #include "H5MFprivate.h"	/* File memory management		*/
 #include "H5Pprivate.h"		/* Property lists                       */
 #include "H5VMprivate.h"	/* Vectors and arrays 			*/
@@ -377,9 +377,9 @@ H5FS__cache_hdr_pre_serialize(const H5F_t *f, hid_t dxpl_id, void *_thing,
     haddr_t *new_addr, size_t *new_len, size_t H5_ATTR_UNUSED *new_compressed_len, 
     unsigned *flags)
 {
-    H5FS_t 	*fspace = (H5FS_t *)_thing;     /* Pointer to the object */
-    H5AC_ring_t ring, orig_ring = H5AC_RING_INV;
     H5P_genplist_t *dxpl = NULL;
+    H5AC_ring_t ring, orig_ring = H5AC_RING_INV;
+    H5FS_t 	*fspace = (H5FS_t *)_thing;     /* Pointer to the object */
     herr_t     	 ret_value = SUCCEED;           /* Return value */
 
     FUNC_ENTER_STATIC_TAG(dxpl_id, H5AC__FREESPACE_TAG, FAIL)
@@ -395,6 +395,15 @@ H5FS__cache_hdr_pre_serialize(const H5F_t *f, hid_t dxpl_id, void *_thing,
     HDassert(flags);
 
     if(fspace->sinfo) {
+        /* Set the ring type in the DXPL */
+        if(NULL == (dxpl = (H5P_genplist_t *)H5I_object_verify(dxpl_id, H5I_GENPROP_LST)))
+            HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a property list");
+        if((H5P_get(dxpl, H5AC_RING_NAME, &orig_ring)) < 0)
+            HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "unable to get property value");
+        ring = H5AC_RING_FSM;
+        if((H5P_set(dxpl, H5AC_RING_NAME, &ring)) < 0)
+            HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "unable to set property value");
+
         /* This implies that the header "owns" the section info.  
          *
          * Unfortunately, the comments in the code are not clear as to 
@@ -485,18 +494,8 @@ H5FS__cache_hdr_pre_serialize(const H5F_t *f, hid_t dxpl_id, void *_thing,
                     HGOTO_ERROR(H5E_FSPACE, H5E_NOSPACE, FAIL, "file allocation failed for free space sections")
 
                 fspace->alloc_sect_size = (size_t)fspace->sect_size;
-
-                /* Set the ring type in the DXPL */
-                if(NULL == (dxpl = (H5P_genplist_t *)H5I_object_verify(dxpl_id, H5I_GENPROP_LST)))
-                    HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a property list");
-                if((H5P_get(dxpl, H5AC_RING_NAME, &orig_ring)) < 0)
-                    HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, NULL, "unable to get property value");
-                ring = H5AC_RING_FSM;
-                if((H5P_set(dxpl, H5AC_RING_NAME, &ring)) < 0)
-                    HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "unable to set property value");
-
 		if(H5AC_insert_entry((H5F_t *)f, dxpl_id, H5AC_FSPACE_SINFO, fspace->sect_addr, fspace->sinfo, H5AC__NO_FLAGS_SET) < 0)
-                    HGOTO_ERROR(H5E_FSPACE, H5E_CANTINIT, FAIL, "can't add free space sections to cache");
+                    HGOTO_ERROR(H5E_FSPACE, H5E_CANTINIT, FAIL, "can't add free space sections to cache")
 
                 HDassert(fspace->sinfo->cache_info.size == fspace->alloc_sect_size);
 
@@ -610,7 +609,7 @@ H5FS__cache_hdr_pre_serialize(const H5F_t *f, hid_t dxpl_id, void *_thing,
     *flags = 0;
 
 done:
-    /* reset ring type */
+    /* reset the ring type */
     if(orig_ring && H5P_set(dxpl, H5AC_RING_NAME, &orig_ring) < 0)
         HDONE_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "unable to set property value");
     FUNC_LEAVE_NOAPI_TAG(ret_value, FAIL)
