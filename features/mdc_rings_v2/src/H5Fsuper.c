@@ -293,6 +293,7 @@ H5F__super_read(H5F_t *f, hid_t dxpl_id)
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "can't get property list")
     if((H5P_get(dxpl, H5AC_RING_NAME, &orig_ring)) < 0)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, NULL, "unable to get property value");
+
     /* Find the superblock */
     if(H5FD_locate_signature(f->shared->lf, dxpl, &super_addr) < 0)
         HGOTO_ERROR(H5E_FILE, H5E_NOTHDF5, FAIL, "unable to locate file signature")
