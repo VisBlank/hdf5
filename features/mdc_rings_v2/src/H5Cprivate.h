@@ -1115,7 +1115,7 @@ typedef herr_t (*H5C_log_flush_func_t)(H5C_t *cache_ptr, haddr_t addr,
 
 /****************************************************************************
  *
- * enum H5C_ring_t
+ * H5C_ring_t & associated #defines
  *
  * The metadata cache uses the concept of rings to order the flushes of 
  * classes of entries.  In this arrangement, each entry in the cache is 
@@ -1148,18 +1148,23 @@ typedef herr_t (*H5C_log_flush_func_t)(H5C_t *cache_ptr, haddr_t addr,
  * The superblock proper must be flushed last, and is thus assigned to 
  * the innermost ring.
  *
- * The H5C_ring_t enum is used to define the rings.  Each entry must 
- * be assigned to the appropriate ring on insertion or protect.
+ * The H5C_ring_t and the associated #defines below are used to define
+ * the rings.  Each entry must be assigned to the appropriate ring on 
+ * insertion or protect.
+ *
+ * Note that H5C_ring_t was originally an enumerated type.  It was 
+ * converted to an integer and a set of #defines for convenience in 
+ * debugging.
  */
 
-typedef enum H5C_ring_t {
-    H5C_RING_UNDEFINED = 0, /* must never appear in an entry in the cache */
-    H5C_RING_USER      = 1,  /* outermost ring */
-    H5C_RING_FSM       = 2,
-    H5C_RING_SBE       = 3,
-    H5C_RING_SB        = 4,  /* innermost ring */
-    H5C_RING_NTYPES    = 5
-} H5C_ring_t;
+#define H5C_RING_UNDEFINED	0 /* shouldn't appear in the cache */
+#define H5C_RING_USER		1 /* outermost ring */
+#define H5C_RING_FSM		2
+#define H5C_RING_SBE		4 /* temporarily merged with H5C_RING_SB */
+#define H5C_RING_SB		4 /* innermost ring */
+#define H5C_RING_NTYPES		5 
+
+typedef int H5C_ring_t;
 
 
 /****************************************************************************
