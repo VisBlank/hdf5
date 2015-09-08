@@ -27,9 +27,11 @@
 #include "H5Eprivate.h"		/* Error handling		  	*/
 #include "H5Fprivate.h"		/* File access                          */
 #include "H5FLprivate.h"	/* Free Lists                           */
+#include "H5Iprivate.h"		/* IDs                                  */
 #include "H5MFprivate.h"        /* File memory management		*/
 #include "H5MMprivate.h"	/* Memory management			*/
 #include "H5Opkg.h"             /* Object Headers                       */
+#include "H5Pprivate.h"		/* Property lists                       */
 #include "H5SMpkg.h"            /* Shared object header messages        */
 
 
@@ -120,7 +122,7 @@ H5FL_ARR_DEFINE(H5SM_sohm_t, H5O_SHMESG_MAX_LIST_SIZE);
 herr_t
 H5SM_init(H5F_t *f, H5P_genplist_t * fc_plist, const H5O_loc_t *ext_loc, hid_t dxpl_id)
 {
-    H5P_genplist_t     *dxpl;               /* DXPL object */
+    H5P_genplist_t     *dxpl = NULL;    /* DXPL object */
     H5AC_ring_t         ring, orig_ring = H5AC_RING_INV;
     H5O_shmesg_table_t sohm_table;      /* SOHM message for superblock extension */
     H5SM_master_table_t *table = NULL;  /* SOHM master table for file */
@@ -142,11 +144,11 @@ H5SM_init(H5F_t *f, H5P_genplist_t * fc_plist, const H5O_loc_t *ext_loc, hid_t d
     if(NULL == (dxpl = (H5P_genplist_t *)H5I_object(dxpl_id)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "can't get property list")
     if((H5P_get(dxpl, H5AC_RING_NAME, &orig_ring)) < 0)
-        HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, NULL, "unable to get property value");
+        HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "unable to get property value")
     /* set the ring type to user space */
     ring = H5AC_RING_US;
     if((H5P_set(dxpl, H5AC_RING_NAME, &ring)) < 0)
-        HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "unable to set property value");
+        HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "unable to set property value")
 
     /* Initialize master table */
     if(NULL == (table = H5FL_MALLOC(H5SM_master_table_t)))
@@ -1995,7 +1997,7 @@ H5SM_get_info(const H5O_loc_t *ext_loc, H5P_genplist_t *fc_plist, hid_t dxpl_id)
         if(NULL == (dxpl = (H5P_genplist_t *)H5I_object(dxpl_id)))
             HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "can't get property list");
         if((H5P_get(dxpl, H5AC_RING_NAME, &orig_ring)) < 0)
-            HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, NULL, "unable to get property value");
+            HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "unable to get property value");
         /* set the ring type to user space */
         ring = H5AC_RING_US;
         if((H5P_set(dxpl, H5AC_RING_NAME, &ring)) < 0)
