@@ -147,15 +147,11 @@ static herr_t H5C_flush_invalidate_cache(const H5F_t *  f,
                                           hid_t    dxpl_id,
 			                  unsigned flags);
 
-static herr_t H5C_flush_invalidate_ring(const H5F_t * f,
-                                        hid_t    dxpl_id,
-                                        H5C_ring_t ring,
-			                unsigned flags);
+static herr_t H5C_flush_invalidate_ring(const H5F_t * f, hid_t dxpl_id,
+    H5C_ring_t ring, unsigned flags);
 
-static herr_t H5C_flush_ring(H5F_t *f, 
-                             hid_t dxpl_id, 
-                             H5C_ring_t ring,
-                             unsigned flags);
+static herr_t H5C_flush_ring(H5F_t *f, hid_t dxpl_id, H5C_ring_t ring,
+    unsigned flags);
 
 static void * H5C_load_entry(H5F_t *             f,
                              hid_t               dxpl_id,
@@ -506,8 +502,7 @@ H5C_create(size_t		      max_cache_size,
     cache_ptr->clean_index_size			= (size_t)0;
     cache_ptr->dirty_index_size			= (size_t)0;
 
-    for ( i = 0; i < H5C_RING_NTYPES; i++ ) 
-    {
+    for(i = 0; i < H5C_RING_NTYPES; i++) {
 	cache_ptr->index_ring_len[i]		= 0;
 	cache_ptr->index_ring_size[i]		= (size_t)0;
 	cache_ptr->clean_index_ring_size[i]	= (size_t)0;
@@ -515,7 +510,7 @@ H5C_create(size_t		      max_cache_size,
 
 	cache_ptr->slist_ring_len[i]		= 0;
 	cache_ptr->slist_ring_size[i]		= (size_t)0;
-    }
+    } /* end for */
 
     /* Tagging Field Initializations */
     cache_ptr->ignore_tags                      = FALSE;
@@ -531,10 +526,8 @@ H5C_create(size_t		      max_cache_size,
     cache_ptr->slist_size_increase		= 0;
 #endif /* H5C_DO_SANITY_CHECKS */
 
-    for ( i = 0; i < H5C__HASH_TABLE_LEN; i++ )
-    {
+    for(i = 0; i < H5C__HASH_TABLE_LEN; i++)
         (cache_ptr->index)[i] = NULL;
-    }
 
     cache_ptr->entries_removed_counter		= 0;
     cache_ptr->last_entry_removed_ptr		= NULL;
@@ -1594,50 +1587,6 @@ done:
 
 
 /*-------------------------------------------------------------------------
- * Function:    H5C_get_entry_ring
- *
- * Purpose:     Given a file address, retrieve the ring for an entry at that
- *              address.
- *
- * 		On error, the value of *ring is not modified.
- *
- * Return:      Non-negative on success/Negative on failure
- *
- * Programmer:  Quincey Koziol
- *              9/8/15
- *
- *-------------------------------------------------------------------------
- */
-herr_t
-H5C_get_entry_ring(const H5F_t *f, haddr_t addr, H5C_ring_t *ring)
-{
-    H5C_t *cache_ptr;                   /* Pointer to cache */
-    H5C_cache_entry_t *entry_ptr;       /* Pointer to cache entry at address */
-    herr_t ret_value = SUCCEED;         /* Return value */
-
-    FUNC_ENTER_NOAPI(FAIL)
-
-    /* Sanity checks */
-    HDassert(f);
-    HDassert(f->shared);
-    cache_ptr = f->shared->cache;
-    HDassert(cache_ptr);
-    HDassert(cache_ptr->magic == H5C__H5C_T_MAGIC);
-    HDassert(H5F_addr_defined(addr));
-
-    /* Locate the entry at the address */
-    H5C__SEARCH_INDEX(cache_ptr, addr, entry_ptr, FAIL)
-    HDassert(entry_ptr);
-
-    /* Return the ring value */
-    *ring = entry_ptr->ring;
-
-done:
-    FUNC_LEAVE_NOAPI(ret_value)
-} /* H5C_get_entry_ring() */
-
-
-/*-------------------------------------------------------------------------
  * Function:    H5C_get_evictions_enabled()
  *
  * Purpose:     Copy the current value of cache_ptr->evictions_enabled into
@@ -2682,11 +2631,11 @@ H5C_protect(H5F_t *		f,
 
     /* Get the dataset transfer property list */
     if(NULL == (dxpl = (H5P_genplist_t *)H5I_object_verify(dxpl_id, H5I_GENPROP_LST)))
-        HGOTO_ERROR(H5E_CACHE, H5E_BADTYPE, FAIL, "not a property list")
+        HGOTO_ERROR(H5E_CACHE, H5E_BADTYPE, NULL, "not a property list")
 
     /* Get the ring type from the DXPL */
     if((H5P_get(dxpl, H5AC_RING_NAME, &ring)) < 0)
-        HGOTO_ERROR(H5E_CACHE, H5E_CANTGET, FAIL, "unable to query ring value")
+        HGOTO_ERROR(H5E_CACHE, H5E_CANTGET, NULL, "unable to query ring value")
 
     /* first check to see if the target is in cache */
     H5C__SEARCH_INDEX(cache_ptr, addr, entry_ptr, NULL)
@@ -6692,10 +6641,8 @@ done:
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5C_flush_invalidate_ring(const H5F_t * f,
-                           hid_t    dxpl_id,
-                           H5C_ring_t ring,
-			   unsigned flags)
+H5C_flush_invalidate_ring(const H5F_t * f, hid_t dxpl_id, H5C_ring_t ring,
+    unsigned flags)
 {
     H5C_t *		cache_ptr;
     hbool_t             restart_slist_scan;
@@ -7226,10 +7173,8 @@ H5C_flush_invalidate_ring(const H5F_t * f,
 
     if(protected_entries > 0)
         HGOTO_ERROR(H5E_CACHE, H5E_CANTFLUSH, FAIL, "Cache has protected entries.")
-    else if(cur_ring_pel_len > 0) {
-        HDassert(FALSE);
+    else if(cur_ring_pel_len > 0)
         HGOTO_ERROR(H5E_CACHE, H5E_CANTFLUSH, FAIL, "Can't unpin all pinned entries in ring.")
-    } /* end else-if */
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)
@@ -10082,4 +10027,48 @@ H5C_retag_copied_metadata(H5C_t * cache_ptr, haddr_t metadata_tag)
 
     FUNC_LEAVE_NOAPI_VOID
 } /* H5C_retag_copied_metadata */
+
+
+/*-------------------------------------------------------------------------
+ * Function:    H5C_get_entry_ring
+ *
+ * Purpose:     Given a file address, retrieve the ring for an entry at that
+ *              address.
+ *
+ * 		On error, the value of *ring is not modified.
+ *
+ * Return:      Non-negative on success/Negative on failure
+ *
+ * Programmer:  Quincey Koziol
+ *              9/8/15
+ *
+ *-------------------------------------------------------------------------
+ */
+herr_t
+H5C_get_entry_ring(const H5F_t *f, haddr_t addr, H5C_ring_t *ring)
+{
+    H5C_t *cache_ptr;                   /* Pointer to cache */
+    H5C_cache_entry_t *entry_ptr;       /* Pointer to cache entry at address */
+    herr_t ret_value = SUCCEED;         /* Return value */
+
+    FUNC_ENTER_NOAPI(FAIL)
+
+    /* Sanity checks */
+    HDassert(f);
+    HDassert(f->shared);
+    cache_ptr = f->shared->cache;
+    HDassert(cache_ptr);
+    HDassert(cache_ptr->magic == H5C__H5C_T_MAGIC);
+    HDassert(H5F_addr_defined(addr));
+
+    /* Locate the entry at the address */
+    H5C__SEARCH_INDEX(cache_ptr, addr, entry_ptr, FAIL)
+    HDassert(entry_ptr);
+
+    /* Return the ring value */
+    *ring = entry_ptr->ring;
+
+done:
+    FUNC_LEAVE_NOAPI(ret_value)
+} /* H5C_get_entry_ring() */
 
