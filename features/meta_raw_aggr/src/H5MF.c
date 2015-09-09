@@ -253,6 +253,8 @@ H5MF_open_fstype(H5F_t *f, hid_t dxpl_id, H5FD_mem_t type)
 	H5MF_FSPACE_SECT_CLS_LARGE };
     hsize_t alignment;			/* Alignment to use */
     hsize_t threshold;			/* Threshold to use */
+    H5P_genplist_t *dxpl = NULL;        /* DXPL for setting ring */
+    H5AC_ring_t orig_ring = H5AC_RING_INV;      /* Original ring value */
     herr_t ret_value = SUCCEED;         /* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT
@@ -278,6 +280,10 @@ H5MF_open_fstype(H5F_t *f, hid_t dxpl_id, H5FD_mem_t type)
 	threshold = f->shared->threshold;
     } /* end else */
 
+    /* Set the ring type in the DXPL */
+    if(H5AC_set_ring(dxpl_id, H5AC_RING_FSM, &dxpl, &orig_ring) < 0)
+        HGOTO_ERROR(H5E_RESOURCE, H5E_CANTSET, FAIL, "unable to set ring value")
+
     /* Open an existing free space structure for the file */
     if(NULL == (f->shared->fs.man[type] = H5FS_open(f, dxpl_id, f->shared->fs.man_addr[type],
 	    NELMTS(classes), classes, f, alignment, threshold)))
@@ -288,6 +294,10 @@ H5MF_open_fstype(H5F_t *f, hid_t dxpl_id, H5FD_mem_t type)
         f->shared->fs.man_state[type] = H5F_FS_STATE_OPEN;
 
 done:
+    /* Reset the ring in the DXPL */
+    if(H5AC_reset_ring(dxpl, orig_ring) < 0)
+        HDONE_ERROR(H5E_RESOURCE, H5E_CANTSET, FAIL, "unable to set property value")
+
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5MF_open_fstype() */
 
@@ -318,6 +328,8 @@ H5MF_create_fstype(H5F_t *f, hid_t dxpl_id, H5FD_mem_t type)
     H5FS_create_t fs_create; 		/* Free space creation parameters */
     hsize_t alignment;			/* Alignment to use */
     hsize_t threshold;			/* Threshold to use */
+    H5P_genplist_t *dxpl = NULL;        /* DXPL for setting ring */
+    H5AC_ring_t orig_ring = H5AC_RING_INV;      /* Original ring value */
     herr_t ret_value = SUCCEED;         /* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT
@@ -350,6 +362,10 @@ H5MF_create_fstype(H5F_t *f, hid_t dxpl_id, H5FD_mem_t type)
 	threshold = f->shared->threshold;
     } /* end else */
 
+    /* Set the ring type in the DXPL */
+    if(H5AC_set_ring(dxpl_id, H5AC_RING_FSM, &dxpl, &orig_ring) < 0)
+        HGOTO_ERROR(H5E_RESOURCE, H5E_CANTSET, FAIL, "unable to set ring value")
+
     if(NULL == (f->shared->fs.man[type] = H5FS_create(f, dxpl_id, NULL,
 	    &fs_create, NELMTS(classes), classes, f, alignment, threshold)))
 	HGOTO_ERROR(H5E_RESOURCE, H5E_CANTINIT, FAIL, "can't initialize free space info")
@@ -360,6 +376,9 @@ H5MF_create_fstype(H5F_t *f, hid_t dxpl_id, H5FD_mem_t type)
         f->shared->fs.man_state[type] = H5F_FS_STATE_OPEN;
 
 done:
+    /* Reset the ring in the DXPL */
+    if(H5AC_reset_ring(dxpl, orig_ring) < 0)
+        HDONE_ERROR(H5E_RESOURCE, H5E_CANTSET, FAIL, "unable to set property value")
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5MF_create_fstype() */
 
@@ -429,6 +448,8 @@ done:
 static herr_t
 H5MF_recreate_fstype(H5F_t *f, hid_t dxpl_id, H5FD_mem_t type, haddr_t *fsaddr, hbool_t *update)
 {
+    H5P_genplist_t *dxpl = NULL;        /* DXPL for setting ring */
+    H5AC_ring_t orig_ring = H5AC_RING_INV;      /* Original ring value */
     herr_t ret_value = SUCCEED; 	/* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT
@@ -457,6 +478,10 @@ HDfprintf(stderr, "%s: Entering\n", FUNC);
 #ifdef H5MF_ALLOC_DEBUG
 HDfprintf(stderr, "%s: Allocating free-space manager header and section info header\n", FUNC);
 #endif /* H5MF_ALLOC_DEBUG */
+            /* Set the ring type in the DXPL */
+            if(H5AC_set_ring(dxpl_id, H5AC_RING_FSM, &dxpl, &orig_ring) < 0)
+                HGOTO_ERROR(H5E_RESOURCE, H5E_CANTSET, FAIL, "unable to set ring value")
+
 	    /* Allocate space for free-space manager header */
 	    if(H5FS_alloc_hdr(f, f->shared->fs.man[type], &f->shared->fs.man_addr[type], dxpl_id) < 0)
 		HGOTO_ERROR(H5E_FSPACE, H5E_NOSPACE, FAIL, "can't allocated free-space header")
@@ -478,6 +503,9 @@ HDfprintf(stderr, "%s: Allocating free-space manager header and section info hea
         } /* end else-if */
 
 done:
+    /* Reset the ring in the DXPL */
+    if(H5AC_reset_ring(dxpl, orig_ring) < 0)
+        HDONE_ERROR(H5E_RESOURCE, H5E_CANTSET, FAIL, "unable to set property value")
 #ifdef H5MF_ALLOC_DEBUG
 HDfprintf(stderr, "%s: Leaving\n", FUNC);
 #endif /* H5MF_ALLOC_DEBUG */
@@ -501,6 +529,8 @@ HDfprintf(stderr, "%s: Leaving\n", FUNC);
 static herr_t
 H5MF_delete_fstype(H5F_t *f, hid_t dxpl_id, H5FD_mem_t type)
 {
+    H5P_genplist_t *dxpl = NULL;        /* DXPL for setting ring */
+    H5AC_ring_t orig_ring = H5AC_RING_INV;      /* Original ring value */
     herr_t ret_value = SUCCEED;	/* Return value */
     haddr_t tmp_fs_addr;       	/* Temporary holder for free space manager address */
 
@@ -522,6 +552,10 @@ H5MF_delete_fstype(H5F_t *f, hid_t dxpl_id, H5FD_mem_t type)
      */
     f->shared->fs.man_state[type] = H5F_FS_STATE_DELETING;
 
+    /* Set the ring type in the DXPL */
+    if(H5AC_set_ring(dxpl_id, H5AC_RING_FSM, &dxpl, &orig_ring) < 0)
+        HGOTO_ERROR(H5E_RESOURCE, H5E_CANTSET, FAIL, "unable to set ring value")
+
 #ifdef H5MF_ALLOC_DEBUG_MORE
 HDfprintf(stderr, "%s: Before deleting free space manager\n", FUNC);
 #endif /* H5MF_ALLOC_DEBUG_MORE */
@@ -538,6 +572,9 @@ HDfprintf(stderr, "%s: Before deleting free space manager\n", FUNC);
     HDassert(!H5F_addr_defined(f->shared->fs.man_addr[type]));
 
 done:
+    /* Reset the ring in the DXPL */
+    if(H5AC_reset_ring(dxpl, orig_ring) < 0)
+        HDONE_ERROR(H5E_RESOURCE, H5E_CANTSET, FAIL, "unable to set property value")
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5MF_delete_fstype() */
 
@@ -655,6 +692,8 @@ done:
 herr_t
 H5MF_add_sect(H5F_t *f, H5FD_mem_t alloc_type, hid_t dxpl_id, H5FS_t *fspace, H5MF_free_section_t *node)
 {
+    H5P_genplist_t *dxpl = NULL;        /* DXPL for setting ring */
+    H5AC_ring_t orig_ring = H5AC_RING_INV;      /* Original ring value */
     H5MF_sect_ud_t udata;		/* User data for callback */
     herr_t ret_value = SUCCEED; 	/* Return value */
 
@@ -672,6 +711,10 @@ H5MF_add_sect(H5F_t *f, H5FD_mem_t alloc_type, hid_t dxpl_id, H5FS_t *fspace, H5
     udata.allow_eoa_shrink_only = FALSE;
     udata.allow_small_shrink = FALSE;
 
+    /* Set the ring type in the DXPL */
+    if(H5AC_set_ring(dxpl_id, H5AC_RING_FSM, &dxpl, &orig_ring) < 0)
+        HGOTO_ERROR(H5E_RESOURCE, H5E_CANTSET, FAIL, "unable to set ring value")
+
 #ifdef H5MF_ALLOC_DEBUG_MORE
 HDfprintf(stderr, "%s: adding node, node->sect_info.addr = %a, node->sect_info.size = %Hu\n", FUNC, node->sect_info.addr, node->sect_info.size);
 #endif /* H5MF_ALLOC_DEBUG_MORE */
@@ -680,6 +723,9 @@ HDfprintf(stderr, "%s: adding node, node->sect_info.addr = %a, node->sect_info.s
 	HGOTO_ERROR(H5E_RESOURCE, H5E_CANTINSERT, FAIL, "can't re-add section to file free space")
 
 done:
+    /* Reset the ring in the DXPL */
+    if(H5AC_reset_ring(dxpl, orig_ring) < 0)
+        HDONE_ERROR(H5E_RESOURCE, H5E_CANTSET, FAIL, "unable to set property value")
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5MF_add_sect() */
 
@@ -700,6 +746,8 @@ done:
 htri_t
 H5MF_find_sect(H5F_t *f, H5FD_mem_t alloc_type, hid_t dxpl_id, hsize_t size, H5FS_t *fspace, haddr_t *addr)
 {
+    H5P_genplist_t *dxpl = NULL;        /* DXPL for setting ring */
+    H5AC_ring_t orig_ring = H5AC_RING_INV;      /* Original ring value */
     H5MF_free_section_t *node;  /* Free space section pointer */
     htri_t ret_value;      	/* Whether an existing free list node was found */
 
@@ -707,6 +755,10 @@ H5MF_find_sect(H5F_t *f, H5FD_mem_t alloc_type, hid_t dxpl_id, hsize_t size, H5F
 
     HDassert(f);
     HDassert(fspace);
+
+    /* Set the ring type in the DXPL */
+    if(H5AC_set_ring(dxpl_id, H5AC_RING_FSM, &dxpl, &orig_ring) < 0)
+        HGOTO_ERROR(H5E_RESOURCE, H5E_CANTSET, FAIL, "unable to set ring value")
 
     /* Try to get a section from the free space manager */
     if((ret_value = H5FS_sect_find(f, dxpl_id, fspace, size, (H5FS_section_info_t **)&node)) < 0)
@@ -751,6 +803,9 @@ HDfprintf(stderr, "%s: re-adding node, node->sect_info.size = %Hu\n", FUNC, node
     } /* end if */
 
 done:
+    /* Reset the ring in the DXPL */
+    if(H5AC_reset_ring(dxpl, orig_ring) < 0)
+        HDONE_ERROR(H5E_RESOURCE, H5E_CANTSET, FAIL, "unable to set property value")
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5MF_find_sect() */
 
@@ -775,6 +830,8 @@ done:
 haddr_t
 H5MF_alloc(H5F_t *f, H5FD_mem_t alloc_type, hid_t dxpl_id, hsize_t size)
 {
+    H5P_genplist_t *dxpl = NULL;        /* DXPL for setting ring */
+    H5AC_ring_t orig_ring = H5AC_RING_INV;      /* Original ring value */
     H5FD_mem_t  fs_type;                /* Free space type (mapped from allocation type) */
     haddr_t ret_value = HADDR_UNDEF;    /* Return value */
 
@@ -798,6 +855,11 @@ HDfprintf(stderr, "%s: alloc_type = %u, size = %Hu\n", FUNC, (unsigned)alloc_typ
 #ifdef H5MF_ALLOC_DEBUG_MORE
 HDfprintf(stderr, "%s: Check 1.0\n", FUNC);
 #endif /* H5MF_ALLOC_DEBUG_MORE */
+
+    /* Set the ring type in the DXPL */
+    if(H5AC_set_ring(dxpl_id, H5AC_RING_FSM, &dxpl, &orig_ring) < 0)
+        HGOTO_ERROR(H5E_RESOURCE, H5E_CANTSET, HADDR_UNDEF, "unable to set ring value")
+
     /* Check if the free space manager for the file has been initialized */
     if(!f->shared->fs.man[fs_type] && H5F_addr_defined(f->shared->fs.man_addr[fs_type])) {
 	/* Open the free-space manager */
@@ -842,6 +904,10 @@ HDfprintf(stderr, "%s: Check 3.0\n", FUNC);
 	    HGOTO_ERROR(H5E_RESOURCE, H5E_CANTSET, HADDR_UNDEF, "can't determine track_last_small")
 
 done:
+    /* Reset the ring in the DXPL */
+    if(H5AC_reset_ring(dxpl, orig_ring) < 0)
+        HDONE_ERROR(H5E_RESOURCE, H5E_CANTSET, HADDR_UNDEF, "unable to set property value")
+
 #ifdef H5MF_ALLOC_DEBUG
 HDfprintf(stderr, "%s: Leaving: ret_value = %a, size = %Hu\n", FUNC, ret_value, size);
 #endif /* H5MF_ALLOC_DEBUG */
@@ -1292,6 +1358,8 @@ H5MF_xfree(H5F_t *f, H5FD_mem_t alloc_type, hid_t dxpl_id, haddr_t addr,
     H5FD_mem_t  fs_type;                /* Free space type (mapped from allocation type) */
     H5MF_free_section_t *node = NULL;   /* Free space section pointer */
     unsigned ctype;			/* section class type */
+    H5P_genplist_t *dxpl = NULL;        /* DXPL for setting ring */
+    H5AC_ring_t orig_ring = H5AC_RING_INV;      /* Original ring value */
     herr_t ret_value = SUCCEED;         /* Return value */
 
     FUNC_ENTER_NOAPI(FAIL)
@@ -1304,6 +1372,10 @@ HDfprintf(stderr, "%s: Entering - alloc_type = %u, addr = %a, size = %Hu\n", FUN
     if(!H5F_addr_defined(addr) || 0 == size)
         HGOTO_DONE(SUCCEED);
     HDassert(addr != 0);        /* Can't deallocate the superblock :-) */
+
+    /* Set the ring type in the DXPL */
+    if(H5AC_set_ring(dxpl_id, H5AC_RING_FSM, &dxpl, &orig_ring) < 0)
+        HGOTO_ERROR(H5E_RESOURCE, H5E_CANTSET, FAIL, "unable to set ring value")
 
     /* Determine the EOA section type */
     if(H5F_PAGED_AGGR(f))
@@ -1421,6 +1493,10 @@ HDfprintf(stderr, "%s: After H5FS_sect_add()\n", FUNC);
     } /* end else */
 
 done:
+    /* Reset the ring in the DXPL */
+    if(H5AC_reset_ring(dxpl, orig_ring) < 0)
+        HDONE_ERROR(H5E_RESOURCE, H5E_CANTSET, FAIL, "unable to set property value")
+
     /* Release section node, if allocated and not added to section list or merged */
     if(node)
         if(H5MF_sect_free((H5FS_section_info_t *)node) < 0)
@@ -1462,6 +1538,8 @@ htri_t
 H5MF_try_extend(H5F_t *f, hid_t dxpl_id, H5FD_mem_t alloc_type, haddr_t addr,
     hsize_t size, hsize_t extra_requested)
 {
+    H5P_genplist_t *dxpl = NULL;        /* DXPL for setting ring */
+    H5AC_ring_t orig_ring = H5AC_RING_INV;      /* Original ring value */
     haddr_t     end;            		/* End of block to extend */
     H5FD_mem_t  map_type;       		/* Mapped type */
     htri_t 	allow_extend = TRUE;		/* Possible to extend the block */
@@ -1486,6 +1564,10 @@ HDfprintf(stderr, "%s: Entering: alloc_type = %u, addr = %a, size = %Hu, extra_r
     if(H5F_PAGED_AGGR(f) && size < f->shared->fs.page_size)
 	if((addr / f->shared->fs.page_size) != (((addr + size + extra_requested) - 1) / f->shared->fs.page_size))
 	    allow_extend = FALSE;
+
+    /* Set the ring type in the DXPL */
+    if(H5AC_set_ring(dxpl_id, H5AC_RING_FSM, &dxpl, &orig_ring) < 0)
+        HGOTO_ERROR(H5E_RESOURCE, H5E_CANTSET, FAIL, "unable to set ring value")
 
     if(allow_extend) {
 	/* Try extending the block if it is at EOA */
@@ -1554,6 +1636,10 @@ HDfprintf(stderr, "%s: Try to extend into the page end threshold = %t\n", FUNC, 
     } /* allow_extend */
 
 done:
+    /* Reset the ring in the DXPL */
+    if(H5AC_reset_ring(dxpl, orig_ring) < 0)
+        HDONE_ERROR(H5E_RESOURCE, H5E_CANTSET, FAIL, "unable to set property value")
+
 #ifdef H5MF_ALLOC_DEBUG
 HDfprintf(stderr, "%s: Leaving: ret_value = %t\n", FUNC, ret_value);
 #endif /* H5MF_ALLOC_DEBUG */
@@ -1591,6 +1677,8 @@ H5MF_try_shrink(H5F_t *f, H5FD_mem_t alloc_type, hid_t dxpl_id, haddr_t addr,
     H5MF_free_section_t *node = NULL;   /* Free space section pointer */
     H5MF_sect_ud_t udata;               /* User data for callback */
     H5FS_section_class_t *sect_cls;	/* Section class */
+    H5P_genplist_t *dxpl = NULL;        /* DXPL for setting ring */
+    H5AC_ring_t orig_ring = H5AC_RING_INV;      /* Original ring value */
     htri_t ret_value;                   /* Return value */
 
     FUNC_ENTER_NOAPI(FAIL)
@@ -1608,6 +1696,10 @@ HDfprintf(stderr, "%s: Entering - alloc_type = %u, addr = %a, size = %Hu\n", FUN
     /* Set up free-space section class information */
     sect_cls = H5MF_SECT_CLS_TYPE(f, size);
     HDassert(sect_cls);
+
+    /* Set the ring type in the DXPL */
+    if(H5AC_set_ring(dxpl_id, H5AC_RING_FSM, &dxpl, &orig_ring) < 0)
+        HGOTO_ERROR(H5E_RESOURCE, H5E_CANTSET, FAIL, "unable to set ring value")
 
     /* Create free-space section for block */
     if(NULL == (node = H5MF_sect_new(sect_cls->type, addr, size)))
@@ -1637,6 +1729,10 @@ HDfprintf(stderr, "%s: Entering - alloc_type = %u, addr = %a, size = %Hu\n", FUN
     } /* end if */
 
 done:
+    /* Reset the ring in the DXPL */
+    if(H5AC_reset_ring(dxpl, orig_ring) < 0)
+        HDONE_ERROR(H5E_RESOURCE, H5E_CANTSET, FAIL, "unable to set property value")
+
     /* Free section node allocated */
     if(node && H5MF_sect_free((H5FS_section_info_t *)node) < 0)
         HDONE_ERROR(H5E_RESOURCE, H5E_CANTRELEASE, FAIL, "can't free simple section node")
@@ -1663,6 +1759,8 @@ HDfprintf(stderr, "%s: Leaving, ret_value = %d\n", FUNC, ret_value);
 herr_t
 H5MF_close(H5F_t *f, hid_t dxpl_id)
 {
+    H5P_genplist_t *dxpl = NULL;        /* DXPL for setting ring */
+    H5AC_ring_t orig_ring = H5AC_RING_INV;      /* Original ring value */
     herr_t ret_value = SUCCEED;         /* Return value */
 
     FUNC_ENTER_NOAPI(FAIL)
@@ -1674,6 +1772,10 @@ HDfprintf(stderr, "%s: Entering\n", FUNC);
     HDassert(f);
     HDassert(f->shared);
 
+    /* Set the ring type in the DXPL */
+    if(H5AC_set_ring(dxpl_id, H5AC_RING_FSM, &dxpl, &orig_ring) < 0)
+        HGOTO_ERROR(H5E_RESOURCE, H5E_CANTSET, FAIL, "unable to set ring value")
+
     if(H5F_PAGED_AGGR(f)) {
 	if((ret_value = H5MF_close_pagefs(f, dxpl_id)) < 0)
 	    HGOTO_ERROR(H5E_FILE, H5E_CANTFREE, FAIL, "can't close free-space managers for 'page' file space")
@@ -1684,6 +1786,10 @@ HDfprintf(stderr, "%s: Entering\n", FUNC);
     } /* end else */
 
 done:
+    /* Reset the ring in the DXPL */
+    if(H5AC_reset_ring(dxpl, orig_ring) < 0)
+        HDONE_ERROR(H5E_RESOURCE, H5E_CANTSET, FAIL, "unable to set property value")
+
 #ifdef H5MF_ALLOC_DEBUG
 HDfprintf(stderr, "%s: Leaving\n", FUNC);
 #endif /* H5MF_ALLOC_DEBUG */
@@ -2077,6 +2183,8 @@ H5MF_get_freespace(H5F_t *f, hid_t dxpl_id, hsize_t *tot_space, hsize_t *meta_si
     H5FD_mem_t end_type;     	/* Memory type for iteration */
     htri_t fs_started[H5FD_MEM_NTYPES]; /* Indicate whether the free-space manager has been started */
     hbool_t eoa_shrank;		/* Whether an EOA shrink occurs */
+    H5P_genplist_t *dxpl = NULL;        /* DXPL for setting ring */
+    H5AC_ring_t orig_ring = H5AC_RING_INV;      /* Original ring value */
     herr_t ret_value = SUCCEED; /* Return value */
 
     FUNC_ENTER_NOAPI(FAIL)
@@ -2085,6 +2193,10 @@ H5MF_get_freespace(H5F_t *f, hid_t dxpl_id, hsize_t *tot_space, hsize_t *meta_si
     HDassert(f);
     HDassert(f->shared);
     HDassert(f->shared->lf);
+
+    /* Set the ring type in the DXPL */
+    if(H5AC_set_ring(dxpl_id, H5AC_RING_FSM, &dxpl, &orig_ring) < 0)
+        HGOTO_ERROR(H5E_RESOURCE, H5E_CANTSET, FAIL, "unable to set ring value")
 
     /* Determine start/end points for loop */
     if(H5F_PAGED_AGGR(f)) {
@@ -2192,6 +2304,10 @@ H5MF_get_freespace(H5F_t *f, hid_t dxpl_id, hsize_t *tot_space, hsize_t *meta_si
 	*meta_size = tot_meta_size;
 
 done:
+    /* Reset the ring in the DXPL */
+    if(H5AC_reset_ring(dxpl, orig_ring) < 0)
+        HDONE_ERROR(H5E_RESOURCE, H5E_CANTSET, FAIL, "unable to set property value")
+
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5MF_get_freespace() */
 
@@ -2211,6 +2327,8 @@ done:
 ssize_t
 H5MF_get_free_sections(H5F_t *f, hid_t dxpl_id, H5F_fspace_type_t type, size_t nsects, H5F_sect_info_t *sect_info)
 {
+    H5P_genplist_t *dxpl = NULL;        /* DXPL for setting ring */
+    H5AC_ring_t orig_ring = H5AC_RING_INV;      /* Original ring value */
     size_t total_sects = 0;			/* Total number of sections */
     H5MF_sect_iter_ud_t sect_udata;     	/* User data for callback */
     H5F_mem_page_t start_type, end_type;   	/* Memory types to iterate over */
@@ -2255,6 +2373,10 @@ H5MF_get_free_sections(H5F_t *f, hid_t dxpl_id, H5F_fspace_type_t type, size_t n
     sect_udata.sect_count = nsects;
     sect_udata.sect_idx = 0;
 
+    /* Set the ring type in the DXPL */
+    if(H5AC_set_ring(dxpl_id, H5AC_RING_FSM, &dxpl, &orig_ring) < 0)
+        HGOTO_ERROR(H5E_RESOURCE, H5E_CANTSET, FAIL, "unable to set ring value")
+
     /* Iterate over memory types, retrieving the number of sections of each type */
     for(ty = start_type; ty < end_type; H5_INC_ENUM(H5F_mem_page_t, ty)) {
 	hbool_t fs_started = FALSE;	/* The free-space manager is opened or not */
@@ -2289,6 +2411,10 @@ H5MF_get_free_sections(H5F_t *f, hid_t dxpl_id, H5F_fspace_type_t type, size_t n
     ret_value = (ssize_t)total_sects;
 
 done:
+    /* Reset the ring in the DXPL */
+    if(H5AC_reset_ring(dxpl, orig_ring) < 0)
+        HDONE_ERROR(H5E_RESOURCE, H5E_CANTSET, FAIL, "unable to set property value")
+
     FUNC_LEAVE_NOAPI(ret_value)
 } /* H5MF_get_free_sections() */
 
