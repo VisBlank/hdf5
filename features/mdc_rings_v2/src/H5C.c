@@ -2650,7 +2650,6 @@ H5C_protect(H5F_t *		f,
 
 #if H5C_DO_TAGGING_SANITY_CHECKS
 {
-        H5P_genplist_t *dxpl;    /* dataset transfer property list */
         haddr_t     tag = HADDR_UNDEF;
 
         /* The entry is already in the cache, but make sure that the tag value 
@@ -2659,21 +2658,15 @@ H5C_protect(H5F_t *		f,
            and it would have received a legal tag value after getting loaded
            from disk. */
 
-        /* Get the dataset transfer property list */
-        if(NULL == (dxpl = (H5P_genplist_t *)H5I_object_verify(dxpl_id, H5I_GENPROP_LST)))
-            HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, NULL, "not a property list");
-
         /* Get the tag from the DXPL */
-        if( (H5P_get(dxpl, "H5AC_metadata_tag", &tag)) < 0 )
+        if((H5P_get(dxpl, "H5AC_metadata_tag", &tag)) < 0)
             HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, NULL, "unable to query property value");
     
         /* Verify tag value */
-        if (cache_ptr->ignore_tags != TRUE) {
-
+        if(cache_ptr->ignore_tags != TRUE) {
             /* Verify legal tag value */
-            if ( (H5C_verify_tag(entry_ptr->type->id, tag)) < 0 )
+            if((H5C_verify_tag(entry_ptr->type->id, tag)) < 0)
                 HGOTO_ERROR(H5E_CACHE, H5E_CANTGET, NULL, "tag verification failed");
-
         } /* end if */
 }
 #endif
