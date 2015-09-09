@@ -94,7 +94,7 @@ else
   noinst_LTLIBRARIES=libh5test.la
 endif
 
-libh5test_la_SOURCES=h5test.c testframe.c cache_common.c
+libh5test_la_SOURCES=h5test.c testframe.c cache_common.c genall5.c
 
 # Use libhd5test.la to compile all of the tests
 LDADD=libh5test.la $(LIBHDF5)

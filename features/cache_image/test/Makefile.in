@@ -176,7 +176,8 @@ libdynlib3_la_OBJECTS = $(am_libdynlib3_la_OBJECTS)
 @HAVE_SHARED_CONDITIONAL_TRUE@am_libdynlib3_la_rpath = -rpath \
 @HAVE_SHARED_CONDITIONAL_TRUE@	$(libdir)
 libh5test_la_LIBADD =
-am_libh5test_la_OBJECTS = h5test.lo testframe.lo cache_common.lo
+am_libh5test_la_OBJECTS = h5test.lo testframe.lo cache_common.lo \
+	genall5.lo
 libh5test_la_OBJECTS = $(am_libh5test_la_OBJECTS)
 @HAVE_SHARED_CONDITIONAL_FALSE@am_libh5test_la_rpath =
 @HAVE_SHARED_CONDITIONAL_TRUE@am_libh5test_la_rpath =
@@ -1138,7 +1139,7 @@ BUILD_ALL_PROGS = gen_bad_ohdr gen_bogus gen_cross gen_deflate gen_filters gen_n
 @HAVE_SHARED_CONDITIONAL_TRUE@libdynlib1_la_SOURCES = dynlib1.c
 @HAVE_SHARED_CONDITIONAL_TRUE@libdynlib2_la_SOURCES = dynlib2.c
 @HAVE_SHARED_CONDITIONAL_TRUE@libdynlib3_la_SOURCES = dynlib3.c
-libh5test_la_SOURCES = h5test.c testframe.c cache_common.c
+libh5test_la_SOURCES = h5test.c testframe.c cache_common.c genall5.c
 
 # Use libhd5test.la to compile all of the tests
 LDADD = libh5test.la $(LIBHDF5)
@@ -1672,6 +1673,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gen_sizes_lheap.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gen_specmetaread.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gen_udlinks.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/genall5.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/getname.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gheap.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/h5test.Plo@am__quote@
