@@ -724,15 +724,13 @@ done:
  */
 herr_t
 H5AC_insert_entry(H5F_t *f, hid_t dxpl_id, const H5AC_class_t *type, haddr_t addr,
-                  void *thing, unsigned int flags)
+    void *thing, unsigned int flags)
 {
 #if H5AC__TRACE_FILE_ENABLED
     char          	trace[128] = "";
     size_t              trace_entry_size = 0;
     FILE *        	trace_file_ptr = NULL;
 #endif /* H5AC__TRACE_FILE_ENABLED */
-    H5AC_ring_t ring = H5C_RING_UNDEFINED;
-    H5P_genplist_t *dxpl = NULL;
     herr_t ret_value = SUCCEED;      /* Return value */
 
     FUNC_ENTER_NOAPI(FAIL)
@@ -763,15 +761,8 @@ H5AC_insert_entry(H5F_t *f, hid_t dxpl_id, const H5AC_class_t *type, haddr_t add
             flags);
 #endif /* H5AC__TRACE_FILE_ENABLED */
 
-    /* Get the dataset transfer property list */
-    if(NULL == (dxpl = (H5P_genplist_t *)H5I_object_verify(dxpl_id, H5I_GENPROP_LST)))
-        HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a property list");
-    /* Get the ring type from the DXPL */
-    if((H5P_get(dxpl, H5AC_RING_NAME, &ring)) < 0)
-        HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "unable to query property value");
-
     /* Insert entry into metadata cache */
-    if(H5C_insert_entry(f, dxpl_id, type, addr, thing, flags, (H5C_ring_t)ring) < 0)
+    if(H5C_insert_entry(f, dxpl_id, type, addr, thing, flags) < 0)
         HGOTO_ERROR(H5E_CACHE, H5E_CANTINS, FAIL, "H5C_insert_entry() failed")
 
 #if H5AC__TRACE_FILE_ENABLED
@@ -1067,7 +1058,7 @@ done:
  */
 void *
 H5AC_protect(H5F_t *f, hid_t dxpl_id, const H5AC_class_t *type, haddr_t addr,
-             void *udata, unsigned flags)
+    void *udata, unsigned flags)
 {
     void *		thing;          /* Pointer to native data structure for entry */
 #if H5AC__TRACE_FILE_ENABLED
@@ -1075,8 +1066,6 @@ H5AC_protect(H5F_t *f, hid_t dxpl_id, const H5AC_class_t *type, haddr_t addr,
     size_t		trace_entry_size = 0;
     FILE *              trace_file_ptr = NULL;
 #endif /* H5AC__TRACE_FILE_ENABLED */
-    H5P_genplist_t      *dxpl = NULL;
-    H5AC_ring_t         ring = 0;
     void *		ret_value;      /* Return value */
 
     FUNC_ENTER_NOAPI(NULL)
@@ -1115,14 +1104,7 @@ H5AC_protect(H5F_t *f, hid_t dxpl_id, const H5AC_class_t *type, haddr_t addr,
 		(int)(type->id), flags);
 #endif /* H5AC__TRACE_FILE_ENABLED */
 
-    /* Get the dataset transfer property list */
-    if(NULL == (dxpl = (H5P_genplist_t *)H5I_object_verify(dxpl_id, H5I_GENPROP_LST)))
-        HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a property list");
-    /* Get the ring type from the DXPL */
-    if((H5P_get(dxpl, H5AC_RING_NAME, &ring)) < 0)
-        HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "unable to query property value");
-
-    if(NULL == (thing = H5C_protect(f, dxpl_id, type, addr, udata, flags, (H5C_ring_t)ring)))
+    if(NULL == (thing = H5C_protect(f, dxpl_id, type, addr, udata, flags)))
         HGOTO_ERROR(H5E_CACHE, H5E_CANTPROTECT, NULL, "H5C_protect() failed.")
 
 #if H5AC__TRACE_FILE_ENABLED
@@ -2338,4 +2320,114 @@ H5AC_retag_copied_metadata(const H5F_t *f, haddr_t metadata_tag)
 
     FUNC_LEAVE_NOAPI(SUCCEED)
 } /* H5AC_retag_copied_metadata */
+
+
+/*-------------------------------------------------------------------------
+ * Function:    H5AC_get_entry_ring
+ *
+ * Purpose:     Given a file address, retrieve the ring for an entry at that
+ *              address.
+ *
+ * 		On error, the value of *ring is not modified.
+ *
+ * Return:      Non-negative on success/Negative on failure
+ *
+ * Programmer:  Quincey Koziol
+ *              9/8/15
+ *
+ *-------------------------------------------------------------------------
+ */
+herr_t
+H5AC_get_entry_ring(const H5F_t *f, haddr_t addr, H5AC_ring_t *ring)
+{
+    herr_t      ret_value = SUCCEED;      /* Return value */
+
+    FUNC_ENTER_NOAPI(FAIL)
+
+    /* Sanity check */
+    HDassert(f);
+    HDassert(H5F_addr_defined(addr));
+    HDassert(ring);
+
+    /* Retrieve the ring value for the entry at address */
+    if(H5C_get_entry_ring(f, addr, ring) < 0)
+        HGOTO_ERROR(H5E_CACHE, H5E_CANTGET, FAIL, "Can't retrieve ring for entry")
+
+done:
+    FUNC_LEAVE_NOAPI(ret_value)
+} /* H5AC_get_entry_ring() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:       H5AC_set_ring
+ *
+ * Purpose:        Routine to set the ring on a DXPL (for passing through
+ *                 to the metadata cache).
+ *
+ * Return:	   Success:	Non-negative
+ *		   Failure:	Negative
+ *
+ * Programmer:     Quincey Koziol
+ *                 Tuesday, September 8, 2015
+ *
+ *-------------------------------------------------------------------------
+ */
+herr_t
+H5AC_set_ring(hid_t dxpl_id, H5AC_ring_t ring, H5P_genplist_t **dxpl,
+    H5AC_ring_t *orig_ring)
+{
+    herr_t ret_value = SUCCEED;   /* return value */
+
+    FUNC_ENTER_NOAPI(FAIL)
+
+    /* Sanity checks */
+    HDassert(dxpl);
+    HDassert(orig_ring);
+
+    /* Set the ring type in the DXPL */
+    if(NULL == ((*dxpl) = (H5P_genplist_t *)H5I_object_verify(dxpl_id, H5I_GENPROP_LST)))
+        HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a property list")
+    if((H5P_get((*dxpl), H5AC_RING_NAME, orig_ring)) < 0)
+        HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "unable to get original ring value")
+    if((H5P_set((*dxpl), H5AC_RING_NAME, &ring)) < 0)
+        HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "unable to set ring value")
+
+done:
+    FUNC_LEAVE_NOAPI(ret_value)
+} /* end H5AC_set_ring() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:       H5AC_reset_ring
+ *
+ * Purpose:        Routine to reset the original ring on a DXPL (after passing
+ *                 through to the metadata cache).
+ *
+ * Return:	   Success:	Non-negative
+ *		   Failure:	Negative
+ *
+ * Programmer:     Quincey Koziol
+ *                 Tuesday, September 8, 2015
+ *
+ *-------------------------------------------------------------------------
+ */
+herr_t
+H5AC_reset_ring(H5P_genplist_t *dxpl, H5AC_ring_t orig_ring)
+{
+    herr_t ret_value = SUCCEED;   /* return value */
+
+    FUNC_ENTER_NOAPI(FAIL)
+
+    /* Reset the ring in the DXPL, if it's been changed */
+    if(orig_ring) {
+        /* Sanity check */
+        HDassert(dxpl);
+
+        if((H5P_set(dxpl, H5AC_RING_NAME, &orig_ring)) < 0)
+            HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "unable to set property value")
+    } /* end if */
+
+done:
+    FUNC_LEAVE_NOAPI(ret_value)
+} /* end H5AC_reset_ring() */
 

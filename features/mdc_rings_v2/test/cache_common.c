@@ -3362,11 +3362,6 @@ flush_cache(H5F_t * file_ptr,
  * Programmer:	John Mainzer
  *              6/16/04
  *
- * Changes:	Added rings parameter to call to H5C_insert_entry.  Set
- *		ring to H5C_RING_USER for test purposes.
- *
- *						JRM -- 8/30/15
- *
  *-------------------------------------------------------------------------
  */
 
@@ -3403,8 +3398,7 @@ insert_entry(H5F_t * file_ptr,
 	entry_ptr->is_dirty = TRUE;
 
         result = H5C_insert_entry(file_ptr, H5P_DATASET_XFER_DEFAULT,
-                                  &(types[type]), entry_ptr->addr, 
-				  (void *)entry_ptr, flags, H5C_RING_USER);
+	        &(types[type]), entry_ptr->addr, (void *)entry_ptr, flags);
 
         if ( ( result < 0 ) ||
              ( entry_ptr->header.is_protected ) ||
@@ -3628,9 +3622,6 @@ move_entry(H5C_t * cache_ptr,
  * Programmer:	John Mainzer
  *              6/11/04
  *
- * Changes:	Added rings parameter to call to H5C_protect().  Set ring
- *		to H5C_RING_USER for test purposes.
- *
  *-------------------------------------------------------------------------
  */
 
@@ -3660,11 +3651,8 @@ protect_entry(H5F_t * file_ptr,
         HDassert( entry_ptr == entry_ptr->self );
         HDassert( !(entry_ptr->is_protected) );
 
-        cache_entry_ptr = 
-            (H5C_cache_entry_t *)H5C_protect(file_ptr, H5P_DATASET_XFER_DEFAULT,
-                                             &(types[type]), entry_ptr->addr, 
-                                             &entry_ptr->addr, 
-                                             H5C__NO_FLAGS_SET, H5C_RING_USER);
+        cache_entry_ptr = (H5C_cache_entry_t *)H5C_protect(file_ptr, H5P_DATASET_XFER_DEFAULT,
+                &(types[type]), entry_ptr->addr, &entry_ptr->addr, H5C__NO_FLAGS_SET);
 
         if ( ( cache_entry_ptr != (void *)entry_ptr ) ||
              ( !(entry_ptr->header.is_protected) ) ||
@@ -3729,10 +3717,6 @@ protect_entry(H5F_t * file_ptr,
  * Programmer:	John Mainzer
  *              4/1/07
  *
- * Changes:	Added rings parameter to H5C_protect().  Set ring to 
- *		H5C_RING_USER for test purposes.
- *							JRM -- 8/30/15
- *
  *-------------------------------------------------------------------------
  */
 
@@ -3764,10 +3748,8 @@ protect_entry_ro(H5F_t * file_ptr,
 		  ( ( entry_ptr->is_read_only ) &&
 		    ( entry_ptr->ro_ref_count > 0 ) ) );
 
-        cache_entry_ptr = (H5C_cache_entry_t *)
-	    H5C_protect(file_ptr, H5P_DATASET_XFER_DEFAULT, &(types[type]), 
-		        entry_ptr->addr, &entry_ptr->addr, H5C__READ_ONLY_FLAG,
-                        H5C_RING_USER);
+        cache_entry_ptr = (H5C_cache_entry_t *)H5C_protect(file_ptr, H5P_DATASET_XFER_DEFAULT,
+                &(types[type]), entry_ptr->addr, &entry_ptr->addr, H5C__READ_ONLY_FLAG);
 
         if ( ( cache_entry_ptr != (void *)entry_ptr ) ||
              ( !(entry_ptr->header.is_protected) ) ||

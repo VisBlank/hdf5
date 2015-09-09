@@ -37,9 +37,7 @@
 #include "H5ACprivate.h"        /* Metadata cache                       */
 #include "H5Eprivate.h"		/* Error handling		  	*/
 #include "H5FSpkg.h"		/* File free space			*/
-#include "H5Iprivate.h"		/* IDs			  		*/
 #include "H5MFprivate.h"	/* File memory management		*/
-#include "H5Pprivate.h"		/* Property lists                       */
 #include "H5VMprivate.h"	/* Vectors and arrays 			*/
 #include "H5WBprivate.h"        /* Wrapped Buffers                      */
 
@@ -345,7 +343,7 @@ H5FS__cache_hdr_image_len(const void *_thing, size_t *image_len,
 
 
 /*-------------------------------------------------------------------------
- * Function:	H5FS__cache_hdf_pre_serialize
+ * Function:	H5FS__cache_hdr_pre_serialize
  *
  * Purpose:	The free space manager header contains the address, size, and 
  *		allocation size of the free space manager section info.  However,
@@ -377,9 +375,9 @@ H5FS__cache_hdr_pre_serialize(const H5F_t *f, hid_t dxpl_id, void *_thing,
     haddr_t *new_addr, size_t *new_len, size_t H5_ATTR_UNUSED *new_compressed_len, 
     unsigned *flags)
 {
-    H5P_genplist_t *dxpl = NULL;
-    H5AC_ring_t ring, orig_ring = H5AC_RING_INV;
     H5FS_t 	*fspace = (H5FS_t *)_thing;     /* Pointer to the object */
+    H5P_genplist_t *dxpl = NULL;                /* DXPL for setting ring */
+    H5AC_ring_t orig_ring = H5AC_RING_INV;      /* Original ring value */
     herr_t     	 ret_value = SUCCEED;           /* Return value */
 
     FUNC_ENTER_STATIC_TAG(dxpl_id, H5AC__FREESPACE_TAG, FAIL)
@@ -395,14 +393,15 @@ H5FS__cache_hdr_pre_serialize(const H5F_t *f, hid_t dxpl_id, void *_thing,
     HDassert(flags);
 
     if(fspace->sinfo) {
-        /* Set the ring type in the DXPL */
-        if(NULL == (dxpl = (H5P_genplist_t *)H5I_object_verify(dxpl_id, H5I_GENPROP_LST)))
-            HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a property list");
-        if((H5P_get(dxpl, H5AC_RING_NAME, &orig_ring)) < 0)
-            HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "unable to get property value");
-        ring = H5AC_RING_FSM;
-        if((H5P_set(dxpl, H5AC_RING_NAME, &ring)) < 0)
-            HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "unable to set property value");
+        H5AC_ring_t ring;
+
+        /* Retrieve the ring type for the header */
+        if(H5AC_get_entry_ring(f, addr, &ring) < 0)
+            HGOTO_ERROR(H5E_FSPACE, H5E_CANTGET, FAIL, "unable to get property value");
+
+        /* Set the ring type for the section info in the DXPL */
+        if(H5AC_set_ring(dxpl_id, ring, &dxpl, &orig_ring) < 0)
+            HGOTO_ERROR(H5E_FSPACE, H5E_CANTSET, FAIL, "unable to set ring value")
 
         /* This implies that the header "owns" the section info.  
          *
@@ -609,9 +608,10 @@ H5FS__cache_hdr_pre_serialize(const H5F_t *f, hid_t dxpl_id, void *_thing,
     *flags = 0;
 
 done:
-    /* reset the ring type */
-    if(orig_ring && H5P_set(dxpl, H5AC_RING_NAME, &orig_ring) < 0)
-        HDONE_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "unable to set property value");
+    /* Reset the ring in the DXPL */
+    if(H5AC_reset_ring(dxpl, orig_ring) < 0)
+        HDONE_ERROR(H5E_FSPACE, H5E_CANTSET, FAIL, "unable to set property value")
+
     FUNC_LEAVE_NOAPI_TAG(ret_value, FAIL)
 } /* end H5FS__cache_hdr_pre_serialize() */
 

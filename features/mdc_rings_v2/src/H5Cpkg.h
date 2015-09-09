@@ -814,7 +814,9 @@ if ( ( (entry_ptr) == NULL ) ||                                                \
  * the hash table.
  *
  * When modifying these macros, remember to modify the similar macros
- * in tst/cache.c * * Changes:
+ * in tst/cache.c
+ *
+ * Changes:
  *
  *   - Updated existing index macros and sanity check macros to maintain
  *     the clean_index_size and dirty_index_size fields of H5C_t.  Also

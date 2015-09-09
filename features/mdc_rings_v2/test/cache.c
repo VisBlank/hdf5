@@ -16065,8 +16065,7 @@ check_duplicate_insert_err(void)
 
             result = H5C_insert_entry(file_ptr, H5P_DATASET_XFER_DEFAULT,
                                       &(types[0]), entry_ptr->addr,
-                                      (void *)entry_ptr, H5C__NO_FLAGS_SET, 
-                                      H5C_RING_USER);
+                                      (void *)entry_ptr, H5C__NO_FLAGS_SET);
 
             if ( result >= 0 ) {
 
@@ -16493,11 +16492,6 @@ check_pin_entry_errs(void)
  * Programmer:	John Mainzer
  *              6/24/04
  *
- * Changes:	Added ring parameter to H5C_protect call.  Set to 
- *		H5C_RING_USER for test purposes.
- *
- *						   JRM -- 8/30/15
- *
  *-------------------------------------------------------------------------
  */
 
@@ -16531,10 +16525,9 @@ check_double_protect_err(void)
 
     if ( pass ) {
 
-        cache_entry_ptr = (H5C_cache_entry_t *)
-	    H5C_protect(file_ptr, H5P_DATASET_XFER_DEFAULT,
-                        &(types[0]), entry_ptr->addr, &entry_ptr->addr, 
-			H5C__NO_FLAGS_SET, H5C_RING_USER);
+        cache_entry_ptr = (H5C_cache_entry_t *)H5C_protect(file_ptr, H5P_DATASET_XFER_DEFAULT,
+			               &(types[0]), entry_ptr->addr,
+				       &entry_ptr->addr, H5C__NO_FLAGS_SET);
 
         if ( cache_entry_ptr != NULL ) {
 
@@ -17080,10 +17073,7 @@ check_unprotect_ro_dirty_err(void)
  *
  * Modifications:
  *
- *		Added ring parameter to H5C_protect call.  Set to 
- *		H5C_RING_USER for test purposes.
- *
- *						   JRM -- 8/30/15
+ *		None.
  *
  *-------------------------------------------------------------------------
  */
@@ -17119,10 +17109,9 @@ check_protect_ro_rw_err(void)
 
     if ( pass ) {
 
-        thing_ptr = (H5C_cache_entry_t *)
-	    H5C_protect(file_ptr, H5P_DATASET_XFER_DEFAULT, &(types[0]), 
-			entry_ptr->addr, &entry_ptr->addr, H5C__NO_FLAGS_SET, 
-                        H5C_RING_USER);
+        thing_ptr = (H5C_cache_entry_t *)H5C_protect(file_ptr, H5P_DATASET_XFER_DEFAULT,
+			         &(types[0]), entry_ptr->addr,
+				 &entry_ptr->addr, H5C__NO_FLAGS_SET);
 
         if ( thing_ptr != NULL ) {
 
