@@ -16,7 +16,7 @@
 ## ----------------------------------------------------------------------
 ## Initialize configure.
 ##
-AC_REVISION($Id: configure.ac 27705 2015-09-08 22:21:01Z derobins $)
+AC_REVISION($Id: configure.ac 27743 2015-09-10 11:11:32Z derobins $)
 AC_PREREQ([2.69])
 
 ## AC_INIT takes the name of the package, the version number, and an
@@ -940,21 +940,6 @@ case "$host_cpu-$host_vendor-$host_os" in
     ## Need to add this so that O_DIRECT is visible for the direct
     ## VFD on Linux systems.
     H5_CPPFLAGS="-D_GNU_SOURCE $H5_CPPFLAGS"
-
-    ## Also add BSD support on Linux systems, so <features.h> defines
-    ## __USE_BSD, which is required to get the prototype for strdup
-    ## defined correctly in <string.h> and snprintf & vsnprintf defined
-    ## correctly in <stdio.h>
-    ## Linking to the bsd-compat library is required as per the gcc manual:
-    ## http://www.gnu.org/s/libc/manual/html_node/Feature-Test-Macros.html
-    ## however, we do not do this since it breaks the big test on some 
-    ## older platforms.
-    H5_CPPFLAGS="-D_BSD_SOURCE $H5_CPPFLAGS"
-
-    ## _BSD_SOURCE is deprecated as of glibc 2.20, in favor of _DEFAULT_SOURCE.
-    ## To avoid warnings, we define _DEFAULT_SOURCE in addition to _BSD_SOURCE,
-    ## which should work for all versions of glibc.
-    H5_CPPFLAGS="-D_DEFAULT_SOURCE $H5_CPPFLAGS"
     ;;
 esac
 
@@ -2216,61 +2201,6 @@ else
 fi
 
 ## ----------------------------------------------------------------------
-## Decide whether the data accuracy has higher priority during data
-## conversions.  If not, some hard conversions will still be prefered even
-## though the data may be wrong (for example, some compilers don't 
-## support denormalized floating values) to maximize speed.
-## 
-AC_MSG_CHECKING([whether data accuracy is guaranteed during data conversions])
-AC_ARG_ENABLE([dconv-accuracy],
-              [AS_HELP_STRING([--enable-dconv-accuracy],
-                              [if data accuracy is guaranteed during 
-                              data conversions [default=yes]])],
-              [DATA_ACCURACY=$enableval], [DATA_ACCURACY=yes])
-
-if test "$DATA_ACCURACY" = "yes"; then
-  AC_MSG_RESULT([yes])
-  AC_DEFINE([WANT_DATA_ACCURACY], [1],
-            [Data accuracy is prefered to speed during data conversions])
-else
-  AC_MSG_RESULT([no])
-fi
-
-## ----------------------------------------------------------------------
-## Set the flag to indicate that the machine can handle converting
-## denormalized floating-point values.
-## (This flag should be set for all machines, except for the Crays, where
-## the cache value is set in it's config file)
-##
-AC_MSG_CHECKING([if converting denormalized floating-point values is possible])
-AC_CACHE_VAL([hdf5_cv_convert_denormal_float], [hdf5_cv_convert_denormal_float=yes])
-
-if test ${hdf5_cv_convert_denormal_float} = "yes"; then
-  AC_DEFINE([CONVERT_DENORMAL_FLOAT], [1],
-            [Define if your system can handle converting denormalized floating-point values.])
-  AC_MSG_RESULT([yes])
-else
-  AC_MSG_RESULT([no])
-fi
-
-## ----------------------------------------------------------------------
-## Set the flag to indicate that the machine can handle converting
-## floating-point to long long values.
-## (This flag should be _unset_ for all machines, except for Windows, where
-## it's set in the custom Windows H5pubconf.h file)
-##
-AC_MSG_CHECKING([if converting floating-point values to long long is not working])
-AC_CACHE_VAL([hdf5_cv_convert_float_llong_not_works], [hdf5_cv_convert_float_llong_not_works=no])
-
-if test ${hdf5_cv_convert_float_llong_not_works} = "yes"; then
-  AC_DEFINE([HW_FP_TO_LLONG_NOT_WORKS], [1],
-            [Define if your system can't handle converting floating-point values to long long.])
-  AC_MSG_RESULT([true])
-else
-  AC_MSG_RESULT([false])
-fi
-
-## ----------------------------------------------------------------------
 ## Set the flag to indicate that the machine has window style pathname,
 ## that is, "drive-letter:\" (e.g. "C:") or "drive-letter:/" (e.g. "C:/").
 ## (This flag should be _unset_ for all machines, except for Windows, where
@@ -2288,37 +2218,6 @@ case "`uname`" in
     AC_MSG_RESULT([no])
     ;;
 esac
-
-## ----------------------------------------------------------------------
-## Set the flag to indicate that the machine can handle overflow converting
-## all floating-point to all integer types.
-## (This flag should be set for all machines, except for Cray X1 where
-## floating exception is generated when the floating-point value is greater
-## than the maximal integer value).
-##
-AC_MSG_CHECKING([if overflows normally converting floating-point to integer values])
-
-AC_CACHE_VAL([hdf5_cv_fp_to_integer_overflow_works],
-    [AC_TRY_RUN([
-    int main(void)
-    {
-        float  f = 2147483648.0f;
-        int    i;
-
-        i = (int)f;
-
-done:
-        exit(0);
-    }
-    ], [hdf5_cv_fp_to_integer_overflow_works=yes], [hdf5_cv_fp_to_integer_overflow_works=no],)])
-
-if test ${hdf5_cv_fp_to_integer_overflow_works} = "yes"; then
-  AC_DEFINE([FP_TO_INTEGER_OVERFLOW_WORKS], [1],
-            [Define if your system can handle overflow converting floating-point to integer values.])
-  AC_MSG_RESULT([yes])
-else
-  AC_MSG_RESULT([no])
-fi
 
 ## ----------------------------------------------------------------------
 ## Set the flag to indicate that the machine is using a special algorithm to convert
@@ -2476,135 +2375,6 @@ fi
 if test ${hdf5_cv_long_to_ldouble_special} = "yes"; then
   AC_DEFINE([LONG_TO_LDOUBLE_SPECIAL], [1],
             [Define if your system can convert (unsigned) long to long double values with special algorithm.])
-  AC_MSG_RESULT([yes])
-else
-  AC_MSG_RESULT([no])
-fi
-
-## ----------------------------------------------------------------------
-## Set the flag to indicate that the machine can accurately convert
-## 'long double' to '(unsigned) long long' values.  (This flag should be set for 
-## all machines, except for Mac OS 10.4 and SGI IRIX64 6.5.  When the bit sequence
-## of long double is 0x4351ccf385ebc8a0bfcc2a3c..., the values of (unsigned)long long
-## start to go wrong on these two machines.  Adjusting it higher to 
-## 0x4351ccf385ebc8a0dfcc... or 0x4351ccf385ebc8a0ffcc... will make the converted 
-## values wildly wrong.  This test detects this wrong behavior and disable the test.  
-##
-AC_MSG_CHECKING([if correctly converting long double to (unsigned) long long values])
-
-if test ${ac_cv_sizeof_long_double} = 0; then
-   hdf5_cv_ldouble_to_llong_accurate=${hdf5_cv_ldouble_to_llong_accurate=no}
-else
-   AC_CACHE_VAL([hdf5_cv_ldouble_to_llong_accurate],
-        [AC_TRY_RUN([
-        int main(void)
-        {
-            long double         ld = 20041683600089727.779961L;
-            long long           ll;
-            unsigned long long  ull;
-            unsigned char       s[16];
-            int                 ret = 0;
-            
-            if(sizeof(long double) == 16) {
-                /*make sure the long double type is the same as the failing type 
-                 *which has 16 bytes in size and 11 bits of exponent.  If it is,
-                 *the bit sequence should be like below.  It's not 
-                 *a decent way to check but this info isn't available. */   
-                memcpy(s, &ld, 16);
-                if(s[0]==0x43 && s[1]==0x51 && s[2]==0xcc && s[3]==0xf3 &&
-                    s[4]==0x85 && s[5]==0xeb && s[6]==0xc8 && s[7]==0xa0 &&
-                    s[8]==0xbf && s[9]==0xcc && s[10]==0x2a && s[11]==0x3c) {
-
-                    /*slightly adjust the bit sequence (s[8]=0xdf).  The converted
-                     *values will go wild on Mac OS 10.4 and IRIX64 6.5.*/ 
-                    s[0]=0x43; s[1]=0x51; s[2]=0xcc; s[3]=0xf3;
-                    s[4]=0x85; s[5]=0xeb; s[6]=0xc8; s[7]=0xa0;
-                    s[8]=0xdf; s[9]=0xcc; s[10]=0x2a; s[11]=0x3c;
-                    s[12]=0x3d; s[13]=0x85; s[14]=0x56; s[15]=0x20;
-
-                    memcpy(&ld, s, 16);
-                    ll = (long long)ld;
-                    ull = (unsigned long long)ld;
-                    
-                    if(ll != 20041683600089728 || ull != 20041683600089728)
-                        ret = 1;
-                }    
-            }    
-    done:
-            exit(ret);
-        }
-        ], [hdf5_cv_ldouble_to_llong_accurate=yes], [hdf5_cv_ldouble_to_llong_accurate=no],)])
-fi
-
-if test ${hdf5_cv_ldouble_to_llong_accurate} = "yes"; then
-  AC_DEFINE([LDOUBLE_TO_LLONG_ACCURATE], [1],
-            [Define if your system can convert long double to (unsigned) long long values correctly.])
-  AC_MSG_RESULT([yes])
-else
-  AC_MSG_RESULT([no])
-fi
-
-
-## ----------------------------------------------------------------------
-## Set the flag to indicate that the machine can accurately convert
-## '(unsigned) long long' to 'long double' values.  (This flag should be set for 
-## all machines, except for Mac OS 10.4, when the bit sequences are 003fff...,
-## 007fff..., 00ffff..., 01ffff..., ..., 7fffff..., the converted values are twice
-## as big as they should be. 
-##
-AC_MSG_CHECKING([if correctly converting (unsigned) long long to long double values])
-
-if test ${ac_cv_sizeof_long_double} = 0; then
-   hdf5_cv_llong_to_ldouble_correct=${hdf5_cv_llong_to_ldouble_correct=no}
-else
-   AC_CACHE_VAL([hdf5_cv_llong_to_ldouble_correct],
-        [AC_TRY_RUN([
-        int main(void)
-        {
-            long double         ld;
-            long long           ll;
-            unsigned long long  ull;
-            unsigned char       s[16];
-            int                 flag=0, ret=0;
-        
-            /*Determine if long double has 16 byte in size, 11 bit exponent, and
-             *the bias is 0x3ff */ 
-            if(sizeof(long double) == 16) { 
-                ld = 1.0L;
-                memcpy(s, &ld, 16);
-                if(s[0]==0x3f && s[1]==0xf0 && s[2]==0x00 && s[3]==0x00 &&
-                    s[4]==0x00 && s[5]==0x00 && s[6]==0x00 && s[7]==0x00) 
-                    flag = 1; 
-            }
-             
-            if(flag==1 && sizeof(long long)==8) {
-                ll = 0x01ffffffffffffffLL;
-                ld = (long double)ll;
-                memcpy(s, &ld, 16);
-                /*Check if the bit sequence is as supposed to be*/
-                if(s[0]!=0x43 || s[1]!=0x7f || s[2]!=0xff || s[3]!=0xff ||
-                    s[4]!=0xff || s[5]!=0xff || s[6]!=0xff || s[7]!=0xff ||
-                    s[8]!=0xf0 || s[9]!=0x00 || s[10]!=0x00 || s[11]!=0x00)
-                    ret = 1;
-            }        
-            if(flag==1 && sizeof(unsigned long long)==8) {
-                ull = 0x01ffffffffffffffULL;
-                ld = (long double)ull;
-                memcpy(s, &ld, 16);
-                if(s[0]!=0x43 || s[1]!=0x7f || s[2]!=0xff || s[3]!=0xff ||
-                    s[4]!=0xff || s[5]!=0xff || s[6]!=0xff || s[7]!=0xff ||
-                    s[8]!=0xf0 || s[9]!=0x00 || s[10]!=0x00 || s[11]!=0x00)
-                    ret = 1;
-            }        
-    done:
-            exit(ret);
-        }
-        ], [hdf5_cv_llong_to_ldouble_correct=yes], [hdf5_cv_llong_to_ldouble_correct=no],)])
-fi
-
-if test ${hdf5_cv_llong_to_ldouble_correct} = "yes"; then
-  AC_DEFINE([LLONG_TO_LDOUBLE_CORRECT], [1],
-            [Define if your system can convert (unsigned) long long to long double values correctly.])
   AC_MSG_RESULT([yes])
 else
   AC_MSG_RESULT([no])
