@@ -43,7 +43,7 @@ foreach (example ${HDF_JAVA_EXAMPLES})
   add_dependencies (${example} ${HDF5_JAVA_HDF5_LIB_TARGET})
 endforeach (example ${HDF_JAVA_EXAMPLES})
 
-set (CMAKE_JAVA_INCLUDE_PATH "${HDF5_JAVA_JARS};${HDFJAVA_LOGGING_JAR};${HDFJAVA_LOGGING_NOP_JAR}")
+set (CMAKE_JAVA_INCLUDE_PATH "${HDF5_JAVA_JARS};${HDF5_JAVA_LOGGING_JAR};${HDF5_JAVA_LOGGING_NOP_JAR}")
 
 set (CMAKE_JAVA_CLASSPATH ".")
 foreach (HDFJAVA_JAR ${CMAKE_JAVA_INCLUDE_PATH})
@@ -68,7 +68,7 @@ endforeach (h5_file ${HDF_JAVA_TEST_FILES})
 
 MACRO (ADD_H5_TEST resultfile resultcode)
   add_test (
-      NAME groups-${resultfile}
+      NAME JAVA_groups-${resultfile}
       COMMAND "${CMAKE_COMMAND}"
           -D "TEST_TESTER=${CMAKE_Java_RUNTIME};${CMAKE_Java_RUNTIME_FLAGS}"
           -D "TEST_PROGRAM=examples.groups.${resultfile}"
@@ -79,31 +79,31 @@ MACRO (ADD_H5_TEST resultfile resultcode)
           -D "TEST_OUTPUT=groups/${resultfile}.out"
           -D "TEST_EXPECT=${resultcode}"
           -D "TEST_REFERENCE=groups/${resultfile}.txt"
-          -P "${HDF_RESOURCES_DIR}/runTest.cmake"
+          -P "${HDF_RESOURCES_DIR}/jrunTest.cmake"
   )
   if (NOT "${last_test}" STREQUAL "")
-    set_tests_properties (groups-${resultfile} PROPERTIES DEPENDS ${last_test})
+    set_tests_properties (JAVA_groups-${resultfile} PROPERTIES DEPENDS ${last_test})
   endif (NOT "${last_test}" STREQUAL "")
-  set (last_test "groups-${resultfile}")
+  set (last_test "JAVA_groups-${resultfile}")
 ENDMACRO (ADD_H5_TEST file)
 
 if (BUILD_TESTING)
   foreach (example ${HDF_JAVA_EXAMPLES})
     add_test (
-        NAME groups-${example}-clearall-objects
+        NAME JAVA_groups-${example}-clearall-objects
         COMMAND    ${CMAKE_COMMAND}
             -E remove
             ${example}.out
             ${example}.out.err
     )
     if (NOT "${last_test}" STREQUAL "")
-      set_tests_properties (groups-${example}-clearall-objects PROPERTIES DEPENDS ${last_test})
+      set_tests_properties (JAVA_groups-${example}-clearall-objects PROPERTIES DEPENDS ${last_test})
     endif (NOT "${last_test}" STREQUAL "")
-    set (last_test "groups-${example}-clearall-objects")
+    set (last_test "JAVA_groups-${example}-clearall-objects")
     if (NOT ${example} STREQUAL "H5Ex_G_Iterate" AND NOT ${example} STREQUAL "H5Ex_G_Visit")
       if (${example} STREQUAL "H5Ex_G_Compact")
         add_test (
-            NAME groups-${example}-clearall-h5s
+            NAME JAVA_groups-${example}-clearall-h5s
             COMMAND    ${CMAKE_COMMAND}
                 -E remove
                 ${HDFJAVA_EXAMPLES_BINARY_DIR}/${example}1.h5
@@ -111,28 +111,28 @@ if (BUILD_TESTING)
         )
       else (${example} STREQUAL "H5Ex_G_Compact")
         add_test (
-            NAME groups-${example}-clearall-h5s
+            NAME JAVA_groups-${example}-clearall-h5s
             COMMAND    ${CMAKE_COMMAND}
                 -E remove
                 ${HDFJAVA_EXAMPLES_BINARY_DIR}/${example}.h5
         )
       endif (${example} STREQUAL "H5Ex_G_Compact")
       if (NOT "${last_test}" STREQUAL "")
-        set_tests_properties (groups-${example}-clearall-h5s PROPERTIES DEPENDS ${last_test})
+        set_tests_properties (JAVA_groups-${example}-clearall-h5s PROPERTIES DEPENDS ${last_test})
       endif (NOT "${last_test}" STREQUAL "")
-      set (last_test "groups-${example}-clearall-h5s")
+      set (last_test "JAVA_groups-${example}-clearall-h5s")
     endif (NOT ${example} STREQUAL "H5Ex_G_Iterate" AND NOT ${example} STREQUAL "H5Ex_G_Visit")
     add_test (
-        NAME groups-${example}-copy-objects
+        NAME JAVA_groups-${example}-copy-objects
         COMMAND    ${CMAKE_COMMAND}
             -E copy_if_different
             ${HDFJAVA_EXAMPLES_SOURCE_DIR}/testfiles/examples.groups.${example}.txt
             ${HDFJAVA_EXAMPLES_GROUPS_BINARY_DIR}/${example}.txt
     )
     if (NOT "${last_test}" STREQUAL "")
-      set_tests_properties (groups-${example}-copy-objects PROPERTIES DEPENDS ${last_test})
+      set_tests_properties (JAVA_groups-${example}-copy-objects PROPERTIES DEPENDS ${last_test})
     endif (NOT "${last_test}" STREQUAL "")
-    set (last_test "groups-${example}-copy-objects")
+    set (last_test "JAVA_groups-${example}-copy-objects")
     ADD_H5_TEST (${example} 0)
   endforeach (example ${HDF_JAVA_EXAMPLES})
 endif (BUILD_TESTING)

@@ -54,7 +54,7 @@ foreach (example ${HDF_JAVA_EXAMPLES})
   add_dependencies (${example} ${HDF5_JAVA_HDF5_LIB_TARGET})
 endforeach (example ${HDF_JAVA_EXAMPLES})
 
-set (CMAKE_JAVA_INCLUDE_PATH "${HDF5_JAVA_JARS};${HDFJAVA_LOGGING_JAR};${HDFJAVA_LOGGING_NOP_JAR}")
+set (CMAKE_JAVA_INCLUDE_PATH "${HDF5_JAVA_JARS};${HDF5_JAVA_LOGGING_JAR};${HDF5_JAVA_LOGGING_NOP_JAR}")
 
 set (CMAKE_JAVA_CLASSPATH ".")
 foreach (HDFJAVA_JAR ${CMAKE_JAVA_INCLUDE_PATH})
@@ -63,7 +63,7 @@ endforeach (HDFJAVA_JAR)
 
 MACRO (ADD_H5_TEST resultfile resultcode)
   add_test (
-      NAME datasets-${resultfile}
+      NAME JAVA_datasets-${resultfile}
       COMMAND "${CMAKE_COMMAND}"
           -D "TEST_TESTER=${CMAKE_Java_RUNTIME};${CMAKE_Java_RUNTIME_FLAGS}"
           -D "TEST_CLASSPATH:STRING=${CMAKE_JAVA_CLASSPATH}${CMAKE_JAVA_INCLUDE_FLAG_SEP}${${resultfile}_JAR_FILE}"
@@ -74,19 +74,19 @@ MACRO (ADD_H5_TEST resultfile resultcode)
           -D "TEST_OUTPUT=datasets/${resultfile}.out"
           -D "TEST_EXPECT=${resultcode}"
           -D "TEST_REFERENCE=datasets/${resultfile}.txt"
-          -P "${HDF_RESOURCES_DIR}/runTest.cmake"
+          -P "${HDF_RESOURCES_DIR}/jrunTest.cmake"
   )
   if (NOT "${last_test}" STREQUAL "")
-    set_tests_properties (datasets-${resultfile} PROPERTIES DEPENDS ${last_test})
+    set_tests_properties (JAVA_datasets-${resultfile} PROPERTIES DEPENDS ${last_test})
   endif (NOT "${last_test}" STREQUAL "")
-  set (last_test "datasets-${resultfile}")
+  set (last_test "JAVA_datasets-${resultfile}")
 ENDMACRO (ADD_H5_TEST file)
 
 if (BUILD_TESTING)
   foreach (example ${HDF_JAVA_EXAMPLES})
     if (${example} STREQUAL "H5Ex_D_External")
       add_test (
-          NAME datasets-${example}-clearall-objects
+          NAME JAVA_datasets-${example}-clearall-objects
           COMMAND    ${CMAKE_COMMAND}
               -E remove
               ${HDFJAVA_EXAMPLES_BINARY_DIR}/${example}.h5
@@ -96,7 +96,7 @@ if (BUILD_TESTING)
       )
     else (${example} STREQUAL "H5Ex_D_External")
       add_test (
-          NAME datasets-${example}-clearall-objects
+          NAME JAVA_datasets-${example}-clearall-objects
           COMMAND    ${CMAKE_COMMAND}
               -E remove
               ${HDFJAVA_EXAMPLES_BINARY_DIR}/${example}.h5
@@ -105,17 +105,17 @@ if (BUILD_TESTING)
       )
     endif (${example} STREQUAL "H5Ex_D_External")
     if (NOT "${last_test}" STREQUAL "")
-      set_tests_properties (datasets-${example}-clearall-objects PROPERTIES DEPENDS ${last_test})
+      set_tests_properties (JAVA_datasets-${example}-clearall-objects PROPERTIES DEPENDS ${last_test})
     endif (NOT "${last_test}" STREQUAL "")
     add_test (
-        NAME datasets-${example}-copy-objects
+        NAME JAVA_datasets-${example}-copy-objects
         COMMAND    ${CMAKE_COMMAND}
             -E copy_if_different
             ${HDFJAVA_EXAMPLES_SOURCE_DIR}/testfiles/examples.datasets.${example}.txt
             ${HDFJAVA_EXAMPLES_DATASETS_BINARY_DIR}/${example}.txt
     )
-    set_tests_properties (datasets-${example}-copy-objects PROPERTIES DEPENDS datasets-${example}-clearall-objects)
-    set (last_test "datasets-${example}-copy-objects")
+    set_tests_properties (JAVA_datasets-${example}-copy-objects PROPERTIES DEPENDS JAVA_datasets-${example}-clearall-objects)
+    set (last_test "JAVA_datasets-${example}-copy-objects")
     ADD_H5_TEST (${example} 0)
   endforeach (example ${HDF_JAVA_EXAMPLES})
 endif (BUILD_TESTING)

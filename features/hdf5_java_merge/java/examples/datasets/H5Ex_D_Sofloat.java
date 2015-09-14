@@ -1,12 +1,12 @@
-    /************************************************************
-      This example shows how to read and write data to a dataset
-      using the Scale-Offset filter.  The program first checks
-      if the Scale-Offset filter is available, then if it is it
-      writes floating point numbers to a dataset using
-      Scale-Offset, then closes the file Next, it reopens the
-      file, reads back the data, and outputs the type of filter
-      and the maximum value in the dataset to the screen.
-     ************************************************************/
+/************************************************************
+  This example shows how to read and write data to a dataset
+  using the Scale-Offset filter.  The program first checks
+  if the Scale-Offset filter is available, then if it is it
+  writes floating point numbers to a dataset using
+  Scale-Offset, then closes the file Next, it reopens the
+  file, reads back the data, and outputs the type of filter
+  and the maximum value in the dataset to the screen.
+ ************************************************************/
 package examples.datasets;
 
 import java.util.EnumSet;
@@ -29,11 +29,11 @@ public class H5Ex_D_Sofloat {
 
     // Values for the status of space allocation
     enum H5Z_filter {
-        H5Z_FILTER_ERROR(HDF5Constants.H5Z_FILTER_ERROR), H5Z_FILTER_NONE(HDF5Constants.H5Z_FILTER_NONE), 
-        H5Z_FILTER_DEFLATE(HDF5Constants.H5Z_FILTER_DEFLATE), H5Z_FILTER_SHUFFLE(HDF5Constants.H5Z_FILTER_SHUFFLE), 
-        H5Z_FILTER_FLETCHER32(HDF5Constants.H5Z_FILTER_FLETCHER32), H5Z_FILTER_SZIP(HDF5Constants.H5Z_FILTER_SZIP), 
-        H5Z_FILTER_NBIT(HDF5Constants.H5Z_FILTER_NBIT), H5Z_FILTER_SCALEOFFSET(HDF5Constants.H5Z_FILTER_SCALEOFFSET), 
-        H5Z_FILTER_RESERVED(HDF5Constants.H5Z_FILTER_RESERVED), H5Z_FILTER_MAX(HDF5Constants.H5Z_FILTER_MAX);
+        H5Z_FILTER_ERROR(HDF5Constants.H5Z_FILTER_ERROR), H5Z_FILTER_NONE(HDF5Constants.H5Z_FILTER_NONE), H5Z_FILTER_DEFLATE(
+                HDF5Constants.H5Z_FILTER_DEFLATE), H5Z_FILTER_SHUFFLE(HDF5Constants.H5Z_FILTER_SHUFFLE), H5Z_FILTER_FLETCHER32(
+                HDF5Constants.H5Z_FILTER_FLETCHER32), H5Z_FILTER_SZIP(HDF5Constants.H5Z_FILTER_SZIP), H5Z_FILTER_NBIT(
+                HDF5Constants.H5Z_FILTER_NBIT), H5Z_FILTER_SCALEOFFSET(HDF5Constants.H5Z_FILTER_SCALEOFFSET), H5Z_FILTER_RESERVED(
+                HDF5Constants.H5Z_FILTER_RESERVED), H5Z_FILTER_MAX(HDF5Constants.H5Z_FILTER_MAX);
         private static final Map<Integer, H5Z_filter> lookup = new HashMap<Integer, H5Z_filter>();
 
         static {
@@ -83,15 +83,15 @@ public class H5Ex_D_Sofloat {
     }
 
     private static void writeData() {
-        int     file_id = -1;
-        int     filespace_id = -1;
-        int     dataset_id = -1;
-        int     dcpl_id = -1;
-        long[]  dims = { DIM_X, DIM_Y };
-        long[]  chunk_dims = { CHUNK_X, CHUNK_Y };
+        long file_id = -1;
+        long filespace_id = -1;
+        long dataset_id = -1;
+        long dcpl_id = -1;
+        long[] dims = { DIM_X, DIM_Y };
+        long[] chunk_dims = { CHUNK_X, CHUNK_Y };
         double[][] dset_data = new double[DIM_X][DIM_Y];
 
-        //Initialize data.
+        // Initialize data.
         for (int indx = 0; indx < DIM_X; indx++)
             for (int jndx = 0; jndx < DIM_Y; jndx++) {
                 double x = indx;
@@ -99,7 +99,7 @@ public class H5Ex_D_Sofloat {
                 dset_data[indx][jndx] = (x + 1) / (y + 0.3) + y;
             }
 
-        //Find the maximum value in the dataset, to verify that it was read correctly.
+        // Find the maximum value in the dataset, to verify that it was read correctly.
         double max = dset_data[0][0];
         double min = dset_data[0][0];
         for (int indx = 0; indx < DIM_X; indx++)
@@ -110,19 +110,20 @@ public class H5Ex_D_Sofloat {
                     min = dset_data[indx][jndx];
             }
 
-        //Print the maximum value.
+        // Print the maximum value.
         System.out.println("Maximum value in write buffer is: " + max);
         System.out.println("Minimum value in write buffer is: " + min);
 
-        //Create a new file using the default properties.
+        // Create a new file using the default properties.
         try {
-            file_id = H5.H5Fcreate(FILENAME, HDF5Constants.H5F_ACC_TRUNC, HDF5Constants.H5P_DEFAULT, HDF5Constants.H5P_DEFAULT);
+            file_id = H5.H5Fcreate(FILENAME, HDF5Constants.H5F_ACC_TRUNC, HDF5Constants.H5P_DEFAULT,
+                    HDF5Constants.H5P_DEFAULT);
         }
         catch (Exception e) {
             e.printStackTrace();
         }
 
-        //Create dataspace.  Setting maximum size to NULL sets the maximum  size to be the current size.
+        // Create dataspace. Setting maximum size to NULL sets the maximum size to be the current size.
         try {
             filespace_id = H5.H5Screate_simple(RANK, dims, null);
         }
@@ -130,7 +131,7 @@ public class H5Ex_D_Sofloat {
             e.printStackTrace();
         }
 
-        //Create the dataset creation property list, add the Scale-Offset
+        // Create the dataset creation property list, add the Scale-Offset
         // filter and set the chunk size.
         try {
             dcpl_id = H5.H5Pcreate(HDF5Constants.H5P_DATASET_CREATE);
@@ -143,35 +144,34 @@ public class H5Ex_D_Sofloat {
             e.printStackTrace();
         }
 
-        //Create the dataset.
+        // Create the dataset.
         try {
             if ((file_id >= 0) && (filespace_id >= 0) && (dcpl_id >= 0))
-                dataset_id = H5.H5Dcreate(file_id, DATASETNAME, HDF5Constants.H5T_IEEE_F64LE, filespace_id, 
+                dataset_id = H5.H5Dcreate(file_id, DATASETNAME, HDF5Constants.H5T_IEEE_F64LE, filespace_id,
                         HDF5Constants.H5P_DEFAULT, dcpl_id, HDF5Constants.H5P_DEFAULT);
         }
         catch (Exception e) {
             e.printStackTrace();
         }
 
-        //Write the data to the dataset.
+        // Write the data to the dataset.
         try {
             if (dataset_id >= 0)
-                H5.H5Dwrite(dataset_id, HDF5Constants.H5T_NATIVE_DOUBLE, 
-                        HDF5Constants.H5S_ALL, HDF5Constants.H5S_ALL, HDF5Constants.H5P_DEFAULT,
-                        dset_data);
+                H5.H5Dwrite(dataset_id, HDF5Constants.H5T_NATIVE_DOUBLE, HDF5Constants.H5S_ALL, HDF5Constants.H5S_ALL,
+                        HDF5Constants.H5P_DEFAULT, dset_data);
         }
         catch (Exception e) {
             e.printStackTrace();
         }
 
-        //Close and release resources.
+        // Close and release resources.
         try {
             if (dcpl_id >= 0)
                 H5.H5Pclose(dcpl_id);
         }
         catch (Exception e) {
             e.printStackTrace();
-        }    
+        }
 
         try {
             if (dataset_id >= 0)
@@ -189,7 +189,7 @@ public class H5Ex_D_Sofloat {
             e.printStackTrace();
         }
 
-        //Close file
+        // Close file
         try {
             if (file_id >= 0)
                 H5.H5Fclose(file_id);
@@ -200,9 +200,9 @@ public class H5Ex_D_Sofloat {
     }
 
     private static void readData() {
-        int file_id = -1;
-        int dataset_id = -1;
-        int dcpl_id = -1;
+        long file_id = -1;
+        long dataset_id = -1;
+        long dcpl_id = -1;
         double[][] dset_data = new double[DIM_X][DIM_Y];
 
         // Open file using the default properties.
@@ -221,7 +221,7 @@ public class H5Ex_D_Sofloat {
             e.printStackTrace();
         }
 
-        //Retrieve dataset creation property list.
+        // Retrieve dataset creation property list.
         try {
             if (dataset_id >= 0)
                 dcpl_id = H5.H5Dget_create_plist(dataset_id);
@@ -230,7 +230,7 @@ public class H5Ex_D_Sofloat {
             e.printStackTrace();
         }
 
-        //Retrieve and print the filter type.  Here we only retrieve the
+        // Retrieve and print the filter type. Here we only retrieve the
         // first filter because we know that we only added one filter.
         try {
             if (dcpl_id >= 0) {
@@ -242,8 +242,8 @@ public class H5Ex_D_Sofloat {
                 int[] filter_config = { 0 };
                 int filter_type = -1;
 
-                filter_type = H5.H5Pget_filter(dcpl_id, 0, flags, cd_nelmts, cd_values,
-                        120, filter_name, filter_config);
+                filter_type = H5
+                        .H5Pget_filter(dcpl_id, 0, flags, cd_nelmts, cd_values, 120, filter_name, filter_config);
                 System.out.print("Filter type is: ");
                 switch (H5Z_filter.get(filter_type)) {
                 case H5Z_FILTER_DEFLATE:
@@ -274,18 +274,17 @@ public class H5Ex_D_Sofloat {
             e.printStackTrace();
         }
 
-        //Read the data using the default properties.
+        // Read the data using the default properties.
         try {
             if (dataset_id >= 0)
-                H5.H5Dread(dataset_id, HDF5Constants.H5T_NATIVE_DOUBLE, 
-                        HDF5Constants.H5S_ALL, HDF5Constants.H5S_ALL, HDF5Constants.H5P_DEFAULT,
-                        dset_data);
+                H5.H5Dread(dataset_id, HDF5Constants.H5T_NATIVE_DOUBLE, HDF5Constants.H5S_ALL, HDF5Constants.H5S_ALL,
+                        HDF5Constants.H5P_DEFAULT, dset_data);
         }
         catch (Exception e) {
             e.printStackTrace();
         }
 
-        //Find the maximum value in the dataset, to verify that it was read correctly.
+        // Find the maximum value in the dataset, to verify that it was read correctly.
         double max = dset_data[0][0];
         double min = dset_data[0][0];
         for (int indx = 0; indx < DIM_X; indx++)
@@ -296,8 +295,8 @@ public class H5Ex_D_Sofloat {
                     min = dset_data[indx][jndx];
             }
 
-        //Print the maximum value.
-        System.out.println("Maximum value in "+ DATASETNAME + " is: " + max);
+        // Print the maximum value.
+        System.out.println("Maximum value in " + DATASETNAME + " is: " + max);
         System.out.println("Minimum value in " + DATASETNAME + " is: " + min);
 
         // End access to the dataset and release resources used by it.
@@ -329,11 +328,11 @@ public class H5Ex_D_Sofloat {
 
     public static void main(String[] args) {
 
-        //Check if Scale-Offset compression is available and can be used
-        //for both compression and decompression.  Normally we do not
-        //perform error checking in these examples for the sake of
-        //clarity, but in this case we will make an exception because this
-        //filter is an optional part of the hdf5 library.
+        // Check if Scale-Offset compression is available and can be used
+        // for both compression and decompression. Normally we do not
+        // perform error checking in these examples for the sake of
+        // clarity, but in this case we will make an exception because this
+        // filter is an optional part of the hdf5 library.
         if (H5Ex_D_Sofloat.checkScaleoffsetFilter()) {
             H5Ex_D_Sofloat.writeData();
             H5Ex_D_Sofloat.readData();

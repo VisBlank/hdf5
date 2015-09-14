@@ -32,11 +32,11 @@ add_subdirectory (${HDF5_JAVA_SOURCE_DIR}/jni ${HDF5_JAVA_BINARY_DIR}/jni)
 add_subdirectory (${HDF5_JAVA_SOURCE_DIR}/hdf ${HDF5_JAVA_BINARY_DIR}/hdf)
 
 #-----------------------------------------------------------------------------
-# Build the Fortran Examples
+# Build the Java Examples
 #-----------------------------------------------------------------------------
-#if (HDF5_BUILD_EXAMPLES)
-#  add_subdirectory (${HDF5_JAVA_SOURCE_DIR}/examples ${HDF5_JAVA_BINARY_DIR}/examples)
-#endif (HDF5_BUILD_EXAMPLES)
+if (HDF5_BUILD_EXAMPLES)
+  add_subdirectory (${HDF5_JAVA_SOURCE_DIR}/examples ${HDF5_JAVA_BINARY_DIR}/examples)
+endif (HDF5_BUILD_EXAMPLES)
 
 #-----------------------------------------------------------------------------
 # Testing

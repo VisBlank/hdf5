@@ -2,10 +2,10 @@
  This example shows how to read and write data to a dataset
  using the N-Bit filter.  The program first checks if the
  N-Bit filter is available, then if it is it writes integers
- to a dataset using N-Bit, then closes the file. Next, it 
+ to a dataset using N-Bit, then closes the file. Next, it
  reopens the file, reads back the data, and outputs the type
  of filter and the maximum value in the dataset to the screen.
-************************************************************/
+ ************************************************************/
 
 package examples.datasets;
 
@@ -28,11 +28,11 @@ public class H5Ex_D_Nbit {
 
     // Values for the status of space allocation
     enum H5Z_filter {
-        H5Z_FILTER_ERROR(HDF5Constants.H5Z_FILTER_ERROR), H5Z_FILTER_NONE(HDF5Constants.H5Z_FILTER_NONE), 
-        H5Z_FILTER_DEFLATE(HDF5Constants.H5Z_FILTER_DEFLATE), H5Z_FILTER_SHUFFLE(HDF5Constants.H5Z_FILTER_SHUFFLE), 
-        H5Z_FILTER_FLETCHER32(HDF5Constants.H5Z_FILTER_FLETCHER32), H5Z_FILTER_SZIP(HDF5Constants.H5Z_FILTER_SZIP), 
-        H5Z_FILTER_NBIT(HDF5Constants.H5Z_FILTER_NBIT), H5Z_FILTER_SCALEOFFSET(HDF5Constants.H5Z_FILTER_SCALEOFFSET), 
-        H5Z_FILTER_RESERVED(HDF5Constants.H5Z_FILTER_RESERVED), H5Z_FILTER_MAX(HDF5Constants.H5Z_FILTER_MAX);
+        H5Z_FILTER_ERROR(HDF5Constants.H5Z_FILTER_ERROR), H5Z_FILTER_NONE(HDF5Constants.H5Z_FILTER_NONE), H5Z_FILTER_DEFLATE(
+                HDF5Constants.H5Z_FILTER_DEFLATE), H5Z_FILTER_SHUFFLE(HDF5Constants.H5Z_FILTER_SHUFFLE), H5Z_FILTER_FLETCHER32(
+                HDF5Constants.H5Z_FILTER_FLETCHER32), H5Z_FILTER_SZIP(HDF5Constants.H5Z_FILTER_SZIP), H5Z_FILTER_NBIT(
+                HDF5Constants.H5Z_FILTER_NBIT), H5Z_FILTER_SCALEOFFSET(HDF5Constants.H5Z_FILTER_SCALEOFFSET), H5Z_FILTER_RESERVED(
+                HDF5Constants.H5Z_FILTER_RESERVED), H5Z_FILTER_MAX(HDF5Constants.H5Z_FILTER_MAX);
         private static final Map<Integer, H5Z_filter> lookup = new HashMap<Integer, H5Z_filter>();
 
         static {
@@ -54,10 +54,10 @@ public class H5Ex_D_Nbit {
             return lookup.get(code);
         }
     }
-    
+
     private static boolean checkNbitFilter() {
         try {
-            //Check if N-Bit compression is available and can be used for both compression and decompression. 
+            // Check if N-Bit compression is available and can be used for both compression and decompression.
             int available = H5.H5Zfilter_avail(HDF5Constants.H5Z_FILTER_NBIT);
             if (available == 0) {
                 System.out.println("N-Bit filter not available.");
@@ -69,7 +69,7 @@ public class H5Ex_D_Nbit {
         }
 
         try {
-            int filter_info = H5.H5Zget_filter_info (HDF5Constants.H5Z_FILTER_NBIT);
+            int filter_info = H5.H5Zget_filter_info(HDF5Constants.H5Z_FILTER_NBIT);
             if (((filter_info & HDF5Constants.H5Z_FILTER_CONFIG_ENCODE_ENABLED) == 0)
                     || ((filter_info & HDF5Constants.H5Z_FILTER_CONFIG_DECODE_ENABLED) == 0)) {
                 System.out.println("N-Bit filter not available for encoding and decoding.");
@@ -81,16 +81,16 @@ public class H5Ex_D_Nbit {
         }
         return true;
     }
-    
+
     private static void writeData() throws Exception {
-        int file_id = -1;
-        int filespace_id = -1;
-        int dataset_id = -1;
-        int dtype_id = -1;
-        int dcpl_id = -1;
+        long file_id = -1;
+        long filespace_id = -1;
+        long dataset_id = -1;
+        long dtype_id = -1;
+        long dcpl_id = -1;
         long[] dims = { DIM_X, DIM_Y };
         long[] chunk_dims = { CHUNK_X, CHUNK_Y };
-        int[][] dset_data = new int[DIM_X][DIM_Y]; 
+        int[][] dset_data = new int[DIM_X][DIM_Y];
 
         // Initialize data.
         for (int indx = 0; indx < DIM_X; indx++)
@@ -98,56 +98,56 @@ public class H5Ex_D_Nbit {
                 dset_data[indx][jndx] = indx * jndx - jndx;
 
         try {
-            //Create a new file using the default properties.
-            file_id = H5.H5Fcreate(FILENAME, HDF5Constants.H5F_ACC_TRUNC, HDF5Constants.H5P_DEFAULT, HDF5Constants.H5P_DEFAULT);
+            // Create a new file using the default properties.
+            file_id = H5.H5Fcreate(FILENAME, HDF5Constants.H5F_ACC_TRUNC, HDF5Constants.H5P_DEFAULT,
+                    HDF5Constants.H5P_DEFAULT);
 
-            //Create dataspace.  Setting maximum size to NULL sets the maximum
+            // Create dataspace. Setting maximum size to NULL sets the maximum
             // size to be the current size.
-            filespace_id = H5.H5Screate_simple (RANK, dims, null);
+            filespace_id = H5.H5Screate_simple(RANK, dims, null);
 
-            //Create the datatype to use with the N-Bit filter.  It has an uncompressed size of 32 bits,
-            //but will have a size of 16 bits after being packed by the N-Bit filter.
+            // Create the datatype to use with the N-Bit filter. It has an uncompressed size of 32 bits,
+            // but will have a size of 16 bits after being packed by the N-Bit filter.
             dtype_id = H5.H5Tcopy(HDF5Constants.H5T_STD_I32LE);
             H5.H5Tset_precision(dtype_id, 16);
             H5.H5Tset_offset(dtype_id, 5);
 
-            //Create the dataset creation property list, add the N-Bit filter and set the chunk size.
-            dcpl_id= H5.H5Pcreate(HDF5Constants.H5P_DATASET_CREATE);
+            // Create the dataset creation property list, add the N-Bit filter and set the chunk size.
+            dcpl_id = H5.H5Pcreate(HDF5Constants.H5P_DATASET_CREATE);
             H5.H5Pset_nbit(dcpl_id);
             H5.H5Pset_chunk(dcpl_id, NDIMS, chunk_dims);
 
-            //Create the dataset.
-            dataset_id = H5.H5Dcreate(file_id, DATASETNAME, dtype_id, filespace_id, 
-                    HDF5Constants.H5P_DEFAULT, dcpl_id, HDF5Constants.H5P_DEFAULT);
+            // Create the dataset.
+            dataset_id = H5.H5Dcreate(file_id, DATASETNAME, dtype_id, filespace_id, HDF5Constants.H5P_DEFAULT, dcpl_id,
+                    HDF5Constants.H5P_DEFAULT);
 
-            //Write the data to the dataset.
-            H5.H5Dwrite(dataset_id, HDF5Constants.H5T_NATIVE_INT, 
-                    HDF5Constants.H5S_ALL, HDF5Constants.H5S_ALL, HDF5Constants.H5P_DEFAULT,
-                    dset_data);
+            // Write the data to the dataset.
+            H5.H5Dwrite(dataset_id, HDF5Constants.H5T_NATIVE_INT, HDF5Constants.H5S_ALL, HDF5Constants.H5S_ALL,
+                    HDF5Constants.H5P_DEFAULT, dset_data);
         }
         catch (Exception e) {
             e.printStackTrace();
         }
         finally {
-            //Close and release resources.
-            if(dcpl_id >= 0)
+            // Close and release resources.
+            if (dcpl_id >= 0)
                 H5.H5Pclose(dcpl_id);
-            if(dtype_id >= 0)
+            if (dtype_id >= 0)
                 H5.H5Tclose(dtype_id);
-            if(dataset_id >= 0)
+            if (dataset_id >= 0)
                 H5.H5Dclose(dataset_id);
-            if(filespace_id >= 0)
+            if (filespace_id >= 0)
                 H5.H5Sclose(filespace_id);
-            if(file_id >= 0)
+            if (file_id >= 0)
                 H5.H5Fclose(file_id);
         }
     }
 
     private static void readData() throws Exception {
-        int file_id = -1;
-        int dataset_id = -1;
-        int dcpl_id = -1;
-        int[][] dset_data = new int[DIM_X][DIM_Y]; 
+        long file_id = -1;
+        long dataset_id = -1;
+        long dcpl_id = -1;
+        int[][] dset_data = new int[DIM_X][DIM_Y];
 
         // Open an existing file.
         try {
@@ -175,10 +175,10 @@ public class H5Ex_D_Nbit {
             e.printStackTrace();
         }
 
-        //Retrieve and print the filter type.  Here we only retrieve the
-        //first filter because we know that we only added one filter.
+        // Retrieve and print the filter type. Here we only retrieve the
+        // first filter because we know that we only added one filter.
         try {
-            if(dcpl_id >= 0) {
+            if (dcpl_id >= 0) {
                 // Java lib requires a valid filter_name object and cd_values
                 int[] flags = { 0 };
                 long[] cd_nelmts = { 1 };
@@ -186,8 +186,8 @@ public class H5Ex_D_Nbit {
                 String[] filter_name = { "" };
                 int[] filter_config = { 0 };
                 int filter_type = -1;
-                filter_type = H5.H5Pget_filter(dcpl_id, 0, flags, cd_nelmts, cd_values,
-                        120, filter_name, filter_config);
+                filter_type = H5
+                        .H5Pget_filter(dcpl_id, 0, flags, cd_nelmts, cd_values, 120, filter_name, filter_config);
                 System.out.print("Filter type is: ");
                 switch (H5Z_filter.get(filter_type)) {
                 case H5Z_FILTER_DEFLATE:
@@ -207,7 +207,7 @@ public class H5Ex_D_Nbit {
                     break;
                 case H5Z_FILTER_SCALEOFFSET:
                     System.out.println("H5Z_FILTER_SCALEOFFSET");
-                    break;    
+                    break;
                 default:
                     System.out.println("H5Z_FILTER_ERROR");
                 }
@@ -221,9 +221,8 @@ public class H5Ex_D_Nbit {
         // Read the data using the default properties.
         try {
             if (dataset_id >= 0) {
-                int status = H5.H5Dread(dataset_id, HDF5Constants.H5T_NATIVE_INT,
-                        HDF5Constants.H5S_ALL, HDF5Constants.H5S_ALL,
-                        HDF5Constants.H5P_DEFAULT, dset_data);
+                int status = H5.H5Dread(dataset_id, HDF5Constants.H5T_NATIVE_INT, HDF5Constants.H5S_ALL,
+                        HDF5Constants.H5S_ALL, HDF5Constants.H5P_DEFAULT, dset_data);
                 // Check if the read was successful.
                 if (status < 0)
                     System.out.print("Dataset read failed!");
@@ -232,7 +231,7 @@ public class H5Ex_D_Nbit {
         catch (Exception e) {
             e.printStackTrace();
         }
-        
+
         // Find the maximum value in the dataset, to verify that it was read
         // correctly.
         int max = dset_data[0][0];
@@ -271,14 +270,12 @@ public class H5Ex_D_Nbit {
         }
 
     }
-    
+
     public static void main(String[] args) {
         /*
-         * Check if N-Bit compression is available and can be used for both
-         * compression and decompression.  Normally we do not perform error
-         * checking in these examples for the sake of clarity, but in this
-         * case we will make an exception because this filter is an
-         * optional part of the hdf5 library.
+         * Check if N-Bit compression is available and can be used for both compression and decompression. Normally we
+         * do not perform error checking in these examples for the sake of clarity, but in this case we will make an
+         * exception because this filter is an optional part of the hdf5 library.
          */
         try {
             if (H5Ex_D_Nbit.checkNbitFilter()) {
@@ -286,7 +283,7 @@ public class H5Ex_D_Nbit {
                 H5Ex_D_Nbit.readData();
             }
         }
-        catch(Exception ex) {
+        catch (Exception ex) {
             ex.printStackTrace();
         }
     }

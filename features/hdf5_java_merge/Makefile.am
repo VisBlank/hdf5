@@ -52,17 +52,17 @@ include $(top_srcdir)/config/commence.am
 # Conditionals.  These conditionals are defined during configure
 # Define each variable to empty if it is not used to placate pmake
 if BUILD_PARALLEL_CONDITIONAL
-   TESTPARALLEL_DIR=testpar
+   TESTPARALLEL_DIR =testpar
 else
    TESTPARALLEL_DIR=
 endif
 if BUILD_CXX_CONDITIONAL
-   CXX_DIR=c++
+   CXX_DIR =c++
 else
    CXX_DIR=
 endif
 if BUILD_FORTRAN_CONDITIONAL
-   FORTRAN_DIR=fortran
+   FORTRAN_DIR =fortran
 else
    FORTRAN_DIR=
 endif
@@ -72,7 +72,7 @@ else
    JNI_DIR=
 endif
 if BUILD_HDF5_HL_CONDITIONAL
-   HDF5_HL_DIR=hl
+   HDF5_HL_DIR =hl
 else
    HDF5_HL_DIR=
 endif

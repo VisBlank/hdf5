@@ -54,7 +54,7 @@ foreach (example ${HDF_JAVA_EXAMPLES})
   add_dependencies (${example} ${HDF5_JAVA_HDF5_LIB_TARGET})
 endforeach (example ${HDF_JAVA_EXAMPLES})
 
-set (CMAKE_JAVA_INCLUDE_PATH "${HDF5_JAVA_JARS};${HDFJAVA_LOGGING_JAR};${HDFJAVA_LOGGING_NOP_JAR}")
+set (CMAKE_JAVA_INCLUDE_PATH "${HDF5_JAVA_JARS};${HDF5_JAVA_LOGGING_JAR};${HDF5_JAVA_LOGGING_NOP_JAR}")
 
 set (CMAKE_JAVA_CLASSPATH ".")
 foreach (HDFJAVA_JAR ${CMAKE_JAVA_INCLUDE_PATH})
@@ -63,7 +63,7 @@ endforeach (HDFJAVA_JAR)
 
 MACRO (ADD_H5_TEST resultfile resultcode)
   add_test (
-      NAME datatypes-${resultfile}
+      NAME JAVA_datatypes-${resultfile}
       COMMAND "${CMAKE_COMMAND}"
           -D "TEST_TESTER=${CMAKE_Java_RUNTIME};${CMAKE_Java_RUNTIME_FLAGS}"
           -D "TEST_PROGRAM=examples.datatypes.${resultfile}"
@@ -74,18 +74,18 @@ MACRO (ADD_H5_TEST resultfile resultcode)
           -D "TEST_OUTPUT=datatypes/${resultfile}.out"
           -D "TEST_EXPECT=${resultcode}"
           -D "TEST_REFERENCE=datatypes/${resultfile}.txt"
-          -P "${HDF_RESOURCES_DIR}/runTest.cmake"
+          -P "${HDF_RESOURCES_DIR}/jrunTest.cmake"
   )
   if (NOT "${last_test}" STREQUAL "")
-    set_tests_properties (datatypes-${resultfile} PROPERTIES DEPENDS ${last_test})
+    set_tests_properties (JAVA_datatypes-${resultfile} PROPERTIES DEPENDS ${last_test})
   endif (NOT "${last_test}" STREQUAL "")
-  set (last_test "datatypes-${resultfile}")
+  set (last_test "JAVA_datatypes-${resultfile}")
 ENDMACRO (ADD_H5_TEST file)
 
 if (BUILD_TESTING)
   foreach (example ${HDF_JAVA_EXAMPLES})
     add_test (
-        NAME datatypes-${example}-clearall-objects
+        NAME JAVA_datatypes-${example}-clearall-objects
         COMMAND    ${CMAKE_COMMAND}
             -E remove
             ${HDFJAVA_EXAMPLES_BINARY_DIR}/${example}.h5
@@ -93,17 +93,17 @@ if (BUILD_TESTING)
             ${example}.out.err
     )
     if (NOT "${last_test}" STREQUAL "")
-      set_tests_properties (datatypes-${example}-clearall-objects PROPERTIES DEPENDS ${last_test})
+      set_tests_properties (JAVA_datatypes-${example}-clearall-objects PROPERTIES DEPENDS ${last_test})
     endif (NOT "${last_test}" STREQUAL "")
     add_test (
-        NAME datatypes-${example}-copy-objects
+        NAME JAVA_datatypes-${example}-copy-objects
         COMMAND    ${CMAKE_COMMAND}
             -E copy_if_different
             ${HDFJAVA_EXAMPLES_SOURCE_DIR}/testfiles/examples.datatypes.${example}.txt
             ${HDFJAVA_EXAMPLES_DATATYPES_BINARY_DIR}/${example}.txt
     )
-    set_tests_properties (datatypes-${example}-copy-objects PROPERTIES DEPENDS datatypes-${example}-clearall-objects)
-    set (last_test "datatypes-${example}-copy-objects")
+    set_tests_properties (JAVA_datatypes-${example}-copy-objects PROPERTIES DEPENDS JAVA_datatypes-${example}-clearall-objects)
+    set (last_test "JAVA_datatypes-${example}-copy-objects")
     ADD_H5_TEST (${example} 0)
   endforeach (example ${HDF_JAVA_EXAMPLES})
 endif (BUILD_TESTING)
