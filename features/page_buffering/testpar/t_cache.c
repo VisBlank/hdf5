@@ -2525,7 +2525,8 @@ datum_serialize(const H5F_t *f,
 
     HDassert( aux_ptr );
     HDassert( aux_ptr->magic == H5AC__H5AC_AUX_T_MAGIC );
-    HDassert( entry_ptr->aux_ptr == NULL );
+    /* MSC - settle & flush dependancy issue */
+    //HDassert( entry_ptr->aux_ptr == NULL );
 
     entry_ptr->aux_ptr = aux_ptr;
 
@@ -4202,7 +4203,7 @@ setup_cache_for_test(hid_t * fid_ptr,
      */
     if ( success ) { /* allocate space for test entries */
 
-        actual_base_addr = H5MF_alloc(file_ptr, H5FD_MEM_DEFAULT, H5P_DEFAULT,
+        actual_base_addr = H5MF_alloc(file_ptr, H5FD_MEM_DEFAULT, H5P_DATASET_XFER_DEFAULT,
                                       (hsize_t)(max_addr + BASE_ADDR));
 
         if ( actual_base_addr == HADDR_UNDEF ) {

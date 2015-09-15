@@ -143,9 +143,8 @@ test_page_buffer_access(void)
     fcpl = H5Pcreate(H5P_FILE_CREATE);
     VRFY((fcpl >= 0), "");
 
-    ret = H5Pset_file_space_strategy(fcpl, H5F_FSPACE_STRATEGY_PAGE, 0, (hsize_t)1);
+    ret = H5Pset_file_space_strategy(fcpl, H5F_FSPACE_STRATEGY_PAGE, 1, (hsize_t)0);
     VRFY((ret == 0), "");
-
     ret = H5Pset_file_space_page_size(fcpl, sizeof(int)*100);
     VRFY((ret == 0), "");
     ret = H5Pset_page_buffer_size(fapl, sizeof(int)*100000, 0, 0);
@@ -265,6 +264,7 @@ test_page_buffer_access(void)
     }
 
     MPI_Barrier(MPI_COMM_WORLD);
+
     if(mpi_size > 1) {
         ret = H5Pset_page_buffer_size(fapl, sizeof(int)*1000, 0, 0);
         VRFY((ret == 0), "");
@@ -553,6 +553,15 @@ open_file(const char *filename, hid_t fapl, int metadata_write_strategy,
     H5AC_cache_config_t config;
     herr_t      ret;
 
+    config.version = H5AC__CURR_CACHE_CONFIG_VERSION;
+    ret = H5Pget_mdc_config(fapl, &config);
+    VRFY((ret == 0), "");
+
+    config.metadata_write_strategy = metadata_write_strategy;
+
+    ret = H5Pget_mdc_config(fapl, &config);
+    VRFY((ret == 0), "");
+
     file_id = H5Fopen(filename, H5F_ACC_RDWR, fapl);
     VRFY((file_id >= 0), "");
 
@@ -565,17 +574,7 @@ open_file(const char *filename, hid_t fapl, int metadata_write_strategy,
     cache_ptr = f->shared->cache;
     VRFY((cache_ptr->magic == H5C__H5C_T_MAGIC), "");
 
-    cache_ptr->ignore_tags = TRUE;
-    H5C_stats__reset(cache_ptr);
-    config.version = H5AC__CURR_CACHE_CONFIG_VERSION;
-
-    ret = H5AC_get_cache_auto_resize_config(cache_ptr, &config);
-    VRFY((ret == 0), "");
-
-    config.metadata_write_strategy = metadata_write_strategy;
-
-    ret = H5AC_set_cache_auto_resize_config(cache_ptr, &config);
-    VRFY((ret == 0), "");
+    MPI_Barrier(MPI_COMM_WORLD);
 
     VRFY((f->shared->page_buf != NULL), "");
     VRFY((f->shared->page_buf->page_size == page_size), "");
@@ -643,7 +642,6 @@ open_file(const char *filename, hid_t fapl, int metadata_write_strategy,
     VRFY((ret == 0), "");
 
     MPI_Barrier(MPI_COMM_WORLD);
-
     for ( i = 0; i < H5C__HASH_TABLE_LEN; i++ ) {
         H5C_cache_entry_t * entry_ptr = NULL;
 
@@ -661,7 +659,6 @@ open_file(const char *filename, hid_t fapl, int metadata_write_strategy,
             entry_ptr = entry_ptr->ht_next;
         }
     }
-
     MPI_Barrier(MPI_COMM_WORLD);
 
     grp_id2 = H5Gopen2(file_id, "GROUP/GROUP2", H5P_DEFAULT);

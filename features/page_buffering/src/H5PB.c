@@ -483,7 +483,7 @@ H5PB_update_entry(H5PB_t *page_buf, haddr_t addr, size_t size, const void *buf)
     haddr_t page_addr;
     herr_t ret_value = SUCCEED;    /* Return value */
 
-    FUNC_ENTER_NOAPI(FAIL)
+    FUNC_ENTER_NOAPI_NOERR
 
     HDassert(page_buf);
     HDassert(size <= page_buf->page_size);
@@ -504,7 +504,7 @@ H5PB_update_entry(H5PB_t *page_buf, haddr_t addr, size_t size, const void *buf)
         /* move to top of LRU list */
         H5PB__MOVE_TO_TOP_LRU(page_buf, page_entry)
     }
-done:
+
     FUNC_LEAVE_NOAPI(ret_value)
 } /* H5PB_update_entry */
 #endif /* H5_HAVE_PARALLEL */
@@ -883,8 +883,15 @@ H5PB_write(const H5F_t *f, H5FD_mem_t type, haddr_t addr, size_t size,
        or if this is a parallel raw data access, 
        we are done here */
     if(NULL == page_buf || (size >= page_buf->page_size && H5FD_MEM_DRAW != type) ||
-       (mpio_bypass_pb))// && H5FD_MEM_DRAW == type))
+       (mpio_bypass_pb && H5FD_MEM_DRAW == type))
         HGOTO_DONE(ret_value);
+
+    if(mpio_bypass_pb) {
+        HDassert(H5FD_MEM_DRAW != type);
+        if(H5PB_update_entry(page_buf, addr, size, buf) > 0)
+            HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, "Failed to update PB with metadata cache\n");
+        HGOTO_DONE(ret_value);
+    }
 
     /* calculate the aligned address of the first page */
     first_page_addr = (addr/page_buf->page_size) * page_buf->page_size;

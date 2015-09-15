@@ -348,7 +348,7 @@ int main(int argc, char **argv)
 	    "dataset using split communicators", PARATESTFILE);
 
     AddTest("page_buffer", test_page_buffer_access, NULL,
-	    "page buffer usage in parallel", PARATESTFILE);
+            "page buffer usage in parallel", PARATESTFILE);
 
     AddTest("idsetw", dataset_writeInd, NULL,
 	    "dataset independent write", PARATESTFILE);
