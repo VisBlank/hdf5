@@ -2923,6 +2923,7 @@ main(void)
         nerrors += test_reopen(fapl, &cparam, &tparam);
         nerrors += test_open_twice(fapl, &cparam, &tparam);
         nerrors += test_delete_open(fapl, &cparam, &tparam);
+        /* MSC - settle & flush dependancy issue */
         nerrors += test_flush_depend(fapl, &cparam, &tparam);
 
         /* Iterate over the type of capacity tests */

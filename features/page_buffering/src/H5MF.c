@@ -94,7 +94,7 @@ static herr_t H5MF_get_free_sects(H5F_t *f, hid_t dxpl_id, H5FS_t *fspace, H5MF_
 static herr_t H5MF_create_fstype(H5F_t *f, hid_t dxpl_id, H5FD_mem_t type);
 static herr_t H5MF_free_fstype(H5F_t *f, hid_t dxpl_id, H5FD_mem_t type);
 static herr_t H5MF_recreate_fstype(H5F_t *f, hid_t dxpl_id, H5FD_mem_t type, haddr_t *fsaddr, hbool_t *update);
-static herr_t H5MF_alloc_fsm(H5F_t *f, hid_t dxpl_id, H5F_mem_page_t ptype, H5O_fsinfo_t *fsinfo, hbool_t *update);
+static herr_t H5MF_alloc_fsm(H5F_t *f, hid_t dxpl_id, H5O_fsinfo_t *fsinfo, hbool_t *update);
 static herr_t H5MF_close_fstype(H5F_t *f, hid_t dxpl_id, H5FD_mem_t type);
 static herr_t H5MF_delete_fstype(H5F_t *f, hid_t dxpl_id, H5FD_mem_t type);
 
@@ -2019,10 +2019,9 @@ HDfprintf(stderr, "%s: Entering\n", FUNC);
         if(H5MF_close_shrink_eoa(f, dxpl_id) < 0)
             HGOTO_ERROR(H5E_RESOURCE, H5E_CANTSHRINK, FAIL, "can't shrink eoa")
 #if 1
-        for(ptype = H5F_MEM_PAGE_GENERIC; (int)ptype >= H5F_MEM_PAGE_META; H5_DEC_ENUM(H5F_mem_page_t,ptype)) {
-	    if(H5MF_alloc_fsm(f, dxpl_id, ptype, &fsinfo, &update) < 0)
-		HGOTO_ERROR(H5E_FSPACE, H5E_CANTRELEASE, FAIL, "can't re-allocate the free space manager");
-        }
+        /* recreate the free space header and info */
+        if(H5MF_alloc_fsm(f, dxpl_id, &fsinfo, &update) < 0)
+            HGOTO_ERROR(H5E_FSPACE, H5E_CANTRELEASE, FAIL, "can't re-allocate the free space manager");
 #else
 	/* Re-allocate free-space manager header and/or section info header */
 	for(ptype = H5F_MEM_PAGE_META; ptype < H5F_MEM_PAGE_NTYPES; H5_INC_ENUM(H5F_mem_page_t, ptype)) {
@@ -2515,10 +2514,11 @@ done:
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5MF_alloc_fsm(H5F_t *f, hid_t dxpl_id, H5F_mem_page_t ptype, H5O_fsinfo_t *fsinfo, hbool_t *update)
+H5MF_alloc_fsm(H5F_t *f, hid_t dxpl_id, H5O_fsinfo_t *fsinfo, hbool_t *update)
 {
     H5FS_stat_t	fs_stat;		/* Information for free-space manager */
     hsize_t raw_sect_size=0, meta_sect_size=0;
+    H5F_mem_page_t ptype;
     herr_t ret_value = SUCCEED; 	/* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT
@@ -2528,93 +2528,92 @@ H5MF_alloc_fsm(H5F_t *f, hid_t dxpl_id, H5F_mem_page_t ptype, H5O_fsinfo_t *fsin
     HDassert(fsinfo);
     HDassert(update);
 
-    if(f->shared->fs.man[ptype]) {
-        /* Query free space manager info for this type */
-        if(H5FS_stat_info(f, f->shared->fs.man[ptype], &fs_stat) < 0)
-            HGOTO_ERROR(H5E_FSPACE, H5E_CANTRELEASE, FAIL, "can't get free-space info");
+    for(ptype = H5F_MEM_PAGE_GENERIC; (int)ptype >= H5F_MEM_PAGE_META; H5_DEC_ENUM(H5F_mem_page_t,ptype)) {
+        if(f->shared->fs.man[ptype]) {
+            /* Query free space manager info for this type */
+            if(H5FS_stat_info(f, f->shared->fs.man[ptype], &fs_stat) < 0)
+                HGOTO_ERROR(H5E_FSPACE, H5E_CANTRELEASE, FAIL, "can't get free-space info");
 
-        if(H5F_MEM_PAGE_RAW == ptype)
-            raw_sect_size = fs_stat.sect_size;
-        else if(H5F_MEM_PAGE_META == ptype)
-            meta_sect_size = fs_stat.sect_size;
+            if(H5F_MEM_PAGE_RAW == ptype)
+                raw_sect_size = fs_stat.sect_size;
+            else if(H5F_MEM_PAGE_META == ptype)
+                meta_sect_size = fs_stat.sect_size;
 
-        /* Are there sections to persist? */
-        if(fs_stat.serial_sect_count) {
-            /* Allocate space for free-space manager header */
-            if(H5FS_alloc_hdr(f, f->shared->fs.man[ptype], &f->shared->fs.man_addr[ptype], dxpl_id) < 0)
-                HGOTO_ERROR(H5E_FSPACE, H5E_NOSPACE, FAIL, "can't allocated free-space header");
+            /* Are there sections to persist? */
+            if(fs_stat.serial_sect_count) {
+                /* Allocate space for free-space manager header */
+                if(H5FS_alloc_hdr(f, f->shared->fs.man[ptype], &f->shared->fs.man_addr[ptype], dxpl_id) < 0)
+                    HGOTO_ERROR(H5E_FSPACE, H5E_NOSPACE, FAIL, "can't allocated free-space header");
 
-            /* Allocate space for free-space maanger section info header */
-            if(H5FS_alloc_sect(f, f->shared->fs.man[ptype], dxpl_id) < 0)
-                HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "can't allocate free-space section info");
+                /* Allocate space for free-space maanger section info header */
+                if(H5FS_alloc_sect(f, f->shared->fs.man[ptype], dxpl_id) < 0)
+                    HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "can't allocate free-space section info");
 
-            HDassert(f->shared->fs.man_addr[ptype]);
+                HDassert(f->shared->fs.man_addr[ptype]);
 
-            fsinfo->fs_addr[ptype] = f->shared->fs.man_addr[ptype];
-            *update = TRUE;
+                fsinfo->fs_addr[ptype] = f->shared->fs.man_addr[ptype];
+                *update = TRUE;
+            } /* end if */
         } /* end if */
-    } /* end if */
-    else {
-        if(H5F_addr_defined(f->shared->fs.man_addr[ptype])) {
-            fsinfo->fs_addr[ptype] = f->shared->fs.man_addr[ptype];
-            *update = TRUE;
-        } /* end else-if */
-    }
-
-    if(H5F_MEM_PAGE_META == ptype) {
-        /* MSC - I don't know why, but the unlink test fails here if
-           raw_sect_size == 0. somehow the new raw sect size becomes
-           non zero. */
-        if(raw_sect_size && f->shared->fs.man[H5F_MEM_PAGE_RAW]) {
-            /* Query free space manager info for this type */
-            if(H5FS_stat_info(f, f->shared->fs.man[H5F_MEM_PAGE_RAW], &fs_stat) < 0)
-                HGOTO_ERROR(H5E_FSPACE, H5E_CANTRELEASE, FAIL, "can't get free-space info");
-
-            if(fs_stat.sect_size != raw_sect_size) {
-		if(H5MF_free_fstype(f, dxpl_id, (H5FD_mem_t)H5F_MEM_PAGE_RAW) < 0)
-		    HGOTO_ERROR(H5E_FSPACE, H5E_CANTRELEASE, FAIL, "can't free the free space manager");
-
-                /* Allocate space for free-space manager header */
-                if(H5FS_alloc_hdr(f, f->shared->fs.man[H5F_MEM_PAGE_RAW], 
-                                  &f->shared->fs.man_addr[H5F_MEM_PAGE_RAW], dxpl_id) < 0)
-                    HGOTO_ERROR(H5E_FSPACE, H5E_NOSPACE, FAIL, "can't allocated free-space header");
-
-                /* Allocate space for free-space maanger section info header */
-                if(H5FS_alloc_sect(f, f->shared->fs.man[H5F_MEM_PAGE_RAW], dxpl_id) < 0)
-                    HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "can't allocate free-space section info");
-
-                HDassert(f->shared->fs.man_addr[H5F_MEM_PAGE_RAW]);
-
-                fsinfo->fs_addr[H5F_MEM_PAGE_RAW] = f->shared->fs.man_addr[H5F_MEM_PAGE_RAW];
+        else {
+            if(H5F_addr_defined(f->shared->fs.man_addr[ptype])) {
+                fsinfo->fs_addr[ptype] = f->shared->fs.man_addr[ptype];
                 *update = TRUE;
-            }
+            } /* end else-if */
         }
 
-        if(f->shared->fs.man[H5F_MEM_PAGE_META]) {
-            /* Query free space manager info for this type */
-            if(H5FS_stat_info(f, f->shared->fs.man[H5F_MEM_PAGE_META], &fs_stat) < 0)
-                HGOTO_ERROR(H5E_FSPACE, H5E_CANTRELEASE, FAIL, "can't get free-space info");
+        if(H5F_MEM_PAGE_META == ptype) {
+            if(f->shared->fs.man[H5F_MEM_PAGE_RAW]) {
+                /* Query free space manager info for this type */
+                if(H5FS_stat_info(f, f->shared->fs.man[H5F_MEM_PAGE_RAW], &fs_stat) < 0)
+                    HGOTO_ERROR(H5E_FSPACE, H5E_CANTRELEASE, FAIL, "can't get free-space info");
 
-            if(fs_stat.sect_size != meta_sect_size) {
-		if(H5MF_free_fstype(f, dxpl_id, (H5FD_mem_t)H5F_MEM_PAGE_META) < 0)
-		    HGOTO_ERROR(H5E_FSPACE, H5E_CANTRELEASE, FAIL, "can't free the free space manager");
+                if(fs_stat.sect_size != raw_sect_size) {
+                    if(H5MF_free_fstype(f, dxpl_id, (H5FD_mem_t)H5F_MEM_PAGE_RAW) < 0)
+                        HGOTO_ERROR(H5E_FSPACE, H5E_CANTRELEASE, FAIL, "can't free the free space manager");
 
-                /* Allocate space for free-space manager header */
-                if(H5FS_alloc_hdr(f, f->shared->fs.man[H5F_MEM_PAGE_META], 
-                                  &f->shared->fs.man_addr[H5F_MEM_PAGE_META], dxpl_id) < 0)
-                    HGOTO_ERROR(H5E_FSPACE, H5E_NOSPACE, FAIL, "can't allocated free-space header");
+                    /* Allocate space for free-space manager header */
+                    if(H5FS_alloc_hdr(f, f->shared->fs.man[H5F_MEM_PAGE_RAW], 
+                                      &f->shared->fs.man_addr[H5F_MEM_PAGE_RAW], dxpl_id) < 0)
+                        HGOTO_ERROR(H5E_FSPACE, H5E_NOSPACE, FAIL, "can't allocated free-space header");
 
-                /* Allocate space for free-space maanger section info header */
-                if(H5FS_alloc_sect(f, f->shared->fs.man[H5F_MEM_PAGE_META], dxpl_id) < 0)
-                    HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "can't allocate free-space section info");
+                    /* Allocate space for free-space maanger section info header */
+                    if(H5FS_alloc_sect(f, f->shared->fs.man[H5F_MEM_PAGE_RAW], dxpl_id) < 0)
+                        HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "can't allocate free-space section info");
 
-                HDassert(f->shared->fs.man_addr[H5F_MEM_PAGE_META]);
+                    HDassert(f->shared->fs.man_addr[H5F_MEM_PAGE_RAW]);
 
-                fsinfo->fs_addr[H5F_MEM_PAGE_META] = f->shared->fs.man_addr[H5F_MEM_PAGE_META];
-                *update = TRUE;
+                    fsinfo->fs_addr[H5F_MEM_PAGE_RAW] = f->shared->fs.man_addr[H5F_MEM_PAGE_RAW];
+                    *update = TRUE;
+                }
             }
-        }
-    }
+
+            if(f->shared->fs.man[H5F_MEM_PAGE_META]) {
+                /* Query free space manager info for this type */
+                if(H5FS_stat_info(f, f->shared->fs.man[H5F_MEM_PAGE_META], &fs_stat) < 0)
+                    HGOTO_ERROR(H5E_FSPACE, H5E_CANTRELEASE, FAIL, "can't get free-space info");
+
+                if(fs_stat.sect_size != meta_sect_size) {
+                    if(H5MF_free_fstype(f, dxpl_id, (H5FD_mem_t)H5F_MEM_PAGE_META) < 0)
+                        HGOTO_ERROR(H5E_FSPACE, H5E_CANTRELEASE, FAIL, "can't free the free space manager");
+
+                    /* Allocate space for free-space manager header */
+                    if(H5FS_alloc_hdr(f, f->shared->fs.man[H5F_MEM_PAGE_META], 
+                                      &f->shared->fs.man_addr[H5F_MEM_PAGE_META], dxpl_id) < 0)
+                        HGOTO_ERROR(H5E_FSPACE, H5E_NOSPACE, FAIL, "can't allocated free-space header");
+
+                    /* Allocate space for free-space maanger section info header */
+                    if(H5FS_alloc_sect(f, f->shared->fs.man[H5F_MEM_PAGE_META], dxpl_id) < 0)
+                        HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "can't allocate free-space section info");
+
+                    HDassert(f->shared->fs.man_addr[H5F_MEM_PAGE_META]);
+
+                    fsinfo->fs_addr[H5F_MEM_PAGE_META] = f->shared->fs.man_addr[H5F_MEM_PAGE_META];
+                    *update = TRUE;
+                }
+            }
+        } /* end if(H5F_MEM_PAGE_META == ptype) */
+    } /* end for */
 done:
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5MF_alloc_fsm() */

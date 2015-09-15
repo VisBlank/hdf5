@@ -4593,8 +4593,6 @@ H5C_unprotect(H5F_t *		  f,
                 HGOTO_ERROR(H5E_CACHE, H5E_CANTUNPROTECT, FAIL, "Can't flush entry")
 
 #if H5C_DO_SANITY_CHECKS
-            //if ( ( take_ownership ) && ( ! was_clean ) )
-            //if ( ( take_ownership ) && ( dirtied ) )
             if((take_ownership) && ((!was_clean) || (dirtied))) {
                 /* we have just removed an entry from the skip list.  Thus 
                  * we must touch up cache_ptr->slist_len_increase and
@@ -10117,6 +10115,7 @@ H5C_settle(const H5F_t *f, hid_t dxpl_id)
 
     ring = H5C_RING_USER;
     while(ring < H5C_RING_NTYPES) {
+#if 0
         for(u = 0; u < H5C__HASH_TABLE_LEN; u++) {
             entry_ptr = cache_ptr->index[u];
             while(entry_ptr != NULL) {
@@ -10130,7 +10129,8 @@ H5C_settle(const H5F_t *f, hid_t dxpl_id)
                 entry_ptr = entry_ptr->ht_next;
             } /* end while */
         } /* for */
-#if 0
+#endif
+#if 1
         unsigned curr_flush_dep_height = 0;
 
         while(curr_flush_dep_height <= H5C__NUM_FLUSH_DEP_HEIGHTS) {
@@ -10160,6 +10160,7 @@ H5C_settle(const H5F_t *f, hid_t dxpl_id)
 done:
     FUNC_LEAVE_NOAPI(ret_value)
 } /* H5C_settle */
+
 #if 0
 
 /*-------------------------------------------------------------------------
@@ -10275,7 +10276,7 @@ H5C_settle_ring(H5F_t *f, hid_t dxpl_id, H5C_ring_t ring)
                 HDassert(entry_ptr->magic == H5C__H5C_CACHE_ENTRY_T_MAGIC);
                 HDassert(entry_ptr->in_slist);
                 HDassert(entry_ptr->is_dirty);
-                //HDassert(entry_ptr->ring >= ring);
+                HDassert(entry_ptr->ring >= ring);
 
                 /* increment node pointer now, before we delete its target
                  * from the slist.
@@ -10289,7 +10290,7 @@ H5C_settle_ring(H5F_t *f, hid_t dxpl_id, H5C_ring_t ring)
                     HDassert(next_entry_ptr->magic == H5C__H5C_CACHE_ENTRY_T_MAGIC);
                     HDassert(next_entry_ptr->is_dirty);
                     HDassert(next_entry_ptr->in_slist);
-                    //HDassert(next_entry_ptr->ring >= ring);
+                    HDassert(next_entry_ptr->ring >= ring);
                     HDassert(entry_ptr != next_entry_ptr);
                 } /* end if */
                 else
