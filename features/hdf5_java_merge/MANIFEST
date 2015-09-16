@@ -34,7 +34,6 @@
 ./acsite.m4
 ./autogen.sh           _DO_NOT_DISTRIBUTE_
 ./configure.ac
-./configure.ac.orig    _DO_NOT_DISTRIBUTE_
 
 ./bin/COPYING
 ./bin/bbrelease       _DO_NOT_DISTRIBUTE_

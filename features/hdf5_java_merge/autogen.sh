@@ -324,7 +324,7 @@ echo
 if test -e "${LIBTOOL_DIR}/../share/aclocal" ; then
     aclocal_include="-I ${LIBTOOL_DIR}/../share/aclocal"
 fi
-aclocal_cmd="${HDF5_ACLOCAL} --force ${aclocal_include}"
+aclocal_cmd="${HDF5_ACLOCAL} --force -I m4 ${aclocal_include}"
 echo ${aclocal_cmd}
 if [ "$verbose" = true ] ; then
     ${HDF5_ACLOCAL} --version
@@ -441,6 +441,7 @@ do
     echo '#pragma GCC diagnostic ignored "-Wunused-function"                ' >> tmp.out
     echo '#pragma GCC diagnostic ignored "-Wunused-macros"                  ' >> tmp.out
     echo '#pragma GCC diagnostic ignored "-Wunused-parameter"               ' >> tmp.out
+    echo '#pragma GCC diagnostic ignored "-Wredundant-decls"                ' >> tmp.out
     echo '#elif defined __SUNPRO_CC                                         ' >> tmp.out
     echo '#pragma disable_warn                                              ' >> tmp.out
     echo '#elif defined _MSC_VER                                            ' >> tmp.out
