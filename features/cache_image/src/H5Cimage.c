@@ -152,6 +152,9 @@ static H5C_cache_entry_t * H5C_reconstruct_cache_entry(H5C_t * cache_ptr,
 
 static herr_t H5C_serialize_cache(const H5F_t * f, hid_t dxpl_id);
 
+static herr_t H5C_serialize_ring(const H5F_t * f, hid_t dxpl_id, 
+    H5C_ring_t ring);
+
 static herr_t H5C_serialize_single_entry(const H5F_t *f, hid_t dxpl_id, 
     H5C_t *cache_ptr, H5C_cache_entry_t *entry_ptr, hbool_t *restart_scan_ptr,
     hbool_t *restart_bucket_ptr);
@@ -701,6 +704,8 @@ H5C_deserialize_prefetched_entry(H5F_t *             f,
 #endif /* H5_HAVE_PARALLEL */
     ds_entry_ptr->flush_in_progress    = FALSE;
     ds_entry_ptr->destroy_in_progress  = FALSE;
+
+    ds_entry_ptr->ring		       = pf_entry_ptr->ring;
 
     /* Initialize flush dependency height fields */
     ds_entry_ptr->flush_dep_parent     = NULL;
@@ -1916,6 +1921,7 @@ H5C_cache_image_block_entry_header_size(H5F_t * f)
     ret_value = (size_t)( 4 +                   /* signature                */
 			  1 +			/* type                     */
 			  1 +			/* flags                    */
+			  1 +			/* ring                     */
 			  2 +			/* dependency child count   */
 			  4 +			/* index in LRU             */
                           H5F_SIZEOF_ADDR(f) +  /* dependency parent offset */
@@ -2194,6 +2200,7 @@ H5C_decode_cache_image_entry(H5F_t * f,
     void *		image_ptr;
     uint8_t             flags = 0;
     uint8_t		type_id;
+    uint8_t		ring;
     uint16_t 		fd_child_count;
     int32_t		lru_rank;
     H5C_image_entry_t * ie_ptr = NULL;
@@ -2243,6 +2250,12 @@ H5C_decode_cache_image_entry(H5F_t * f,
     if ( flags & H5C__MDCI_ENTRY_IS_FD_PARENT_FLAG ) 	is_fd_parent = TRUE;
 
     if ( flags & H5C__MDCI_ENTRY_IS_FD_CHILD_FLAG )	is_fd_child = TRUE;
+
+
+    /* decode ring */
+    ring = *p++;
+    HDassert(ring > (uint8_t)(H5C_RING_UNDEFINED));
+    HDassert(ring < (uint8_t)(H5C_RING_NTYPES));
 
 
     /* decode dependency child count */
@@ -2308,6 +2321,7 @@ H5C_decode_cache_image_entry(H5F_t * f,
     /* copy data into target */
     ie_ptr->addr             = addr;
     ie_ptr->size             = size;
+    ie_ptr->ring             = (H5C_ring_t)ring;
     ie_ptr->type_id          = (int32_t)type_id;
     ie_ptr->lru_rank         = lru_rank;
     ie_ptr->is_dirty         = is_dirty;
@@ -2563,6 +2577,10 @@ H5C_encode_cache_image_entry(H5F_t * f,
 	flags |= H5C__MDCI_ENTRY_IS_FD_CHILD_FLAG;
 
     *p++ = flags;
+
+
+    /* encode ring */
+    *p++ = (uint8_t)(ie_ptr->ring);
 
 
     /* validate and encode dependency child count */
@@ -2940,6 +2958,7 @@ H5C_prep_for_file_close__setup_image_entries_array(H5C_t * cache_ptr)
 	image_entries[j].magic            = H5C__H5C_IMAGE_ENTRY_T_MAGIC;
 	image_entries[j].addr             = HADDR_UNDEF;
 	image_entries[j].size             = 0;
+        image_entries[j].ring		  = H5C_RING_UNDEFINED;
 	image_entries[j].type_id          = -1;
 	image_entries[j].image_index      = -1;
 	image_entries[j].lru_rank         = 0;
@@ -2973,6 +2992,7 @@ H5C_prep_for_file_close__setup_image_entries_array(H5C_t * cache_ptr)
 
 	        image_entries[j].addr             = entry_ptr->addr;
 	        image_entries[j].size             = entry_ptr->size;
+	        image_entries[j].ring             = entry_ptr->ring;
 
 		/* when a prefetched entry is included in the image, store
                  * its underlying type id in the image entry, not 
@@ -3603,6 +3623,7 @@ H5C_reconstruct_cache_entry(H5C_t * cache_ptr, int i)
     pf_entry_ptr->cache_ptr 		= cache_ptr;
     pf_entry_ptr->addr			= ie_ptr->addr;
     pf_entry_ptr->size			= ie_ptr->size;
+    pf_entry_ptr->ring			= ie_ptr->ring;
     pf_entry_ptr->compressed		= FALSE;
     pf_entry_ptr->compressed_size	= 0;
     pf_entry_ptr->image_ptr		= ie_ptr->image_ptr;
@@ -3726,9 +3747,132 @@ done:
  *-------------------------------------------------------------------------
  */
 
+static herr_t
+H5C_serialize_cache(const H5F_t *f, hid_t dxpl_id)
+{
+#if H5C_DO_SANITY_CHECKS
+    int                 i;
+    int32_t             index_len = 0;
+    size_t              index_size = (size_t)0;
+    size_t              clean_index_size = (size_t)0;
+    size_t              dirty_index_size = (size_t)0;
+    size_t              slist_size = (size_t)0;
+    int32_t             slist_len = 0;
+#endif /* H5C_DO_SANITY_CHECKS */
+    H5C_ring_t          ring;
+    H5C_t             * cache_ptr;
+    herr_t              ret_value = SUCCEED;
+
+    FUNC_ENTER_NOAPI(FAIL)
+
+    HDassert(f);
+    HDassert(f->shared);
+    cache_ptr = f->shared->cache;
+    HDassert(cache_ptr);
+    HDassert(cache_ptr->magic == H5C__H5C_T_MAGIC);
+    HDassert(cache_ptr->slist_ptr);
+
+#if H5C_DO_SANITY_CHECKS
+    HDassert(cache_ptr->index_ring_len[H5C_RING_UNDEFINED] == 0);
+    HDassert(cache_ptr->index_ring_size[H5C_RING_UNDEFINED] == (size_t)0);
+    HDassert(cache_ptr->clean_index_ring_size[H5C_RING_UNDEFINED] == (size_t)0);
+    HDassert(cache_ptr->dirty_index_ring_size[H5C_RING_UNDEFINED] == (size_t)0);
+    HDassert(cache_ptr->slist_ring_len[H5C_RING_UNDEFINED] == 0);
+    HDassert(cache_ptr->slist_ring_size[H5C_RING_UNDEFINED] == (size_t)0);
+
+    for(i = H5C_RING_USER; i < H5C_RING_NTYPES; i++) {
+        index_len += cache_ptr->index_ring_len[i];
+        index_size += cache_ptr->index_ring_size[i];
+        clean_index_size += cache_ptr->clean_index_ring_size[i];
+        dirty_index_size += cache_ptr->dirty_index_ring_size[i];
+
+        slist_len += cache_ptr->slist_ring_len[i];
+        slist_size += cache_ptr->slist_ring_size[i];
+    } /* end for */
+
+    HDassert(cache_ptr->index_len == index_len);
+    HDassert(cache_ptr->index_size == index_size);
+    HDassert(cache_ptr->clean_index_size == clean_index_size);
+    HDassert(cache_ptr->dirty_index_size == dirty_index_size);
+    HDassert(cache_ptr->slist_len == slist_len);
+    HDassert(cache_ptr->slist_size == slist_size);
+#endif /* H5C_DO_SANITY_CHECKS */
+
+#if H5C_DO_EXTREME_SANITY_CHECKS
+    if((H5C_validate_protected_entry_list(cache_ptr) < 0) ||
+            (H5C_validate_pinned_entry_list(cache_ptr) < 0) ||
+            (H5C_validate_lru_list(cache_ptr) < 0))
+        HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, "an extreme sanity check failed on entry.\n");
+#endif /* H5C_DO_EXTREME_SANITY_CHECKS */
+
+    /* set cache_ptr->serialization_in_progress to TRUE, and back 
+     * to FALSE at the end of the function.  Must maintain this flag
+     * to support H5C_get_serialization_in_progress(), which is in 
+     * turn required to support sanity checking in some cache 
+     * clients.
+     */
+    HDassert(!cache_ptr->serialization_in_progress);
+    cache_ptr->serialization_in_progress = TRUE;
+
+
+    /* serialize each ring, starting from the outermost ring and
+     * working inward.
+     */
+    ring = H5C_RING_USER;
+
+    while ( ring < H5C_RING_NTYPES ) {
+
+        if ( H5C_serialize_ring(f, dxpl_id, ring) < 0)
+
+                HGOTO_ERROR(H5E_CACHE, H5E_CANTFLUSH, FAIL, \
+                            "serialize ring failed.")
+
+        ring++;
+
+    } /* end while */
+
+done:
+
+    cache_ptr->serialization_in_progress = FALSE;
+
+    FUNC_LEAVE_NOAPI(ret_value)
+
+} /* H5C_serialize_cache() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:    H5C_serialize_ring
+ *
+ * Purpose:     Serialize the entries contained in the specified cache and
+ *              ring.  All entries in rings outside the specified ring
+ *              must have been serialized on entry.
+ *
+ *              If the cache contains protected entries in the specified
+ *              ring, the function will fail, as protected entries cannot
+ *              be serialized.  However all unprotected entries in the 
+ *		target ring should be serialized before the function 
+ *		returns failure.
+ *
+ *              If flush dependencies appear in the target ring, the
+ *              function makes repeated passes through the slist 
+ *		serializing entries in flush dependency order.
+ *
+ *		All entries outside the H5C_RING_SBE are marked for 
+ *		inclusion in the cache image.  Entries in H5C_RING_SBE 
+ *		and below are marked for exclusion from the image.
+ *
+ * Return:      Non-negative on success/Negative on failure or if there was
+ *              a request to flush all items and something was protected.
+ *
+ * Programmer:  John Mainzer
+ *              9/11/15
+ *
+ *-------------------------------------------------------------------------
+ */
 herr_t
-H5C_serialize_cache(const H5F_t * f,
-                    hid_t    dxpl_id)
+H5C_serialize_ring(const H5F_t * f,
+                   hid_t    dxpl_id,
+                   H5C_ring_t ring)
 {
     hbool_t		restart_scan = TRUE;
     hbool_t		restart_bucket;
@@ -3748,17 +3892,12 @@ H5C_serialize_cache(const H5F_t * f,
 
     HDassert(cache_ptr);
     HDassert(cache_ptr->magic == H5C__H5C_T_MAGIC);
+    HDassert(ring > H5C_RING_UNDEFINED);
+    HDassert(ring < H5C_RING_NTYPES);
 
-    /* set cache_ptr->serialization_in_progress to TRUE, and back 
-     * to FALSE at the end of the function.  Must maintain this flag
-     * to support H5C_get_serialization_in_progress(), which is in 
-     * turn required to support sanity checking in some cache 
-     * clients.
-     */
-    HDassert(!cache_ptr->serialization_in_progress);
-    cache_ptr->serialization_in_progress = TRUE;
+    HDassert(cache_ptr->serialization_in_progress);
 
-    /* The objective here is to serialize all entries in the cache 
+    /* The objective here is to serialize all entries in the cache ring
      * in increasing flush dependency height order.
      *
      * The basic algorithm is to scan the cache index once for each 
@@ -3817,6 +3956,13 @@ H5C_serialize_cache(const H5F_t * f,
 		while ( entry_ptr != NULL )
                 {
 		    HDassert(entry_ptr->magic == H5C__H5C_CACHE_ENTRY_T_MAGIC);
+
+		    /* verify that either the entry is already serialized, or
+                     * that it is assigned to either the target or an inner 
+                     * ring.
+                     */
+                    HDassert((entry_ptr->ring >= ring) ||
+                             (entry_ptr->image_up_to_date));
 
 		    /* skip flush me last entries for now */
 		    if ( ! entry_ptr->flush_me_last ) {
@@ -3878,43 +4024,54 @@ H5C_serialize_cache(const H5F_t * f,
 	while ( entry_ptr != NULL )
         {
 	    HDassert(entry_ptr->magic == H5C__H5C_CACHE_ENTRY_T_MAGIC);
+    	    HDassert(entry_ptr->ring > H5C_RING_UNDEFINED);
+            HDassert(entry_ptr->ring < H5C_RING_NTYPES);
+            HDassert((entry_ptr->ring >= ring) || 
+                     (entry_ptr->image_up_to_date));
 
-	    if ( entry_ptr->flush_me_last ) {
+	    if ( entry_ptr->ring == ring ) {
 
-		if ( ! entry_ptr->image_up_to_date ) {
+	        if ( entry_ptr->flush_me_last ) {
 
-	            /* serialize the entry */
-	            if ( H5C_serialize_single_entry(f, dxpl_id,  cache_ptr, 
-					            entry_ptr, &restart_scan, 
-						    &restart_bucket) < 0 ) {
+		    if ( ! entry_ptr->image_up_to_date ) {
 
-		        HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, \
-			            "entry serialization failed.");
+	                /* serialize the entry */
+	                if ( H5C_serialize_single_entry(f, dxpl_id,  cache_ptr, 
+					                entry_ptr, 
+                                                        &restart_scan, 
+						        &restart_bucket) < 0 ) {
 
-		    } else if ( restart_scan || restart_bucket ) {
+		            HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, \
+			                "entry serialization failed.");
 
-		        HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, \
+		        } else if ( restart_scan || restart_bucket ) {
+
+		            HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, \
 			"flush_me_last entry serialization triggered restart.");
-		    }
-                }
-            } else {
+		        }
+                    }
+                } else {
 
-	        HDassert(entry_ptr->image_up_to_date);
-            }
+	            HDassert(entry_ptr->image_up_to_date);
+
+                }
+           } /* if ( entry_ptr->ring == ring ) */
 
 	    entry_ptr = entry_ptr->ht_next;
-        }
+
+        } /* while ( entry_ptr != NULL ) */
 
         i++;
-    }
+
+    } /* while ( i < H5C__HASH_TABLE_LEN ) */
 
 done:
+
     HDassert(cache_ptr->serialization_in_progress);
-    cache_ptr->serialization_in_progress = FALSE;
 
     FUNC_LEAVE_NOAPI(ret_value)
 
-} /* H5C_serialize_cache() */
+} /* H5C_serialize_ring() */
 
 
 /*-------------------------------------------------------------------------

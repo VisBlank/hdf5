@@ -1799,6 +1799,9 @@ typedef struct H5C_cache_entry_t {
  *
  * size:	Length of the cache entry on disk in bytes.
  *
+ * ring:	Instance of H5C_ring_t indicating the flush ordering ring 
+ *		to which this entry is assigned.
+ *
  * type_id:	Integer field containing the type ID of the entry.
  *
  * image_index:	Index of the entry in the array of pointer to 
@@ -1846,6 +1849,7 @@ typedef struct H5C_image_entry_t {
     uint32_t			magic;
     haddr_t			addr;
     size_t			size;
+    H5C_ring_t			ring;
     int32_t			type_id;
     int32_t			image_index;
     int32_t			lru_rank;

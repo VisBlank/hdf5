@@ -172,6 +172,8 @@ done:
 herr_t
 H5F__super_ext_get_num_chunks(H5F_t *f, hid_t dxpl_id, unsigned * nchunks_ptr)
 {
+    H5P_genplist_t *dxpl = NULL;        /* DXPL for setting ring */
+    H5AC_ring_t orig_ring = H5AC_RING_INV;      /* Original ring value */
     herr_t ret_value = SUCCEED;         /* Return value */
 
     FUNC_ENTER_PACKAGE
@@ -193,6 +195,10 @@ H5F__super_ext_get_num_chunks(H5F_t *f, hid_t dxpl_id, unsigned * nchunks_ptr)
         ext_loc.file = f;
         ext_loc.addr = f->shared->sblock->ext_addr;
 
+        /* Set the ring type in the DXPL */
+        if(H5AC_set_ring(dxpl_id, H5AC_RING_SBE, &dxpl, &orig_ring) < 0)
+            HGOTO_ERROR(H5E_FILE, H5E_CANTSET, FAIL, "unable to set ring value")
+
         /* Get object header info for superblock extension */
         if(H5O_get_hdr_info(&ext_loc, dxpl_id, &hdr_info) < 0)
 
@@ -207,6 +213,10 @@ H5F__super_ext_get_num_chunks(H5F_t *f, hid_t dxpl_id, unsigned * nchunks_ptr)
         *nchunks_ptr = 0;
 
 done:
+    /* Reset the ring in the DXPL */
+    if(H5AC_reset_ring(dxpl, orig_ring) < 0)
+        HDONE_ERROR(H5E_FILE, H5E_CANTSET, FAIL, "unable to set property value")
+
     FUNC_LEAVE_NOAPI(ret_value)
 
 } /* H5F__super_ext_get_num_chunks() */
@@ -233,6 +243,8 @@ herr_t
 H5F__super_ext_get_chunk_addrs(H5F_t *f, hid_t dxpl_id, unsigned nchunks,
     haddr_t *addrs)
 {
+    H5P_genplist_t *dxpl = NULL;        /* DXPL for setting ring */
+    H5AC_ring_t orig_ring = H5AC_RING_INV;      /* Original ring value */
     H5O_loc_t ext_loc;      /* "Object location" for superblock extension */
     herr_t ret_value = SUCCEED;         /* Return value */
 
@@ -251,6 +263,10 @@ H5F__super_ext_get_chunk_addrs(H5F_t *f, hid_t dxpl_id, unsigned nchunks,
     ext_loc.file = f;
     ext_loc.addr = f->shared->sblock->ext_addr;
 
+    /* Set the ring type in the DXPL */
+    if(H5AC_set_ring(dxpl_id, H5AC_RING_SBE, &dxpl, &orig_ring) < 0)
+        HGOTO_ERROR(H5E_FILE, H5E_CANTSET, FAIL, "unable to set ring value")
+
     /* Get object header chunk addresses */
     if(H5O_get_chunk_addrs(&ext_loc, dxpl_id, nchunks, addrs) < 0)
 
@@ -258,6 +274,10 @@ H5F__super_ext_get_chunk_addrs(H5F_t *f, hid_t dxpl_id, unsigned nchunks,
                     "unable to retrieve superblock chunk addresses")
 
 done:
+    /* Reset the ring in the DXPL */
+    if(H5AC_reset_ring(dxpl, orig_ring) < 0)
+        HDONE_ERROR(H5E_FILE, H5E_CANTSET, FAIL, "unable to set property value")
+
     FUNC_LEAVE_NOAPI(ret_value)
 
 } /* H5F__super_ext_get_chunk_addrs() */
