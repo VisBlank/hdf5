@@ -18,7 +18,7 @@ include $(top_srcdir)/config/commence.am
 
 ## Only recurse into subdirectories if the Java (JNI) interface is enabled.
 if BUILD_JNI_CONDITIONAL
-   SUBDIRS=jni hdf
+   SUBDIRS=jni hdf test
 endif
 DIST_SUBDIRS = jni
 
