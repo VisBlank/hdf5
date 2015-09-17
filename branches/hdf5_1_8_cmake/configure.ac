@@ -16,7 +16,7 @@
 ## ----------------------------------------------------------------------
 ## Initialize configure.
 ##
-AC_REVISION($Id: configure.ac 27743 2015-09-10 11:11:32Z derobins $)
+AC_REVISION($Id: configure.ac 27770 2015-09-14 15:50:30Z derobins $)
 AC_PREREQ([2.69])
 
 ## AC_INIT takes the name of the package, the version number, and an
@@ -1377,8 +1377,20 @@ AC_CACHE_SAVE
 AC_MSG_CHECKING([for thread safe support])
 AC_ARG_ENABLE([threadsafe],
               [AS_HELP_STRING([--enable-threadsafe],
-                              [Enable thread-safe capability])],
+                              [Enable thread-safe capability. Not compatible with the high-level library, Fortran, or C++ wrappers.
+                              [default=no]])],
               [THREADSAFE=$enableval])
+
+## --enable-threadsafe is incompatible with --enable-hl unless
+## --enable-unsupported has been specified on the configure line.
+##
+## Note that the high-level library is enabled by default so most
+## users will have to add --disable-hl to the configure options.
+if test "X${ALLOW_UNSUPPORTED}" != "Xyes"; then
+  if test "X${HDF5_HL}" = "Xyes" -a "X${enable_threadsafe}" = "Xyes"; then
+    AC_MSG_ERROR([The thread-safe library is incompatible with the high-level library. --disable-hl can be used to prevent building the high-level library (recommended). Alternatively, --enable-unsupported will allow building the high-level library, though this configuration is not supported by The HDF Group.])
+  fi
+fi
 
 ## The --enable-threadsafe flag is not compatible with --enable-cxx.
 ## If the user tried to specify both flags, throw an error, unless
@@ -2201,6 +2213,27 @@ else
 fi
 
 ## ----------------------------------------------------------------------
+## Decide whether the data accuracy has higher priority during data
+## conversions.  If not, some hard conversions will still be prefered even
+## though the data may be wrong (for example, some compilers don't 
+## support denormalized floating values) to maximize speed.
+## 
+AC_MSG_CHECKING([whether data accuracy is guaranteed during data conversions])
+AC_ARG_ENABLE([dconv-accuracy],
+              [AS_HELP_STRING([--enable-dconv-accuracy],
+                              [if data accuracy is guaranteed during 
+                              data conversions [default=yes]])],
+              [DATA_ACCURACY=$enableval], [DATA_ACCURACY=yes])
+
+if test "$DATA_ACCURACY" = "yes"; then
+  AC_MSG_RESULT([yes])
+  AC_DEFINE([WANT_DATA_ACCURACY], [1],
+            [Data accuracy is prefered to speed during data conversions])
+else
+  AC_MSG_RESULT([no])
+fi
+
+## ----------------------------------------------------------------------
 ## Set the flag to indicate that the machine has window style pathname,
 ## that is, "drive-letter:\" (e.g. "C:") or "drive-letter:/" (e.g. "C:/").
 ## (This flag should be _unset_ for all machines, except for Windows, where
@@ -2234,61 +2267,60 @@ if test ${ac_cv_sizeof_long_double} = 0; then
    hdf5_cv_ldouble_to_long_special=${hdf5_cv_ldouble_to_long_special=no}
 else
    AC_CACHE_VAL([hdf5_cv_ldouble_to_long_special],
-        [AC_TRY_RUN([
-        int main(void)
-        {
-            long double         ld = 20041683600089727.779961L;
-            long                ll;
-            unsigned long       ull;
-            unsigned char       s[16];
-            unsigned char       s2[8];
-            int                 ret = 1;
-            
-            if(sizeof(long double) == 16 && sizeof(long) == 8) {
-                /*make sure the long double type has 16 bytes in size and 
-                 * 11 bits of exponent.  If it is,
-                 *the bit sequence should be like below.  It's not 
-                 *a decent way to check but this info isn't available. */   
-                memcpy(s, &ld, 16);
-                if(s[0]==0x43 && s[1]==0x51 && s[2]==0xcc && s[3]==0xf3 &&
-                    s[4]==0x85 && s[5]==0xeb && s[6]==0xc8 && s[7]==0xa0 &&
-                    s[8]==0xbf && s[9]==0xcc && s[10]==0x2a && s[11]==0x3c) {
+        [AC_RUN_IFELSE(
+            [AC_LANG_PROGRAM([
+                #include <string.h>
+            ],[[
+                long double         ld = 20041683600089727.779961L;
+                long                ll;
+                unsigned long       ull;
+                unsigned char       s[16];
+                unsigned char       s2[8];
+                int                 ret = 1;
+                
+                if(sizeof(long double) == 16 && sizeof(long) == 8) {
+                    /*make sure the long double type has 16 bytes in size and 
+                     * 11 bits of exponent.  If it is,
+                     *the bit sequence should be like below.  It's not 
+                     *a decent way to check but this info isn't available. */   
+                    memcpy(s, &ld, 16);
+                    if(s[0]==0x43 && s[1]==0x51 && s[2]==0xcc && s[3]==0xf3 &&
+                        s[4]==0x85 && s[5]==0xeb && s[6]==0xc8 && s[7]==0xa0 &&
+                        s[8]==0xbf && s[9]==0xcc && s[10]==0x2a && s[11]==0x3c) {
 
-                    /* Assign the hexadecimal value of long double type. */
-                    s[0]=0x43; s[1]=0x51; s[2]=0xcc; s[3]=0xf3;
-                    s[4]=0x85; s[5]=0xeb; s[6]=0xc8; s[7]=0xa0;
-                    s[8]=0xbf; s[9]=0xcc; s[10]=0x2a; s[11]=0x3c;
-                    s[12]=0x3d; s[13]=0x85; s[14]=0x56; s[15]=0x20;
+                        /* Assign the hexadecimal value of long double type. */
+                        s[0]=0x43; s[1]=0x51; s[2]=0xcc; s[3]=0xf3;
+                        s[4]=0x85; s[5]=0xeb; s[6]=0xc8; s[7]=0xa0;
+                        s[8]=0xbf; s[9]=0xcc; s[10]=0x2a; s[11]=0x3c;
+                        s[12]=0x3d; s[13]=0x85; s[14]=0x56; s[15]=0x20;
 
-                    memcpy(&ld, s, 16);
+                        memcpy(&ld, s, 16);
 
-                    ll = (long)ld;
-                    memcpy(s2, &ll, 8);
+                        ll = (long)ld;
+                        memcpy(s2, &ll, 8);
 
-                    /* The library's algorithm converts it to 0x 00 47 33 ce 17 af 22 82
-                     * and gets wrong value 20041683600089730 on the IBM Power6 Linux.
-                     * But the IBM Power6 Linux converts it to 0x00 47 33 ce 17 af 22 7f
-                     * and gets the correct value 20041683600089727.  It uses some special
-                     * algorithm.  We're going to define the macro and skip the test until
-                     * we can figure out how they do it. */
-                    if(s2[0]==0x00 && s2[1]==0x47 && s2[2]==0x33 && s2[3]==0xce &&
-                       s2[4]==0x17 && s2[5]==0xaf && s2[6]==0x22 && s2[7]==0x7f)
-                        ret = 0;
+                        /* The library's algorithm converts it to 0x 00 47 33 ce 17 af 22 82
+                         * and gets wrong value 20041683600089730 on the IBM Power6 Linux.
+                         * But the IBM Power6 Linux converts it to 0x00 47 33 ce 17 af 22 7f
+                         * and gets the correct value 20041683600089727.  It uses some special
+                         * algorithm.  We're going to define the macro and skip the test until
+                         * we can figure out how they do it. */
+                        if(s2[0]==0x00 && s2[1]==0x47 && s2[2]==0x33 && s2[3]==0xce &&
+                           s2[4]==0x17 && s2[5]==0xaf && s2[6]==0x22 && s2[7]==0x7f)
+                            ret = 0;
 
-                    ull = (unsigned long)ld;
-                    memcpy(s2, &ull, 8);
+                        ull = (unsigned long)ld;
+                        memcpy(s2, &ull, 8);
 
-                    /* The unsigned long is the same as signed long. */
-                    if(s2[0]==0x00 && s2[1]==0x47 && s2[2]==0x33 && s2[3]==0xce &&
-                       s2[4]==0x17 && s2[5]==0xaf && s2[6]==0x22 && s2[7]==0x7f)
-                        ret = 0;
-                }    
-            }   
-            
-    done:
-            exit(ret);
-        }
-        ], [hdf5_cv_ldouble_to_long_special=yes], [hdf5_cv_ldouble_to_long_special=no],)])
+                        /* The unsigned long is the same as signed long. */
+                        if(s2[0]==0x00 && s2[1]==0x47 && s2[2]==0x33 && s2[3]==0xce &&
+                           s2[4]==0x17 && s2[5]==0xaf && s2[6]==0x22 && s2[7]==0x7f)
+                            ret = 0;
+                    }    
+                }   
+                exit(ret);
+        ]])]
+    , [hdf5_cv_ldouble_to_long_special=yes], [hdf5_cv_ldouble_to_long_special=no],)])
 fi
 
 if test ${hdf5_cv_ldouble_to_long_special} = "yes"; then
@@ -2313,63 +2345,63 @@ if test ${ac_cv_sizeof_long_double} = 0; then
    hdf5_cv_long_to_ldouble_special=${hdf5_cv_long_to_ldouble_special=no}
 else
    AC_CACHE_VAL([hdf5_cv_long_to_ldouble_special],
-        [AC_TRY_RUN([
-        int main(void)
-        {
-            long double         ld;
-            long                ll;
-            unsigned long       ull;
-            unsigned char       s[16];
-            int                 flag=0, ret=1;
-        
-            /*Determine if long double has 16 byte in size, 11 bit exponent, and
-             *the bias is 0x3ff */ 
-            if(sizeof(long double) == 16) { 
-                ld = 1.0L;
-                memcpy(s, &ld, 16);
-                if(s[0]==0x3f && s[1]==0xf0 && s[2]==0x00 && s[3]==0x00 &&
-                    s[4]==0x00 && s[5]==0x00 && s[6]==0x00 && s[7]==0x00) 
-                    flag = 1; 
-            }
-             
-            if(flag==1 && sizeof(long)==8) {
-                ll = 0x003fffffffffffffL;
-                ld = (long double)ll;
-                memcpy(s, &ld, 16);
-                /* The library converts the value to 0x434fffffffffffff8000000000000000.
-                 * In decimal it is 18014398509481982.000000, one value short of the original.
-                 * The IBM Power6 Linux converts it to 0x4350000000000000bff0000000000000.
-                 * The value is correct in decimal. It uses some special
-                 * algorithm.  We're going to define the macro and skip the test until
-                 * we can figure out how they do it. */
-                if(s[0]==0x43 && s[1]==0x50 && s[2]==0x00 && s[3]==0x00 &&
-                    s[4]==0x00 && s[5]==0x00 && s[6]==0x00 && s[7]==0x00 &&
-                    s[8]==0xbf && s[9]==0xf0 && s[10]==0x00 && s[11]==0x00 &&
-                    s[12]==0x00 && s[13]==0x00 && s[14]==0x00 && s[15]==0x00)
-                    ret = 0;
-            }        
-            if(flag==1 && sizeof(unsigned long)==8) {
-                ull = 0xffffffffffffffffUL;
-                ld = (long double)ull;
-                memcpy(s, &ld, 16);
-                /* Use a different value from signed long to test. The problem is the same
-                 * for both long and unsigned long. The value is 18446744073709551615.
-                 * The library converts the value to 0x43effffffffffffffe000000000000000.
-                 * In decimal it's 18446744073709548544.000000, very different from the original.
-                 * The IBM Power6 Linux converts it to 0x43f0000000000000bff0000000000000.
-                 * The value is correct in decimal. It uses some special
-                 * algorithm.  We're going to define the macro and skip the test until
-                 * we can figure out how they do it. */
-                if(s[0]==0x43 && s[1]==0xf0 && s[2]==0x00 && s[3]==0x00 &&
-                    s[4]==0x00 && s[5]==0x00 && s[6]==0x00 && s[7]==0x00 &&
-                    s[8]==0xbf && s[9]==0xf0 && s[10]==0x00 && s[11]==0x00 &&
-                    s[12]==0x00 && s[13]==0x00 && s[14]==0x00 && s[15]==0x00)
-                    ret = 0;
-            }        
-    done:
-            exit(ret);
-        }
-        ], [hdf5_cv_long_to_ldouble_special=yes], [hdf5_cv_long_to_ldouble_special=no],)])
+        [AC_RUN_IFELSE(
+            [AC_LANG_PROGRAM([
+                #include <string.h>
+            ],[[
+                long double         ld;
+                long                ll;
+                unsigned long       ull;
+                unsigned char       s[16];
+                int                 flag=0, ret=1;
+            
+                /*Determine if long double has 16 byte in size, 11 bit exponent, and
+                 *the bias is 0x3ff */ 
+                if(sizeof(long double) == 16) { 
+                    ld = 1.0L;
+                    memcpy(s, &ld, 16);
+                    if(s[0]==0x3f && s[1]==0xf0 && s[2]==0x00 && s[3]==0x00 &&
+                        s[4]==0x00 && s[5]==0x00 && s[6]==0x00 && s[7]==0x00) 
+                        flag = 1; 
+                }
+                 
+                if(flag==1 && sizeof(long)==8) {
+                    ll = 0x003fffffffffffffL;
+                    ld = (long double)ll;
+                    memcpy(s, &ld, 16);
+                    /* The library converts the value to 0x434fffffffffffff8000000000000000.
+                     * In decimal it is 18014398509481982.000000, one value short of the original.
+                     * The IBM Power6 Linux converts it to 0x4350000000000000bff0000000000000.
+                     * The value is correct in decimal. It uses some special
+                     * algorithm.  We're going to define the macro and skip the test until
+                     * we can figure out how they do it. */
+                    if(s[0]==0x43 && s[1]==0x50 && s[2]==0x00 && s[3]==0x00 &&
+                        s[4]==0x00 && s[5]==0x00 && s[6]==0x00 && s[7]==0x00 &&
+                        s[8]==0xbf && s[9]==0xf0 && s[10]==0x00 && s[11]==0x00 &&
+                        s[12]==0x00 && s[13]==0x00 && s[14]==0x00 && s[15]==0x00)
+                        ret = 0;
+                }        
+                if(flag==1 && sizeof(unsigned long)==8) {
+                    ull = 0xffffffffffffffffUL;
+                    ld = (long double)ull;
+                    memcpy(s, &ld, 16);
+                    /* Use a different value from signed long to test. The problem is the same
+                     * for both long and unsigned long. The value is 18446744073709551615.
+                     * The library converts the value to 0x43effffffffffffffe000000000000000.
+                     * In decimal it's 18446744073709548544.000000, very different from the original.
+                     * The IBM Power6 Linux converts it to 0x43f0000000000000bff0000000000000.
+                     * The value is correct in decimal. It uses some special
+                     * algorithm.  We're going to define the macro and skip the test until
+                     * we can figure out how they do it. */
+                    if(s[0]==0x43 && s[1]==0xf0 && s[2]==0x00 && s[3]==0x00 &&
+                        s[4]==0x00 && s[5]==0x00 && s[6]==0x00 && s[7]==0x00 &&
+                        s[8]==0xbf && s[9]==0xf0 && s[10]==0x00 && s[11]==0x00 &&
+                        s[12]==0x00 && s[13]==0x00 && s[14]==0x00 && s[15]==0x00)
+                        ret = 0;
+                }        
+                exit(ret);
+        ]])]
+    , [hdf5_cv_long_to_ldouble_special=yes], [hdf5_cv_long_to_ldouble_special=no],)])
 fi
 
 if test ${hdf5_cv_long_to_ldouble_special} = "yes"; then
@@ -2381,17 +2413,136 @@ else
 fi
 
 ## ----------------------------------------------------------------------
-## Set the flag to indicate that the machine generates bad code
-## for the H5VM_log2_gen() routine in src/H5VMprivate.h
-## (This flag should be set to no for all machines, except for SGI IRIX64,
-## where the cache value is set to yes in it's config file)
+## Set the flag to indicate that the machine can accurately convert
+## 'long double' to '(unsigned) long long' values. This flag should
+## be set for all machines, except for IBM XL C compilers. Historically,
+## this has also been a problem with OS X (version 10.4) but not current
+## versions of that OS.
 ##
-AC_MSG_CHECKING([if bad code for log2 routine is generated])
-AC_CACHE_VAL([hdf5_cv_bad_log2_code_generated], [hdf5_cv_bad_log2_code_generated=no])
+## When the bit sequence of long double is 0x4351ccf385ebc8a0bfcc2a3c...,
+## the values of (unsigned)long long start to go wrong on these
+## two machines.  Adjusting it higher to 0x4351ccf385ebc8a0dfcc... or
+## 0x4351ccf385ebc8a0ffcc... will make the converted values wildly wrong.
+## This test detects this wrong behavior and disable the test.
+##
+AC_MSG_CHECKING([if correctly converting long double to (unsigned) long long values])
 
-if test ${hdf5_cv_bad_log2_code_generated} = "yes"; then
-  AC_DEFINE([BAD_LOG2_CODE_GENERATED], [1],
-            [Define if your system generates wrong code for log2 routine.])
+if test ${ac_cv_sizeof_long_double} = 0; then
+   hdf5_cv_ldouble_to_llong_accurate=${hdf5_cv_ldouble_to_llong_accurate=no}
+else
+   AC_CACHE_VAL([hdf5_cv_ldouble_to_llong_accurate],
+        [AC_TRY_RUN([
+        int main(void)
+        {
+            long double         ld = 20041683600089727.779961L;
+            long long           ll;
+            unsigned long long  ull;
+            unsigned char       s[16];
+            int                 ret = 0;
+            
+            if(sizeof(long double) == 16) {
+                /*make sure the long double type is the same as the failing type 
+                 *which has 16 bytes in size and 11 bits of exponent.  If it is,
+                 *the bit sequence should be like below.  It's not 
+                 *a decent way to check but this info isn't available. */   
+                memcpy(s, &ld, 16);
+                if(s[0]==0x43 && s[1]==0x51 && s[2]==0xcc && s[3]==0xf3 &&
+                    s[4]==0x85 && s[5]==0xeb && s[6]==0xc8 && s[7]==0xa0 &&
+                    s[8]==0xbf && s[9]==0xcc && s[10]==0x2a && s[11]==0x3c) {
+
+                    /*slightly adjust the bit sequence (s[8]=0xdf).  The converted
+                     *values will go wild on Mac OS 10.4 and IRIX64 6.5.*/ 
+                    s[0]=0x43; s[1]=0x51; s[2]=0xcc; s[3]=0xf3;
+                    s[4]=0x85; s[5]=0xeb; s[6]=0xc8; s[7]=0xa0;
+                    s[8]=0xdf; s[9]=0xcc; s[10]=0x2a; s[11]=0x3c;
+                    s[12]=0x3d; s[13]=0x85; s[14]=0x56; s[15]=0x20;
+
+                    memcpy(&ld, s, 16);
+                    ll = (long long)ld;
+                    ull = (unsigned long long)ld;
+                    
+                    if(ll != 20041683600089728 || ull != 20041683600089728)
+                        ret = 1;
+                }    
+            }    
+    done:
+            exit(ret);
+        }
+        ], [hdf5_cv_ldouble_to_llong_accurate=yes], [hdf5_cv_ldouble_to_llong_accurate=no],)])
+fi
+
+if test ${hdf5_cv_ldouble_to_llong_accurate} = "yes"; then
+  AC_DEFINE([LDOUBLE_TO_LLONG_ACCURATE], [1],
+            [Define if your system can convert long double to (unsigned) long long values correctly.])
+  AC_MSG_RESULT([yes])
+else
+  AC_MSG_RESULT([no])
+fi
+
+
+## ----------------------------------------------------------------------
+## Set the flag to indicate that the machine can accurately convert
+## '(unsigned) long long' to 'long double' values. This flag should
+## be set for all machines, except for IBM XL C compilers. Historically,
+## this has also been a problem with OS X (version 10.4) but not current
+## versions of that OS.
+##
+## When the bit sequences are 003fff..., 007fff..., 00ffff..., 01ffff...,
+## ..., 7fffff..., the converted values are twice as big as they should be.
+##
+AC_MSG_CHECKING([if correctly converting (unsigned) long long to long double values])
+
+if test ${ac_cv_sizeof_long_double} = 0; then
+   hdf5_cv_llong_to_ldouble_correct=${hdf5_cv_llong_to_ldouble_correct=no}
+else
+   AC_CACHE_VAL([hdf5_cv_llong_to_ldouble_correct],
+        [AC_TRY_RUN([
+        int main(void)
+        {
+            long double         ld;
+            long long           ll;
+            unsigned long long  ull;
+            unsigned char       s[16];
+            int                 flag=0, ret=0;
+        
+            /*Determine if long double has 16 byte in size, 11 bit exponent, and
+             *the bias is 0x3ff */ 
+            if(sizeof(long double) == 16) { 
+                ld = 1.0L;
+                memcpy(s, &ld, 16);
+                if(s[0]==0x3f && s[1]==0xf0 && s[2]==0x00 && s[3]==0x00 &&
+                    s[4]==0x00 && s[5]==0x00 && s[6]==0x00 && s[7]==0x00) 
+                    flag = 1; 
+            }
+             
+            if(flag==1 && sizeof(long long)==8) {
+                ll = 0x01ffffffffffffffLL;
+                ld = (long double)ll;
+                memcpy(s, &ld, 16);
+                /*Check if the bit sequence is as supposed to be*/
+                if(s[0]!=0x43 || s[1]!=0x7f || s[2]!=0xff || s[3]!=0xff ||
+                    s[4]!=0xff || s[5]!=0xff || s[6]!=0xff || s[7]!=0xff ||
+                    s[8]!=0xf0 || s[9]!=0x00 || s[10]!=0x00 || s[11]!=0x00)
+                    ret = 1;
+            }        
+            if(flag==1 && sizeof(unsigned long long)==8) {
+                ull = 0x01ffffffffffffffULL;
+                ld = (long double)ull;
+                memcpy(s, &ld, 16);
+                if(s[0]!=0x43 || s[1]!=0x7f || s[2]!=0xff || s[3]!=0xff ||
+                    s[4]!=0xff || s[5]!=0xff || s[6]!=0xff || s[7]!=0xff ||
+                    s[8]!=0xf0 || s[9]!=0x00 || s[10]!=0x00 || s[11]!=0x00)
+                    ret = 1;
+            }        
+    done:
+            exit(ret);
+        }
+        ], [hdf5_cv_llong_to_ldouble_correct=yes], [hdf5_cv_llong_to_ldouble_correct=no],)])
+fi
+
+if test ${hdf5_cv_llong_to_ldouble_correct} = "yes"; then
+  AC_DEFINE([LLONG_TO_LDOUBLE_CORRECT], [1],
+            [Define if your system can convert (unsigned) long long to long double values correctly.])
   AC_MSG_RESULT([yes])
 else
   AC_MSG_RESULT([no])
