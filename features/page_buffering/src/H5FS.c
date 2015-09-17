@@ -886,12 +886,14 @@ H5FS_alloc_sect(H5F_t *f, H5FS_t *fspace, hid_t dxpl_id)
     HDassert(fspace);
 
     if(!H5F_addr_defined(fspace->sect_addr) && fspace->sinfo && fspace->serial_sect_count > 0) {
+        //fprintf(stdout, "BEFORE: addr = %llu, sect size = %llu\n", fspace->sect_addr, fspace->sect_size);
 	/* Allocate space for section info from aggregator/vfd (or temp. address space) */
         /* (The original version called H5MF_alloc(), but that may cause sect_size to change again) */
         /* (This routine is only called during file close operations, so don't allocate from temp. address space) */
 	//if(HADDR_UNDEF == (fspace->sect_addr = H5MF_close_allocate(f, H5FD_MEM_FSPACE_SINFO, dxpl_id, fspace->sect_size)))
         if(HADDR_UNDEF == (fspace->sect_addr = H5MF_alloc(f, H5FD_MEM_FSPACE_SINFO, dxpl_id, fspace->sect_size)))
 	    HGOTO_ERROR(H5E_FSPACE, H5E_NOSPACE, FAIL, "file allocation failed for section info")
+        //fprintf(stdout, "AFTER: addr = %llu, sect size = %llu\n", fspace->sect_addr, fspace->sect_size);
 	fspace->alloc_sect_size = fspace->sect_size;
 
 	/* Mark free-space header as dirty */
@@ -1014,6 +1016,9 @@ H5FS_free(H5F_t *f, H5FS_t *fspace, hid_t dxpl_id)
     } /* end if */
 
 done:
+    //fprintf(stdout, "%s: addr = %llu, size = %llu\n",
+    //FUNC, fspace->sect_addr, fspace->sect_size);
+
     FUNC_LEAVE_NOAPI_TAG(ret_value, FAIL)
 } /* H5FS_free() */
 
@@ -1187,6 +1192,23 @@ H5FS_sinfo_dest(H5FS_sinfo_t *sinfo)
 done:
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5FS_sinfo_dest() */
+
+herr_t 
+H5FS_get_sect_count(const H5FS_t *frsp, hsize_t *tot_sect_count)
+{
+    herr_t ret_value = SUCCEED; /* Return value */
+
+    FUNC_ENTER_NOAPI_NOINIT_NOERR
+
+    /* Check arguments. */
+    HDassert(frsp);
+    HDassert(tot_sect_count);
+
+    /* Report statistics for free space */
+    *tot_sect_count = frsp->serial_sect_count;
+
+    FUNC_LEAVE_NOAPI(ret_value)
+}
 
 #ifdef H5FS_DEBUG_ASSERT
 

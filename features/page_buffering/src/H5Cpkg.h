@@ -3908,6 +3908,13 @@ struct H5C_t {
     int64_t			cache_hits;
     int64_t			cache_accesses;
 
+    hbool_t			serialization_in_progress;
+    int64_t			index_scan_restarts;
+    int64_t			entries_loaded_counter;
+    int64_t			entries_inserted_counter;
+    int64_t			entries_relocated_counter;
+    int64_t			entry_fd_height_change_counter;
+
 #if H5C_COLLECT_CACHE_STATS
     /* stats fields */
     int64_t                     hits[H5C__MAX_NUM_TYPE_IDS + 1];

@@ -1995,6 +1995,7 @@ H5_DLL herr_t H5C_ignore_tags(H5C_t *cache_ptr);
 H5_DLL void H5C_retag_copied_metadata(H5C_t *cache_ptr, haddr_t metadata_tag);
 H5_DLL herr_t H5C_get_entry_ring(const H5F_t *f, haddr_t addr, H5C_ring_t *ring);
 
+H5_DLL herr_t H5C_serialize_cache(const H5F_t * f, hid_t dxpl_id);
 H5_DLL herr_t H5C_settle(const H5F_t *f, hid_t dxpl_id);
 
 #ifdef H5_HAVE_PARALLEL

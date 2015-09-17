@@ -199,6 +199,13 @@ herr_t H5C_dump_cache(H5C_t * cache_ptr, const char *  cache_name);
 herr_t H5C_dump_cache_skip_list(H5C_t * cache_ptr, char * calling_fcn);
 #endif /* debugging routines */
 
+static herr_t H5C_serialize_ring(const H5F_t * f, hid_t dxpl_id, 
+    H5C_ring_t ring);
+
+static herr_t H5C_serialize_single_entry(const H5F_t *f, hid_t dxpl_id, 
+    H5C_t *cache_ptr, H5C_cache_entry_t *entry_ptr, hbool_t *restart_scan_ptr,
+    hbool_t *restart_bucket_ptr);
+
 /*********************/
 /* Package Variables */
 /*********************/
@@ -10095,6 +10102,776 @@ done:
     FUNC_LEAVE_NOAPI(ret_value)
 } /* H5C__generate_image */
 
+
+/*-------------------------------------------------------------------------
+ * Function:    H5C_serialize_cache
+ *
+ * Purpose:	Serialize (i.e. construct an on disk image) for all entries 
+ *		in the metadata cache including clean entries.  
+ *
+ *		Note that flush dependencies and "flush me last" flags
+ *		must be observed in the serialization process.  
+ *
+ *		Note also that entries may be loaded, flushed, evicted,
+ *		expunged, relocated, resized, or removed from the cache
+ *		during this process, just as these actions may occur during
+ *		a regular flush.
+ *
+ *		However, we are given that the cache will contain no protected
+ *		entries on entry to this routine (although entries may be 
+ *		briefly protected and then unprotected during the serialize 
+ *		process).  
+ *
+ *		The objective of this routine is serialize all entries and 
+ *		to force all entries into their actual locations on disk.  
+ *
+ *		The initial need for this routine is to settle all entries 
+ *		in the cache prior to construction of the metadata cache 
+ *		image so that the size of the cache image can be calculated.
+ *		However, I gather that other uses for the routine are 
+ *		under consideration.
+ *
+ * Return:      Non-negative on success/Negative on failure or if there was
+ *		a request to flush all items and something was protected.
+ *
+ * Programmer:  John Mainzer
+ *		7/22/15
+ *
+ * Changes:	None.
+ *
+ *-------------------------------------------------------------------------
+ */
+
+herr_t
+H5C_serialize_cache(const H5F_t *f, hid_t dxpl_id)
+{
+#if H5C_DO_SANITY_CHECKS
+    int                 i;
+    int32_t             index_len = 0;
+    size_t              index_size = (size_t)0;
+    size_t              clean_index_size = (size_t)0;
+    size_t              dirty_index_size = (size_t)0;
+    size_t              slist_size = (size_t)0;
+    int32_t             slist_len = 0;
+#endif /* H5C_DO_SANITY_CHECKS */
+    H5C_ring_t          ring;
+    H5C_t             * cache_ptr;
+    herr_t              ret_value = SUCCEED;
+
+    FUNC_ENTER_NOAPI(FAIL)
+
+    HDassert(f);
+    HDassert(f->shared);
+    cache_ptr = f->shared->cache;
+    HDassert(cache_ptr);
+    HDassert(cache_ptr->magic == H5C__H5C_T_MAGIC);
+    HDassert(cache_ptr->slist_ptr);
+
+#if H5C_DO_SANITY_CHECKS
+    HDassert(cache_ptr->index_ring_len[H5C_RING_UNDEFINED] == 0);
+    HDassert(cache_ptr->index_ring_size[H5C_RING_UNDEFINED] == (size_t)0);
+    HDassert(cache_ptr->clean_index_ring_size[H5C_RING_UNDEFINED] == (size_t)0);
+    HDassert(cache_ptr->dirty_index_ring_size[H5C_RING_UNDEFINED] == (size_t)0);
+    HDassert(cache_ptr->slist_ring_len[H5C_RING_UNDEFINED] == 0);
+    HDassert(cache_ptr->slist_ring_size[H5C_RING_UNDEFINED] == (size_t)0);
+
+    for(i = H5C_RING_USER; i < H5C_RING_NTYPES; i++) {
+        index_len += cache_ptr->index_ring_len[i];
+        index_size += cache_ptr->index_ring_size[i];
+        clean_index_size += cache_ptr->clean_index_ring_size[i];
+        dirty_index_size += cache_ptr->dirty_index_ring_size[i];
+
+        slist_len += cache_ptr->slist_ring_len[i];
+        slist_size += cache_ptr->slist_ring_size[i];
+    } /* end for */
+
+    HDassert(cache_ptr->index_len == index_len);
+    HDassert(cache_ptr->index_size == index_size);
+    HDassert(cache_ptr->clean_index_size == clean_index_size);
+    HDassert(cache_ptr->dirty_index_size == dirty_index_size);
+    HDassert(cache_ptr->slist_len == slist_len);
+    HDassert(cache_ptr->slist_size == slist_size);
+#endif /* H5C_DO_SANITY_CHECKS */
+
+#if H5C_DO_EXTREME_SANITY_CHECKS
+    if((H5C_validate_protected_entry_list(cache_ptr) < 0) ||
+            (H5C_validate_pinned_entry_list(cache_ptr) < 0) ||
+            (H5C_validate_lru_list(cache_ptr) < 0))
+        HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, "an extreme sanity check failed on entry.\n");
+#endif /* H5C_DO_EXTREME_SANITY_CHECKS */
+
+    /* set cache_ptr->serialization_in_progress to TRUE, and back 
+     * to FALSE at the end of the function.  Must maintain this flag
+     * to support H5C_get_serialization_in_progress(), which is in 
+     * turn required to support sanity checking in some cache 
+     * clients.
+     */
+    HDassert(!cache_ptr->serialization_in_progress);
+    cache_ptr->serialization_in_progress = TRUE;
+
+
+    /* serialize each ring, starting from the outermost ring and
+     * working inward.
+     */
+    ring = H5C_RING_USER;
+
+    while ( ring < H5C_RING_NTYPES ) {
+
+        if ( H5C_serialize_ring(f, dxpl_id, ring) < 0)
+
+                HGOTO_ERROR(H5E_CACHE, H5E_CANTFLUSH, FAIL, \
+                            "serialize ring failed.")
+
+        ring++;
+
+    } /* end while */
+
+done:
+
+    cache_ptr->serialization_in_progress = FALSE;
+
+    FUNC_LEAVE_NOAPI(ret_value)
+
+} /* H5C_serialize_cache() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:    H5C_serialize_ring
+ *
+ * Purpose:     Serialize the entries contained in the specified cache and
+ *              ring.  All entries in rings outside the specified ring
+ *              must have been serialized on entry.
+ *
+ *              If the cache contains protected entries in the specified
+ *              ring, the function will fail, as protected entries cannot
+ *              be serialized.  However all unprotected entries in the 
+ *		target ring should be serialized before the function 
+ *		returns failure.
+ *
+ *              If flush dependencies appear in the target ring, the
+ *              function makes repeated passes through the slist 
+ *		serializing entries in flush dependency order.
+ *
+ *		All entries outside the H5C_RING_SBE are marked for 
+ *		inclusion in the cache image.  Entries in H5C_RING_SBE 
+ *		and below are marked for exclusion from the image.
+ *
+ * Return:      Non-negative on success/Negative on failure or if there was
+ *              a request to flush all items and something was protected.
+ *
+ * Programmer:  John Mainzer
+ *              9/11/15
+ *
+ *-------------------------------------------------------------------------
+ */
+static herr_t
+H5C_serialize_ring(const H5F_t * f,
+                   hid_t    dxpl_id,
+                   H5C_ring_t ring)
+{
+    hbool_t		restart_scan = TRUE;
+    hbool_t		restart_bucket;
+    int                 i;
+    unsigned		fd_height;
+    H5C_t             * cache_ptr;
+    H5C_cache_entry_t * entry_ptr;
+    herr_t              ret_value = SUCCEED;
+
+    FUNC_ENTER_NOAPI(FAIL)
+
+    /* sanity checks */
+    HDassert(f);
+    HDassert(f->shared);
+
+    cache_ptr = f->shared->cache;
+
+    HDassert(cache_ptr);
+    HDassert(cache_ptr->magic == H5C__H5C_T_MAGIC);
+    HDassert(ring > H5C_RING_UNDEFINED);
+    HDassert(ring < H5C_RING_NTYPES);
+
+    HDassert(cache_ptr->serialization_in_progress);
+
+    /* The objective here is to serialize all entries in the cache ring
+     * in increasing flush dependency height order.
+     *
+     * The basic algorithm is to scan the cache index once for each 
+     * flush dependency level, serializing all entries at the current
+     * level on each scan, and then incrementing the target dependency
+     * level by one and repeating the process until all flush dependency
+     * levels have been scaned.
+     *
+     * However, this algorithm is greatly complicated by the ability
+     * of client serialization callbacks to perform operations on 
+     * on the cache which can result in the insertion, deletion, 
+     * relocation, resizing, flushing, eviction, and removal (via the
+     * take ownership flag) of entries.  Changes in the flush dependency
+     * structure are also possible.
+     *
+     * In particular, if either:
+     *
+     *    1) An entry other than the target entry is inserted or loaded 
+     *       into the cache, or
+     *
+     *    2) An entry other than the target entry is relocated, or 
+     *
+     *    3) The flush dependency tree is altered (more specifically,
+     *	     the flush dependency height of some node is altered), 
+     *
+     * we must restart the scan from the beginning lest we either miss 
+     * serializing an entry, or we fail to serialize entries in increasing
+     * flush dependency height order.
+     *
+     * Similarly, if the target entry is relocated, we must restart the 
+     * scan of the current hash bucket, as the ht_next field of the target
+     * entry may no longer point to an entry in the current bucket.
+     *
+     * H5C_serialize_single_entry() should recognize these situations, and
+     * set restart_scan or restart_bucket to TRUE when they appear.
+     *
+     * Observe that either eviction or removal of entries as a result of 
+     * a serialization is not a problem as long as the flush depencency 
+     * tree does not change beyond the removal of a leaf.
+     */
+
+    while ( restart_scan ) 
+    {
+        restart_scan = FALSE;
+	restart_bucket = FALSE;
+        fd_height = 0;
+
+	while ( ( fd_height <= H5C__NUM_FLUSH_DEP_HEIGHTS ) && 
+                ( !restart_scan ) )
+        {
+            i = 0;
+            while ( ( i < H5C__HASH_TABLE_LEN ) && ( !restart_scan ) ) 
+            {
+		entry_ptr = cache_ptr->index[i];
+
+		while ( entry_ptr != NULL )
+                {
+		    HDassert(entry_ptr->magic == H5C__H5C_CACHE_ENTRY_T_MAGIC);
+
+		    /* verify that either the entry is already serialized, or
+                     * that it is assigned to either the target or an inner 
+                     * ring.
+                     */
+                    HDassert((entry_ptr->ring >= ring) ||
+                             (entry_ptr->image_up_to_date));
+
+		    /* skip flush me last entries for now */
+		    if ( ! entry_ptr->flush_me_last ) {
+
+		        if ( fd_height > entry_ptr->flush_dep_height ) {
+
+			    HDassert(entry_ptr->image_up_to_date);
+
+		        } else if ( fd_height == entry_ptr->flush_dep_height ) {
+
+		            if ( ! entry_ptr->image_up_to_date ) {
+
+			        /* serialize the entry */
+			        if ( H5C_serialize_single_entry(f, dxpl_id,  
+				          cache_ptr, entry_ptr,
+                                          &restart_scan, &restart_bucket) < 0 ) 
+
+            			    HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, \
+					        "entry serialization failed.");
+                            }
+#if H5C_COLLECT_CACHE_STATS
+			    if ( restart_scan )
+			        cache_ptr->index_scan_restarts++;
+			    else if ( restart_bucket )
+			        cache_ptr->hash_bucket_scan_restarts++;
+#endif /* H5C_COLLECT_CACHE_STATS */
+		        } 
+                    } /* if ( ! entry_ptr->flush_me_last ) */
+
+		    if ( restart_bucket ) {
+
+			restart_bucket = FALSE;
+			entry_ptr = cache_ptr->index[i];
+
+		    } else {
+
+			entry_ptr = entry_ptr->ht_next;
+		    }
+                }
+
+                i++;
+            }
+            fd_height++;
+	}
+    } /* while ( restart_scan ) */
+
+
+    /* At this point, all entries not marked "flush me last" should
+     * be serialized and have up to date images.  Scan the index 
+     * again to serialize the "flush me last" entries and to verify
+     * that all other entries have up to date images.
+     */
+
+    i = 0;
+    while ( i < H5C__HASH_TABLE_LEN )
+    {
+	entry_ptr = cache_ptr->index[i];
+
+	while ( entry_ptr != NULL )
+        {
+	    HDassert(entry_ptr->magic == H5C__H5C_CACHE_ENTRY_T_MAGIC);
+    	    HDassert(entry_ptr->ring > H5C_RING_UNDEFINED);
+            HDassert(entry_ptr->ring < H5C_RING_NTYPES);
+            HDassert((entry_ptr->ring >= ring) || 
+                     (entry_ptr->image_up_to_date));
+
+	    if ( entry_ptr->ring == ring ) {
+
+	        if ( entry_ptr->flush_me_last ) {
+
+		    if ( ! entry_ptr->image_up_to_date ) {
+
+	                /* serialize the entry */
+	                if ( H5C_serialize_single_entry(f, dxpl_id,  cache_ptr, 
+					                entry_ptr, 
+                                                        &restart_scan, 
+						        &restart_bucket) < 0 ) {
+
+		            HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, \
+			                "entry serialization failed.");
+
+		        } else if ( restart_scan || restart_bucket ) {
+
+		            HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, \
+			"flush_me_last entry serialization triggered restart.");
+		        }
+                    }
+                } else {
+
+	            HDassert(entry_ptr->image_up_to_date);
+
+                }
+           } /* if ( entry_ptr->ring == ring ) */
+
+	    entry_ptr = entry_ptr->ht_next;
+
+        } /* while ( entry_ptr != NULL ) */
+
+        i++;
+
+    } /* while ( i < H5C__HASH_TABLE_LEN ) */
+
+done:
+
+    HDassert(cache_ptr->serialization_in_progress);
+
+    FUNC_LEAVE_NOAPI(ret_value)
+
+} /* H5C_serialize_ring() */
+
+
+/*-------------------------------------------------------------------------
+ *
+ * Function:    H5C_serialize_single_entry
+ *
+ * Purpose:     Serialize the cache entry pointed to by the entry_ptr 
+ *		parameter.
+ *
+ * Return:      Non-negative on success/Negative on failure or if there was
+ *		an attempt to serialize a protected item.
+ *
+ * Programmer:  John Mainzer, 7/24/15
+ *
+ * Changes:	None
+ *
+ *-------------------------------------------------------------------------
+ */
+static herr_t
+H5C_serialize_single_entry(const H5F_t *f, 
+                           hid_t dxpl_id, 
+		           H5C_t *cache_ptr,
+                           H5C_cache_entry_t *entry_ptr,
+                           hbool_t *restart_scan_ptr,
+                           hbool_t *restart_bucket_ptr)
+{
+    hbool_t		was_dirty;
+    hbool_t		target_entry_relocated = FALSE;
+    unsigned 		serialize_flags = H5C__SERIALIZE_NO_FLAGS_SET;
+    haddr_t		new_addr = HADDR_UNDEF;
+    haddr_t		old_addr = HADDR_UNDEF;
+    size_t		new_len = 0;
+    size_t		new_compressed_len = 0;
+    herr_t		ret_value = SUCCEED;      /* Return value */
+
+#if 0
+    FUNC_ENTER_PACKAGE
+#else
+    FUNC_ENTER_NOAPI(FAIL)
+#endif
+
+    /* sanity checks */
+    HDassert(f);
+    HDassert(cache_ptr);
+    HDassert(cache_ptr->magic == H5C__H5C_T_MAGIC);
+    HDassert(entry_ptr);
+    HDassert(entry_ptr->magic == H5C__H5C_CACHE_ENTRY_T_MAGIC);
+    HDassert(!entry_ptr->image_up_to_date);
+    HDassert(!entry_ptr->is_protected);
+    HDassert(!entry_ptr->flush_in_progress);
+    HDassert(entry_ptr->type);
+    HDassert(restart_scan_ptr);
+    HDassert(*restart_scan_ptr == FALSE);
+    HDassert(restart_bucket_ptr);
+    HDassert(*restart_bucket_ptr == FALSE);
+
+    /* set entry_ptr->flush_in_progress to TRUE so the the target entry
+     * will not be evicted out from under us.  Must set it back to FALSE
+     * when we are done.
+     */
+    entry_ptr->flush_in_progress = TRUE;
+
+
+    /* allocate buffer for the entry image if required. */
+    if ( NULL == entry_ptr->image_ptr ) {
+
+        size_t image_size;
+
+        if(entry_ptr->compressed)
+
+            image_size = entry_ptr->compressed_size;
+
+        else
+
+            image_size = entry_ptr->size;
+
+        HDassert(image_size > 0);
+
+        if ( NULL == (entry_ptr->image_ptr = 
+			H5MM_malloc(image_size + H5C_IMAGE_EXTRA_SPACE)) )
+
+            HGOTO_ERROR(H5E_CACHE, H5E_CANTALLOC, FAIL, \
+                        "memory allocation failed for on disk image buffer")
+
+#if H5C_DO_MEMORY_SANITY_CHECKS
+        HDmemcpy(((uint8_t *)entry_ptr->image_ptr) + image_size, \
+                 H5C_IMAGE_SANITY_VALUE, H5C_IMAGE_EXTRA_SPACE);
+#endif /* H5C_DO_MEMORY_SANITY_CHECKS */
+    } /* end if */
+
+
+    /* Serialize the entry.  Note that the entry need not be dirty. */
+
+    /* reset cache_ptr->slist_changed so we can detect slist
+     * modifications in the pre_serialize call.
+     */
+    cache_ptr->slist_changed = FALSE;
+
+    /* make note of the entry's current address */
+    old_addr = entry_ptr->addr;
+
+    /* make note of whether the entry was dirty at the beginning of 
+     * the serialization process 
+     */
+    was_dirty = entry_ptr->is_dirty;
+
+    /* reset the counters so that we can detect insertions, loads,
+     * moves, and flush dependency height changes caused by the pre_serialize
+     * and serialize calls.
+     */
+    cache_ptr->entries_loaded_counter         = 0;
+    cache_ptr->entries_inserted_counter	      = 0;
+    cache_ptr->entries_relocated_counter      = 0;
+    cache_ptr->entry_fd_height_change_counter = 0;
+
+    /* Call client's pre-serialize callback, if there's one */
+    if ( ( entry_ptr->type->pre_serialize != NULL ) && 
+         ( (entry_ptr->type->pre_serialize)(f, dxpl_id, 
+                                            (void *)entry_ptr,
+                                            entry_ptr->addr, 
+                                            entry_ptr->size,
+					    entry_ptr->compressed_size,
+                                            &new_addr, &new_len, 
+                                            &new_compressed_len,
+                                            &serialize_flags) < 0 ) )
+
+        HGOTO_ERROR(H5E_CACHE, H5E_CANTFLUSH, FAIL, \
+                    "unable to pre-serialize entry")
+
+     /* set cache_ptr->slist_change_in_pre_serialize if the slist 
+      * was modified.
+      */
+     if(cache_ptr->slist_changed)
+
+         cache_ptr->slist_change_in_pre_serialize = TRUE;
+
+     /* Check for any flags set in the pre-serialize callback */
+     if ( serialize_flags != H5C__SERIALIZE_NO_FLAGS_SET ) {
+
+        /* Check for unexpected flags from serialize callback */
+        if(serialize_flags & ~(H5C__SERIALIZE_RESIZED_FLAG | 
+                               H5C__SERIALIZE_MOVED_FLAG |
+                               H5C__SERIALIZE_COMPRESSED_FLAG))
+
+            HGOTO_ERROR(H5E_CACHE, H5E_CANTFLUSH, FAIL, \
+                        "unknown serialize flag(s)")
+
+#ifdef H5_HAVE_PARALLEL
+        /* In the parallel case, resizes and moves in the serialize 
+         * operation can cause problems.  If they occur, scream and die.
+         *
+         * At present, in the parallel case, the aux_ptr will only be 
+         * set if there is more than one process.  Thus we can use this 
+         * to detect the parallel case.
+         *
+         * This works for now, but if we start using the aux_ptr for 
+         * other purposes, we will have to change this test accordingly.
+         *
+         * NB: While this test detects entryies that attempt
+         *     to resize or move themselves during a flush
+         *     in the parallel case, it will not detect an
+         *     entry that dirties, resizes, and/or moves
+         *     other entries during its flush.
+         *
+         *     From what Quincey tells me, this test is
+         *     sufficient for now, as any flush routine that
+         *     does the latter will also do the former.
+         *
+         *     If that ceases to be the case, further
+         *     tests will be necessary.
+         */
+        if(cache_ptr->aux_ptr != NULL)
+
+            HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, \
+                        "resize/move in serialize occured in parallel case.")
+#endif /* H5_HAVE_PARALLEL */
+
+        /* Resize the buffer if required */
+        if ( ( ( ! entry_ptr->compressed ) &&
+               ( serialize_flags & H5C__SERIALIZE_RESIZED_FLAG ) ) ||
+             ( ( entry_ptr->compressed ) &&
+               ( serialize_flags & H5C__SERIALIZE_COMPRESSED_FLAG ) ) )
+        {
+            size_t new_image_size;
+
+      	    if(entry_ptr->compressed)
+
+                new_image_size = new_compressed_len;
+
+            else
+
+                new_image_size = new_len;
+
+            HDassert(new_image_size > 0);
+
+            /* Release the current image */
+            if(entry_ptr->image_ptr)
+
+                entry_ptr->image_ptr = H5MM_xfree(entry_ptr->image_ptr);
+
+            /* Allocate a new image buffer */
+            if ( NULL == (entry_ptr->image_ptr = 
+			H5MM_malloc(new_image_size + H5C_IMAGE_EXTRA_SPACE)) )
+
+                HGOTO_ERROR(H5E_CACHE, H5E_CANTALLOC, FAIL, \
+                            "memory allocation failed for on disk image buffer")
+
+#if H5C_DO_MEMORY_SANITY_CHECKS
+            HDmemcpy(((uint8_t *)entry_ptr->image_ptr) + new_image_size, 
+                     H5C_IMAGE_SANITY_VALUE, H5C_IMAGE_EXTRA_SPACE);
+#endif /* H5C_DO_MEMORY_SANITY_CHECKS */
+        } /* end if */
+
+	/* If required, update the entry and the cache data structures
+         * for a resize.
+	 */
+        if ( serialize_flags & H5C__SERIALIZE_RESIZED_FLAG) {
+
+            H5C__UPDATE_STATS_FOR_ENTRY_SIZE_CHANGE(cache_ptr, \
+                                                    entry_ptr, new_len)
+
+            /* update the hash table for the size change */
+            H5C__UPDATE_INDEX_FOR_SIZE_CHANGE(cache_ptr, \
+                                              entry_ptr->size, \
+                                              new_len, entry_ptr, \
+                                              !(entry_ptr->is_dirty));
+
+            /* The entry can't be protected since we are
+             * in the process of serializing the cache.  Thus we must
+             * update the replacement policy data structures for the 
+	     * size change.  The macro deals with the pinned case.
+             */
+            H5C__UPDATE_RP_FOR_SIZE_CHANGE(cache_ptr, entry_ptr, new_len);
+
+            /* If the entry is dirty, it should be in the skip list.  If so
+             * we must update the skip list for the size change.
+             */
+            if ( entry_ptr->is_dirty ) {
+
+	        HDassert(entry_ptr->in_slist);
+                H5C__UPDATE_SLIST_FOR_SIZE_CHANGE(cache_ptr, entry_ptr->size, \
+                                                  new_len)
+            } else {
+
+		HDassert(!entry_ptr->in_slist);
+	    }
+
+            /* finally, update the entry for its new size */
+            entry_ptr->size = new_len;
+        } /* end if */
+
+
+        /* If required, update the entry and the cache data structures 
+         * for a move 
+         */
+        if ( serialize_flags & H5C__SERIALIZE_MOVED_FLAG ) {
+
+#if H5C_DO_SANITY_CHECKS
+            int64_t saved_slist_len_increase;
+            int64_t saved_slist_size_increase;
+#endif /* H5C_DO_SANITY_CHECKS */
+
+	    target_entry_relocated = TRUE;
+
+	    /* since the entry has moved, it is probably no longer in 
+             * the same hash bucket.  Thus at a minimum, we must set 
+             * *restart_bucket_ptr to TRUE.
+             */
+
+	    *restart_bucket_ptr = TRUE;
+
+            if(entry_ptr->addr == old_addr) {
+
+		/* update stats and the entries relocated counter */
+                H5C__UPDATE_STATS_FOR_MOVE(cache_ptr, entry_ptr)
+		cache_ptr->entries_relocated_counter++;
+
+                /* we must update cache data structures for the 
+                 * change in address.
+                 */
+
+                /* delete the entry from the hash table and the 
+                 * slist (if appropriate).
+                 */
+                H5C__DELETE_FROM_INDEX(cache_ptr, entry_ptr)
+
+		if ( was_dirty ) {
+
+	            HDassert(entry_ptr->in_slist);
+                    H5C__REMOVE_ENTRY_FROM_SLIST(cache_ptr, entry_ptr)
+
+                } else {
+
+		    HDassert(!entry_ptr->in_slist);
+		}
+
+	        /* update the entry for its new address */
+                entry_ptr->addr = new_addr;
+
+	        /* and then reinsert in the index and slist (if appropriate) */
+                H5C__INSERT_IN_INDEX(cache_ptr, entry_ptr, FAIL)
+
+		if ( entry_ptr->is_dirty ) {
+#if H5C_DO_SANITY_CHECKS
+	            /* save cache_ptr->slist_len_increase and 
+                     * cache_ptr->slist_size_increase before the 
+                     * reinsertion into the slist, and restore 
+                     * them afterwards to avoid skewing our sanity
+                     * checking.
+                     */
+                    saved_slist_len_increase = cache_ptr->slist_len_increase;
+                    saved_slist_size_increase = cache_ptr->slist_size_increase;
+#endif /* H5C_DO_SANITY_CHECKS */
+
+                    H5C__INSERT_ENTRY_IN_SLIST(cache_ptr, entry_ptr, FAIL)
+
+#if H5C_DO_SANITY_CHECKS
+                    cache_ptr->slist_len_increase = saved_slist_len_increase;
+                    cache_ptr->slist_size_increase = saved_slist_size_increase;
+#endif /* H5C_DO_SANITY_CHECKS */
+		}
+            }
+            else /* move is alread done for us -- just do sanity checks */
+
+                HDassert(entry_ptr->addr == new_addr);
+
+        } /* end if */
+
+        if ( serialize_flags & H5C__SERIALIZE_COMPRESSED_FLAG ) {
+
+            /* just save the new compressed entry size in 
+             * entry_ptr->compressed_size.  We don't need to 
+ 	     * do more, as compressed size is only used for I/O.
+             */
+            HDassert(entry_ptr->compressed);
+            entry_ptr->compressed_size = new_compressed_len;
+        }
+    } /* end if ( serialize_flags != H5C__SERIALIZE_NO_FLAGS_SET ) */
+
+    /* Serialize object into buffer */
+    {
+        size_t image_len;
+
+        if(entry_ptr->compressed)
+
+            image_len = entry_ptr->compressed_size;
+
+        else
+
+            image_len = entry_ptr->size;
+
+        /* reset cache_ptr->slist_changed so we can detect slist
+         * modifications in the serialize call.
+         */
+        cache_ptr->slist_changed = FALSE;
+
+            
+        if( entry_ptr->type->serialize(f, entry_ptr->image_ptr, 
+                                       image_len, (void *)entry_ptr) < 0 )
+
+            HGOTO_ERROR(H5E_CACHE, H5E_CANTFLUSH, FAIL, \
+                        "unable to serialize entry")
+
+        /* set cache_ptr->slist_change_in_serialize if the 
+         * slist was modified.
+         */
+        if(cache_ptr->slist_changed)
+
+            cache_ptr->slist_change_in_serialize = TRUE;
+
+#if H5C_DO_MEMORY_SANITY_CHECKS
+        HDassert(0 == HDmemcmp(((uint8_t *)entry_ptr->image_ptr) + image_len, 
+                                       H5C_IMAGE_SANITY_VALUE, H5C_IMAGE_EXTRA_SPACE));
+#endif /* H5C_DO_MEMORY_SANITY_CHECKS */
+
+        entry_ptr->image_up_to_date = TRUE;
+    }
+
+    /* reset the flush_in progress flag */
+    entry_ptr->flush_in_progress = FALSE;
+
+    /* set *restart_scan_ptr to TRUE if appropriate */
+    if ( ( cache_ptr->entries_loaded_counter > 0 ) ||
+         ( cache_ptr->entries_inserted_counter > 0 ) ||
+         ( cache_ptr->entries_relocated_counter > 1 ) ||
+         ( ( cache_ptr->entries_relocated_counter > 0 ) &&
+           ( ! target_entry_relocated ) ) ||
+         ( cache_ptr->entry_fd_height_change_counter > 0 ) ) {
+
+	*restart_scan_ptr = TRUE;
+    }
+
+done:
+
+    HDassert( ( ret_value != SUCCEED ) || 
+              ( ! entry_ptr->flush_in_progress ) );
+
+    HDassert( ( ret_value != SUCCEED ) || 
+              ( entry_ptr->image_up_to_date ) );
+
+    FUNC_LEAVE_NOAPI(ret_value)
+
+} /* H5C_serialize_single_entry() */
+
+#if 1
 herr_t
 H5C_settle(const H5F_t *f, hid_t dxpl_id)
 {
@@ -10115,22 +10892,6 @@ H5C_settle(const H5F_t *f, hid_t dxpl_id)
 
     ring = H5C_RING_USER;
     while(ring < H5C_RING_NTYPES) {
-#if 0
-        for(u = 0; u < H5C__HASH_TABLE_LEN; u++) {
-            entry_ptr = cache_ptr->index[u];
-            while(entry_ptr != NULL) {
-                if(entry_ptr->ring == ring) {
-                    if(!(entry_ptr->image_up_to_date)) {
-                        if(!(entry_ptr->image_up_to_date))
-                            if(H5C__generate_image(f, cache_ptr, entry_ptr, dxpl_id, NULL) < 0)
-                                HGOTO_ERROR(H5E_CACHE, H5E_CANTGET, FAIL, "Can't generate cache entry image");
-                    }
-                }
-                entry_ptr = entry_ptr->ht_next;
-            } /* end while */
-        } /* for */
-#endif
-#if 1
         unsigned curr_flush_dep_height = 0;
 
         while(curr_flush_dep_height <= H5C__NUM_FLUSH_DEP_HEIGHTS) {
@@ -10148,11 +10909,6 @@ H5C_settle(const H5F_t *f, hid_t dxpl_id)
             } /* for */
             curr_flush_dep_height ++;
         }
-#endif
-#if 0
-        if(H5C_settle_ring(f, dxpl_id, ring) < 0)
-            HGOTO_ERROR(H5E_CACHE, H5E_CANTGET, FAIL, "Can't generate cache entry image")
-#endif
         ring++;
     } /* end while */
 
@@ -10160,258 +10916,4 @@ H5C_settle(const H5F_t *f, hid_t dxpl_id)
 done:
     FUNC_LEAVE_NOAPI(ret_value)
 } /* H5C_settle */
-
-#if 0
-
-/*-------------------------------------------------------------------------
- * Function:    H5C_settle_ring
- *
- * Purpose:	Flush the entries contained in the specified cache and 
- *		ring.  All entries in rings outside the specified ring
- *		must have been flushed on entry.
- *
- *		If the cache contains protected entries in the specified
- *		ring, the function will fail, as protected entries cannot 
- *		be flushed.  However all unprotected entries in the target
- *		ring should be flushed before the function returns failure.
- *
- *		If flush dependencies appear in the target ring, the 
- *		function makes repeated passes through the slist flushing
- *		entries in flush dependency order.
- *
- * Return:      Non-negative on success/Negative on failure or if there was
- *		a request to flush all items and something was protected.
- *
- * Programmer:  John Mainzer
- *		9/1/15
- *
- *-------------------------------------------------------------------------
- */
-static herr_t
-H5C_settle_ring(H5F_t *f, hid_t dxpl_id, H5C_ring_t ring)
-{
-    H5C_t * cache_ptr = f->shared->cache;
-    hbool_t		flushed_entries_last_pass;
-    hbool_t		flush_marked_entries;
-    hbool_t		ignore_protected;
-    hbool_t		tried_to_flush_protected_entry = FALSE;
-    hbool_t		restart_slist_scan;
-    int32_t		passes = 0;
-    int32_t		protected_entries = 0;
-    H5SL_node_t * 	node_ptr = NULL;
-    H5C_cache_entry_t *	entry_ptr = NULL;
-    H5C_cache_entry_t *	next_entry_ptr = NULL;
-    int64_t           * entry_size_change_ptr = NULL;
-    int                 i;
-    herr_t		ret_value = SUCCEED;
-
-    FUNC_ENTER_NOAPI(FAIL)
-
-    HDassert(cache_ptr);
-    HDassert(cache_ptr->magic == H5C__H5C_T_MAGIC);
-    HDassert(cache_ptr->slist_ptr);
-    HDassert(ring > H5C_RING_UNDEFINED);
-    HDassert(ring < H5C_RING_NTYPES);
-
-    /* When we are only flushing marked entries, the slist will usually
-     * still contain entries when we have flushed everything we should.
-     * Thus we track whether we have flushed any entries in the last
-     * pass, and terminate if we haven't.
-     */
-    flushed_entries_last_pass = TRUE;
-
-    /* set the cache_ptr->slist_change_in_pre_serialize and
-     * cache_ptr->slist_change_in_serialize to false.
-     *
-     * These flags are set to TRUE by H5C__flush_single_entry if the 
-     * slist is modified by a pre_serialize or serialize call respectively.
-     * H5C_flush_cache uses these flags to detect any modifications
-     * to the slist that might corrupt the scan of the slist -- and 
-     * restart the scan in this event.
-     */
-    cache_ptr->slist_change_in_pre_serialize = FALSE;
-    cache_ptr->slist_change_in_serialize = FALSE;
-
-    while((passes < H5C__MAX_PASSES_ON_FLUSH) &&
-            (cache_ptr->slist_ring_len[ring] > 0) &&
-	    (protected_entries == 0)  &&
-	    (flushed_entries_last_pass)) {
-        unsigned curr_flush_dep_height = 0;
-        unsigned flush_dep_passes = 0;
-
-        flushed_entries_last_pass = FALSE;
-
-        /* Loop over all flush dependency heights of entries */
-        while((curr_flush_dep_height <= H5C__NUM_FLUSH_DEP_HEIGHTS) &&
-                (cache_ptr->slist_ring_len[ring] > 0) &&
-                (flush_dep_passes < H5C__MAX_PASSES_ON_FLUSH)) {
-            hbool_t flushed_during_dep_loop = FALSE;
-
-            restart_slist_scan = TRUE;
-
-            while((restart_slist_scan ) || (node_ptr != NULL)) {
-                if(restart_slist_scan) {
-                    restart_slist_scan = FALSE;
-
-                    /* Start at beginning of skip list */
-                    node_ptr = H5SL_first(cache_ptr->slist_ptr);
-
-                    if(node_ptr == NULL)
-                        /* the slist is empty -- break out of inner loop */
-	                break;
-
-                    /* Get cache entry for this node */
-                    next_entry_ptr = (H5C_cache_entry_t *)H5SL_item(node_ptr);
-
-                    if(NULL == next_entry_ptr)
-                        HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, "next_entry_ptr == NULL ?!?!")
-
-                    HDassert(next_entry_ptr->magic == H5C__H5C_CACHE_ENTRY_T_MAGIC);
-                    HDassert(next_entry_ptr->is_dirty);
-                    HDassert(next_entry_ptr->in_slist);
-                } /* end if */
-                    
-                entry_ptr = next_entry_ptr;
-
-                HDassert(entry_ptr->magic == H5C__H5C_CACHE_ENTRY_T_MAGIC);
-                HDassert(entry_ptr->in_slist);
-                HDassert(entry_ptr->is_dirty);
-                HDassert(entry_ptr->ring >= ring);
-
-                /* increment node pointer now, before we delete its target
-                 * from the slist.
-                 */
-                node_ptr = H5SL_next(node_ptr);
-                if(node_ptr != NULL) {
-                    next_entry_ptr = (H5C_cache_entry_t *)H5SL_item(node_ptr);
-                    if(NULL == next_entry_ptr)
-                        HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, "next_entry_ptr == NULL ?!?!")
-
-                    HDassert(next_entry_ptr->magic == H5C__H5C_CACHE_ENTRY_T_MAGIC);
-                    HDassert(next_entry_ptr->is_dirty);
-                    HDassert(next_entry_ptr->in_slist);
-                    HDassert(next_entry_ptr->ring >= ring);
-                    HDassert(entry_ptr != next_entry_ptr);
-                } /* end if */
-                else
-                    next_entry_ptr = NULL;
-
-                HDassert(entry_ptr != NULL);
-                HDassert(entry_ptr->in_slist);
-
-                if(((!flush_marked_entries) || (entry_ptr->flush_marker)) &&
-                        ((!entry_ptr->flush_me_last) ||
-                           ((entry_ptr->flush_me_last) &&
-                             (cache_ptr->num_last_entries >= cache_ptr->slist_len))) &&
-                         (entry_ptr->ring == ring)) {
-                    if(entry_ptr->is_protected) {
-                        /* we probably have major problems -- but lets 
-                         * flush everything we can before we decide 
-                         * whether to flag an error.
-                         */
-                        tried_to_flush_protected_entry = TRUE;
-                        protected_entries++;
-                    } /* end if */
-                    else if(entry_ptr->is_pinned) {
-
-                        /* Test to see if we are can flush the entry now.
-                         * If we can, go ahead and flush.  Note that we
-                         * aren't trying to do a destroy here, so that
-                         * is not an issue.
-                         */
-                        if(entry_ptr->flush_dep_height == curr_flush_dep_height) {
-                            if(!(entry_ptr->image_up_to_date))
-                                if(H5C__generate_image(f, cache_ptr, entry_ptr, dxpl_id, NULL) < 0)
-                                    HGOTO_ERROR(H5E_CACHE, H5E_CANTGET, FAIL, "Can't generate cache entry image")
-
-                            flushed_during_dep_loop = TRUE;
-
-                            if((cache_ptr->slist_change_in_serialize) ||
-                                    (cache_ptr->slist_change_in_pre_serialize)) {
-                                /* The slist has been modified by something
-                                 * other than the simple removal of the 
-                                 * of the flushed entry after the flush.
-                                 * 
-                                 * This has the potential to corrupt the
-                                 * scan through the slist, so restart it.
-                                 */
-                                restart_slist_scan = TRUE;
-                                cache_ptr->slist_change_in_pre_serialize = FALSE;
-                                cache_ptr->slist_change_in_serialize = FALSE;
-
-				H5C__UPDATE_STATS_FOR_SLIST_SCAN_RESTART(cache_ptr)
-                            } /* end if */
-                        } /* end if */
-                        else if(entry_ptr->flush_dep_height < curr_flush_dep_height)
-                            /* This shouldn't happen -- if it does, just scream and die. */
-                            HGOTO_ERROR(H5E_CACHE, H5E_CANTFLUSH, FAIL, "dirty entry below current flush dep. height.")
-                    } /* end else-if */
-                    else {
-                        /* Test to see if we are can flush the entry now.
-                         * If we can, go ahead and flush.  Note that we
-                         * aren't trying to do a destroy here, so that
-                         * is not an issue.
-                         */
-                        if(entry_ptr->flush_dep_height == curr_flush_dep_height) {
-                            if(!(entry_ptr->image_up_to_date))
-                                if(H5C__generate_image(f, cache_ptr, entry_ptr, dxpl_id, NULL) < 0)
-                                    HGOTO_ERROR(H5E_CACHE, H5E_CANTGET, FAIL, "Can't generate cache entry image")
-
-                            flushed_during_dep_loop = TRUE;
-
-                            if((cache_ptr->slist_change_in_serialize) ||
-                                    (cache_ptr->slist_change_in_pre_serialize)) {
-                                /* The slist has been modified by something
-                                 * other than the simple removal of the 
-                                 * of the flushed entry after the flush.
-                                 * 
-                                 * This has the potential to corrupt the
-                                 * scan through the slist, so restart it.
-                                 */
-                                restart_slist_scan = TRUE;
-                                cache_ptr->slist_change_in_pre_serialize = FALSE;
-                                cache_ptr->slist_change_in_serialize = FALSE;
-
-                                H5C__UPDATE_STATS_FOR_SLIST_SCAN_RESTART(cache_ptr)
-                            } /* end if */
-                        } /* end if */
-                        else if(entry_ptr->flush_dep_height < curr_flush_dep_height)
-                            /* This shouldn't happen -- if it does, just scream and die. */
-                            HGOTO_ERROR(H5E_CACHE, H5E_CANTFLUSH, FAIL, "dirty entry below current flush dep. height.")
-                    } /* end else */
-                } /* end if */
-            } /* while ( ( restart_slist_scan ) || ( node_ptr != NULL ) ) */
-
-            /* Check for incrementing flush dependency height */
-            if(flushed_during_dep_loop) {
-
-                /* If we flushed an entry at this flush dependency height
-                 *  start over at the bottom level of the flush dependencies
-                 */
-                curr_flush_dep_height = 0;
-
-                /* Make certain we don't get stuck in an infinite loop */
-                flush_dep_passes++;
-
-                /* Set flag for outer loop */
-                flushed_entries_last_pass = TRUE;
-            } /* end if */
-            else
-                curr_flush_dep_height++;
-        } /* while ( curr_flush_dep_height <= H5C__NUM_FLUSH_DEP_HEIGHTS) */
-
-        passes++;
-    } /* while */
-
-    HDassert(protected_entries <= cache_ptr->pl_len);
-
-    if(((cache_ptr->pl_len > 0) && (!ignore_protected)) || (tried_to_flush_protected_entry))
-        HGOTO_ERROR(H5E_CACHE, H5E_CANTFLUSH, FAIL, "cache has protected items")
-
-    if((cache_ptr->slist_len != 0) && (passes >= H5C__MAX_PASSES_ON_FLUSH))
-        HGOTO_ERROR(H5E_CACHE, H5E_CANTFLUSH, FAIL, "flush pass limit exceeded.")
-
-done:
-    FUNC_LEAVE_NOAPI(ret_value)
-} /* H5C_settle_ring() */
 #endif

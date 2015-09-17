@@ -211,6 +211,7 @@ H5_DLL herr_t H5FS_sect_query_last(H5F_t *f, hid_t dxpl_id, H5FS_t *fspace, hadd
 
 /* Statistics routine */
 H5_DLL herr_t H5FS_stat_info(const H5F_t *f, const H5FS_t *frsp, H5FS_stat_t *stats);
+H5_DLL herr_t H5FS_get_sect_count(const H5FS_t *frsp, hsize_t *tot_sect_count);
 
 /* Debugging routines for dumping file structures */
 H5_DLL herr_t H5FS_debug(H5F_t *f, hid_t dxpl_id, haddr_t addr,

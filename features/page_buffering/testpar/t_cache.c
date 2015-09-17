@@ -2526,7 +2526,7 @@ datum_serialize(const H5F_t *f,
     HDassert( aux_ptr );
     HDassert( aux_ptr->magic == H5AC__H5AC_AUX_T_MAGIC );
     /* MSC - settle & flush dependancy issue */
-    //HDassert( entry_ptr->aux_ptr == NULL );
+    HDassert( entry_ptr->aux_ptr == NULL );
 
     entry_ptr->aux_ptr = aux_ptr;
 

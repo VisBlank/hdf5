@@ -451,6 +451,7 @@ HDfprintf(stderr, "%s: Relinquishing section info ownership\n", FUNC);
 #ifdef H5FS_SINFO_DEBUG
 HDfprintf(stderr, "%s: Freeing section info on disk, old_sect_addr = %a, old_alloc_sect_size = %Hu\n", FUNC, old_sect_addr, old_alloc_sect_size);
 #endif /* H5FS_SINFO_DEBUG */
+            //HDfprintf(stdout, "%s: Freeing section info on disk, old_sect_addr = %a, old_alloc_sect_size = %Hu\n", FUNC, old_sect_addr, old_alloc_sect_size);
             /* Release space for section info in file */
             if(!H5F_IS_TMP_ADDR(f, old_sect_addr)) {
                 if(H5MF_xfree(f, H5FD_MEM_FSPACE_SINFO, dxpl_id, old_sect_addr, old_alloc_sect_size) < 0)
@@ -578,6 +579,7 @@ H5FS_sect_increase(H5FS_t *fspace, const H5FS_section_class_t *cls,
 HDfprintf(stderr, "%s: sinfo->serial_size = %Zu\n", FUNC, fspace->sinfo->serial_size);
 HDfprintf(stderr, "%s: cls->serial_size = %Zu\n", FUNC, cls->serial_size);
 #endif /* QAK */
+
         fspace->sinfo->serial_size += cls->serial_size;
 
         /* Update the free space sections' serialized size */
@@ -1389,7 +1391,7 @@ H5FS_sect_add(H5F_t *f, hid_t dxpl_id, H5FS_t *fspace, H5FS_section_info_t *sect
     herr_t ret_value = SUCCEED;         /* Return value */
 
     FUNC_ENTER_NOAPI(FAIL)
-
+        //fprintf(stdout, "%s: ENTERING fspace->alloc_sect_size = %Hu, fspace->sect_size = %Hu\n", FUNC, fspace->alloc_sect_size, fspace->sect_size);
 #ifdef H5FS_SINFO_DEBUG
 HDfprintf(stderr, "%s: *sect = {%a, %Hu, %u, %s}\n", FUNC, sect->addr, sect->size, sect->type, (sect->state == H5FS_SECT_LIVE ? "H5FS_SECT_LIVE" : "H5FS_SECT_SERIALIZED"));
 #endif /* H5FS_SINFO_DEBUG */
@@ -1440,6 +1442,7 @@ HDfprintf(stderr, "%s: fspace->tot_space = %Hu\n", FUNC, fspace->tot_space);
         sinfo_modified = TRUE;
 
 done:
+    //fprintf(stdout, "%s: LEAVING fspace->alloc_sect_size = %Hu, fspace->sect_size = %Hu\n", FUNC, fspace->alloc_sect_size, fspace->sect_size);
     /* Release the section info */
     if(sinfo_valid && H5FS_sinfo_unlock(f, dxpl_id, fspace, sinfo_modified) < 0)
         HDONE_ERROR(H5E_FSPACE, H5E_CANTRELEASE, FAIL, "can't release section info")
@@ -1704,6 +1707,7 @@ H5FS_sect_find_node(H5FS_t *fspace, hsize_t request, H5FS_section_info_t **node)
 HDfprintf(stderr, "%s: fspace->sinfo->nbins = %u\n", FUNC, fspace->sinfo->nbins);
 HDfprintf(stderr, "%s: bin = %u\n", FUNC, bin);
 #endif /* QAK */
+
     alignment = fspace->alignment;
     if(!((alignment > 1) && (request >= fspace->align_thres)))
 	alignment = 0; /* no alignment */
@@ -1865,10 +1869,13 @@ HDfprintf(stderr, "%s: fspace->ghost_sect_count = %Hu\n", FUNC, fspace->ghost_se
             HGOTO_ERROR(H5E_FSPACE, H5E_CANTGET, FAIL, "can't get section info")
         sinfo_valid = TRUE;
 
+        //HDfprintf(stdout, "BEFORE %s: fspace->serial_sect_count = %llu size = %llu\n", FUNC, 
+        //fspace->serial_sect_count, fspace->sect_size);
         /* Look for node in bins */
         if((ret_value = H5FS_sect_find_node(fspace, request, node)) < 0)
             HGOTO_ERROR(H5E_FSPACE, H5E_CANTFREE, FAIL, "can't remove section from bins")
-
+        //HDfprintf(stdout, "AFTER %s: fspace->serial_sect_count = %llu size = %llu\n", FUNC, 
+                //fspace->serial_sect_count, fspace->sect_size);
         /* Decrement # of sections on free list, if we found an object */
         if(ret_value > 0) {
             /* Note that we've modified the section info */
@@ -2436,7 +2443,7 @@ H5FS_sect_try_shrink_eoa(H5F_t *f, hid_t dxpl_id, H5FS_t *fspace, void *op_data)
 		    HGOTO_ERROR(H5E_FSPACE, H5E_CANTSHRINK, FAIL, "can't check for shrinking container")
 		else if(ret_value > 0) {
 		    HDassert(tmp_sect_cls->shrink);
-
+                    //fprintf(stdout, "%s removing section addr %llu size %llu\n", FUNC, tmp_sect->addr, tmp_sect->size);
                     /* Remove section from free space manager */
 		    if(H5FS_sect_remove_real(fspace, tmp_sect) < 0)
 			HGOTO_ERROR(H5E_FSPACE, H5E_CANTRELEASE, FAIL, "can't remove section from internal data structures")
@@ -2454,7 +2461,7 @@ done:
     /* Release the section info */
     if(sinfo_valid && H5FS_sinfo_unlock(f, dxpl_id, fspace, section_removed) < 0)
         HDONE_ERROR(H5E_FSPACE, H5E_CANTRELEASE, FAIL, "can't release section info")
-
+    //fprintf(stdout, "%s: LEAVING fspace->alloc_sect_size = %Hu, fspace->sect_size = %Hu\n", FUNC, fspace->alloc_sect_size, fspace->sect_size);
     FUNC_LEAVE_NOAPI(ret_value)
 } /* H5FS_sect_try_shrink_eoa() */
 

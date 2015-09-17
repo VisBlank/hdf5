@@ -787,9 +787,6 @@ H5F_dest(H5F_t *f, hid_t dxpl_id, hbool_t flush)
     if(1 == f->shared->nrefs) {
         H5F_io_info_t fio_info;             /* I/O info for operation */
 
-        /* set the point of no return to true, since we are finalizing the free space changes */
-        f->shared->fs.point_of_no_return = TRUE;
-
         /* Flush at this point since the file will be closed.
          * Only try to flush the file if it was opened with write access, and if
          * the caller requested a flush.

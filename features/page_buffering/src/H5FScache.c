@@ -490,10 +490,12 @@ H5FS__cache_hdr_pre_serialize(const H5F_t *f, hid_t dxpl_id, void *_thing,
 		/* allocate file space for the section info, and insert it
                  * into the metadata cache.
                  */
+                //fprintf(stdout, "%s BEFORE allocate addr %llu size %llu\n", FUNC, fspace->sect_addr, fspace->sect_size);
                 if(HADDR_UNDEF == (fspace->sect_addr = H5MF_alloc((H5F_t *)f, H5FD_MEM_FSPACE_SINFO, dxpl_id, fspace->sect_size)))
                     HGOTO_ERROR(H5E_FSPACE, H5E_NOSPACE, FAIL, "file allocation failed for free space sections")
+                        //fprintf(stdout, "%s allocated addr %llu size %llu\n", FUNC, fspace->sect_addr, fspace->sect_size);
 
-                fspace->alloc_sect_size = (size_t)fspace->sect_size;
+                fspace->alloc_sect_size = fspace->sect_size;
 		if(H5AC_insert_entry((H5F_t *)f, dxpl_id, H5AC_FSPACE_SINFO, fspace->sect_addr, fspace->sinfo, H5AC__NO_FLAGS_SET) < 0)
                     HGOTO_ERROR(H5E_FSPACE, H5E_CANTINIT, FAIL, "can't add free space sections to cache")
 
