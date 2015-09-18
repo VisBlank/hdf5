@@ -25,13 +25,13 @@
 
 #include "h5test.h"
 
-#define H5MF_PACKAGE
+#define H5MF_FRIEND		/*suppress error about including H5MFpkg	  */
 #include "H5MFpkg.h"
 
-#define H5FS_PACKAGE
+#define H5FS_FRIEND		/*suppress error about including H5FSpkg	  */
 #include "H5FSpkg.h"
 
-#define H5F_PACKAGE
+#define H5F_FRIEND		/*suppress error about including H5Fpkg	  */
 #define H5F_TESTING
 #include "H5Fpkg.h"
 
@@ -375,9 +375,9 @@ test_mf_eoa_shrink(const char *env_h5_drvr, hid_t fapl)
     hid_t		fapl_new = -1;		/* copy of fapl */
     char		filename[FILENAME_LEN]; /* Filename to use */
     H5F_t		*f = NULL;              /* Internal file object pointer */
-    h5_stat_size_t      file_size, new_file_size; /* file size */
+    h5_stat_size_t      file_size = 0, new_file_size; /* file size */
     H5FD_mem_t 		type;
-    haddr_t		addr;
+    haddr_t		addr = 0;
     haddr_t 		ma_addr=HADDR_UNDEF, new_ma_addr=HADDR_UNDEF;
     hsize_t 		ma_size=0, new_ma_size=0;
     hbool_t             contig_addr_vfd;        /* Whether VFD used has a contigous address space */
@@ -3215,7 +3215,7 @@ test_mf_aggr_extend(const char *env_h5_drvr, hid_t fapl)
     hid_t		file = -1;              /* File ID */
     char		filename[FILENAME_LEN]; /* Filename to use */
     H5F_t		*f = NULL;              /* Internal file object pointer */
-    h5_stat_size_t      empty_size, file_size;
+    h5_stat_size_t      empty_size = 0, file_size;
     H5FD_mem_t 		type, stype;
     haddr_t		new_addr, addr, saddr;
     haddr_t 		ma_addr=HADDR_UNDEF, new_ma_addr=HADDR_UNDEF, sdata_addr=HADDR_UNDEF;
@@ -3509,7 +3509,7 @@ test_mf_aggr_absorb(const char *env_h5_drvr, hid_t fapl)
     hid_t		file = -1;              /* File ID */
     char		filename[FILENAME_LEN]; /* Filename to use */
     H5F_t		*f = NULL;              /* Internal file object pointer */
-    h5_stat_size_t      empty_size, file_size;
+    h5_stat_size_t      empty_size = 0, file_size;
     H5FD_mem_t 		type, stype;
     haddr_t		addr1, addr2, addr3, saddr1;
     haddr_t 		ma_addr=HADDR_UNDEF, new_ma_addr=HADDR_UNDEF;
@@ -3747,7 +3747,7 @@ static unsigned
 test_mf_align_eoa(const char *env_h5_drvr, hid_t fapl, hid_t new_fapl)
 {
     hid_t		file = -1;              /* File ID */
-    hid_t		fapl1;
+    hid_t		fapl1 = -1;
     char		filename[FILENAME_LEN]; /* Filename to use */
     H5F_t		*f = NULL;              /* Internal file object pointer */
     h5_stat_size_t      file_size, new_file_size;
@@ -8782,6 +8782,8 @@ main(void)
     env_h5_drvr = HDgetenv("HDF5_DRIVER");
     if(env_h5_drvr == NULL)
         env_h5_drvr = "nomatch";
+
+    h5_reset();
 
     fapl = h5_fileaccess();
 

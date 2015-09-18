@@ -1120,6 +1120,7 @@ check_dense_attribute_tags(void)
 
     /* Create dataset */
     if ( (did = H5Dcreate2(fid, DATASETNAME, H5T_NATIVE_UCHAR, sid, H5P_DEFAULT, dcpl, H5P_DEFAULT)) < 0 ) TEST_ERROR;
+    if ( H5Pclose(dcpl) < 0 ) TEST_ERROR;
     
     /* get dataset object header */
     if ( get_new_object_header_tag(fid, &d_tag) < 0 ) TEST_ERROR;
@@ -2034,6 +2035,7 @@ check_dataset_creation_tags(hid_t fcpl, int type)
 
     /* Create Dataset */
     if (( did = H5Dcreate2(fid, DATASETNAME, H5T_NATIVE_INT, sid, H5P_DEFAULT, dcpl, H5P_DEFAULT)) < 0 ) TEST_ERROR;
+    if ( H5Pclose(dcpl) < 0 ) TEST_ERROR;
 
     /* =================================== */
     /* Verification of Metadata Tag Values */
@@ -2168,6 +2170,7 @@ check_dataset_creation_earlyalloc_tags(hid_t fcpl, int type)
     if ( (sid = H5Screate_simple(2, dims1, maxdims)) < 0 ) TEST_ERROR;
 
     if (( did = H5Dcreate2(fid, DATASETNAME2, H5T_NATIVE_INT, sid, H5P_DEFAULT, dcpl, H5P_DEFAULT)) < 0 ) TEST_ERROR;
+    if ( H5Pclose(dcpl) < 0 ) TEST_ERROR;
 
     /* =================================== */
     /* Verification of Metadata Tag Values */
@@ -2296,6 +2299,7 @@ check_dataset_open_tags(hid_t fcpl, int type)
 
     /* Create Dataset */
     if (( did = H5Dcreate2(fid, DATASETNAME, H5T_NATIVE_INT, sid, H5P_DEFAULT, dcpl, H5P_DEFAULT)) < 0 ) TEST_ERROR;
+    if ( H5Pclose(dcpl) < 0 ) TEST_ERROR;
 
     /* Retrieve tag associated with this dataset */
     if ( get_new_object_header_tag(fid, &d_tag) < 0 ) TEST_ERROR;
@@ -2428,6 +2432,7 @@ check_dataset_write_tags(hid_t fcpl, int type)
 
     /* Create Dataset */
     if (( did = H5Dcreate2(fid, DATASETNAME, H5T_NATIVE_INT, sid, H5P_DEFAULT, dcpl, H5P_DEFAULT)) < 0 ) TEST_ERROR;
+    if ( H5Pclose(dcpl) < 0 ) TEST_ERROR;
 
     /* Retrieve tag associated with this dataset */
     if ( get_new_object_header_tag(fid, &d_tag) < 0 ) TEST_ERROR;
@@ -2718,6 +2723,7 @@ check_dataset_read_tags(hid_t fcpl, int type)
 
     /* Create Dataset */
     if (( did = H5Dcreate2(fid, DATASETNAME, H5T_NATIVE_INT, sid, H5P_DEFAULT, dcpl, H5P_DEFAULT)) < 0 ) TEST_ERROR;
+    if ( H5Pclose(dcpl) < 0 ) TEST_ERROR;
 
     /* Retrieve tag associated with this dataset */
     if ( get_new_object_header_tag(fid, &d_tag) < 0 ) TEST_ERROR;
@@ -2856,6 +2862,7 @@ check_dataset_size_retrieval(hid_t fcpl, int type)
 
     /* Create Dataset */
     if (( did = H5Dcreate2(fid, DATASETNAME, H5T_NATIVE_INT, sid, H5P_DEFAULT, dcpl, H5P_DEFAULT)) < 0 ) TEST_ERROR;
+    if ( H5Pclose(dcpl) < 0 ) TEST_ERROR;
 
     /* Retrieve tag associated with this dataset */
     if ( get_new_object_header_tag(fid, &d_tag) < 0 ) TEST_ERROR;
@@ -2995,6 +3002,7 @@ check_dataset_extend_tags(hid_t fcpl, int type)
 
     /* Create Dataset */
     if (( did = H5Dcreate2(fid, DATASETNAME, H5T_NATIVE_INT, sid, H5P_DEFAULT, dcpl, H5P_DEFAULT)) < 0 ) TEST_ERROR;
+    if ( H5Pclose(dcpl) < 0 ) TEST_ERROR;
 
     /* Retrieve tag associated with this dataset */
     if ( get_new_object_header_tag(fid, &d_tag) < 0 ) TEST_ERROR;
@@ -3376,6 +3384,7 @@ check_link_removal_tags(hid_t fcpl, int type)
 
     /* Create Dataset */
     if (( did = H5Dcreate2(fid, DATASETNAME, H5T_NATIVE_INT, sid, H5P_DEFAULT, dcpl, H5P_DEFAULT)) < 0 ) TEST_ERROR;
+    if ( H5Pclose(dcpl) < 0 ) TEST_ERROR;
 
     /* Retrieve tag associated with this dataset */
     if ( get_new_object_header_tag(fid, &d_tag) < 0 ) TEST_ERROR;
@@ -3535,6 +3544,7 @@ check_link_getname_tags(hid_t fcpl, int type)
 
     /* Create Dataset */
     if (( did = H5Dcreate2(fid, DATASETNAME, H5T_NATIVE_INT, sid, H5P_DEFAULT, dcpl, H5P_DEFAULT)) < 0 ) TEST_ERROR;
+    if ( H5Pclose(dcpl) < 0 ) TEST_ERROR;
 
     /* Retrieve tag associated with this dataset */
     if ( get_new_object_header_tag(fid, &d_tag) < 0 ) TEST_ERROR;

@@ -54,17 +54,17 @@ static int verify_filters(hid_t pid, hid_t tid, int nfilters, filter_info_t *fil
 int
 h5repack_verify(const char *in_fname, const char *out_fname, pack_opt_t *options)
 {
-    hid_t        fidin;	 /* file ID for input file*/
-    hid_t        fidout; /* file ID for output file*/
-    hid_t        did;    /* dataset ID */
-    hid_t        pid;    /* dataset creation property list ID */
-    hid_t        sid;    /* space ID */
-    hid_t        tid;    /* type ID */
+    hid_t        fidin      = -1;	/* file ID for input file*/
+    hid_t        fidout     = -1;   /* file ID for output file*/
+    hid_t        did        = -1;   /* dataset ID */
+    hid_t        pid        = -1;   /* dataset creation property list ID */
+    hid_t        sid        = -1;   /* space ID */
+    hid_t        tid        = -1;   /* type ID */
     unsigned int i;
     trav_table_t *travt = NULL;
     int          ok = 1;
-    hid_t       fcpl_in;  /* file creation property for input file */
-    hid_t   	fcpl_out; /* file creation property for output file */
+    hid_t       fcpl_in     = -1;   /* file creation property for input file */
+    hid_t   	fcpl_out    = -1;   /* file creation property for output file */
     H5F_fspace_strategy_t in_strategy, out_strategy;	/* file space handling strategy for in/output file */
     hbool_t 	in_persist, out_persist;		/* free-space persist status for in/output file */
     hsize_t	in_threshold, out_threshold;		/* free-space section threshold for in/output file */
