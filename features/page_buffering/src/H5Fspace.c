@@ -28,10 +28,7 @@
 /* Module Setup */
 /****************/
 
-#define H5F_PACKAGE		/*suppress error about including H5Fpkg  */
-
-/* Interface initialization */
-#define H5_INTERFACE_INIT_FUNC	H5F_space_init_interface
+#include "H5Fmodule.h"          /* This source code file is part of the H5F module */
 
 
 /***********/
@@ -77,28 +74,6 @@
 /* Local Variables */
 /*******************/
 
-
-
-/*--------------------------------------------------------------------------
-NAME
-   H5F_space_init_interface -- Initialize interface-specific information
-USAGE
-    herr_t H5F_space_init_interface()
-
-RETURNS
-    Non-negative on success/Negative on failure
-DESCRIPTION
-    Initializes any interface-specific data or routines.  (Just calls
-    H5F_init_iterface currently).
-
---------------------------------------------------------------------------*/
-static herr_t
-H5F_space_init_interface(void)
-{
-    FUNC_ENTER_NOAPI_NOINIT_NOERR
-
-    FUNC_LEAVE_NOAPI(H5F_init())
-} /* H5F_space_init_interface() */
 
 
 /*-------------------------------------------------------------------------

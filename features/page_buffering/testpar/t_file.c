@@ -25,14 +25,15 @@
 /*
  * This file needs to access private information from the H5F package.
  */
-#define H5AC_PACKAGE
-#include "H5ACpkg.h"
-#define H5C_PACKAGE
+#define H5C_FRIEND		/*suppress error about including H5Cpkg	  */
 #include "H5Cpkg.h"
-#define H5F_PACKAGE
-#include "H5Fpkg.h"
-#define H5MF_PACKAGE
+#define H5AC_FRIEND		/*suppress error about including H5ACpkg	  */
+#include "H5ACpkg.h"
+#define H5MF_FRIEND		/*suppress error about including H5MFpkg	  */
 #include "H5MFpkg.h"
+#define H5F_FRIEND		/*suppress error about including H5Fpkg	  */
+#define H5F_TESTING
+#include "H5Fpkg.h"
 
 #define NUM_DSETS               5
 

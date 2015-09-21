@@ -13,7 +13,7 @@
  * access to either file, you may request a copy from help@hdfgroup.org.     *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef H5PB_PACKAGE
+#if !(defined H5PB_FRIEND || defined H5PB_MODULE)
 #error "Do not include this file outside the H5PB package!"
 #endif
 

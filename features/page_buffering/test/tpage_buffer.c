@@ -30,10 +30,13 @@
 /*
  * This file needs to access private information from the H5F package.
  */
-#define H5F_PACKAGE
-#include "H5Fpkg.h"
-#define H5MF_PACKAGE
+#define H5MF_FRIEND		/*suppress error about including H5MFpkg	  */
 #include "H5MFpkg.h"
+
+#define H5F_FRIEND		/*suppress error about including H5Fpkg	  */
+#define H5F_TESTING
+#include "H5Fpkg.h"
+
 
 #define FILENAME_LEN		1024
 #define NUM_DSETS               5
@@ -1387,7 +1390,7 @@ main(void)
     nerrors += test_min_threshold(fapl);
     nerrors += test_stats_collection(fapl);
 
-    h5_cleanup(FILENAME, fapl);
+    h5_clean_files(FILENAME, fapl);
 
     if(nerrors)
         goto error;

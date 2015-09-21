@@ -33,7 +33,7 @@
  * This file needs to access private information from the H5F package.
  * This file also needs to access the file testing code.
  */
-#define H5F_PACKAGE
+#define H5F_FRIEND		/*suppress error about including H5Fpkg	  */
 #define H5F_TESTING
 #include "H5Fpkg.h"		/* File access	 			*/
 
@@ -3351,7 +3351,8 @@ test_filespace_info(const char *env_h5_drvr)
 	    } /* end for free-space section threshold */
 	} /* end for fs_persist */
 
-	h5_cleanup(FILESPACE_NAME, my_fapl);
+        /* close fapl_ and remove the file */
+        h5_clean_files(FILESPACE_NAME, my_fapl);
     } /* end for new_format */
 
 }  /* test_filespace_info() */
@@ -3510,7 +3511,7 @@ test_file_freespace(const char *env_h5_drvr)
 	/* Check that the file reverted to empty size */
 	VERIFY(mod_filesize, empty_filesize, "H5Fget_freespace");
 
-	h5_cleanup(FILESPACE_NAME, my_fapl);
+        h5_clean_files(FILESPACE_NAME, my_fapl);
 
     } /* end for */
 

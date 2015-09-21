@@ -26,8 +26,8 @@
 /* Module Setup */
 /****************/
 
-#define H5F_PACKAGE		/*suppress error about including H5Fpkg	  */
-#define H5PB_PACKAGE		/*suppress error about including H5PBpkg  */
+#define H5F_FRIEND		/*suppress error about including H5Fpkg	  */
+#include "H5PBmodule.h"         /* This source code file is part of the H5PB module */
 
 
 /***********/
@@ -131,6 +131,8 @@ static herr_t H5PB__write_entry(const H5F_t *f, H5PB_entry_t *page_entry, H5P_ge
 /* Package Variables */
 /*********************/
 
+/* Package initialization variable */
+hbool_t H5_PKG_INIT_VAR = FALSE;
 
 /*****************************/
 /* Library Private Variables */

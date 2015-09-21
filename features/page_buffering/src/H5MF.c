@@ -28,11 +28,10 @@
 /* Module Setup */
 /****************/
 
-#define H5F_PACKAGE		/*suppress error about including H5Fpkg	  */
-#define H5MF_PACKAGE		/*suppress error about including H5MFpkg  */
+#define H5F_FRIEND		/*suppress error about including H5Fpkg	  */
+#define H5FS_FRIEND		/*suppress error about including H5Fpkg	  */
+#include "H5MFmodule.h"         /* This source code file is part of the H5MF module */
 
-#define H5FS_PACKAGE		/*suppress error about including H5Fpkg	  */
-#include "H5FSpkg.h"             /* File access				*/
 
 /***********/
 /* Headers */
@@ -40,6 +39,7 @@
 #include "H5private.h"		/* Generic Functions			*/
 #include "H5Eprivate.h"		/* Error handling		  	*/
 #include "H5Fpkg.h"             /* File access				*/
+#include "H5FSpkg.h"             /* File access				*/
 #include "H5Iprivate.h"		/* IDs			  		*/
 #include "H5MFpkg.h"		/* File memory management		*/
 #include "H5VMprivate.h"	/* Vectors and arrays 			*/
@@ -104,6 +104,9 @@ static herr_t H5MF_delete_fstype(H5F_t *f, hid_t dxpl_id, H5FD_mem_t type);
 /*********************/
 /* Package Variables */
 /*********************/
+
+/* Package initialization variable */
+hbool_t H5_PKG_INIT_VAR = FALSE;
 
 
 /*****************************/
@@ -1356,7 +1359,7 @@ haddr_t
 H5MF_alloc_tmp(H5F_t *f, hsize_t size)
 {
     haddr_t eoa;                /* End of allocated space in the file */
-    haddr_t ret_value;          /* Return value */
+    haddr_t ret_value = HADDR_UNDEF;    /* Return value */
 
     FUNC_ENTER_NOAPI(HADDR_UNDEF)
 #ifdef H5MF_ALLOC_DEBUG
@@ -1590,7 +1593,7 @@ htri_t
 H5MF_try_extend(H5F_t *f, hid_t dxpl_id, H5FD_mem_t alloc_type, haddr_t addr,
     hsize_t size, hsize_t extra_requested)
 {
-    H5P_genplist_t *dxpl = NULL;        /* DXPL for setting ring */
+    H5P_genplist_t *dxpl = NULL;                /* DXPL for setting ring */
     H5AC_ring_t orig_ring = H5AC_RING_INV;      /* Original ring value */
     haddr_t     end;            		/* End of block to extend */
     H5FD_mem_t  map_type;       		/* Mapped type */
@@ -1731,7 +1734,7 @@ H5MF_try_shrink(H5F_t *f, H5FD_mem_t alloc_type, hid_t dxpl_id, haddr_t addr,
     H5FS_section_class_t *sect_cls;	/* Section class */
     H5P_genplist_t *dxpl = NULL;        /* DXPL for setting ring */
     H5AC_ring_t orig_ring = H5AC_RING_INV;      /* Original ring value */
-    htri_t ret_value;                   /* Return value */
+    htri_t	ret_value = FAIL;       /* Return value */
 
     FUNC_ENTER_NOAPI(FAIL)
 #ifdef H5MF_ALLOC_DEBUG
@@ -2382,7 +2385,7 @@ done:
 ssize_t
 H5MF_get_free_sections(H5F_t *f, hid_t dxpl_id, H5F_fspace_type_t type, size_t nsects, H5F_sect_info_t *sect_info)
 {
-    H5P_genplist_t *dxpl = NULL;        /* DXPL for setting ring */
+    H5P_genplist_t *dxpl = NULL;                /* DXPL for setting ring */
     H5AC_ring_t orig_ring = H5AC_RING_INV;      /* Original ring value */
     size_t total_sects = 0;			/* Total number of sections */
     H5MF_sect_iter_ud_t sect_udata;     	/* User data for callback */
