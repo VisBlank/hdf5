@@ -36,7 +36,7 @@
 ./configure.ac
 
 ./bin/COPYING
-./bin/bbrelease       _DO_NOT_DISTRIBUTE_
+./bin/bbrelease         _DO_NOT_DISTRIBUTE_
 ./bin/buildhdf5
 ./bin/checkapi.pl        _DO_NOT_DISTRIBUTE_
 ./bin/checkposix.pl      _DO_NOT_DISTRIBUTE_
@@ -2275,7 +2275,7 @@
 ./hl/tools/gif2h5/writehdf.c
 ./hl/tools/gif2h5/h52gifgentst.c
 ./hl/tools/gif2h5/h52giftest.sh.in
-./hl/tools/gif2h5/testfiles/REAMDE
+./hl/tools/gif2h5/testfiles/README
 ./hl/tools/gif2h5/testfiles/ex_image2.h5
 ./hl/tools/gif2h5/testfiles/image1.gif
 ./hl/tools/gif2h5/testfiles/h52giftst.h5
@@ -2330,6 +2330,7 @@
 ./config/cmake/hdf5-config.cmake.in
 ./config/cmake/hdf5-config-version.cmake.in
 ./config/cmake/HDFCompilerFlags.cmake
+./config/cmake/HDF5_Process_Flex_Files.cmake
 ./config/cmake/HDF5Macros.cmake
 ./config/cmake/HDF5UseFortran.cmake
 ./config/cmake/libhdf5.settings.cmake.in

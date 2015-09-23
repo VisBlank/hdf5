@@ -156,14 +156,22 @@ tar2zip()
 
 # This command must be run at the top level of the hdf5 source directory.
 # Verify this requirement.
-if [ ! \( -f configure -a -f bin/release \) ]; then
+# Since we are running bbrelease to create an HDF5 source tarfile for buildbot
+# testing with source that is not for release, there is not a file named
+# "configure" but there will be one named "configure.ac".  The "configure"
+# file will be created when autogen.sh runs. There probably will always
+# be a bin/release file, but just in case it is removed, we can check for 
+# this script, bbrelease, in the bin directory.  The bin/release script should
+# continue to check for "configure" because it should be present in release 
+# source.
+if [ ! \( -f configure.ac -a -f bin/bbrelease \) ]; then
     echo "$0 must be run at the top level of the hdf5 source directory"
     exit 1
 fi
 
 # Defaults
 DEST=releases
-VERS=`perl bin/h5vers.pl`
+VERS=`perl bin/h5vers`
 VERS_OLD=
 test "$VERS" || exit 1
 verbose=yes
@@ -183,7 +191,7 @@ RESTORE_VERSION()
 	echo restoring version information back to $VERS_OLD
 	rm -f config/lt_vers.am
 	cp $tmpdir/lt_vers.am config/lt_vers.am
-	bin/h5vers.pl -s $VERS_OLD
+	bin/h5vers -s $VERS_OLD
 	VERS_OLD=
     fi
 }
@@ -252,7 +260,7 @@ if [ X$pmode = Xyes ]; then
     # (h5vers does not correctly handle just m.n.r-$today.)
     VERS=`echo $VERS | sed -e s/-.*//`-of$today
     echo Private release of $VERS
-    bin/h5vers.pl -s $VERS
+    bin/h5vers -s $VERS
 fi
 
 if [ X$revmode = Xyes ]; then
@@ -266,7 +274,7 @@ if [ X$revmode = Xyes ]; then
     # (h5vers does not correctly handle just m.n.r-$today.)
     VERS=`echo $VERS | sed -e s/-.*//`-r$revision
     echo Private release of $VERS
-    bin/h5vers.pl -s $VERS
+    bin/h5vers -s $VERS
     HDF5_VERS=hdf5-$branch-r$revision
     # use a generic directory name for revision releases
     HDF5_IN_VERS=hdfsrc
@@ -296,6 +304,7 @@ fi
 # Create a manifest that contains only files for distribution.
 MANIFEST=$tmpdir/H5_MANIFEST
 grep '^\.' MANIFEST | grep -v _DO_NOT_DISTRIBUTE_ >$MANIFEST
+echo "./autogen.sh" >>$MANIFEST
 
 # Prepare the source tree for a release.
 #ln -s `pwd` $tmpdir/$HDF5_VERS || exit 1

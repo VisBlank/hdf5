@@ -776,6 +776,8 @@ set (H5_GENERATED_HEADERS
     ${HDF5_SRC_DIR}/H5overflow.h
 )
 
+option (HDF5_GENERATE_HEADERS "Rebuild Generated Files" ON)
+mark_as_advanced (HDF5_GENERATE_HEADERS)
 if (HDF5_GENERATE_HEADERS)
   find_package (Perl)
   if (PERL_FOUND)
@@ -783,7 +785,7 @@ if (HDF5_GENERATE_HEADERS)
         OUTPUT ${HDF5_SRC_DIR}/H5Edefin.h ${HDF5_SRC_DIR}/H5Einit.h ${HDF5_SRC_DIR}/H5Epubgen.h ${HDF5_SRC_DIR}/H5Eterm.h
         PRE_BUILD
         COMMAND ${PERL_EXECUTABLE}
-        ARGS ${HDF5_SOURCE_DIR}/bin/make_err.pl ${HDF5_SRC_DIR}/H5err.txt
+        ARGS ${HDF5_SOURCE_DIR}/bin/make_err ${HDF5_SRC_DIR}/H5err.txt
         DEPENDS ${HDF5_SRC_DIR}/H5err.txt
         COMMENT " Creating err header"
     )
@@ -792,7 +794,7 @@ if (HDF5_GENERATE_HEADERS)
         OUTPUT ${HDF5_SRC_DIR}/H5version.h
         PRE_BUILD
         COMMAND ${PERL_EXECUTABLE}
-        ARGS ${HDF5_SOURCE_DIR}/bin/make_vers.pl ${HDF5_SRC_DIR}/H5vers.txt
+        ARGS ${HDF5_SOURCE_DIR}/bin/make_vers ${HDF5_SRC_DIR}/H5vers.txt
         DEPENDS ${HDF5_SRC_DIR}/H5vers.txt
        COMMENT " Creating API version macro"
     )
@@ -801,7 +803,7 @@ if (HDF5_GENERATE_HEADERS)
         OUTPUT ${HDF5_SRC_DIR}/H5overflow.h
         PRE_BUILD
         COMMAND ${PERL_EXECUTABLE}
-        ARGS ${HDF5_SOURCE_DIR}/bin/make_overflow.pl ${HDF5_SRC_DIR}/H5overflow.txt
+        ARGS ${HDF5_SOURCE_DIR}/bin/make_overflow ${HDF5_SRC_DIR}/H5overflow.txt
         DEPENDS ${HDF5_SRC_DIR}/H5overflow.txt
         COMMENT " Creating Assignment overflow macro"
     )
@@ -826,7 +828,11 @@ TARGET_C_PROPERTIES (H5detect STATIC " " " ")
 if (MSVC OR MINGW)
   target_link_libraries (H5detect "ws2_32.lib")
 endif (MSVC OR MINGW)
-add_dependencies(H5detect generate_precompiled)
+if (HDF5_GENERATE_HEADERS)
+  add_dependencies(H5detect generate_precompiled)
+else (HDF5_GENERATE_HEADERS)
+  add_dependencies(H5detect "${HDF5_SRC_DIR}/H5version.h;${HDF5_SRC_DIR}/H5overflow.h")
+endif (HDF5_GENERATE_HEADERS)
 
 set (CMD $<TARGET_FILE:H5detect>)
 add_custom_command (
@@ -841,7 +847,11 @@ TARGET_C_PROPERTIES (H5make_libsettings STATIC " " " ")
 if (MSVC OR MINGW)
   target_link_libraries (H5make_libsettings "ws2_32.lib")
 endif (MSVC OR MINGW)
-add_dependencies(H5make_libsettings generate_precompiled)
+if (HDF5_GENERATE_HEADERS)
+  add_dependencies(H5detect generate_precompiled)
+else (HDF5_GENERATE_HEADERS)
+  add_dependencies(H5make_libsettings "${HDF5_SRC_DIR}/H5version.h;${HDF5_SRC_DIR}/H5overflow.h")
+endif (HDF5_GENERATE_HEADERS)
 
 set (CMD $<TARGET_FILE:H5make_libsettings>)
 add_custom_command (
@@ -873,6 +883,11 @@ set_target_properties (${HDF5_LIB_TARGET} PROPERTIES
     FOLDER libraries
     INTERFACE_INCLUDE_DIRECTORIES "$<INSTALL_INTERFACE:$<INSTALL_PREFIX>/include>"
 )
+if (HDF5_GENERATE_HEADERS)
+  add_dependencies(${HDF5_LIB_TARGET} run_perl_scripts)
+else (HDF5_GENERATE_HEADERS)
+  add_dependencies(${HDF5_LIB_TARGET} "${HDF5_SRC_DIR}/H5Edefin.h;${HDF5_SRC_DIR}/H5Einit.h;${HDF5_SRC_DIR}/H5Epubgen.h;${HDF5_SRC_DIR}/H5Eterm.h")
+endif (HDF5_GENERATE_HEADERS)
 
 option (HDF5_ENABLE_DEBUG_APIS "Turn on debugging in all packages" OFF)
 if (HDF5_ENABLE_DEBUG_APIS)
@@ -901,6 +916,11 @@ if (BUILD_SHARED_LIBS)
       INTERFACE_INCLUDE_DIRECTORIES "$<INSTALL_INTERFACE:$<INSTALL_PREFIX>/include>"
       INTERFACE_COMPILE_DEFINITIONS H5_BUILT_AS_DYNAMIC_LIB=1
   )
+  if (HDF5_GENERATE_HEADERS)
+    add_dependencies(${HDF5_LIBSH_TARGET} run_perl_scripts)
+  else (HDF5_GENERATE_HEADERS)
+    add_dependencies(${HDF5_LIBSH_TARGET} "${HDF5_SRC_DIR}/H5Edefin.h;${HDF5_SRC_DIR}/H5Einit.h;${HDF5_SRC_DIR}/H5Epubgen.h;${HDF5_SRC_DIR}/H5Eterm.h")
+  endif (HDF5_GENERATE_HEADERS)
   if (HDF5_ENABLE_THREADSAFE)
     set_property (TARGET ${HDF5_LIBSH_TARGET}
         APPEND PROPERTY COMPILE_DEFINITIONS
