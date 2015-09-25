@@ -475,7 +475,7 @@ if test "X$HDF_FORTRAN" = "Xyes"; then
 
   ## See if the fortran compiler supports the intrinsic function "C_SIZEOF"
   PAC_PROG_FC_C_SIZEOF
-	
+
   ## See if the fortran compiler supports the intrinsic function "STORAGE_SIZE"
   PAC_PROG_FC_STORAGE_SIZE
 
@@ -484,12 +484,12 @@ if test "X$HDF_FORTRAN" = "Xyes"; then
     FC_SIZEOF_A="STORAGE_SIZE(a, c_size_t)/STORAGE_SIZE(c_char_'a',c_size_t)"
     FC_SIZEOF_B="STORAGE_SIZE(b, c_size_t)/STORAGE_SIZE(c_char_'a',c_size_t)"
     FC_SIZEOF_C="STORAGE_SIZE(c, c_size_t)/STORAGE_SIZE(c_char_'a',c_size_t)"
-  else 
+  else
     if test "X$HAVE_SIZEOF_FORTRAN" = "Xyes";then
       FC_SIZEOF_A="SIZEOF(a)"
       FC_SIZEOF_B="SIZEOF(b)"
       FC_SIZEOF_C="SIZEOF(c)"
-    else	
+    else
       ## If neither intrinsic functions SIZEOF or STORAGE_SIZE is available then stop configure with an error
       AC_MSG_ERROR([Fortran compiler requires either intrinsic functions SIZEOF or STORAGE_SIZE])
     fi
@@ -499,7 +499,7 @@ if test "X$HDF_FORTRAN" = "Xyes"; then
   PAC_PROG_FC_ISO_FORTRAN_ENV
   ## Check KIND and size of native integer
   PAC_FC_NATIVE_INTEGER
- 
+
   ## Find all available KINDs
   PAC_FC_AVAIL_KINDS
   ## Find all sizeofs for available KINDs
@@ -510,7 +510,7 @@ if test "X$HDF_FORTRAN" = "Xyes"; then
   AC_SUBST([PAC_FC_MAX_REAL_PRECISION])
   AC_SUBST([PAC_FC_ALL_INTEGER_KINDS])
   AC_SUBST([PAC_FC_ALL_REAL_KINDS_SIZEOF])
-  AC_SUBST([PAC_FC_ALL_INTEGER_KINDS_SIZEOF])  
+  AC_SUBST([PAC_FC_ALL_INTEGER_KINDS_SIZEOF])
   AC_SUBST([PAC_FORTRAN_NATIVE_INTEGER_KIND])
   AC_SUBST([PAC_FORTRAN_NATIVE_INTEGER_SIZEOF])
   AC_SUBST([PAC_FORTRAN_NATIVE_REAL_KIND])
@@ -522,15 +522,15 @@ if test "X$HDF_FORTRAN" = "Xyes"; then
   AC_SUBST([FORTRAN_C_LONG_DOUBLE_IS_UNIQUE])
   AC_SUBST([FORTRAN_SIZEOF_LONG_DOUBLE])
   AC_SUBST([H5CONFIG_F_NUM_RKIND])
-  AC_SUBST([H5CONFIG_F_RKIND])	
-  AC_SUBST([H5CONFIG_F_RKIND_SIZEOF])	
+  AC_SUBST([H5CONFIG_F_RKIND])
+  AC_SUBST([H5CONFIG_F_RKIND_SIZEOF])
   AC_SUBST([H5CONFIG_F_NUM_IKIND])
   AC_SUBST([H5CONFIG_F_IKIND])
   AC_DEFINE_UNQUOTED([Fortran_COMPILER_ID], $Fortran_COMPILER_ID, [Define Fortran compiler ID])
 
   ## Setting definition if there is a 16 byte fortran integer
   if `echo $PAC_FC_ALL_INTEGER_KINDS_SIZEOF | grep '16' >/dev/null`; then
-    HAVE_Fortran_INTEGER_SIZEOF_16="1" 	
+    HAVE_Fortran_INTEGER_SIZEOF_16="1"
     AC_DEFINE([HAVE_Fortran_INTEGER_SIZEOF_16], [1], [Determine if INTEGER*16 is available])
   else
     HAVE_Fortran_INTEGER_SIZEOF_16="0"
@@ -544,7 +544,7 @@ if test "X$HDF_FORTRAN" = "Xyes"; then
   if  test "X$HAVE_C_SIZEOF_FORTRAN" = "Xyes"; then
     AC_DEFINE([FORTRAN_HAVE_C_SIZEOF], [1], [Define if we have Fortran intrinsic C_SIZEOF])
   fi
-	
+
   if  test "X$HAVE_SIZEOF_FORTRAN" = "Xyes"; then
     AC_DEFINE([FORTRAN_HAVE_SIZEOF], [1], [Define if we have Fortran intrinsic SIZEOF])
   fi
@@ -552,9 +552,9 @@ if test "X$HDF_FORTRAN" = "Xyes"; then
   ## See if C_LONG_DOUBLE is available
   PAC_PROG_FC_HAVE_C_LONG_DOUBLE
 
-  FORTRAN_HAVE_C_LONG_DOUBLE="0" 
+  FORTRAN_HAVE_C_LONG_DOUBLE="0"
   if test "X$HAVE_C_LONG_DOUBLE_FORTRAN" = "Xyes"; then
-    FORTRAN_HAVE_C_LONG_DOUBLE="1" 
+    FORTRAN_HAVE_C_LONG_DOUBLE="1"
     AC_DEFINE([FORTRAN_HAVE_C_LONG_DOUBLE], [1], [Define if we have Fortran C_LONG_DOUBLE])
   fi
 
@@ -569,7 +569,7 @@ if test "X$HDF_FORTRAN" = "Xyes"; then
       FORTRAN_C_LONG_DOUBLE_IS_UNIQUE="0"
     fi
   fi
-  
+
   FORTRAN_SIZEOF_LONG_DOUBLE=${ac_cv_sizeof_long_double}
   AC_DEFINE_UNQUOTED([FORTRAN_SIZEOF_LONG_DOUBLE], ["${ac_cv_sizeof_long_double}"], [Determine the size of C long double])
 
@@ -580,7 +580,7 @@ if test "X$HDF_FORTRAN" = "Xyes"; then
 
   dnl remove the invalid kind from the list
   if test "$ac_cv_sizeof___float128" != 0;then
-    if test "$ac_cv_sizeof___float128" != "$max_real_fortran_sizeof" && 
+    if test "$ac_cv_sizeof___float128" != "$max_real_fortran_sizeof" &&
        test "${ac_cv_sizeof_long_double}" != "$max_real_fortran_sizeof" &&
        dnl account for the fact that the C compiler can have 16-byte __float128 and the Fortran compiler only has 8-byte doubles,
        dnl so we don't want to remove the 8-byte Fortran doubles. This is sometimes the case if different C and Fortran vendors
@@ -595,7 +595,7 @@ if test "X$HDF_FORTRAN" = "Xyes"; then
     fi
   fi
   AC_MSG_CHECKING([for Fortran interoperable KINDS with C])
-  AC_MSG_RESULT([$PAC_FC_ALL_REAL_KINDS])	
+  AC_MSG_RESULT([$PAC_FC_ALL_REAL_KINDS])
 
   dnl count the number of real kinds
   H5CONFIG_F_NUM_RKIND="INTEGER, PARAMETER :: num_rkinds = `echo \"[$]PAC_FC_ALL_REAL_KINDS\" |  tr -d -c ',\n' | awk '{ print length + 1; }'`"
@@ -1822,7 +1822,7 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]], [[
                         double d;
                     } u;
                 } di_struct_t;
-                di_struct_t x = {0, { .d = 0.0}}; ]])], 
+                di_struct_t x = {0, { .d = 0.0}}; ]])],
                [AC_DEFINE([HAVE_C99_DESIGNATED_INITIALIZER], [1],
                          [Define if the compiler understands C99 designated initialization of structs and unions])
                  AC_MSG_RESULT([yes])],
@@ -1867,16 +1867,16 @@ AC_ARG_ENABLE([debug],
                                also specify a comma-separated list of
                                package names without the leading H5 or
                                the word no. The default is most packages
-			       if production is disabled; no if it is enabled.
+             if production is disabled; no if it is enabled.
                                ])],
               [DEBUG_PKG=$enableval])
 
 ## Default to no if producton is enabled
 if test "X-$DEBUG_PKG" = X- ; then
     if test "$enable_production" = yes ; then
-	DEBUG_PKG=no
+  DEBUG_PKG=no
     else
-	DEBUG_PKG=yes
+  DEBUG_PKG=yes
     fi
 fi
 
@@ -2124,11 +2124,11 @@ case "X-$enable_parallel" in
     ## Try link a simple MPI program.
     AC_MSG_CHECKING([whether a simple MPI-IO C program can be linked])
     AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <mpi.h>]],
-                   [[ MPI_Init(0, (void *)0); 
-		      MPI_File_open(0, (void *)0, 0, 0, (void *)0);]])], 
-		   [AC_MSG_RESULT([yes])],
-	  	   [AC_MSG_RESULT([no])
-		    AC_MSG_ERROR([unable to link a simple MPI-IO C program])])
+                   [[ MPI_Init(0, (void *)0);
+          MPI_File_open(0, (void *)0, 0, 0, (void *)0);]])],
+       [AC_MSG_RESULT([yes])],
+         [AC_MSG_RESULT([no])
+        AC_MSG_ERROR([unable to link a simple MPI-IO C program])])
 
     if test "X$HDF_FORTRAN" = "Xyes"; then
       PAC_PROG_FC_MPI_CHECK
@@ -2353,13 +2353,13 @@ fi
 ## ----------------------------------------------------------------------
 ## Decide whether the data accuracy has higher priority during data
 ## conversions.  If not, some hard conversions will still be prefered even
-## though the data may be wrong (for example, some compilers don't 
+## though the data may be wrong (for example, some compilers don't
 ## support denormalized floating values) to maximize speed.
-## 
+##
 AC_MSG_CHECKING([whether data accuracy is guaranteed during data conversions])
 AC_ARG_ENABLE([dconv-accuracy],
               [AS_HELP_STRING([--enable-dconv-accuracy],
-                              [if data accuracy is guaranteed during 
+                              [if data accuracy is guaranteed during
                               data conversions [default=yes]])],
               [DATA_ACCURACY=$enableval], [DATA_ACCURACY=yes])
 
@@ -2575,19 +2575,19 @@ else
             unsigned long long  ull;
             unsigned char       s[16];
             int                 ret = 0;
-            
+
             if(sizeof(long double) == 16) {
-                /*make sure the long double type is the same as the failing type 
+                /*make sure the long double type is the same as the failing type
                  *which has 16 bytes in size and 11 bits of exponent.  If it is,
-                 *the bit sequence should be like below.  It's not 
-                 *a decent way to check but this info isn't available. */   
+                 *the bit sequence should be like below.  It's not
+                 *a decent way to check but this info isn't available. */
                 memcpy(s, &ld, 16);
                 if(s[0]==0x43 && s[1]==0x51 && s[2]==0xcc && s[3]==0xf3 &&
                     s[4]==0x85 && s[5]==0xeb && s[6]==0xc8 && s[7]==0xa0 &&
                     s[8]==0xbf && s[9]==0xcc && s[10]==0x2a && s[11]==0x3c) {
 
                     /*slightly adjust the bit sequence (s[8]=0xdf).  The converted
-                     *values will go wild on Mac OS 10.4 and IRIX64 6.5.*/ 
+                     *values will go wild on Mac OS 10.4 and IRIX64 6.5.*/
                     s[0]=0x43; s[1]=0x51; s[2]=0xcc; s[3]=0xf3;
                     s[4]=0x85; s[5]=0xeb; s[6]=0xc8; s[7]=0xa0;
                     s[8]=0xdf; s[9]=0xcc; s[10]=0x2a; s[11]=0x3c;
@@ -2596,11 +2596,11 @@ else
                     memcpy(&ld, s, 16);
                     ll = (long long)ld;
                     ull = (unsigned long long)ld;
-                    
+
                     if(ll != 20041683600089728 || ull != 20041683600089728)
                         ret = 1;
-                }    
-            }    
+                }
+            }
     done:
             exit(ret);
         }
@@ -2638,17 +2638,17 @@ else
             unsigned long long  ull;
             unsigned char       s[16];
             int                 flag=0, ret=0;
-        
+
             /*Determine if long double has 16 byte in size, 11 bit exponent, and
-             *the bias is 0x3ff */ 
-            if(sizeof(long double) == 16) { 
+             *the bias is 0x3ff */
+            if(sizeof(long double) == 16) {
                 ld = 1.0L;
                 memcpy(s, &ld, 16);
                 if(s[0]==0x3f && s[1]==0xf0 && s[2]==0x00 && s[3]==0x00 &&
-                    s[4]==0x00 && s[5]==0x00 && s[6]==0x00 && s[7]==0x00) 
-                    flag = 1; 
+                    s[4]==0x00 && s[5]==0x00 && s[6]==0x00 && s[7]==0x00)
+                    flag = 1;
             }
-             
+
             if(flag==1 && sizeof(long long)==8) {
                 ll = 0x01ffffffffffffffLL;
                 ld = (long double)ll;
@@ -2658,7 +2658,7 @@ else
                     s[4]!=0xff || s[5]!=0xff || s[6]!=0xff || s[7]!=0xff ||
                     s[8]!=0xf0 || s[9]!=0x00 || s[10]!=0x00 || s[11]!=0x00)
                     ret = 1;
-            }        
+            }
             if(flag==1 && sizeof(unsigned long long)==8) {
                 ull = 0x01ffffffffffffffULL;
                 ld = (long double)ull;
@@ -2667,11 +2667,11 @@ else
                     s[4]!=0xff || s[5]!=0xff || s[6]!=0xff || s[7]!=0xff ||
                     s[8]!=0xf0 || s[9]!=0x00 || s[10]!=0x00 || s[11]!=0x00)
                     ret = 1;
-            }        
+            }
     done:
             exit(ret);
         }
-        ]])],[hdf5_cv_llong_to_ldouble_correct=yes], [hdf5_cv_llong_to_ldouble_correct=no],[])]) 
+        ]])],[hdf5_cv_llong_to_ldouble_correct=yes], [hdf5_cv_llong_to_ldouble_correct=no],[])])
 fi
 
 if test ${hdf5_cv_llong_to_ldouble_correct} = "yes"; then
@@ -2914,9 +2914,9 @@ esac
 AC_MSG_CHECKING([whether to have library information embedded in the executables])
 AC_ARG_ENABLE([embedded-libinfo],
     [AS_HELP_STRING([--enable-embedded-libinfo],
-	[Enable embedded library information [default=yes]])],
-	[enable_embedded_libinfo=$enableval],
-	[enable_embedded_libinfo=yes])
+  [Enable embedded library information [default=yes]])],
+  [enable_embedded_libinfo=$enableval],
+  [enable_embedded_libinfo=yes])
 
    if test "${enable_embedded_libinfo}" = "yes"; then
       AC_MSG_RESULT([yes])
@@ -3129,8 +3129,14 @@ AC_CONFIG_FILES([src/libhdf5.settings
                  fortran/examples/Makefile
                  fortran/examples/run-fortran-ex.sh
                  fortran/examples/testh5fc.sh
-                 jni/Makefile
-                 jni/src/Makefile
+                 java/Makefile
+                 java/jni/Makefile
+                 java/hdf/Makefile
+                 java/hdf/hdf5lib/Makefile
+                 java/hdf/hdf5lib/callbacks/Makefile
+                 java/hdf/hdf5lib/exceptions/Makefile
+                 java/hdf/hdf5lib/structs/Makefile
+                 java/test/Makefile
                  hl/Makefile
                  hl/src/Makefile
                  hl/test/Makefile

@@ -67,7 +67,7 @@ else
    FORTRAN_DIR=
 endif
 if BUILD_JNI_CONDITIONAL
-   JNI_DIR=jni
+   JNI_DIR=java
 else
    JNI_DIR=
 endif
@@ -79,7 +79,7 @@ endif
 
 SUBDIRS = src test $(TESTPARALLEL_DIR) tools . $(CXX_DIR) $(FORTRAN_DIR) \
           $(JNI_DIR) $(HDF5_HL_DIR)
-DIST_SUBDIRS = src test testpar tools . c++ fortran hl examples jni
+DIST_SUBDIRS = src test testpar tools . c++ fortran hl examples java
 
 # Some files generated during configure that should be cleaned
 DISTCLEANFILES=config/stamp1 config/stamp2

@@ -53,8 +53,7 @@ Languages:
 @BUILD_CXX_CONDITIONAL_TRUE@             Static C++ Library: YES
 
                             JAVA: @HDF5_BUILD_JAVA@
-@BUILD_JAVA_CONDITIONAL_TRUE@             Shared HDF5 Library: @H5_ENABLE_SHARED_LIB@
-@BUILD_JAVA_CONDITIONAL_TRUE@             Static HDF5 Library: YES
+@BUILD_JAVA_CONDITIONAL_TRUE@                    Java Library: @HDF5_ENABLE_JAVA@
 
 Features:
 ---------

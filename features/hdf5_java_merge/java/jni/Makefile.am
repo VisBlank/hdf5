@@ -19,7 +19,7 @@ include $(top_srcdir)/config/commence.am
 include $(top_srcdir)/config/lt_vers.am
 
 # Include src directory and JNI flags
-AM_CFLAGS+=-I$(top_srcdir)/jni $(JNIFLAGS)
+AM_CFLAGS+=-I$(top_srcdir)/java/jni $(JNIFLAGS)
 
 # This is our main target
 lib_LTLIBRARIES=libjhdf5.la
