@@ -2602,9 +2602,21 @@ H5HF__cache_verify_hdr_descendants_clean(H5F_t *f, hid_t dxpl_id,
                      * While the fractal heap makes heavy use of the udata
                      * in this case, since we know that the entry is in cache,
                      * we can pass NULL udata.
+                     *
+                     * The tag associated specified in the dxpl we received
+ 		     * as a parameter (via dxpl_id) may not be correct.
+                     * Grab the (hopefully) correct tag from the header,
+                     * and load it into the dxpl via the H5_BEGIN_TAG and 
+		     * H5_END_TAG macros.  Note that any error bracked by
+                     * these macros must be reported with HGOTO_ERROR_TAG. 
 		     */
+		    H5_BEGIN_TAG(dxpl_id, hdr->cache_info.tag, FAIL)
+
                     if(NULL == (root_iblock = (H5HF_indirect_t *)H5AC_protect(f, dxpl_id, H5AC_FHEAP_IBLOCK, root_iblock_addr, NULL, H5C__READ_ONLY_FLAG)))
-                        HGOTO_ERROR(H5E_HEAP, H5E_CANTPROTECT, FAIL, "H5AC_protect() faild.")
+                        HGOTO_ERROR_TAG(H5E_HEAP, H5E_CANTPROTECT, FAIL, "H5AC_protect() faild.")
+
+		    H5_END_TAG(FAIL)
+
                     unprotect_root_iblock = TRUE;
 		} /* end if */
                 else {
@@ -2663,9 +2675,21 @@ H5HF__cache_verify_hdr_descendants_clean(H5F_t *f, hid_t dxpl_id,
                      * While the fractal heap makes heavy use of the udata
                      * in this case, since we know that the entry is in cache,
                      * we can pass NULL udata.
+                     *
+                     * The tag associated specified in the dxpl we received
+ 		     * as a parameter (via dxpl_id) may not be correct.
+                     * Grab the (hopefully) correct tag from the header,
+                     * and load it into the dxpl via the H5_BEGIN_TAG and 
+		     * H5_END_TAG macros.  Note that any error bracked by
+                     * these macros must be reported with HGOTO_ERROR_TAG. 
                      */
+		    H5_BEGIN_TAG(dxpl_id, hdr->cache_info.tag, FAIL)
+
                     if(NULL == (iblock = (H5HF_indirect_t *)H5AC_protect(f, dxpl_id, H5AC_FHEAP_IBLOCK, root_iblock_addr, NULL, H5C__READ_ONLY_FLAG)))
-                        HGOTO_ERROR(H5E_HEAP, H5E_CANTPROTECT, FAIL, "H5AC_protect() faild.")
+                        HGOTO_ERROR_TAG(H5E_HEAP, H5E_CANTPROTECT, FAIL, "H5AC_protect() faild.")
+
+		    H5_END_TAG(FAIL)
+
                     unprotect_root_iblock = TRUE;
                     HDassert(iblock == root_iblock);
 		} /* end if */
@@ -2675,8 +2699,8 @@ H5HF__cache_verify_hdr_descendants_clean(H5F_t *f, hid_t dxpl_id,
              * in memory for the duration of the call.  Do some sanity checks,
 	     * and then call H5HF__cache_verify_iblock_descendants_clean().
              */
-            HDassert(hdr->root_iblock->cache_info.magic == H5C__H5C_CACHE_ENTRY_T_MAGIC);
-            HDassert(hdr->root_iblock->cache_info.type == H5AC_FHEAP_IBLOCK);
+            HDassert(root_iblock->cache_info.magic == H5C__H5C_CACHE_ENTRY_T_MAGIC);
+            HDassert(root_iblock->cache_info.type == H5AC_FHEAP_IBLOCK);
 
             if(H5HF__cache_verify_iblock_descendants_clean(f, dxpl_id, root_iblock, &root_iblock_status, clean) < 0)
                 HGOTO_ERROR(H5E_HEAP, H5E_SYSTEM, FAIL, "can't verify root iblock & descendants clean.")
@@ -3099,9 +3123,25 @@ H5HF__cache_verify_descendant_iblocks_clean(H5F_t *f, hid_t dxpl_id,
 			    /* fractal heap makes heavy use of the udata */
 			    /* in this case, since we know that the      */
 			    /* entry is in cache, we can pass NULL udata */
+                            /*                                           */
+                            /* The tag associated specified in the dxpl  */
+                            /* we received as a parameter (via dxpl_id)  */
+                            /* may not be correct.                       */
+                            /*                                           */
+                            /* Grab the (hopefully) correct tag from the */
+                            /* parent iblock, and load it into the dxpl  */
+                            /* via the H5_BEGIN_TAG and H5_END_TAG       */
+                            /* macros.  Note that any error bracked by   */
+                            /* these macros must be reported with        */
+                            /* HGOTO_ERROR_TAG.                          */
+
+			    H5_BEGIN_TAG(dxpl_id, iblock->cache_info.tag, FAIL)
 
 			    if(NULL == (child_iblock = (H5HF_indirect_t *) H5AC_protect(f, dxpl_id, H5AC_FHEAP_IBLOCK, child_iblock_addr, NULL, H5C__READ_ONLY_FLAG)))
-                                HGOTO_ERROR(H5E_HEAP, H5E_CANTPROTECT, FAIL, "H5AC_protect() faild.")
+                                HGOTO_ERROR_TAG(H5E_HEAP, H5E_CANTPROTECT, FAIL, "H5AC_protect() faild.")
+
+			    H5_END_TAG(FAIL)
+
 			    unprotect_child_iblock = TRUE;
 			} /* end if */
                         else {

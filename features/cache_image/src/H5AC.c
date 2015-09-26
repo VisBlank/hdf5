@@ -452,7 +452,7 @@ H5AC_create(const H5F_t *f, H5AC_cache_config_t *config_ptr, H5AC_cache_image_co
     int_ci_config.generate_image = image_config_ptr->generate_image;
     int_ci_config.max_image_size = image_config_ptr->max_image_size;
 
-    if(H5C_set_cache_image_config(f->shared->cache, &int_ci_config) < 0)
+    if(H5C_set_cache_image_config(f, f->shared->cache, &int_ci_config) < 0)
         HGOTO_ERROR(H5E_CACHE, H5E_CANTALLOC, FAIL, "auto resize configuration failed")
 #endif /* new code */ /* JRM */
 

@@ -1578,12 +1578,17 @@ done:
  *-------------------------------------------------------------------------
  */
 herr_t
-H5C_set_cache_image_config(H5C_t *cache_ptr,
+H5C_set_cache_image_config(const H5F_t *f,
+                           H5C_t *cache_ptr,
                            H5C_cache_image_ctl_t *config_ptr)
 {
     herr_t	ret_value = SUCCEED;      /* Return value */
 
     FUNC_ENTER_NOAPI(FAIL)
+
+    HDassert(f);
+    HDassert(f->shared);
+    HDassert(f->shared->cache == f->shared->cache);
 
     if ( ( cache_ptr == NULL ) || ( cache_ptr->magic != H5C__H5C_T_MAGIC ) ) {
 
@@ -1607,7 +1612,18 @@ H5C_set_cache_image_config(H5C_t *cache_ptr,
                     "invalid cache image configuration.")
     }
 
-    cache_ptr->image_ctl = *config_ptr;
+    if ( H5F_INTENT(f) & H5F_ACC_RDWR ) { /* file has been opened R/W */
+
+        cache_ptr->image_ctl = *config_ptr;
+
+    } else { /* file opened R/O -- suppress cache image silently */
+
+	H5C_cache_image_ctl_t default_image_ctl = H5C__DEFAULT_CACHE_IMAGE_CTL;
+
+        cache_ptr->image_ctl = default_image_ctl;
+
+	HDassert(!(cache_ptr->image_ctl.generate_image));
+    }
 
 done:
 
@@ -1784,6 +1800,7 @@ static herr_t
 H5C__prefetched_entry_notify(H5C_notify_action_t action, void * thing)
 {
     H5C_cache_entry_t *  entry_ptr; 
+    H5C_cache_entry_t *  parent_ptr; 
     herr_t               ret_value = SUCCEED;
 
     FUNC_ENTER_STATIC
@@ -1811,14 +1828,28 @@ H5C__prefetched_entry_notify(H5C_notify_action_t action, void * thing)
                 HDassert(entry_ptr->flush_dep_parent->addr ==
                          entry_ptr->fd_parent_addr);
 
+		parent_ptr = entry_ptr->flush_dep_parent;
+
                 /* destroy flush dependency with flush dependency parent */
-                if ( H5C_destroy_flush_dependency(entry_ptr->flush_dep_parent, 
-                                                  entry_ptr) < 0) {
+                if ( H5C_destroy_flush_dependency(parent_ptr, entry_ptr) < 0) {
 
                     HGOTO_ERROR(H5E_CACHE, H5E_CANTUNDEPEND, FAIL, \
 			"unable to destroy prefetched entry flush dependency")
                 }
-            } /* end if */
+
+		if ( parent_ptr->prefetched ) {
+
+		    /* In prefetchec entries, the fd_child_count field is 
+		     * used in sanity checks elsewhere.  Thus update this 
+		     * field to reflect the destruction of the flush 
+		     * dependency relationship.
+                     */
+		    HDassert(parent_ptr->fd_child_count > 0);
+		    (parent_ptr->fd_child_count)--;
+                    HDassert((parent_ptr->flush_dep_height == 0) ||
+                             (parent_ptr->fd_child_count > 0));
+		}
+            } /* end if ( entry_ptr->flush_dep_parent ) */
             break;
 
         default:
@@ -3076,7 +3107,13 @@ done:
  *-------------------------------------------------------------------------
  */
 herr_t
-H5C_prep_for_file_close__scan_entries(H5F_t *f, hid_t dxpl_id, H5C_t * cache_ptr)
+H5C_prep_for_file_close__scan_entries(H5F_t *f, 
+#if 0
+				      hid_t dxpl_id, 
+#else
+				      hid_t H5_ATTR_UNUSED dxpl_id, 
+#endif
+				      H5C_t * cache_ptr)
 {
     hbool_t		include_in_image;
     int			i;
@@ -3084,12 +3121,20 @@ H5C_prep_for_file_close__scan_entries(H5F_t *f, hid_t dxpl_id, H5C_t * cache_ptr
     int			entries_visited = 0;
     int			lru_rank = 1;
     int32_t		num_entries_in_image = 0;
+#if 0 /* this code is obsolete now that we are using the assigned ring 
+       * to determine which entries are include in the image.
+       */
     unsigned		nchunks = 0;
+#endif /* obsolete code */
     size_t		image_len;
     size_t		entry_header_len;
+#if 0 /* this code is obsolete now that we are using the assigned ring 
+       * to determine which entries are include in the image.
+       */
     haddr_t		superblock_addr = 0; /* by definition */
     haddr_t		sb_ext_addr;
     haddr_t           * chunk_addrs = NULL;
+#endif /* obsolete code */
     H5C_cache_entry_t * entry_ptr;
     herr_t		ret_value = SUCCEED;      /* Return value */
 
@@ -3104,6 +3149,9 @@ H5C_prep_for_file_close__scan_entries(H5F_t *f, hid_t dxpl_id, H5C_t * cache_ptr
     HDassert(cache_ptr->close_warning_received);
     HDassert(cache_ptr->pl_len == 0);
 
+#if 0 /* this code is obsolete now that we are using the assigned ring 
+       * to determine which entries are include in the image.
+       */
     /* get addresses of superblock, superblock extension, and any chunks */
     sb_ext_addr = f->shared->sblock->ext_addr;
 
@@ -3166,6 +3214,7 @@ H5C_prep_for_file_close__scan_entries(H5F_t *f, hid_t dxpl_id, H5C_t * cache_ptr
 
 	HDassert(HADDR_UNDEF == chunk_addrs[nchunks]);
     }
+#endif /* obsolete code */
 
     /* initialize image len to the size of the metadata cache image block
      * header.
@@ -3188,6 +3237,10 @@ H5C_prep_for_file_close__scan_entries(H5F_t *f, hid_t dxpl_id, H5C_t * cache_ptr
             HDassert(entry_ptr->image_up_to_date);
             HDassert(entry_ptr->image_ptr);
 
+#if 0 /* this code is obsolete now that we are using the assigned ring 
+       * to determine which entries are include in the image.
+       */
+
 	    if ( H5F_addr_eq(entry_ptr->addr, superblock_addr) ) {
 
 		include_in_image = FALSE;
@@ -3209,7 +3262,7 @@ H5C_prep_for_file_close__scan_entries(H5F_t *f, hid_t dxpl_id, H5C_t * cache_ptr
                  * this linear search should be replaced with a binary 
                  * search on a sorted list.
                  */
-		for ( j = 0; j < (int)nchunks; i++ ) {
+		for ( j = 0; j < (int)nchunks; j++ ) {
 
 		    if ( H5F_addr_eq(entry_ptr->addr, chunk_addrs[j]) ) {
 
@@ -3217,6 +3270,12 @@ H5C_prep_for_file_close__scan_entries(H5F_t *f, hid_t dxpl_id, H5C_t * cache_ptr
 			HDassert(entry_ptr->type->id == H5AC_OHDR_CHK_ID);
 		    }
  		}
+#else /* end obsolete code */
+	    if ( entry_ptr->ring > H5C_MAX_RING_IN_IMAGE ) {
+
+		include_in_image = FALSE;
+
+#endif /* new, ring assignment base code */
             } else {
 
 		include_in_image = TRUE;
@@ -3276,7 +3335,18 @@ H5C_prep_for_file_close__scan_entries(H5F_t *f, hid_t dxpl_id, H5C_t * cache_ptr
 
     HDassert(entries_visited == cache_ptr->index_len);
 
+#if 0 /* this code is obsolete now that we are using the assigned ring 
+       * to determine which entries are include in the image.
+       */
     HDassert(entries_visited == (num_entries_in_image + 2 + (int)nchunks));
+#else /* end obsolete code */
+    j = 0;
+    for ( i = H5C_MAX_RING_IN_IMAGE + 1; i <= H5C_RING_SB; i++ )
+
+	j += cache_ptr->index_ring_len[i];
+
+    HDassert(entries_visited == (num_entries_in_image + j));
+#endif /* rings base code */
 
     cache_ptr->num_entries_in_image = num_entries_in_image;
 
@@ -3332,10 +3402,15 @@ H5C_prep_for_file_close__scan_entries(H5F_t *f, hid_t dxpl_id, H5C_t * cache_ptr
 
 done:
 
+#if 0 /* this code is obsolete now that we are using the assigned ring 
+       * to determine which entries are include in the image.
+       */
     /* free chunk_addrs if allocated */
     if ( chunk_addrs != NULL )
 
 	chunk_addrs = (haddr_t *)H5MM_xfree((void *)chunk_addrs);
+
+#endif /* obsolete code */
 
     FUNC_LEAVE_NOAPI(ret_value)
 
@@ -3507,24 +3582,42 @@ H5C_reconstruct_cache_contents(H5F_t * f, hid_t dxpl_id, H5C_t * cache_ptr)
     /* scan the LRU, and verify the expected ordering of the 
      * prefetched entries.
      */
-    j = -1;
-    entry_ptr = cache_ptr->LRU_head_ptr;
+    {
+	int lru_rank_holes = 0;
 
-    while ( entry_ptr != NULL ) {
+        j = -1;
+        entry_ptr = cache_ptr->LRU_head_ptr;
 
-	HDassert(entry_ptr->magic == H5C__H5C_CACHE_ENTRY_T_MAGIC);
-        HDassert(entry_ptr->type != NULL);
+        while ( entry_ptr != NULL ) {
 
-	if ( entry_ptr->prefetched ) {
+	    HDassert(entry_ptr->magic == H5C__H5C_CACHE_ENTRY_T_MAGIC);
+            HDassert(entry_ptr->type != NULL);
 
-	    HDassert(j <= entry_ptr->lru_rank);
-	    HDassert((entry_ptr->lru_rank <= 2) || 
-                     (entry_ptr->lru_rank == j + 1));
+	    if ( entry_ptr->prefetched ) {
 
-	    j = entry_ptr->lru_rank;
-	}
+	        HDassert(j <= entry_ptr->lru_rank);
+	        HDassert((entry_ptr->lru_rank <= 2) || 
+                         (entry_ptr->lru_rank == j + 1) ||
+                         (entry_ptr->lru_rank == j + 2));
 
-	entry_ptr = entry_ptr->next;
+	        if ( ( entry_ptr->lru_rank <= 2 ) && 
+                     ( entry_ptr->lru_rank == j + 2 ) )
+
+		    lru_rank_holes++;
+
+	        j = entry_ptr->lru_rank;
+	    }
+
+	    entry_ptr = entry_ptr->next;
+        }
+
+	/* Holes of size 1 appear in the LRU ranking due to epoch 
+         * markers.  They are left in to allow re-insertion of the
+         * epoch markers on reconstruction of the cache -- thus 
+         * the following sanity check will have to be revised when
+         * we add code to store and restore adaptive resize status.
+         */
+	HDassert(lru_rank_holes <= H5C__MAX_EPOCH_MARKERS);
     }
 #endif /* NDEBUG */
 
@@ -3964,8 +4057,9 @@ H5C_serialize_ring(const H5F_t * f,
                     HDassert((entry_ptr->ring >= ring) ||
                              (entry_ptr->image_up_to_date));
 
-		    /* skip flush me last entries for now */
-		    if ( ! entry_ptr->flush_me_last ) {
+		    /* skip flush me last entries or inner ring entries */
+		    if ( ( ! entry_ptr->flush_me_last ) &&
+                         ( entry_ptr->ring == ring ) ) {
 
 		        if ( fd_height > entry_ptr->flush_dep_height ) {
 

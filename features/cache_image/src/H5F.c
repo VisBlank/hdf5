@@ -1478,3 +1478,42 @@ done:
     FUNC_LEAVE_API(ret_value)
 } /* end H5Fclear_elink_file_cache() */
 
+
+/*-------------------------------------------------------------------------
+ * Function:   H5Fset_latest_format
+ *
+ * Purpose:    Enable switching the "latest format" flag while a file is open.
+ *
+ * Return:     Non-negative on success/Negative on failure
+ *
+ * Programmer: Quincey Koziol
+ *              Monday, September 21, 2015
+ *
+ *-------------------------------------------------------------------------
+ */
+herr_t
+H5Pset_latest_format(hid_t file_id, hbool_t latest_format)
+{
+    H5F_t *f;                           /* File */
+    herr_t ret_value = SUCCEED;         /* Return value */
+
+    FUNC_ENTER_API(FAIL)
+
+    /* Check args */
+    if(NULL == (f = (H5F_t *)H5I_object_verify(file_id, H5I_FILE)))
+        HGOTO_ERROR(H5E_FILE, H5E_BADVALUE, FAIL, "not a file ID")
+
+    /* Check if the value is changing */
+    if(latest_format != H5F_USE_LATEST_FORMAT(f)) {
+        /* Call the flush routine, for this file */
+        if(H5F_flush(f, H5AC_dxpl_id, FALSE) < 0)
+            HGOTO_ERROR(H5E_FILE, H5E_CANTFLUSH, FAIL, "unable to flush file's cached information")
+
+        /* Toggle the 'latest format' flag */
+        H5F_USE_LATEST_FORMAT(f) = latest_format;
+    } /* end if */
+
+done:
+    FUNC_LEAVE_API(ret_value)
+} /* end H5Fset_latest_format() */
+

@@ -1182,6 +1182,8 @@ typedef herr_t (*H5C_log_flush_func_t)(H5C_t *cache_ptr, haddr_t addr,
 #define H5C_RING_SB		4 /* innermost ring */
 #define H5C_RING_NTYPES		5 
 
+#define H5C_MAX_RING_IN_IMAGE	1
+
 typedef int H5C_ring_t;
 
 
@@ -2263,7 +2265,7 @@ H5_DLL herr_t H5C_reset_cache_hit_rate_stats(H5C_t *cache_ptr);
 H5_DLL herr_t H5C_resize_entry(void *thing, size_t new_size);
 H5_DLL herr_t H5C_set_cache_auto_resize_config(H5C_t *cache_ptr,
     H5C_auto_size_ctl_t *config_ptr);
-H5_DLL herr_t H5C_set_cache_image_config(H5C_t *cache_ptr,
+H5_DLL herr_t H5C_set_cache_image_config(const H5F_t *f, H5C_t *cache_ptr,
     H5C_cache_image_ctl_t *config_ptr);
 H5_DLL herr_t H5C_set_evictions_enabled(H5C_t *cache_ptr, hbool_t evictions_enabled);
 H5_DLL herr_t H5C_set_prefix(H5C_t *cache_ptr, char *prefix);

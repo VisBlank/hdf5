@@ -7963,13 +7963,14 @@ H5C__flush_single_entry(const H5F_t *f, hid_t dxpl_id, H5C_cache_entry_t *entry_
      */
     if ( ( cache_ptr->close_warning_received ) &&
          ( cache_ptr->image_ctl.generate_image ) &&
-         ( cache_ptr->num_entries_in_image > 0 ) ) {
+         ( cache_ptr->num_entries_in_image > 0 ) &&
+         ( cache_ptr->image_entries ) ) {
 
-        HDassert(cache_ptr->image_entries);
         HDassert(entry_ptr->image_up_to_date || !(entry_ptr->include_in_image));
         HDassert(entry_ptr->image_ptr || !(entry_ptr->include_in_image));
-        HDassert(!take_ownership);
-        HDassert(!free_file_space);
+        HDassert((!clear_only) || !(entry_ptr->include_in_image));
+        HDassert((!take_ownership) || !(entry_ptr->include_in_image));
+        HDassert((!free_file_space) || !(entry_ptr->include_in_image));
 
 	suppress_image_entry_frees = TRUE;
 

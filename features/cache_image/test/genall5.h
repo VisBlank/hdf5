@@ -20,60 +20,34 @@
  *		in genall5.c
  */
 
-int file_superblock0(const char *filename, hbool_t set_driver);
-int file_superblock1(const char *filename, hbool_t set_driver);
-int file_superblock2(const char *filename, hbool_t set_driver);
+void create_zoo(hid_t fid, const char *base_path, int proc_num);
+void validate_zoo(hid_t fid, const char *base_path, int proc_num);
 
-int ns_grp_0(const char *filename, hbool_t set_driver, const char *group_name);
-int vrfy_ns_grp_0(const char *filename, hbool_t set_driver, 
-    const char *group_name);
+void ns_grp_0(hid_t fid, const char *group_name);
+void vrfy_ns_grp_0(hid_t fid, const char *group_name);
 
-int ns_grp_c(const char *filename, hbool_t set_driver, const char *group_name,
+void ns_grp_c(hid_t fid, const char *group_name, unsigned nlinks);
+void vrfy_ns_grp_c(hid_t fid, const char *group_name, unsigned nlinks);
+
+void ns_grp_d(hid_t fid, const char *group_name, unsigned nlinks);
+void vrfy_ns_grp_d(hid_t fid, const char *group_name, unsigned nlinks);
+
+void os_grp_0(hid_t fid, const char *group_name);
+void vrfy_os_grp_0(hid_t fid, const char *group_name);
+
+void os_grp_n(hid_t fid, const char *group_name, int proc_num, unsigned nlinks);
+void vrfy_os_grp_n(hid_t fid, const char *group_name, int proc_num, 
     unsigned nlinks);
-int vrfy_ns_grp_c(const char *filename, hbool_t set_driver, 
-    const char *group_name, unsigned nlinks);
 
-int ns_grp_d(const char *filename, hbool_t set_driver, const char *group_name,
-    unsigned nlinks);
-int vrfy_ns_grp_d(const char *filename, hbool_t set_driver, 
-    const char *group_name, unsigned nlinks);
+void ds_ctg_i(hid_t fid, const char *dset_name, hbool_t write_data);
+void vrfy_ds_ctg_i(hid_t fid, const char *dset_name, hbool_t write_data);
 
-int os_grp_0(const char *filename, hbool_t set_driver, const char *group_name);
-int vrfy_os_grp_0(const char *filename, hbool_t set_driver, 
-    const char *group_name);
+void ds_chk_i(hid_t fid, const char *dset_name, hbool_t write_data);
+void vrfy_ds_chk_i(hid_t fid, const char *dset_name, hbool_t write_data);
 
-int os_grp_n(const char *filename, hbool_t set_driver, const char *group_name,
-    unsigned nlinks);
-int vrfy_os_grp_n(const char *filename, hbool_t set_driver, 
-    const char *group_name, unsigned nlinks);
+void ds_cpt_i(hid_t fid, const char *dset_name, hbool_t write_data);
+void vrfy_ds_cpt_i(hid_t fid, const char *dset_name, hbool_t write_data);
 
-int ds_ctg_i(const char *filename, hbool_t set_driver, const char *dset_name,
-    hbool_t write_data);
-int vrfy_ds_ctg_i(const char *filename, hbool_t set_driver, 
-    const char *dset_name, hbool_t write_data);
-
-int ds_chk_i(const char *filename, hbool_t set_driver, const char *dset_name,
-    hbool_t write_data);
-int vrfy_ds_chk_i(const char *filename, hbool_t set_driver, 
-    const char *dset_name, hbool_t write_data);
-
-int ds_cpt_i(const char *filename, hbool_t set_driver, const char *dset_name,
-    hbool_t write_data);
-int vrfy_ds_cpt_i(const char *filename, hbool_t set_driver, 
-    const char *dset_name, hbool_t write_data);
-
-int ds_ctg_v(const char *filename, hbool_t set_driver, const char *dset_name,
-    hbool_t write_data);
-int vrfy_ds_ctg_v(const char *filename, hbool_t set_driver, 
-    const char *dset_name, hbool_t write_data);
-
-int sh_msg_l(const char *filename, hbool_t set_driver);
-int vrfy_sh_msg_l(const char *filename, hbool_t set_driver);
-
-int sh_msg_b(const char *filename, hbool_t set_driver);
-int vrfy_sh_msg_b(const char *filename, hbool_t set_driver);
-
-int fs_mgr(const char *filename, hbool_t set_driver);
-int vrfy_fs_mgr(const char *filename, hbool_t set_driver);
-
+void ds_ctg_v(hid_t fid, const char *dset_name, hbool_t write_data);
+void vrfy_ds_ctg_v(hid_t fid, const char *dset_name, hbool_t write_data);
 
