@@ -74,8 +74,8 @@
 /* Module Setup */
 /****************/
 
-#define H5C_PACKAGE		/*suppress error about including H5Cpkg   */
-#define H5F_PACKAGE		/*suppress error about including H5Fpkg	  */
+#include "H5Cmodule.h"          /* This source code file is part of the H5C module */
+#define H5F_FRIEND		/*suppress error about including H5Fpkg	  */
 
 
 /***********/
@@ -106,6 +106,7 @@
 #else /* H5C_DO_MEMORY_SANITY_CHECKS */
 #define H5C_IMAGE_EXTRA_SPACE 0
 #endif /* H5C_DO_MEMORY_SANITY_CHECKS */
+
 
 /******************/
 /* Local Typedefs */
@@ -189,6 +190,9 @@ herr_t H5C_dump_cache_skip_list(H5C_t * cache_ptr, char * calling_fcn);
 /*********************/
 /* Package Variables */
 /*********************/
+
+/* Package initialization variable */
+hbool_t H5_PKG_INIT_VAR = FALSE;
 
 /* The class_mem_types array exists to allow lookups from 
  * class ID to the associated mem type.  This is needed 
@@ -2731,7 +2735,7 @@ H5C_protect(H5F_t *		f,
     size_t		empty_space;
     void *		thing;
     H5C_cache_entry_t *	entry_ptr;
-    void *		ret_value;      /* Return value */
+    void *		ret_value = NULL;       /* Return value */
 
     FUNC_ENTER_NOAPI(NULL)
 
@@ -8665,7 +8669,7 @@ H5C_load_entry(H5F_t *             f,
     H5C_cache_entry_t *	entry;          /* Alias for thing loaded, as cache entry */
     size_t              len;            /* Size of image in file */
     unsigned            u;              /* Local index variable */
-    void *		ret_value;      /* Return value */
+    void *		ret_value = NULL;       /* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT
 
