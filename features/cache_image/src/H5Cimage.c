@@ -1825,8 +1825,9 @@ H5C__prefetched_entry_notify(H5C_notify_action_t action, void * thing)
 
 		HDassert(entry_ptr->flush_dep_parent->magic ==
                          H5C__H5C_CACHE_ENTRY_T_MAGIC);
-                HDassert(entry_ptr->flush_dep_parent->addr ==
-                         entry_ptr->fd_parent_addr);
+                HDassert((entry_ptr->flush_dep_parent->addr ==
+                          entry_ptr->fd_parent_addr) ||
+                         (!(entry_ptr->flush_dep_parent->prefetched)));
 
 		parent_ptr = entry_ptr->flush_dep_parent;
 
@@ -4046,7 +4047,7 @@ H5C_serialize_ring(const H5F_t * f,
             {
 		entry_ptr = cache_ptr->index[i];
 
-		while ( entry_ptr != NULL )
+		while ( ( entry_ptr != NULL ) && ( !restart_scan ) )
                 {
 		    HDassert(entry_ptr->magic == H5C__H5C_CACHE_ENTRY_T_MAGIC);
 
