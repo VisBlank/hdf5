@@ -1874,9 +1874,9 @@ AC_ARG_ENABLE([debug],
 ## Default to no if producton is enabled
 if test "X-$DEBUG_PKG" = X- ; then
     if test "$enable_production" = yes ; then
-  DEBUG_PKG=no
+	DEBUG_PKG=no
     else
-  DEBUG_PKG=yes
+	DEBUG_PKG=yes
     fi
 fi
 
