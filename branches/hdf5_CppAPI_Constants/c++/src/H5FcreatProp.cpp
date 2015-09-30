@@ -25,10 +25,53 @@
 namespace H5 {
 #endif
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+// This DOXYGEN_SHOULD_SKIP_THIS block is a work-around approach to control
+// the order of creation and deletion of the global constants.  See Design Notes
+// in "H5PredType.cpp" for information.
+
+// Initialize a pointer for the constant
+FileCreatPropList* FileCreatPropList::DEFAULT_ = 0;
+
+//--------------------------------------------------------------------------
+// Function:    FileCreatPropList::getConstant
+// Purpose:     Creates a FileCreatPropList object representing the HDF5
+//              constant H5P_DEFAULT, pointed to by FileCreatPropList::DEFAULT_
+//\exception    H5::PropListIException
+// Description
+//              If FileCreatPropList::DEFAULT_ already points to an allocated
+//              object, throw
+//              a PropListIException.  This scenario should not happen.
+// Programmer   Binh-Minh Ribler - 2015
+//--------------------------------------------------------------------------
+FileCreatPropList* FileCreatPropList::getConstant()
+{
+    if (DEFAULT_ == 0)
+        DEFAULT_ = new FileCreatPropList(H5P_DEFAULT);
+    else
+        throw PropListIException("FileCreatPropList::getConstant", "FileCreatPropList::getConstant is being invoked on an allocated DEFAULT_");
+    return(DEFAULT_);
+}
+
+//--------------------------------------------------------------------------
+// Function:    FileCreatPropList::deleteConstants
+// Purpose:     Deletes the constant object that FileCreatPropList::DEFAULT_
+//              points to.
+//\exception    H5::PropListIException
+// Programmer   Binh-Minh Ribler - 2015
+//--------------------------------------------------------------------------
+void FileCreatPropList::deleteConstants()
+{
+    if (DEFAULT_ != 0)
+        delete DEFAULT_;
+}
+
+#endif // DOXYGEN_SHOULD_SKIP_THIS
+
 //--------------------------------------------------------------------------
 ///\brief	Constant for default property
 //--------------------------------------------------------------------------
-const FileCreatPropList FileCreatPropList::DEFAULT;
+const FileCreatPropList& FileCreatPropList::DEFAULT = *getConstant();
 
 //--------------------------------------------------------------------------
 // Function:	FileCreatPropList default constructor

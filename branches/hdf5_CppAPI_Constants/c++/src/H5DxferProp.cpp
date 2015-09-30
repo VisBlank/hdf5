@@ -36,10 +36,53 @@
 namespace H5 {
 #endif
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+// This DOXYGEN_SHOULD_SKIP_THIS block is a work-around approach to control
+// the order of creation and deletion of the global constants.  See Design Notes
+// in "H5PredType.cpp" for information.
+
+// Initialize a pointer for the constant
+DSetMemXferPropList* DSetMemXferPropList::DEFAULT_ = 0;
+
+//--------------------------------------------------------------------------
+// Function:    DSetMemXferPropList::getConstant
+//              Creates a DSetMemXferPropList object representing the HDF5
+//              constant H5P_DEFAULT, pointed to by DSetMemXferPropList::DEFAULT_
+//\exception    H5::PropListIException
+// Description
+//              If DSetMemXferPropList::DEFAULT_ already points to an allocated
+//              object, throw a PropListIException.  This scenario should not
+//              happen.
+// Programmer   Binh-Minh Ribler - 2015
+//--------------------------------------------------------------------------
+DSetMemXferPropList* DSetMemXferPropList::getConstant()
+{
+    if (DEFAULT_ == 0)
+        DEFAULT_ = new DSetMemXferPropList(H5P_DEFAULT);
+    else
+        throw PropListIException("DSetMemXferPropList::getConstant", "DSetMemXferPropList::getConstant is being invoked on an allocated DEFAULT_");
+    return(DEFAULT_);
+}
+
+//--------------------------------------------------------------------------
+// Function:    DSetMemXferPropList::deleteConstants
+// Purpose:     Deletes the constant object that DSetMemXferPropList::DEFAULT_
+//              points to.
+//\exception    H5::PropListIException
+// Programmer   Binh-Minh Ribler - 2015
+//--------------------------------------------------------------------------
+void DSetMemXferPropList::deleteConstants()
+{
+    if (DEFAULT_ != 0)
+        delete DEFAULT_;
+}
+
+#endif // DOXYGEN_SHOULD_SKIP_THIS
+
 //--------------------------------------------------------------------------
 ///\brief	Constant for default dataset memory and transfer property list.
 //--------------------------------------------------------------------------
-const DSetMemXferPropList DSetMemXferPropList::DEFAULT;
+const DSetMemXferPropList& DSetMemXferPropList::DEFAULT = *getConstant();
 
 //--------------------------------------------------------------------------
 // Function	DSetMemXferPropList default constructor

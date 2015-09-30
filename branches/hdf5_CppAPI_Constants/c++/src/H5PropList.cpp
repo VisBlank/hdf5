@@ -36,10 +36,51 @@ namespace H5 {
 #endif  // H5_NO_STD
 #endif
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+// This DOXYGEN_SHOULD_SKIP_THIS block is a work-around approach to control
+// the order of creation and deletion of the global constants.  See Design Notes
+// in "H5PredType.cpp" for information.
+
+// Initialize a pointer for the constant
+PropList* PropList::DEFAULT_ = 0;
+
+//--------------------------------------------------------------------------
+// Function:    PropList::getConstant
+// Purpose:     Creates a PropList object representing the HDF5 constant
+//              H5P_DEFAULT, pointed to by PropList::DEFAULT_.
+//\exception    H5::PropListIException
+// Description
+//              If PropList::DEFAULT_ already points to an allocated object,
+//              throw a PropListIException.  This scenario should not happen.
+// Programmer   Binh-Minh Ribler - 2015
+//--------------------------------------------------------------------------
+PropList* PropList::getConstant()
+{
+    if (DEFAULT_ == 0)
+        DEFAULT_ = new PropList(H5P_DEFAULT);
+    else
+        throw PropListIException("PropList::getConstant", "PropList::getConstant is being invoked on an allocated DEFAULT_");
+    return(DEFAULT_);
+}
+
+//--------------------------------------------------------------------------
+// Function:    PropList::deleteConstants
+// Purpose:     Deletes the constant object that PropList::DEFAULT_ points to.
+//\exception    H5::PropListIException
+// Programmer   Binh-Minh Ribler - 2015
+//--------------------------------------------------------------------------
+void PropList::deleteConstants()
+{
+    if (DEFAULT_ != 0)
+        delete DEFAULT_;
+}
+
+#endif // DOXYGEN_SHOULD_SKIP_THIS
+
 //--------------------------------------------------------------------------
 ///\brief	Constant for default property.
 //--------------------------------------------------------------------------
-const PropList PropList::DEFAULT;
+const PropList& PropList::DEFAULT = *getConstant();
 
 //--------------------------------------------------------------------------
 // Function	Default constructor

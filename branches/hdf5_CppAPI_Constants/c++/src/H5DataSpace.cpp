@@ -33,10 +33,55 @@ namespace H5 {
 #endif  // H5_NO_STD
 #endif
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+// This DOXYGEN_SHOULD_SKIP_THIS block is a work-around approach to control
+// the order of creation and deletion of the global constants.  See Design Notes
+// in "H5PredType.cpp" for information.
+
+// Initialize a pointer for the constant
+DataSpace* DataSpace::ALL_ = 0;
+
+//--------------------------------------------------------------------------
+// Function:	DataSpace::getConstant
+//		Creates a DataSpace object representing the HDF5 constant
+//		H5S_ALL, pointed to by DataSpace::ALL_
+//\exception	H5::DataSpaceIException
+// Description
+//		If DataSpace::ALL_ already points to an allocated object, throw
+//		a DataSpaceIException.  This scenario should not happen.
+// Programmer	Binh-Minh Ribler - 2015
+//--------------------------------------------------------------------------
+DataSpace* DataSpace::getConstant()
+{
+    if (ALL_ == 0)
+    {
+        ALL_ = new DataSpace(H5S_ALL);
+        if (ALL_ == 0)
+            throw DataSpaceIException("DataSpace::getConstant", "Fail to allocate ALL_");
+    }
+    else
+        throw DataSpaceIException("DataSpace::getConstant", "DataSpace::getConstant is being invoked on an allocated ALL_");
+    return(ALL_);
+}
+
+//--------------------------------------------------------------------------
+// Function:    DataSpace::deleteConstants
+// Purpose:     Deletes the constant object that DataSpace::ALL_ points to
+//\exception    H5::DataSpaceIException
+// Programmer   Binh-Minh Ribler - 2015
+//--------------------------------------------------------------------------
+void DataSpace::deleteConstants()
+{
+    if (ALL_ != 0)
+        delete ALL_;
+}
+
+#endif // DOXYGEN_SHOULD_SKIP_THIS
+
 //--------------------------------------------------------------------------
 ///\brief	Constant for default dataspace.
 //--------------------------------------------------------------------------
-const DataSpace DataSpace::ALL( H5S_ALL );
+const DataSpace& DataSpace::ALL = *getConstant();
 
 //--------------------------------------------------------------------------
 // Function:	DataSpace constructor

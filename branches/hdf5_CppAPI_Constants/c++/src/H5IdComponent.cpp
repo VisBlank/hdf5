@@ -31,6 +31,10 @@
 namespace H5 {
 #endif
 
+// This flag controls whether H5Library::initH5cpp has been called to register
+// terminating functions with atexit()
+bool IdComponent::H5cppinit = false;
+
 //--------------------------------------------------------------------------
 // Function:	IdComponent overloaded constructor
 ///\brief	Creates an IdComponent object using the id of an existing object.
@@ -296,7 +300,14 @@ H5std_string IdComponent::inMemFunc(const char* func_name) const
 ///\brief	Default constructor.
 // Programmer	Binh-Minh Ribler - 2000
 //--------------------------------------------------------------------------
-IdComponent::IdComponent() {}
+IdComponent::IdComponent()
+{
+    if (!H5cppinit)
+    {
+        H5Library::getInstance()->initH5cpp();
+        H5cppinit = true;
+    }
+}
 
 //--------------------------------------------------------------------------
 // Function:	IdComponent::p_get_file_name (protected)
