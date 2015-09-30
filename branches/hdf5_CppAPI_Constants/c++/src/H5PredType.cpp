@@ -167,6 +167,10 @@ September 2015:
 	The following list presents the differences between the old and new
 	methods and the changes implemented for the new method.
 
+
+IdComponent info
+
+
 	1.  The following items are added to class H5Library:
 		// Private instance to be created by H5Library only
 		static H5Library* instance;
@@ -492,6 +496,20 @@ PredType* PredType::NATIVE_INT_FAST64_;
 PredType* PredType::NATIVE_UINT_FAST64_;
 #endif /* H5_SIZEOF_UINT_FAST64_T */
 
+//--------------------------------------------------------------------------
+// Function:	PredType::getPredTypes
+// Purpose:	Returns the dummy PredType constant object pointer
+// Return:	PredType object pointer
+// Description
+//		If the dummy constant PREDTYPE_CONST_ is not allocated yet,
+//		call makePredTypes() to allocate all of the PredType constants.
+//		Otherwise, just simply return the object pointer PREDTYPE_CONST_.
+//
+//		Note that, there is a similar function to getPredTypes() in
+//		other classes, that have global constants, is called getConstant().
+//
+// Programmer	Binh-Minh Ribler - September 2015
+//--------------------------------------------------------------------------
 PredType* PredType::getPredTypes()
 {
     if (PREDTYPE_CONST_ == 0)
@@ -499,11 +517,13 @@ PredType* PredType::getPredTypes()
     return PREDTYPE_CONST_;
 }
 
+//--------------------------------------------------------------------------
+// Function:	PredType::makePredTypes
+// Purpose:	Allocate all PredType constants.
+// Programmer	Binh-Minh Ribler - September 2015
+//--------------------------------------------------------------------------
 void PredType::makePredTypes()
 {
-
-// what about the reference assigning to this earlier???
-
     PREDTYPE_CONST_ = new PredType;
     C_S1_ = new PredType(H5T_C_S1);
     FORTRAN_S1_ = new PredType(H5T_FORTRAN_S1);
@@ -687,188 +707,106 @@ void PredType::makePredTypes()
 } // makePredTypes
 
 
+//--------------------------------------------------------------------------
+// Function:	PredType::deleteConstants
+// Purpose:	Deletes all PredType constant pointers.
+// Programmer	Binh-Minh Ribler - September 2015
+//--------------------------------------------------------------------------
 void PredType::deleteConstants()
 {
-// cerr << " PredType::deleteConstants" << endl;
     delete STD_I8BE_;
-//STD_I8BE_ = NULL;
     delete STD_I8LE_;
-//STD_I8LE_ = NULL;
     delete STD_I16BE_;
-//STD_I16BE_ = NULL;
     delete STD_I16LE_;
-//STD_I16LE_ = NULL;
     delete STD_I32BE_;
-//STD_I32BE_ = NULL;
     delete STD_I32LE_;
-//STD_I32LE_ = NULL;
     delete STD_I64BE_;
-//STD_I64BE_ = NULL;
     delete STD_I64LE_;
-//STD_I64LE_ = NULL;
     delete STD_U8BE_;
-//STD_U8BE_ = NULL;
     delete STD_U8LE_;
-//STD_U8LE_ = NULL;
     delete STD_U16BE_;
-//STD_U16BE_ = NULL;
     delete STD_U16LE_;
-//STD_U16LE_ = NULL;
     delete STD_U32BE_;
-//STD_U32BE_ = NULL;
     delete STD_U32LE_;
-//STD_U32LE_ = NULL;
     delete STD_U64BE_;
-//STD_U64BE_ = NULL;
     delete STD_U64LE_;
-//STD_U64LE_ = NULL;
     delete STD_B8BE_;
-//STD_B8BE_ = NULL;
     delete STD_B8LE_;
-//STD_B8LE_ = NULL;
     delete STD_B16BE_;
-//STD_B16BE_ = NULL;
     delete STD_B16LE_;
-//STD_B16LE_ = NULL;
     delete STD_B32BE_;
-//STD_B32BE_ = NULL;
     delete STD_B32LE_;
-//STD_B32LE_ = NULL;
     delete STD_B64BE_;
-//STD_B64BE_ = NULL;
     delete STD_B64LE_;
-//STD_B64LE_ = NULL;
     delete STD_REF_OBJ_;
-//STD_REF_OBJ_ = NULL;
     delete STD_REF_DSETREG_;
-//STD_REF_OBJ_ = NULL;
 
     delete C_S1_;
-//C_S1_ = NULL;
     delete FORTRAN_S1_;
-//FORTRAN_S1_ = NULL;
 
     delete IEEE_F32BE_;
-//IEEE_F32BE_ = NULL;
     delete IEEE_F32LE_;
-//IEEE_F32LE_ = NULL;
     delete IEEE_F64BE_;
-//IEEE_F64BE_ = NULL;
     delete IEEE_F64LE_;
-//IEEE_F64LE_ = NULL;
 
     delete UNIX_D32BE_;
-//UNIX_D32BE_ = NULL;
     delete UNIX_D32LE_;
-//UNIX_D32LE_ = NULL;
     delete UNIX_D64BE_;
-//UNIX_D64BE_ = NULL;
     delete UNIX_D64LE_;
-//UNIX_D64LE_ = NULL;
 
     delete INTEL_I8_;
-//INTEL_I8_ = NULL;
     delete INTEL_I16_;
-//INTEL_I16_ = NULL;
     delete INTEL_I32_;
-//INTEL_I32_ = NULL;
     delete INTEL_I64_;
-//INTEL_I64_ = NULL;
     delete INTEL_U8_;
-//INTEL_U8_ = NULL;
     delete INTEL_U16_;
-//INTEL_U16_ = NULL;
     delete INTEL_U32_;
-//INTEL_U32_ = NULL;
     delete INTEL_U64_;
-//INTEL_U64_ = NULL;
     delete INTEL_B8_;
-//INTEL_B8_ = NULL;
     delete INTEL_B16_;
-//INTEL_B16_ = NULL;
     delete INTEL_B32_;
-//INTEL_B32_ = NULL;
     delete INTEL_B64_;
-//INTEL_B64_ = NULL;
     delete INTEL_F32_;
-//INTEL_F32_ = NULL;
     delete INTEL_F64_;
-//INTEL_F64_ = NULL;
 
     delete ALPHA_I8_;
-//ALPHA_I8_ = NULL;
     delete ALPHA_I16_;
-//ALPHA_I16_ = NULL;
     delete ALPHA_I32_;
-//ALPHA_I32_ = NULL;
     delete ALPHA_I64_;
-//ALPHA_I64_ = NULL;
     delete ALPHA_U8_;
-//ALPHA_U8_ = NULL;
     delete ALPHA_U16_;
-//ALPHA_U16_ = NULL;
     delete ALPHA_U32_;
-//ALPHA_U32_ = NULL;
     delete ALPHA_U64_;
-//ALPHA_U64_ = NULL;
     delete ALPHA_B8_;
-//ALPHA_B8_ = NULL;
     delete ALPHA_B16_;
-//ALPHA_B16_ = NULL;
     delete ALPHA_B32_;
-//ALPHA_B32_ = NULL;
     delete ALPHA_B64_;
-//ALPHA_B64_ = NULL;
     delete ALPHA_F32_;
-//ALPHA_F32_ = NULL;
     delete ALPHA_F64_;
-//ALPHA_F64_ = NULL;
 
     delete MIPS_I8_;
-//MIPS_I8_ = NULL;
     delete MIPS_I16_;
-//MIPS_I16_ = NULL;
     delete MIPS_I32_;
-//MIPS_I32_ = NULL;
     delete MIPS_I64_;
-//MIPS_I64_ = NULL;
     delete MIPS_U8_;
-//MIPS_U8_ = NULL;
     delete MIPS_U16_;
-//MIPS_U16_ = NULL;
     delete MIPS_U32_;
-//MIPS_U32_ = NULL;
     delete MIPS_U64_;
-//MIPS_U64_ = NULL;
     delete MIPS_B8_;
-//MIPS_B8_ = NULL;
     delete MIPS_B16_;
-//MIPS_B16_ = NULL;
     delete MIPS_B32_;
-//MIPS_B32_ = NULL;
     delete MIPS_B64_;
-//MIPS_B64_ = NULL;
     delete MIPS_F32_;
-//MIPS_F32_ = NULL;
     delete MIPS_F64_;
-//MIPS_F64_ = NULL;
 
     delete NATIVE_CHAR_;
-//NATIVE_CHAR_ = NULL;
     delete NATIVE_SCHAR_;
-//NATIVE_SCHAR_ = NULL;
     delete NATIVE_UCHAR_;
-//NATIVE_UCHAR_ = NULL;
     delete NATIVE_SHORT_;
-//NATIVE_SHORT_ = NULL;
     delete NATIVE_USHORT_;
-//NATIVE_USHORT_ = NULL;
     delete NATIVE_INT_;
-//NATIVE_INT_ = NULL;
     delete NATIVE_UINT_;
-//NATIVE_UINT_ = NULL;
     delete NATIVE_LONG_;
-//NATIVE_LONG_ = NULL;
     delete NATIVE_ULONG_;
     delete NATIVE_LLONG_;
     delete NATIVE_ULLONG_;
@@ -959,9 +897,11 @@ void PredType::deleteConstants()
 // Assigning the constant references to the dynamically allocated constants
 // after using PREDTYPE_CONST to activate the creation of those constants.
 
-//  PREDTYPE_CONST will be the first static const declared in the file.
-//  getPredTypes() will allocate memory for all the addional static
-//  constants in the file.
+//  PREDTYPE_CONST will be the first static constant declared in the file.
+//  getPredTypes() will call makePredTypes() to allocate memory for all the
+//  PredType constants.  Note that, there is a similar function to getPredTypes()
+//  in other classes, that have global constants, is called getConstant().
+
 const PredType& PredType::PREDTYPE_CONST = *PredType::getPredTypes();
 const PredType& PredType::STD_I8BE = *STD_I8BE_;
 const PredType& PredType::STD_I8LE = *STD_I8LE_;
