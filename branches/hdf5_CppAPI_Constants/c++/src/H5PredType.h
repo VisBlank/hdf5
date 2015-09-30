@@ -59,12 +59,6 @@ class H5_DLLCPP PredType : public AtomType {
         // Activates the creation of the PredType global constants
         //static PredType* getPredTypes();
 
-        // Deletes the PredType global constants
-        static void deleteConstants();
-
-        // Dummy constant
-        static const PredType& PREDTYPE_CONST; // dummy constant
-
 	// Declaration of predefined types; their definition is in H5PredType.cpp
 	static const PredType& STD_I8BE;
 	static const PredType& STD_I8LE;
@@ -243,6 +237,12 @@ class H5_DLLCPP PredType : public AtomType {
 #endif /* H5_SIZEOF_UINT_FAST64_T */
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
+
+        // Deletes the PredType global constants
+        static void deleteConstants();
+
+        // Dummy constant
+        static const PredType& PREDTYPE_CONST; // dummy constant
 
    protected:
 	// Default constructor

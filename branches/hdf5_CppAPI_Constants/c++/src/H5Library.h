@@ -54,6 +54,7 @@ class H5_DLLCPP H5Library {
 	arr_global_lim, int arr_list_lim, int blk_global_lim, int blk_list_lim);
 
         // Initializes C++ library and registers terminating functions at exit.
+	// Only for the library functions, not for user-defined functions.
         static void initH5cpp(void);
 
         // Sends request for terminating the HDF5 library.

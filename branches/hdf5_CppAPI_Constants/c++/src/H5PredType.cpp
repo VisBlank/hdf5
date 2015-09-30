@@ -167,10 +167,6 @@ September 2015:
 	The following list presents the differences between the old and new
 	methods and the changes implemented for the new method.
 
-
-IdComponent info
-
-
 	1.  The following items are added to class H5Library:
 		// Private instance to be created by H5Library only
 		static H5Library* instance;
@@ -319,6 +315,7 @@ IdComponent info
 
 ****************************************************************************/
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 // Definition pointers for the constants
 PredType* PredType::PREDTYPE_CONST_ = 0; //dummy
 PredType* PredType::STD_I8BE_;
@@ -514,6 +511,8 @@ PredType* PredType::getPredTypes()
 {
     if (PREDTYPE_CONST_ == 0)
 	makePredTypes();
+    else
+	throw H5::DataTypeIException("PredType::getPredTypes", "PredType::getPredTypes is being invoked on an allocated PREDTYPE_CONST_");
     return PREDTYPE_CONST_;
 }
 
@@ -1078,6 +1077,8 @@ const PredType& PredType::NATIVE_INT_FAST64 = *NATIVE_INT_FAST64_;
 #if H5_SIZEOF_UINT_FAST64_T != 0
 const PredType& PredType::NATIVE_UINT_FAST64 = *NATIVE_UINT_FAST64_;
 #endif /* H5_SIZEOF_UINT_FAST64_T */
+
+#endif // DOXYGEN_SHOULD_SKIP_THIS
 
 #ifndef H5_NO_NAMESPACE
 } // end namespace

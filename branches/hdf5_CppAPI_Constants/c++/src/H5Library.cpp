@@ -160,18 +160,17 @@ void H5Library::garbageCollect()
 
 //--------------------------------------------------------------------------
 // Function:    H5Library::initH5cpp
-///\brief       Initializes C++ library and registers terminating functions at exit.
-///\par Description
-///             initH5cpp registers the following functions with std::atexit():
-///                     termH5cpp() - calls H5close() after all cleanup in
-///                                   the C++ library is done
-///                     PredType::deleteConstants - deletes all references for
-///                             PredType global constants
-///                     PropList::deletePropList - deletes all references for
-///                             PropList global constants
-///                     DataSpace::deleteDataSpace - deletes all references for
-///                             DataSpace global constants
+///\brief       Initializes C++ library and registers terminating functions at
+///		exit.  Only for the library functions, not for user-defined
+///		functions.
+// Description
+//              initH5cpp registers the following functions with std::atexit():
+//                      termH5cpp() - calls H5close() after all cleanup in
+//                                    the C++ library is done
+//                      <classname>::deleteConstants - deletes all references for
+//                              <classname> global constants
 ///\exception   H5::LibraryIException
+//
 // Programmer   Binh-Minh Ribler - September, 2015
 //--------------------------------------------------------------------------
 void H5Library::initH5cpp()

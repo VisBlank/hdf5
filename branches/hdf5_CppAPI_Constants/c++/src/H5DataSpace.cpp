@@ -54,11 +54,7 @@ DataSpace* DataSpace::ALL_ = 0;
 DataSpace* DataSpace::getConstant()
 {
     if (ALL_ == 0)
-    {
         ALL_ = new DataSpace(H5S_ALL);
-        if (ALL_ == 0)
-            throw DataSpaceIException("DataSpace::getConstant", "Fail to allocate ALL_");
-    }
     else
         throw DataSpaceIException("DataSpace::getConstant", "DataSpace::getConstant is being invoked on an allocated ALL_");
     return(ALL_);
