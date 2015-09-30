@@ -36,7 +36,7 @@ FileCreatPropList* FileCreatPropList::DEFAULT_ = 0;
 //--------------------------------------------------------------------------
 // Function:    FileCreatPropList::getConstant
 // Purpose:     Creates a FileCreatPropList object representing the HDF5
-//              constant H5P_DEFAULT, pointed to by FileCreatPropList::DEFAULT_
+//              constant H5P_FILE_ACCESS, pointed to by FileCreatPropList::DEFAULT_
 //\exception    H5::PropListIException
 // Description
 //              If FileCreatPropList::DEFAULT_ already points to an allocated
@@ -47,7 +47,7 @@ FileCreatPropList* FileCreatPropList::DEFAULT_ = 0;
 FileCreatPropList* FileCreatPropList::getConstant()
 {
     if (DEFAULT_ == 0)
-        DEFAULT_ = new FileCreatPropList(H5P_DEFAULT);
+        DEFAULT_ = new FileCreatPropList(H5P_FILE_CREATE);
     else
         throw PropListIException("FileCreatPropList::getConstant", "FileCreatPropList::getConstant is being invoked on an allocated DEFAULT_");
     return(DEFAULT_);

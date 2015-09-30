@@ -39,8 +39,8 @@ DSetCreatPropList* DSetCreatPropList::DEFAULT_ = 0;
 //--------------------------------------------------------------------------
 // Function:    DSetCreatPropList::getConstant
 // Purpose:     Creates a DSetCreatPropList object representing the HDF5
-//              constant
-//              H5P_DEFAULT, pointed to by DSetCreatPropList::DEFAULT_
+//              constant H5P_DATASET_CREATE, pointed to by
+//		DSetCreatPropList::DEFAULT_
 //\exception    H5::PropListIException
 // Description
 //              If DSetCreatPropList::DEFAULT_ already points to an allocated
@@ -51,7 +51,7 @@ DSetCreatPropList* DSetCreatPropList::DEFAULT_ = 0;
 DSetCreatPropList* DSetCreatPropList::getConstant()
 {
     if (DEFAULT_ == 0)
-        DEFAULT_ = new DSetCreatPropList(H5P_DEFAULT);
+        DEFAULT_ = new DSetCreatPropList(H5P_DATASET_CREATE);
     else
         throw PropListIException("DSetCreatPropList::getConstant", "DSetCreatPropList::getConstant is being invoked on an allocated DEFAULT_");
     return(DEFAULT_);

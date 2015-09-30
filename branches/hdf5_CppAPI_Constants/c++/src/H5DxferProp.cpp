@@ -47,7 +47,8 @@ DSetMemXferPropList* DSetMemXferPropList::DEFAULT_ = 0;
 //--------------------------------------------------------------------------
 // Function:    DSetMemXferPropList::getConstant
 //              Creates a DSetMemXferPropList object representing the HDF5
-//              constant H5P_DEFAULT, pointed to by DSetMemXferPropList::DEFAULT_
+//              constant H5P_DATASET_XFER, pointed to by
+//		DSetMemXferPropList::DEFAULT_
 //\exception    H5::PropListIException
 // Description
 //              If DSetMemXferPropList::DEFAULT_ already points to an allocated
@@ -58,7 +59,7 @@ DSetMemXferPropList* DSetMemXferPropList::DEFAULT_ = 0;
 DSetMemXferPropList* DSetMemXferPropList::getConstant()
 {
     if (DEFAULT_ == 0)
-        DEFAULT_ = new DSetMemXferPropList(H5P_DEFAULT);
+        DEFAULT_ = new DSetMemXferPropList(H5P_DATASET_XFER);
     else
         throw PropListIException("DSetMemXferPropList::getConstant", "DSetMemXferPropList::getConstant is being invoked on an allocated DEFAULT_");
     return(DEFAULT_);

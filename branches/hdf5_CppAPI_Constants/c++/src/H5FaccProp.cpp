@@ -36,7 +36,7 @@ FileAccPropList* FileAccPropList::DEFAULT_ = 0;
 //--------------------------------------------------------------------------
 // Function:    FileAccPropList::getConstant
 //              Creates a FileAccPropList object representing the HDF5 constant
-//              H5P_DEFAULT, pointed to by FileAccPropList::DEFAULT_
+//              H5P_FILE_ACCESS, pointed to by FileAccPropList::DEFAULT_
 //\exception    H5::PropListIException
 // Description
 //              If FileAccPropList::DEFAULT_ already points to an allocated
@@ -47,7 +47,7 @@ FileAccPropList* FileAccPropList::DEFAULT_ = 0;
 FileAccPropList* FileAccPropList::getConstant()
 {
     if (DEFAULT_ == 0)
-        DEFAULT_ = new FileAccPropList(H5P_DEFAULT);
+        DEFAULT_ = new FileAccPropList(H5P_FILE_ACCESS);
     else
         throw PropListIException("FileAccPropList::getConstant", "FileAccPropList::getConstant is being invoked on an allocated DEFAULT_");
     return(DEFAULT_);
