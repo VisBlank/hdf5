@@ -22,7 +22,7 @@
 /* Module Setup */
 /****************/
 
-#define H5G_PACKAGE		/*suppress error about including H5Gpkg	  */
+#include "H5Gmodule.h"          /* This source code file is part of the H5G module */
 
 
 /***********/
@@ -460,7 +460,7 @@ H5G__ent_convert(H5F_t *f, hid_t dxpl_id, H5HL_t *heap, const char *name,
                 targ_oloc.addr = lnk->u.hard.addr;
 
                 /* Get the object header */
-                if(NULL == (oh = H5O_protect(&targ_oloc, dxpl_id, H5AC_READ)))
+                if(NULL == (oh = H5O_protect(&targ_oloc, dxpl_id, H5AC__READ_ONLY_FLAG)))
                     HGOTO_ERROR(H5E_SYM, H5E_CANTPROTECT, FAIL, "unable to protect target object header")
 
                 /* Check if a symbol table message exists */

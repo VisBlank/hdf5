@@ -21,7 +21,7 @@
  *              only within the H5HL package. Source files outside the
  *              H5HL package should include H5HLprivate.h instead.
  */
-#ifndef H5HL_PACKAGE
+#if !(defined H5HL_FRIEND || defined H5HL_MODULE)
 #error "Do not include this file outside the H5HL package!"
 #endif
 
@@ -122,12 +122,16 @@ struct H5HL_prfx_t {
 /* Callback information for loading local heap prefix from disk */
 typedef struct H5HL_cache_prfx_ud_t {
     /* Downwards */
+    hbool_t made_attempt;               /* Whether the deserialize routine */
+                                        /* was already attempted */
     size_t sizeof_size;                 /* Size of file sizes */
     size_t sizeof_addr;                 /* Size of file addresses */
     haddr_t prfx_addr;                  /* Address of prefix */
     size_t sizeof_prfx;                 /* Size of heap prefix */
 
     /* Upwards */
+    hbool_t loaded;                     /* Whether prefix was loaded */
+                                        /* from file */
 } H5HL_cache_prfx_ud_t;
 
 /* Callback information for loading local heap data block from disk */

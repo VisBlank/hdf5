@@ -20,7 +20,7 @@
  *		the H5FA package.  Source files outside the H5FA package should
  *		include H5FAprivate.h instead.
  */
-#if !(defined(H5FA_PACKAGE) | defined(H5FA_MODULE))
+#if !(defined(H5FA_FRIEND) | defined(H5FA_MODULE))
 #error "Do not include this file outside the H5FA package!"
 #endif
 
@@ -42,16 +42,6 @@
 /* Define this to display debugging information for the Fixed Array layer */
 /* #define H5FA_DEBUG */
 
-
-/* If this package header is being included in one of the H5FA modules, define
- *      the proper control macros for the generic FUNC_ENTER/LEAVE and error
- *      reporting macros.
- */
-#ifdef H5FA_MODULE
-#define H5_MY_PKG       H5FA
-#define H5_MY_PKG_ERR   H5E_FARRAY
-#define H5_MY_PKG_INIT  NO
-#endif /* H5FA_MODULE */
 
 /* Fill value for fixed array test class */
 #ifdef H5FA_TESTING
@@ -206,15 +196,24 @@ struct H5FA_t {
 
 /* Metadata cache callback user data types */
 
+/* Info needed for loading header */
+typedef struct H5FA_hdr_cache_ud_t {
+    H5F_t      *f;              /* Pointer to file for fixed array */
+    haddr_t    addr;            /* Address of header on disk */
+    void       *ctx_udata;      /* User context for class */
+} H5FA_hdr_cache_ud_t;
+
 /* Info needed for loading data block */
 typedef struct H5FA_dblock_cache_ud_t {
     H5FA_hdr_t *hdr;            /* Shared fixed array information */
+    haddr_t     dblk_addr;      /* Address of data block on disk */
 } H5FA_dblock_cache_ud_t;
 
 /* Info needed for loading data block page */
 typedef struct H5FA_dblk_page_cache_ud_t {
     H5FA_hdr_t *hdr;            /* Shared fixed array information */
     size_t      nelmts;         /* Number of elements in data block page */
+    haddr_t     dblk_page_addr; /* Address of data block page on disk */
 } H5FA_dblk_page_cache_ud_t;
 
 
@@ -254,7 +253,7 @@ H5_DLL herr_t H5FA__hdr_fuse_incr(H5FA_hdr_t *hdr);
 H5_DLL size_t H5FA__hdr_fuse_decr(H5FA_hdr_t *hdr);
 H5_DLL herr_t H5FA__hdr_modified(H5FA_hdr_t *hdr);
 H5_DLL H5FA_hdr_t *H5FA__hdr_protect(H5F_t *f, hid_t dxpl_id, haddr_t fa_addr,
-    void *ctx_udata, H5AC_protect_t rw);
+    void *ctx_udata, unsigned flags);
 H5_DLL herr_t H5FA__hdr_unprotect(H5FA_hdr_t *hdr, hid_t dxpl_id, unsigned cache_flags);
 H5_DLL herr_t H5FA__hdr_delete(H5FA_hdr_t *hdr, hid_t dxpl_id);
 H5_DLL herr_t H5FA__hdr_dest(H5FA_hdr_t *hdr);
@@ -264,7 +263,7 @@ H5_DLL H5FA_dblock_t *H5FA__dblock_alloc(H5FA_hdr_t *hdr);
 H5_DLL haddr_t H5FA__dblock_create(H5FA_hdr_t *hdr, hid_t dxpl_id, hbool_t *hdr_dirty);
 H5_DLL unsigned H5FA__dblock_sblk_idx(const H5FA_hdr_t *hdr, hsize_t idx);
 H5_DLL H5FA_dblock_t *H5FA__dblock_protect(H5FA_hdr_t *hdr, hid_t dxpl_id,
-    haddr_t dblk_addr, H5AC_protect_t rw);
+    haddr_t dblk_addr, unsigned flags);
 H5_DLL herr_t H5FA__dblock_unprotect(H5FA_dblock_t *dblock, hid_t dxpl_id,
     unsigned cache_flags);
 H5_DLL herr_t H5FA__dblock_delete(H5FA_hdr_t *hdr, hid_t dxpl_id,
@@ -276,7 +275,7 @@ H5_DLL herr_t H5FA__dblk_page_create(H5FA_hdr_t *hdr, hid_t dxpl_id,
     haddr_t addr, size_t nelmts);
 H5_DLL H5FA_dblk_page_t *H5FA__dblk_page_alloc(H5FA_hdr_t *hdr, size_t nelmts);
 H5_DLL H5FA_dblk_page_t *H5FA__dblk_page_protect(H5FA_hdr_t *hdr, hid_t dxpl_id,
-    haddr_t dblk_page_addr, size_t dblk_page_nelmts, H5AC_protect_t rw);
+    haddr_t dblk_page_addr, size_t dblk_page_nelmts, unsigned flags);
 H5_DLL herr_t H5FA__dblk_page_unprotect(H5FA_dblk_page_t *dblk_page,
     hid_t dxpl_id, unsigned cache_flags);
 H5_DLL herr_t H5FA__dblk_page_dest(H5FA_dblk_page_t *dblk_page);

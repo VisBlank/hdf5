@@ -28,8 +28,9 @@
 /* Module Setup */
 /****************/
 
-#define H5A_PACKAGE		/*suppress error about including H5Apkg	  */
-#define H5O_PACKAGE		/*suppress error about including H5Opkg	  */
+#define H5A_FRIEND		/*suppress error about including H5Apkg	  */
+#include "H5Omodule.h"          /* This source code file is part of the H5O module */
+
 
 /***********/
 /* Headers */
@@ -474,7 +475,7 @@ H5O_attr_open_by_name(const H5O_loc_t *loc, const char *name, hid_t dxpl_id)
     H5A_t *exist_attr = NULL;           /* Existing opened attribute object */
     H5A_t *opened_attr = NULL;          /* Newly opened attribute object */
     htri_t found_open_attr = FALSE;     /* Whether opened object is found */
-    H5A_t *ret_value;                   /* Return value */
+    H5A_t *ret_value = NULL;            /* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT_TAG(dxpl_id, loc->addr, NULL)
 
@@ -483,7 +484,7 @@ H5O_attr_open_by_name(const H5O_loc_t *loc, const char *name, hid_t dxpl_id)
     HDassert(name);
 
     /* Protect the object header to iterate over */
-    if(NULL == (oh = H5O_protect(loc, dxpl_id, H5AC_READ)))
+    if(NULL == (oh = H5O_protect(loc, dxpl_id, H5AC__READ_ONLY_FLAG)))
 	HGOTO_ERROR(H5E_ATTR, H5E_CANTPROTECT, NULL, "unable to load object header")
 
     /* Check for attribute info stored */
@@ -616,7 +617,7 @@ H5O_attr_open_by_idx(const H5O_loc_t *loc, H5_index_t idx_type,
     H5A_t *exist_attr = NULL;           /* Existing opened attribute object */
     H5A_t *opened_attr = NULL;          /* Newly opened attribute object */
     htri_t found_open_attr = FALSE;     /* Whether opened object is found */
-    H5A_t *ret_value;                   /* Return value */
+    H5A_t *ret_value = NULL;            /* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT
 
@@ -632,7 +633,7 @@ H5O_attr_open_by_idx(const H5O_loc_t *loc, H5_index_t idx_type,
         HGOTO_ERROR(H5E_ATTR, H5E_BADITER, NULL, "can't locate attribute")
 
     /* Protect the object header to iterate over */
-    if(NULL == (oh = H5O_protect(loc, dxpl_id, H5AC_READ)))
+    if(NULL == (oh = H5O_protect(loc, dxpl_id, H5AC__READ_ONLY_FLAG)))
 	HGOTO_ERROR(H5E_ATTR, H5E_CANTPROTECT, NULL, "unable to load object header")
 
     /* Find out whether it has already been opened.  If it has, close the object
@@ -1272,7 +1273,7 @@ H5O_attr_iterate_real(hid_t loc_id, const H5O_loc_t *loc, hid_t dxpl_id,
     H5O_t *oh = NULL;                   /* Pointer to actual object header */
     H5O_ainfo_t ainfo;                  /* Attribute information for object */
     H5A_attr_table_t atable = {0, NULL};        /* Table of attributes */
-    herr_t ret_value;                   /* Return value */
+    herr_t ret_value = FAIL;            /* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT_TAG(dxpl_id, loc->addr, FAIL)
 
@@ -1283,7 +1284,7 @@ H5O_attr_iterate_real(hid_t loc_id, const H5O_loc_t *loc, hid_t dxpl_id,
     HDassert(attr_op);
 
     /* Protect the object header to iterate over */
-    if(NULL == (oh = H5O_protect(loc, dxpl_id, H5AC_READ)))
+    if(NULL == (oh = H5O_protect(loc, dxpl_id, H5AC__READ_ONLY_FLAG)))
 	HGOTO_ERROR(H5E_ATTR, H5E_CANTPROTECT, FAIL, "unable to load object header")
 
     /* Check for attribute info stored */
@@ -1357,7 +1358,7 @@ H5O_attr_iterate(hid_t loc_id, hid_t dxpl_id,
     hsize_t *last_attr, const H5A_attr_iter_op_t *attr_op, void *op_data)
 {
     H5G_loc_t loc;	        /* Object location */
-    herr_t ret_value;           /* Return value */
+    herr_t ret_value = FAIL;    /* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT
 
@@ -1837,7 +1838,7 @@ H5O_attr_exists(const H5O_loc_t *loc, const char *name, hid_t dxpl_id)
 {
     H5O_t *oh = NULL;           /* Pointer to actual object header */
     H5O_ainfo_t ainfo;          /* Attribute information for object */
-    htri_t ret_value;           /* Return value */
+    htri_t ret_value = FAIL;    /* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT_TAG(dxpl_id, loc->addr, FAIL)
 
@@ -1846,7 +1847,7 @@ H5O_attr_exists(const H5O_loc_t *loc, const char *name, hid_t dxpl_id)
     HDassert(name);
 
     /* Protect the object header to iterate over */
-    if(NULL == (oh = H5O_protect(loc, dxpl_id, H5AC_READ)))
+    if(NULL == (oh = H5O_protect(loc, dxpl_id, H5AC__READ_ONLY_FLAG)))
 	HGOTO_ERROR(H5E_ATTR, H5E_CANTPROTECT, FAIL, "unable to load object header")
 
     /* Check for attribute info stored */
@@ -1992,7 +1993,7 @@ H5O_attr_count(const H5O_loc_t *loc, hid_t dxpl_id)
 {
     H5O_t *oh = NULL;           /* Pointer to actual object header */
     hsize_t nattrs;             /* Number of attributes */
-    int ret_value;              /* Return value */
+    int ret_value = -1;         /* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT
 
@@ -2000,7 +2001,7 @@ H5O_attr_count(const H5O_loc_t *loc, hid_t dxpl_id)
     HDassert(loc);
 
     /* Protect the object header to iterate over */
-    if(NULL == (oh = H5O_protect(loc, dxpl_id, H5AC_READ)))
+    if(NULL == (oh = H5O_protect(loc, dxpl_id, H5AC__READ_ONLY_FLAG)))
 	HGOTO_ERROR(H5E_ATTR, H5E_CANTPROTECT, FAIL, "unable to load object header")
 
     /* Retrieve # of attributes on object */

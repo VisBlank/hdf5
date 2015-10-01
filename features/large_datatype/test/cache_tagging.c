@@ -457,7 +457,7 @@ static int evict_entries(hid_t fid)
     /* Evict all we can from the cache to examine full tag creation tree */
         /* This function will likely return failure since the root group
          * is still protected. Thus, don't check its return value. */
-    H5C_flush_cache(f, H5P_DEFAULT, H5P_DEFAULT, H5C__FLUSH_INVALIDATE_FLAG);
+    H5C_flush_cache(f, H5P_DEFAULT, H5C__FLUSH_INVALIDATE_FLAG);
 
     return 0;
 
@@ -1113,6 +1113,7 @@ check_dense_attribute_tags(void)
 
     /* Create dataset */
     if ( (did = H5Dcreate2(fid, DATASETNAME, H5T_NATIVE_UCHAR, sid, H5P_DEFAULT, dcpl, H5P_DEFAULT)) < 0 ) TEST_ERROR;
+    if ( H5Pclose(dcpl) < 0 ) TEST_ERROR;
     
     /* get dataset object header */
     if ( get_new_object_header_tag(fid, &d_tag) < 0 ) TEST_ERROR;
@@ -2025,6 +2026,7 @@ check_dataset_creation_tags(hid_t fcpl, int type)
 
     /* Create Dataset */
     if (( did = H5Dcreate2(fid, DATASETNAME, H5T_NATIVE_INT, sid, H5P_DEFAULT, dcpl, H5P_DEFAULT)) < 0 ) TEST_ERROR;
+    if ( H5Pclose(dcpl) < 0 ) TEST_ERROR;
 
     /* =================================== */
     /* Verification of Metadata Tag Values */
@@ -2159,6 +2161,7 @@ check_dataset_creation_earlyalloc_tags(hid_t fcpl, int type)
     if ( (sid = H5Screate_simple(2, dims1, maxdims)) < 0 ) TEST_ERROR;
 
     if (( did = H5Dcreate2(fid, DATASETNAME2, H5T_NATIVE_INT, sid, H5P_DEFAULT, dcpl, H5P_DEFAULT)) < 0 ) TEST_ERROR;
+    if ( H5Pclose(dcpl) < 0 ) TEST_ERROR;
 
     /* =================================== */
     /* Verification of Metadata Tag Values */
@@ -2287,6 +2290,7 @@ check_dataset_open_tags(hid_t fcpl, int type)
 
     /* Create Dataset */
     if (( did = H5Dcreate2(fid, DATASETNAME, H5T_NATIVE_INT, sid, H5P_DEFAULT, dcpl, H5P_DEFAULT)) < 0 ) TEST_ERROR;
+    if ( H5Pclose(dcpl) < 0 ) TEST_ERROR;
 
     /* Retrieve tag associated with this dataset */
     if ( get_new_object_header_tag(fid, &d_tag) < 0 ) TEST_ERROR;
@@ -2419,6 +2423,7 @@ check_dataset_write_tags(hid_t fcpl, int type)
 
     /* Create Dataset */
     if (( did = H5Dcreate2(fid, DATASETNAME, H5T_NATIVE_INT, sid, H5P_DEFAULT, dcpl, H5P_DEFAULT)) < 0 ) TEST_ERROR;
+    if ( H5Pclose(dcpl) < 0 ) TEST_ERROR;
 
     /* Retrieve tag associated with this dataset */
     if ( get_new_object_header_tag(fid, &d_tag) < 0 ) TEST_ERROR;
@@ -2709,6 +2714,7 @@ check_dataset_read_tags(hid_t fcpl, int type)
 
     /* Create Dataset */
     if (( did = H5Dcreate2(fid, DATASETNAME, H5T_NATIVE_INT, sid, H5P_DEFAULT, dcpl, H5P_DEFAULT)) < 0 ) TEST_ERROR;
+    if ( H5Pclose(dcpl) < 0 ) TEST_ERROR;
 
     /* Retrieve tag associated with this dataset */
     if ( get_new_object_header_tag(fid, &d_tag) < 0 ) TEST_ERROR;
@@ -2847,6 +2853,7 @@ check_dataset_size_retrieval(hid_t fcpl, int type)
 
     /* Create Dataset */
     if (( did = H5Dcreate2(fid, DATASETNAME, H5T_NATIVE_INT, sid, H5P_DEFAULT, dcpl, H5P_DEFAULT)) < 0 ) TEST_ERROR;
+    if ( H5Pclose(dcpl) < 0 ) TEST_ERROR;
 
     /* Retrieve tag associated with this dataset */
     if ( get_new_object_header_tag(fid, &d_tag) < 0 ) TEST_ERROR;
@@ -2986,6 +2993,7 @@ check_dataset_extend_tags(hid_t fcpl, int type)
 
     /* Create Dataset */
     if (( did = H5Dcreate2(fid, DATASETNAME, H5T_NATIVE_INT, sid, H5P_DEFAULT, dcpl, H5P_DEFAULT)) < 0 ) TEST_ERROR;
+    if ( H5Pclose(dcpl) < 0 ) TEST_ERROR;
 
     /* Retrieve tag associated with this dataset */
     if ( get_new_object_header_tag(fid, &d_tag) < 0 ) TEST_ERROR;
@@ -3367,6 +3375,7 @@ check_link_removal_tags(hid_t fcpl, int type)
 
     /* Create Dataset */
     if (( did = H5Dcreate2(fid, DATASETNAME, H5T_NATIVE_INT, sid, H5P_DEFAULT, dcpl, H5P_DEFAULT)) < 0 ) TEST_ERROR;
+    if ( H5Pclose(dcpl) < 0 ) TEST_ERROR;
 
     /* Retrieve tag associated with this dataset */
     if ( get_new_object_header_tag(fid, &d_tag) < 0 ) TEST_ERROR;
@@ -3526,6 +3535,7 @@ check_link_getname_tags(hid_t fcpl, int type)
 
     /* Create Dataset */
     if (( did = H5Dcreate2(fid, DATASETNAME, H5T_NATIVE_INT, sid, H5P_DEFAULT, dcpl, H5P_DEFAULT)) < 0 ) TEST_ERROR;
+    if ( H5Pclose(dcpl) < 0 ) TEST_ERROR;
 
     /* Retrieve tag associated with this dataset */
     if ( get_new_object_header_tag(fid, &d_tag) < 0 ) TEST_ERROR;
@@ -3866,13 +3876,13 @@ check_invalid_tag_application(void)
 
     /* Call H5HL_protect to protect the local heap created above. */
     /* This should fail as no tag is set up during the protect call */
-    if (( lheap = H5HL_protect(f, H5AC_ind_dxpl_id, addr, H5AC_WRITE)) != NULL ) TEST_ERROR;
+    if (( lheap = H5HL_protect(f, H5AC_ind_dxpl_id, addr, H5AC__NO_FLAGS_SET)) != NULL ) TEST_ERROR;
 
     /* Again, set up a valid tag in the DXPL */
     if ( H5AC_tag(H5AC_ind_dxpl_id, (haddr_t)25, NULL) < 0) TEST_ERROR;
 
     /* Call H5HL_protect again to protect the local heap. This should succeed. */
-    if (( lheap = H5HL_protect(f, H5AC_ind_dxpl_id, addr, H5AC_WRITE)) == NULL ) TEST_ERROR;
+    if (( lheap = H5HL_protect(f, H5AC_ind_dxpl_id, addr, H5AC__NO_FLAGS_SET)) == NULL ) TEST_ERROR;
 
     /* Now unprotect the heap, as we're done with the test. */
     if ( H5HL_unprotect(lheap) < 0 ) TEST_ERROR;

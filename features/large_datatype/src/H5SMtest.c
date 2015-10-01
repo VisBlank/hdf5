@@ -17,7 +17,7 @@
 /* Module Setup */
 /****************/
 
-#define H5SM_PACKAGE		/*suppress error about including H5SMpkg	  */
+#include "H5SMmodule.h"         /* This source code file is part of the H5SM module */
 #define H5SM_TESTING		/*suppress warning about H5SM testing funcs*/
 
 
@@ -98,7 +98,7 @@ H5SM_get_mesg_count_test(H5F_t *f, hid_t dxpl_id, unsigned type_id,
         cache_udata.f = f;
 
         /* Look up the master SOHM table */
-        if(NULL == (table = (H5SM_master_table_t *)H5AC_protect(f, dxpl_id, H5AC_SOHM_TABLE, H5F_SOHM_ADDR(f), &cache_udata, H5AC_READ)))
+        if(NULL == (table = (H5SM_master_table_t *)H5AC_protect(f, dxpl_id, H5AC_SOHM_TABLE, H5F_SOHM_ADDR(f), &cache_udata, H5AC__READ_ONLY_FLAG)))
             HGOTO_ERROR(H5E_SOHM, H5E_CANTPROTECT, FAIL, "unable to load SOHM master table")
 
         /* Find the correct index for this message type */

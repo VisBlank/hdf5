@@ -29,7 +29,7 @@
 /* Module Setup */
 /****************/
 
-#define H5HL_PACKAGE		/* Suppress error about including H5HLpkg */
+#include "H5HLmodule.h"         /* This source code file is part of the H5HL module */
 
 
 /***********/
@@ -70,6 +70,9 @@ static herr_t H5HL_minimize_heap_space(H5F_t *f, hid_t dxpl_id, H5HL_t *heap);
 /*********************/
 /* Package Variables */
 /*********************/
+
+/* Package initialization variable */
+hbool_t H5_PKG_INIT_VAR = FALSE;
 
 /* Declare a free list to manage the H5HL_free_t struct */
 H5FL_DEFINE(H5HL_free_t);
@@ -115,7 +118,7 @@ H5HL_create(H5F_t *f, hid_t dxpl_id, size_t size_hint, haddr_t *addr_p/*out*/)
 {
     H5HL_t	*heap = NULL;           /* Heap created */
     H5HL_prfx_t *prfx = NULL;           /* Heap prefix */
-    hsize_t	total_size;		/* Total heap size on disk	*/
+    hsize_t	total_size = 0;		/* Total heap size on disk */
     herr_t	ret_value = SUCCEED;    /* Return value */
 
     FUNC_ENTER_NOAPI(FAIL)
@@ -441,15 +444,15 @@ done:
  *-------------------------------------------------------------------------
  */
 H5HL_t *
-H5HL_protect(H5F_t *f, hid_t dxpl_id, haddr_t addr, H5AC_protect_t rw)
+H5HL_protect(H5F_t *f, hid_t dxpl_id, haddr_t addr, unsigned flags)
 {
     H5HL_cache_prfx_ud_t prfx_udata; /* User data for protecting local heap prefix */
     H5HL_prfx_t *prfx = NULL;   /* Local heap prefix */
     H5HL_dblk_t *dblk = NULL;   /* Local heap data block */
-    H5HL_t *heap;               /* Heap data structure */
+    H5HL_t *heap = NULL;        /* Heap data structure */
     unsigned prfx_cache_flags = H5AC__NO_FLAGS_SET;         /* Cache flags for unprotecting prefix entry */
     unsigned dblk_cache_flags = H5AC__NO_FLAGS_SET;         /* Cache flags for unprotecting data block entry */
-    H5HL_t *ret_value;          /* Return value */
+    H5HL_t *ret_value = NULL;   /* Return value */
 
     FUNC_ENTER_NOAPI(NULL)
 
@@ -457,14 +460,19 @@ H5HL_protect(H5F_t *f, hid_t dxpl_id, haddr_t addr, H5AC_protect_t rw)
     HDassert(f);
     HDassert(H5F_addr_defined(addr));
 
+    /* only the H5AC__READ_ONLY_FLAG may appear in flags */
+    HDassert((flags & (unsigned)(~H5AC__READ_ONLY_FLAG)) == 0);
+
     /* Construct the user data for protect callback */
+    prfx_udata.made_attempt = FALSE;
     prfx_udata.sizeof_size = H5F_SIZEOF_SIZE(f);
     prfx_udata.sizeof_addr = H5F_SIZEOF_ADDR(f);
     prfx_udata.prfx_addr = addr;
     prfx_udata.sizeof_prfx = H5HL_SIZEOF_HDR(f);
+    prfx_udata.loaded = FALSE;
 
     /* Protect the local heap prefix */
-    if(NULL == (prfx = (H5HL_prfx_t *)H5AC_protect(f, dxpl_id, H5AC_LHEAP_PRFX, addr, &prfx_udata, rw)))
+    if(NULL == (prfx = (H5HL_prfx_t *)H5AC_protect(f, dxpl_id, H5AC_LHEAP_PRFX, addr, &prfx_udata, flags)))
         HGOTO_ERROR(H5E_HEAP, H5E_CANTPROTECT, NULL, "unable to load heap prefix")
 
     /* Get the pointer to the heap */
@@ -486,7 +494,7 @@ H5HL_protect(H5F_t *f, hid_t dxpl_id, haddr_t addr, H5AC_protect_t rw)
             dblk_udata.loaded = FALSE;
 
             /* Protect the local heap data block */
-            if(NULL == (dblk = (H5HL_dblk_t *)H5AC_protect(f, dxpl_id, H5AC_LHEAP_DBLK, heap->dblk_addr, &dblk_udata, rw)))
+            if(NULL == (dblk = (H5HL_dblk_t *)H5AC_protect(f, dxpl_id, H5AC_LHEAP_DBLK, heap->dblk_addr, &dblk_udata, flags)))
                 HGOTO_ERROR(H5E_HEAP, H5E_CANTPROTECT, NULL, "unable to load heap data block")
 
             /* Pin the prefix, if the data block was loaded from file */
@@ -506,11 +514,11 @@ H5HL_protect(H5F_t *f, hid_t dxpl_id, haddr_t addr, H5AC_protect_t rw)
 
 done:
     /* Release the prefix from the cache, now pinned */
-    if(prfx && H5AC_unprotect(f, dxpl_id, H5AC_LHEAP_PRFX, heap->prfx_addr, prfx, prfx_cache_flags) < 0)
+    if(prfx && heap && H5AC_unprotect(f, dxpl_id, H5AC_LHEAP_PRFX, heap->prfx_addr, prfx, prfx_cache_flags) < 0)
         HDONE_ERROR(H5E_HEAP, H5E_CANTUNPROTECT, NULL, "unable to release local heap prefix")
 
     /* Release the data block from the cache, now pinned */
-    if(dblk && H5AC_unprotect(f, dxpl_id, H5AC_LHEAP_DBLK, heap->dblk_addr, dblk, dblk_cache_flags) < 0)
+    if(dblk && heap && H5AC_unprotect(f, dxpl_id, H5AC_LHEAP_DBLK, heap->dblk_addr, dblk, dblk_cache_flags) < 0)
         HDONE_ERROR(H5E_HEAP, H5E_CANTUNPROTECT, NULL, "unable to release local heap data block")
 
     FUNC_LEAVE_NOAPI(ret_value)
@@ -695,7 +703,7 @@ H5HL_insert(H5F_t *f, hid_t dxpl_id, H5HL_t *heap, size_t buf_size, const void *
     size_t	offset = 0;
     size_t	need_size;
     hbool_t	found;
-    size_t	ret_value;      /* Return value */
+    size_t	ret_value = 0;          /* Return value */
 
     FUNC_ENTER_NOAPI(UFAIL)
 
@@ -758,7 +766,7 @@ H5HL_insert(H5F_t *f, hid_t dxpl_id, H5HL_t *heap, size_t buf_size, const void *
         size_t	need_more;      /* How much more space we need */
         size_t	new_dblk_size;  /* Final size of space allocated for heap data block */
         size_t	old_dblk_size;  /* Previous size of space allocated for heap data block */
-        htri_t	extended;       /* Whether the local heap's data segment on disk was extended */
+        htri_t  was_extended;   /* Whether the local heap's data segment on disk was extended */
 
         /* At least double the heap's size, making certain there's enough room
          * for the new object */
@@ -781,12 +789,12 @@ H5HL_insert(H5F_t *f, hid_t dxpl_id, H5HL_t *heap, size_t buf_size, const void *
 	H5_CHECK_OVERFLOW(new_dblk_size, size_t, hsize_t);
 
         /* Extend current heap if possible */
-	extended = H5MF_try_extend(f, dxpl_id, H5FD_MEM_LHEAP, heap->dblk_addr, (hsize_t)(heap->dblk_size), (hsize_t)need_more);
-        if(extended < 0)
+	was_extended = H5MF_try_extend(f, dxpl_id, H5FD_MEM_LHEAP, heap->dblk_addr, (hsize_t)(heap->dblk_size), (hsize_t)need_more);
+        if(was_extended < 0)
             HGOTO_ERROR(H5E_HEAP, H5E_CANTEXTEND, UFAIL, "error trying to extend heap")
 
-	/* Check if we extended the heap data block in file */
-	if(extended == TRUE) {
+        /* Check if we extended the heap data block in file */
+        if(was_extended == TRUE) {
             /* Check for prefix & data block contiguous */
             if(heap->single_cache_obj) {
                 /* Resize prefix+data block */
@@ -1057,7 +1065,7 @@ done:
 herr_t
 H5HL_delete(H5F_t *f, hid_t dxpl_id, haddr_t addr)
 {
-    H5HL_t	*heap;                  /* Local heap to delete */
+    H5HL_t	*heap = NULL;           /* Local heap to delete */
     H5HL_cache_prfx_ud_t prfx_udata;    /* User data for protecting local heap prefix */
     H5HL_prfx_t *prfx = NULL;           /* Local heap prefix */
     H5HL_dblk_t *dblk = NULL;           /* Local heap data block */
@@ -1071,13 +1079,15 @@ H5HL_delete(H5F_t *f, hid_t dxpl_id, haddr_t addr)
     HDassert(H5F_addr_defined(addr));
 
     /* Construct the user data for protect callback */
+    prfx_udata.made_attempt = FALSE;
     prfx_udata.sizeof_size = H5F_SIZEOF_SIZE(f);
     prfx_udata.sizeof_addr = H5F_SIZEOF_ADDR(f);
     prfx_udata.prfx_addr = addr;
     prfx_udata.sizeof_prfx = H5HL_SIZEOF_HDR(f);
+    prfx_udata.loaded = FALSE;
 
     /* Protect the local heap prefix */
-    if(NULL == (prfx = (H5HL_prfx_t *)H5AC_protect(f, dxpl_id, H5AC_LHEAP_PRFX, addr, &prfx_udata, H5AC_WRITE)))
+    if(NULL == (prfx = (H5HL_prfx_t *)H5AC_protect(f, dxpl_id, H5AC_LHEAP_PRFX, addr, &prfx_udata, H5AC__NO_FLAGS_SET)))
         HGOTO_ERROR(H5E_HEAP, H5E_CANTPROTECT, FAIL, "unable to load heap prefix")
 
     /* Get the pointer to the heap */
@@ -1092,7 +1102,7 @@ H5HL_delete(H5F_t *f, hid_t dxpl_id, haddr_t addr)
         dblk_udata.loaded = FALSE;
 
         /* Protect the local heap data block */
-        if(NULL == (dblk = (H5HL_dblk_t *)H5AC_protect(f, dxpl_id, H5AC_LHEAP_DBLK, heap->dblk_addr, &dblk_udata, H5AC_WRITE)))
+        if(NULL == (dblk = (H5HL_dblk_t *)H5AC_protect(f, dxpl_id, H5AC_LHEAP_DBLK, heap->dblk_addr, &dblk_udata, H5AC__NO_FLAGS_SET)))
             HGOTO_ERROR(H5E_HEAP, H5E_CANTPROTECT, FAIL, "unable to load heap data block")
 
         /* Pin the prefix, if the data block was loaded from file */
@@ -1107,11 +1117,11 @@ H5HL_delete(H5F_t *f, hid_t dxpl_id, haddr_t addr)
 
 done:
     /* Release the data block from the cache, now deleted */
-    if(dblk && H5AC_unprotect(f, dxpl_id, H5AC_LHEAP_DBLK, heap->dblk_addr, dblk, cache_flags) < 0)
+    if(dblk && heap && H5AC_unprotect(f, dxpl_id, H5AC_LHEAP_DBLK, heap->dblk_addr, dblk, cache_flags) < 0)
         HDONE_ERROR(H5E_HEAP, H5E_CANTUNPROTECT, FAIL, "unable to release local heap data block")
 
     /* Release the prefix from the cache, now deleted */
-    if(prfx && H5AC_unprotect(f, dxpl_id, H5AC_LHEAP_PRFX, heap->prfx_addr, prfx, cache_flags) < 0)
+    if(prfx && heap && H5AC_unprotect(f, dxpl_id, H5AC_LHEAP_PRFX, heap->prfx_addr, prfx, cache_flags) < 0)
         HDONE_ERROR(H5E_HEAP, H5E_CANTUNPROTECT, FAIL, "unable to release local heap prefix")
 
     FUNC_LEAVE_NOAPI(ret_value)
@@ -1147,13 +1157,15 @@ H5HL_get_size(H5F_t *f, hid_t dxpl_id, haddr_t addr, size_t *size)
     HDassert(size);
 
     /* Construct the user data for protect callback */
+    prfx_udata.made_attempt = FALSE;
     prfx_udata.sizeof_size = H5F_SIZEOF_SIZE(f);
     prfx_udata.sizeof_addr = H5F_SIZEOF_ADDR(f);
     prfx_udata.prfx_addr = addr;
     prfx_udata.sizeof_prfx = H5HL_SIZEOF_HDR(f);
+    prfx_udata.loaded = FALSE;
 
     /* Protect the local heap prefix */
-    if(NULL == (prfx = (H5HL_prfx_t *)H5AC_protect(f, dxpl_id, H5AC_LHEAP_PRFX, addr, &prfx_udata, H5AC_READ)))
+    if(NULL == (prfx = (H5HL_prfx_t *)H5AC_protect(f, dxpl_id, H5AC_LHEAP_PRFX, addr, &prfx_udata, H5AC__READ_ONLY_FLAG)))
         HGOTO_ERROR(H5E_HEAP, H5E_CANTPROTECT, FAIL, "unable to load heap prefix")
 
     /* Get the pointer to the heap */
@@ -1199,13 +1211,15 @@ H5HL_heapsize(H5F_t *f, hid_t dxpl_id, haddr_t addr, hsize_t *heap_size)
     HDassert(heap_size);
 
     /* Construct the user data for protect callback */
+    prfx_udata.made_attempt = FALSE;
     prfx_udata.sizeof_size = H5F_SIZEOF_SIZE(f);
     prfx_udata.sizeof_addr = H5F_SIZEOF_ADDR(f);
     prfx_udata.prfx_addr = addr;
     prfx_udata.sizeof_prfx = H5HL_SIZEOF_HDR(f);
+    prfx_udata.loaded = FALSE;
 
     /* Protect the local heap prefix */
-    if(NULL == (prfx = (H5HL_prfx_t *)H5AC_protect(f, dxpl_id, H5AC_LHEAP_PRFX, addr, &prfx_udata, H5AC_READ)))
+    if(NULL == (prfx = (H5HL_prfx_t *)H5AC_protect(f, dxpl_id, H5AC_LHEAP_PRFX, addr, &prfx_udata, H5AC__READ_ONLY_FLAG)))
         HGOTO_ERROR(H5E_HEAP, H5E_CANTPROTECT, FAIL, "unable to load heap prefix")
 
     /* Get the pointer to the heap */
