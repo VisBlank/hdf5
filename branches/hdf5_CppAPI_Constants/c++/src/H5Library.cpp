@@ -78,14 +78,13 @@ void H5Library::close()
 ///
 ///\exception	H5::LibraryIException
 // Programmer	Binh-Minh Ribler - 2000
+// Modification
+//		Removed the check for failure returned from H5dont_atexit.
+//		will be fixed to not fail (HDFFV-9540)
 //--------------------------------------------------------------------------
 void H5Library::dontAtExit()
 {
    herr_t ret_value = H5dont_atexit();
-   if( ret_value < 0 )
-   {
-      throw LibraryIException("H5Library::dontAtExit", "H5dont_atexit failed");
-   }
 }
 
 //--------------------------------------------------------------------------
@@ -175,11 +174,13 @@ void H5Library::garbageCollect()
 //--------------------------------------------------------------------------
 void H5Library::initH5cpp()
 {
-    /* Normal library termination code */
+    // Register terminating functions with atexit(); they will be invoked in the
+    // reversed order
     int ret_value = 0;
     ret_value = std::atexit(termH5cpp);
     if (ret_value != 0)
         throw LibraryIException("H5Library::initH5cpp", "Registration of termH5cpp failed");
+
     ret_value = std::atexit(PredType::deleteConstants);
     if (ret_value != 0)
         throw LibraryIException("H5Library::initH5cpp", "Registration of PredType::deleteConstants failed");
@@ -218,6 +219,7 @@ void H5Library::initH5cpp()
 //--------------------------------------------------------------------------
 void H5Library::termH5cpp()
 {
+    // Close the C library
     herr_t ret_value = H5close();
     if (ret_value == -1)
         exit(-1);

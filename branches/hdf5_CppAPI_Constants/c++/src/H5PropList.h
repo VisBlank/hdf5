@@ -24,7 +24,7 @@ namespace H5 {
 //! Class PropList provides operations for generic property lists.
 class H5_DLLCPP PropList : public IdComponent {
    public:
-	// Default property list
+	///\brief Default property list
         static const PropList& DEFAULT;
 
 	// Creates a property list of a given type or creates a copy of an

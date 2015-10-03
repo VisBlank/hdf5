@@ -37,7 +37,7 @@ FileAccPropList* FileAccPropList::DEFAULT_ = 0;
 // Function:    FileAccPropList::getConstant
 //              Creates a FileAccPropList object representing the HDF5 constant
 //              H5P_FILE_ACCESS, pointed to by FileAccPropList::DEFAULT_
-//\exception    H5::PropListIException
+// exception    H5::PropListIException
 // Description
 //              If FileAccPropList::DEFAULT_ already points to an allocated
 //              object, throw a PropListIException.  This scenario should not
@@ -46,6 +46,16 @@ FileAccPropList* FileAccPropList::DEFAULT_ = 0;
 //--------------------------------------------------------------------------
 FileAccPropList* FileAccPropList::getConstant()
 {
+    // Tell the C library not to clean up, H5Library::termH5cpp will call
+    // H5close - more dependency if use H5Library::dontAtExit()
+    if (!IdComponent::H5dontAtexit_called)
+    {
+        (void) H5dont_atexit();
+        IdComponent::H5dontAtexit_called = true;
+    }
+
+    // If the constant pointer is not allocated, allocate it. Otherwise,
+    // throw because it shouldn't be.
     if (DEFAULT_ == 0)
         DEFAULT_ = new FileAccPropList(H5P_FILE_ACCESS);
     else
@@ -57,7 +67,7 @@ FileAccPropList* FileAccPropList::getConstant()
 // Function:    FileAccPropList::deleteConstants
 // Purpose:     Deletes the constant object that FileAccPropList::DEFAULT_
 //              points to.
-//\exception    H5::PropListIException
+// exception    H5::PropListIException
 // Programmer   Binh-Minh Ribler - 2015
 //--------------------------------------------------------------------------
 void FileAccPropList::deleteConstants()
@@ -66,12 +76,12 @@ void FileAccPropList::deleteConstants()
         delete DEFAULT_;
 }
 
-#endif // DOXYGEN_SHOULD_SKIP_THIS
-
 //--------------------------------------------------------------------------
-///\brief	Constant for default property
+// Purpose:	Constant for default property
 //--------------------------------------------------------------------------
 const FileAccPropList& FileAccPropList::DEFAULT = *getConstant();
+
+#endif // DOXYGEN_SHOULD_SKIP_THIS
 
 //--------------------------------------------------------------------------
 // Function:	Default Constructor

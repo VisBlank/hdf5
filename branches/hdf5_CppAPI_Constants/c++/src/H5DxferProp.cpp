@@ -22,16 +22,6 @@
 #include "H5DxferProp.h"
 #include "H5private.h"		// for HDmemset
 
-#include <iostream>
-
-#ifndef H5_NO_NAMESPACE
-#ifndef H5_NO_STD
-    using std::cerr;
-    using std::endl;
-#endif  // H5_NO_STD
-#endif
-
-
 #ifndef H5_NO_NAMESPACE
 namespace H5 {
 #endif
@@ -49,7 +39,7 @@ DSetMemXferPropList* DSetMemXferPropList::DEFAULT_ = 0;
 //              Creates a DSetMemXferPropList object representing the HDF5
 //              constant H5P_DATASET_XFER, pointed to by
 //		DSetMemXferPropList::DEFAULT_
-//\exception    H5::PropListIException
+// exception    H5::PropListIException
 // Description
 //              If DSetMemXferPropList::DEFAULT_ already points to an allocated
 //              object, throw a PropListIException.  This scenario should not
@@ -58,6 +48,16 @@ DSetMemXferPropList* DSetMemXferPropList::DEFAULT_ = 0;
 //--------------------------------------------------------------------------
 DSetMemXferPropList* DSetMemXferPropList::getConstant()
 {
+    // Tell the C library not to clean up, H5Library::termH5cpp will call
+    // H5close - more dependency if use H5Library::dontAtExit()
+    if (!IdComponent::H5dontAtexit_called)
+    {
+        (void) H5dont_atexit();
+        IdComponent::H5dontAtexit_called = true;
+    }
+
+    // If the constant pointer is not allocated, allocate it. Otherwise,
+    // throw because it shouldn't be.
     if (DEFAULT_ == 0)
         DEFAULT_ = new DSetMemXferPropList(H5P_DATASET_XFER);
     else
@@ -69,7 +69,6 @@ DSetMemXferPropList* DSetMemXferPropList::getConstant()
 // Function:    DSetMemXferPropList::deleteConstants
 // Purpose:     Deletes the constant object that DSetMemXferPropList::DEFAULT_
 //              points to.
-//\exception    H5::PropListIException
 // Programmer   Binh-Minh Ribler - 2015
 //--------------------------------------------------------------------------
 void DSetMemXferPropList::deleteConstants()
@@ -78,12 +77,12 @@ void DSetMemXferPropList::deleteConstants()
         delete DEFAULT_;
 }
 
-#endif // DOXYGEN_SHOULD_SKIP_THIS
-
 //--------------------------------------------------------------------------
-///\brief	Constant for default dataset memory and transfer property list.
+// Purpose	Constant for default dataset memory and transfer property list.
 //--------------------------------------------------------------------------
 const DSetMemXferPropList& DSetMemXferPropList::DEFAULT = *getConstant();
+
+#endif // DOXYGEN_SHOULD_SKIP_THIS
 
 //--------------------------------------------------------------------------
 // Function	DSetMemXferPropList default constructor

@@ -24,7 +24,7 @@ namespace H5 {
 //! Class DataSpace operates on HDF5 dataspaces.
 class H5_DLLCPP DataSpace : public IdComponent {
    public:
-	// Default DataSpace objects
+	///\brief Default DataSpace objects
 	static const DataSpace& ALL;
 
 	// Creates a dataspace object given the space type

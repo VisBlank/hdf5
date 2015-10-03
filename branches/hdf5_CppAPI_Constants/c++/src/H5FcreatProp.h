@@ -24,7 +24,7 @@ namespace H5 {
 //! Class FileCreatPropList represents the HDF5 file create property list.
 class H5_DLLCPP FileCreatPropList : public PropList {
    public:
-	// Default file creation property list.
+	///\brief Default file creation property list.
 	static const FileCreatPropList& DEFAULT;
 
 	// Creates a file create property list.

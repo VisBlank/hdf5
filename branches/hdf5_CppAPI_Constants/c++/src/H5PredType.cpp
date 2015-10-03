@@ -111,210 +111,6 @@ PredType::~PredType() {}
 
  *****************************************************************************/
 
-/***************************************************************************
-				Design Note
-				===========
-
-September 2015:
-
-	The C++ library has several types of global constants from different
-	classes, such as PropList, PredType, DataSpace, etc...  Previously,
-	these global constants were declared statically and the C++ library used
-	a constant, called PredType::AtExit, to detect when all the global
-	contants are destroyed then close the C library (H5close).  This method
-	relied on the order of the constants being created and destroyed and
-	that PredType constants be the last to be destroyed.  In September
-	2015, it was recognized that the order in which the global constants were
-	created and destroyed was actually undefined, thus can be different
-	between different compilers.  This resulted in failure when compilers
-	destroy PredType constants before others because when PredType::AtExit
-	was destroyed, the C library was closed, so when the constants of other
-	classes such as PropList or DataSpace were being deleted, the C library
-	would not be available.
-
-	These are the classes that have global constants:
-		+ PredType
-		+ DataSpace
-		+ PropList (and its subclasses below)
-		+ FileAccPropList
-		+ FileCreatPropList
-		+ DSetMemXferPropList
-		+ DSetCreatPropList
-	
-
-	The new method includes these main points:
-
-	- The C++ library uses dynamically allocated constants to have the
-	  constrol in which order the global constants are created/destroyed.
-
-	- The previous static constants are changed to be the references to
-	  the dynamically allocated constants to avoid impact on applications.
-
-	- The first time an IdComponent default constructor is invoked, it
-	  will call the function H5Library::initH5cpp which registers the
-	  terminating functions from each class that has the global constants
-	  so that these functions can destroy those constants at the exit of the
-	  application.  IdComponent is a baseclass of any object class that has
-	  an identifier, such as Group, DataSet, DataType,...  The classes which
-	  have the global constants are all derived from IdComponent.
-
-	- At the normal termination of the application, each registered function
-	  for each constant type will delete all the allocated constants in
-	  that type class, then a different terminating function, which was also
-	  registered with atexit() by initH5cpp, will call H5close to close the
-	  C library.
-
-	The following list presents the differences between the old and new
-	methods and the changes implemented for the new method.
-
-	1.  The following items are added to class H5Library:
-		// Private instance to be created by H5Library only
-		static H5Library* instance;
-
-		// Returns a singleton H5Library to initialize the global
-		// constants, invoked in IdComponent default constructor
-		static H5Library* getInstance(); // public
-
-		// Registers cleanup and terminating functions with atexit(),
-		// called in IdComponent default constructor
-		static void initH5cpp(void); // public
-
-		// Calls H5close to terminate the library, registered with
-		// atexit(), as the last thing to be done.
-		static void termH5cpp(void); // public
-
-	2.  The following shows the differences between the old and new methods
-	    for allocating the PredType constants.  There are more than 100
-	    constants, but only one is shown here for examples.
-
-	Old Method:
-	----------
-		// Declaration of the constant - in "H5PredType.h"
-		static const PredType NATIVE_INT;
-
-		// Definition of the constant - in "H5PredType.cpp"
-		const PredType PredType::NATIVE_INT(H5T_NATIVE_INT);
-
-	New Method:
-	----------
-		// Declare pointer for a constant - in "H5PredType.h"
-		static PredType* NATIVE_INT_; // "H5PredType.h"
-
-		// Change previous constant to reference - in "H5PredType.h"
-		static const PredType& NATIVE_INT;
-
-		// The assignment of the first static constant, named
-		// PREDTYPE_CONST, calls makePredTypes() which allocates the
-		// dynamic memory for every PredType constant.
-
-		// Creates a dynamic PredType object representing a C constant
-		// - in makePredTypes()
-		NATIVE_INT_ = new PredType(H5T_NATIVE_INT);
-
-		// Assign the constant reference to the dynamic object
-		// - in "H5PredType.cpp"
-		const PredType& PredType::NATIVE_INT = *NATIVE_INT_;
-
-	    Functions added to class PredType:
-
-		// Creates the constants
-		static void makePredTypes(); // private
-
-		// Calls makePredTypes to create the constants and returns
-		// the dummy constant PREDTYPE_CONST;
-		static PredType* getPredTypes(); // private
-
-		// Deletes the constants
-		static void deleteConstants(); // public
-
-	3.  This section shows the differences between the old and new methods
-	for allocating the DataSpace constant, DataSpace::ALL.
-
-	Old Method:
-	----------
-		// Declaration of the constant - in "H5DataSpace.h"
-		static const DataSpace ALL;
-
-		// Definition of the constant - in "H5DataSpace.cpp"
-		const DataSpace DataSpace::ALL(H5S_ALL);
-
-	New Method:
-	----------
-		// Declare pointer for a constant - in "H5DataSpace.h"
-		static DataSpace* ALL_; // "H5DataSpace.h"
-
-		// Change previous constant to reference - in "H5DataSpace.h"
-		static const DataSpace& ALL;
-
-		// Creates a dynamic DataSpace object representing the C constant
-		// - in "H5DataSpace.cpp"
-		ALL_ = new DataSpace(H5S_ALL);
-
-		// Assign the constant reference to the dynamic object
-		// - in "H5DataSpace.cpp"
-		const DataSpace& DataSpace::ALL = *ALL_;
-
-	    Functions added to class DataSpace:
-
-		// Creates the constant
-		static DataSpace* getConstant(); // private
-
-		// Deletes the constant
-		static void deleteConstants(); // public
-
-	4.  This section shows the differences between the old and new methods
-	for allocating the following constants
-		- PropList constant, PropList::DEFAULT.
-		- DSetCreatPropList constant, DSetCreatPropList::DEFAULT.
-		- DSetMemXferPropList constant, DSetMemXferPropList::DEFAULT.
-		- FileCreatPropList constant, FileCreatPropList::DEFAULT.
-		- FileAccPropList constant, FileAccPropList::DEFAULT.
-
-	    For these constants, the library has the same changes, except the
-	    class names and the HDF5 corresponding constants. Only the items
-	    of PropList are listed, and "PropList" can be replaced by any of
-	    DSetCreatPropList, DSetMemXferPropList, FileCreatPropList,
-	    FileAccPropList for those classes.  The HDF5 C constant "H5P_DEFAULT"
-	    can be replaced by any of these respectively: H5P_DATASET_CREATE,
-	    H5P_DATASET_XFER, H5P_FILE_CREATE, and H5P_FILE_ACCESS.
-
-	Old Method:
-	----------
-		// Declaration of the constant - in "H5PropList.h"
-		static const PropList DEFAULT;
-
-		// Definition of the constant - in "H5PropList.cpp"
-		const PropList PropList::DEFAULT(H5P_DEFAULT);
-
-	New Method:
-	----------
-		// Declare pointer for a constant - in "H5PropList.h"
-		static PropList* DEFAULT_; // "H5PropList.h"
-
-		// Change previous constant to reference - in "H5PropList.h"
-		static const PropList& DEFAULT;
-
-		// Creates a dynamic PropList object representing the C constant
-		// - in "H5PropList.cpp"
-		DEFAULT_ = new PropList(H5P_DEFAULT);
-
-		// Assign the constant reference to the dynamic object
-		// - in "H5PropList.cpp"
-		const PropList& PropList::DEFAULT = *DEFAULT_;
-
-	    Functions added to class PropList:
-
-		// Creates the constant
-		static PropList* getConstant(); // private
-
-		// Deletes the constants
-		static void deleteConstants(); // public
-
-	    The same functions are added to the subclasses of PropList instead of
-	    using PropList's because of the class types and in favor of clarity.
-
-****************************************************************************/
-
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 // Definition pointers for the constants
 PredType* PredType::PREDTYPE_CONST_ = 0; //dummy
@@ -509,6 +305,16 @@ PredType* PredType::NATIVE_UINT_FAST64_;
 //--------------------------------------------------------------------------
 PredType* PredType::getPredTypes()
 {
+    // Tell the C library not to clean up, H5Library::termH5cpp will call
+    // H5close - more dependency if use H5Library::dontAtExit()
+    if (!IdComponent::H5dontAtexit_called)
+    {
+        (void) H5dont_atexit();
+        IdComponent::H5dontAtexit_called = true;
+    }
+
+    // If the dummy constant pointer is not allocated, allocate all PredType
+    // constant pointers.  Otherwise, throw because it shouldn't be.
     if (PREDTYPE_CONST_ == 0)
 	makePredTypes();
     else
@@ -1083,4 +889,208 @@ const PredType& PredType::NATIVE_UINT_FAST64 = *NATIVE_UINT_FAST64_;
 #ifndef H5_NO_NAMESPACE
 } // end namespace
 #endif
+
+/***************************************************************************
+				Design Note
+				===========
+
+September 2015:
+
+	The C++ library has several types of global constants from different
+	classes, such as PropList, PredType, DataSpace, etc...  Previously,
+	these global constants were declared statically and the C++ library used
+	a constant, called PredType::AtExit, to detect when all the global
+	contants are destroyed then close the C library (H5close).  This method
+	relied on the order of the constants being created and destroyed and
+	that PredType constants be the last to be destroyed.  In September
+	2015, it was recognized that the order in which the global constants were
+	created and destroyed was actually undefined, thus can be different
+	between different compilers.  This resulted in failure when compilers
+	destroy PredType constants before others because when PredType::AtExit
+	was destroyed, the C library was closed, so when the constants of other
+	classes such as PropList or DataSpace were being deleted, the C library
+	would not be available.
+
+	These are the classes that have global constants:
+		+ PredType
+		+ DataSpace
+		+ PropList (and its subclasses below)
+		+ FileAccPropList
+		+ FileCreatPropList
+		+ DSetMemXferPropList
+		+ DSetCreatPropList
+	
+
+	The new method includes these main points:
+
+	- The C++ library uses dynamically allocated constants to have the
+	  control in which order the global constants are created/destroyed.
+
+	- The previous static constants are changed to be the references to
+	  the dynamically allocated constants to avoid impact on applications.
+
+	- The first time an IdComponent default constructor is invoked, it
+	  will call the function H5Library::initH5cpp which registers the
+	  terminating functions from each class that has the global constants
+	  so that these functions can destroy those constants at the exit of the
+	  application.  IdComponent is a baseclass of any object class that has
+	  an identifier, such as Group, DataSet, DataType,...  The classes which
+	  have the global constants are all derived from IdComponent.
+
+	- At the normal termination of the application, each registered function
+	  for each constant type will delete all the allocated constants in
+	  that type class, then a different terminating function, which was also
+	  registered with atexit() by initH5cpp, will call H5close to close the
+	  C library.
+
+	The following list presents the differences between the old and new
+	methods and the changes implemented for the new method.
+
+	1.  The following items are added to class H5Library:
+		// Private instance to be created by H5Library only
+		static H5Library* instance;
+
+		// Returns a singleton H5Library to initialize the global
+		// constants, invoked in IdComponent default constructor
+		static H5Library* getInstance(); // public
+
+		// Registers cleanup and terminating functions with atexit(),
+		// called in IdComponent default constructor
+		static void initH5cpp(void); // public
+
+		// Calls H5close to terminate the library, registered with
+		// atexit(), as the last thing to be done.
+		static void termH5cpp(void); // public
+
+	2.  The following shows the differences between the old and new methods
+	    for allocating the PredType constants.  There are more than 100
+	    constants, but only one is shown here for examples.
+
+	Old Method:
+	----------
+		// Declaration of the constant - in "H5PredType.h"
+		static const PredType NATIVE_INT;
+
+		// Definition of the constant - in "H5PredType.cpp"
+		const PredType PredType::NATIVE_INT(H5T_NATIVE_INT);
+
+	New Method:
+	----------
+		// Declare pointer for a constant - in "H5PredType.h"
+		static PredType* NATIVE_INT_; // "H5PredType.h"
+
+		// Change previous constant to reference - in "H5PredType.h"
+		static const PredType& NATIVE_INT;
+
+		// The assignment of the first static constant, named
+		// PREDTYPE_CONST, calls makePredTypes() which allocates the
+		// dynamic memory for every PredType constant.
+
+		// Creates a dynamic PredType object representing a C constant
+		// - in makePredTypes()
+		NATIVE_INT_ = new PredType(H5T_NATIVE_INT);
+
+		// Assign the constant reference to the dynamic object
+		// - in "H5PredType.cpp"
+		const PredType& PredType::NATIVE_INT = *NATIVE_INT_;
+
+	    Functions added to class PredType:
+
+		// Creates the constants
+		static void makePredTypes(); // private
+
+		// Calls makePredTypes to create the constants and returns
+		// the dummy constant PREDTYPE_CONST;
+		static PredType* getPredTypes(); // private
+
+		// Deletes the constants
+		static void deleteConstants(); // public
+
+	3.  This section shows the differences between the old and new methods
+	for allocating the DataSpace constant, DataSpace::ALL.
+
+	Old Method:
+	----------
+		// Declaration of the constant - in "H5DataSpace.h"
+		static const DataSpace ALL;
+
+		// Definition of the constant - in "H5DataSpace.cpp"
+		const DataSpace DataSpace::ALL(H5S_ALL);
+
+	New Method:
+	----------
+		// Declare pointer for a constant - in "H5DataSpace.h"
+		static DataSpace* ALL_; // "H5DataSpace.h"
+
+		// Change previous constant to reference - in "H5DataSpace.h"
+		static const DataSpace& ALL;
+
+		// Creates a dynamic DataSpace object representing the C constant
+		// - in "H5DataSpace.cpp"
+		ALL_ = new DataSpace(H5S_ALL);
+
+		// Assign the constant reference to the dynamic object
+		// - in "H5DataSpace.cpp"
+		const DataSpace& DataSpace::ALL = *ALL_;
+
+	    Functions added to class DataSpace:
+
+		// Creates the constant
+		static DataSpace* getConstant(); // private
+
+		// Deletes the constant
+		static void deleteConstants(); // public
+
+	4.  This section shows the differences between the old and new methods
+	for allocating the following constants
+		- PropList constant, PropList::DEFAULT.
+		- DSetCreatPropList constant, DSetCreatPropList::DEFAULT.
+		- DSetMemXferPropList constant, DSetMemXferPropList::DEFAULT.
+		- FileCreatPropList constant, FileCreatPropList::DEFAULT.
+		- FileAccPropList constant, FileAccPropList::DEFAULT.
+
+	    For these constants, the library has the same changes, except the
+	    class names and the HDF5 corresponding constants. Only the items
+	    of PropList are listed, and "PropList" can be replaced by any of
+	    DSetCreatPropList, DSetMemXferPropList, FileCreatPropList,
+	    FileAccPropList for those classes.  The HDF5 C constant "H5P_DEFAULT"
+	    can be replaced by any of these respectively: H5P_DATASET_CREATE,
+	    H5P_DATASET_XFER, H5P_FILE_CREATE, and H5P_FILE_ACCESS.
+
+	Old Method:
+	----------
+		// Declaration of the constant - in "H5PropList.h"
+		static const PropList DEFAULT;
+
+		// Definition of the constant - in "H5PropList.cpp"
+		const PropList PropList::DEFAULT(H5P_DEFAULT);
+
+	New Method:
+	----------
+		// Declare pointer for a constant - in "H5PropList.h"
+		static PropList* DEFAULT_; // "H5PropList.h"
+
+		// Change previous constant to reference - in "H5PropList.h"
+		static const PropList& DEFAULT;
+
+		// Creates a dynamic PropList object representing the C constant
+		// - in "H5PropList.cpp"
+		DEFAULT_ = new PropList(H5P_DEFAULT);
+
+		// Assign the constant reference to the dynamic object
+		// - in "H5PropList.cpp"
+		const PropList& PropList::DEFAULT = *DEFAULT_;
+
+	    Functions added to class PropList:
+
+		// Creates the constant
+		static PropList* getConstant(); // private
+
+		// Deletes the constants
+		static void deleteConstants(); // public
+
+	    The same functions are added to the subclasses of PropList instead of
+	    using PropList's because of the class types and in favor of clarity.
+
+****************************************************************************/
 

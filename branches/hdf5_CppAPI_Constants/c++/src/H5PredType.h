@@ -56,10 +56,7 @@ class H5_DLLCPP PredType : public AtomType {
 	*/
 	bool committed();
 
-        // Activates the creation of the PredType global constants
-        //static PredType* getPredTypes();
-
-	// Declaration of predefined types; their definition is in H5PredType.cpp
+	///\brief PredType constants
 	static const PredType& STD_I8BE;
 	static const PredType& STD_I8LE;
 	static const PredType& STD_I16BE;

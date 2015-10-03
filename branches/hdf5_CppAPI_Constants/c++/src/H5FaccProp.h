@@ -24,6 +24,7 @@ namespace H5 {
 //! Class FileAccPropList represents the HDF5 file access property list.
 class H5_DLLCPP FileAccPropList : public PropList {
    public:
+	///\brief Default file access property list.
 	static const FileAccPropList& DEFAULT;
 
 	// Creates a file access property list.

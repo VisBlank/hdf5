@@ -34,6 +34,7 @@ class H5_DLLCPP IdComponent {
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
         static bool H5cppinit;
+	static bool H5dontAtexit_called;
 #endif // DOXYGEN_SHOULD_SKIP_THIS
 
 	// Increment reference counter.

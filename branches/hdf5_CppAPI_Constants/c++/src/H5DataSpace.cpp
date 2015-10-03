@@ -45,7 +45,7 @@ DataSpace* DataSpace::ALL_ = 0;
 // Function:	DataSpace::getConstant
 //		Creates a DataSpace object representing the HDF5 constant
 //		H5S_ALL, pointed to by DataSpace::ALL_
-//\exception	H5::DataSpaceIException
+// Exception	H5::DataSpaceIException
 // Description
 //		If DataSpace::ALL_ already points to an allocated object, throw
 //		a DataSpaceIException.  This scenario should not happen.
@@ -53,6 +53,16 @@ DataSpace* DataSpace::ALL_ = 0;
 //--------------------------------------------------------------------------
 DataSpace* DataSpace::getConstant()
 {
+    // Tell the C library not to clean up, H5Library::termH5cpp will call
+    // H5close - more dependency if use H5Library::dontAtExit()
+    if (!IdComponent::H5dontAtexit_called)
+    {
+        (void) H5dont_atexit();
+        IdComponent::H5dontAtexit_called = true;
+    }
+
+    // If the constant pointer is not allocated, allocate it. Otherwise,
+    // throw because it shouldn't be.
     if (ALL_ == 0)
         ALL_ = new DataSpace(H5S_ALL);
     else
@@ -63,7 +73,6 @@ DataSpace* DataSpace::getConstant()
 //--------------------------------------------------------------------------
 // Function:    DataSpace::deleteConstants
 // Purpose:     Deletes the constant object that DataSpace::ALL_ points to
-//\exception    H5::DataSpaceIException
 // Programmer   Binh-Minh Ribler - 2015
 //--------------------------------------------------------------------------
 void DataSpace::deleteConstants()
@@ -72,12 +81,12 @@ void DataSpace::deleteConstants()
         delete ALL_;
 }
 
-#endif // DOXYGEN_SHOULD_SKIP_THIS
-
 //--------------------------------------------------------------------------
-///\brief	Constant for default dataspace.
+// Purpose	Constant for default dataspace.
 //--------------------------------------------------------------------------
 const DataSpace& DataSpace::ALL = *getConstant();
+
+#endif // DOXYGEN_SHOULD_SKIP_THIS
 
 //--------------------------------------------------------------------------
 // Function:	DataSpace constructor
