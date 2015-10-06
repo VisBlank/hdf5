@@ -81,7 +81,7 @@
 #define FLETCHER32      "CHECKSUM FLETCHER32"
 #define SZIP            "COMPRESSION SZIP"
 #define NBIT            "COMPRESSION NBIT"
-#define SCALEOFFSET            "COMPRESSION SCALEOFFSET"
+#define SCALEOFFSET     "COMPRESSION SCALEOFFSET"
 #define SCALEOFFSET_MINBIT            "MIN BITS"
 #define STORAGE_LAYOUT  "STORAGE_LAYOUT"
 #define CONTIGUOUS      "CONTIGUOUS"
@@ -93,6 +93,16 @@
 #define PACKED_BITS     "PACKED_BITS"
 #define PACKED_OFFSET   "OFFSET"
 #define PACKED_LENGTH   "LENGTH"
+#define VDS_VIRTUAL     "VIRTUAL"
+#define VDS_MAPPING     "MAPPING"
+#define VDS_SOURCE      "SOURCE"
+#define VDS_REG_HYPERSLAB   "SELECTION REGULAR_HYPERSLAB"
+#define VDS_IRR_HYPERSLAB   "SELECTION IRREGULAR_HYPERSLAB"
+#define VDS_POINT       "POINT"
+#define VDS_SRC_FILE    "FILE"
+#define VDS_SRC_DATASET "DATASET"
+#define VDS_NONE        "SELECTION NONE"
+#define VDS_ALL         "SELECTION ALL"
 
 #define BEGIN           "{"
 #define END             "}"
@@ -181,6 +191,15 @@ typedef struct h5tools_dump_header_t {
     const char *dataspacedescriptionend;
     const char *dataspacedimbegin;
     const char *dataspacedimend;
+
+    const char *virtualselectionbegin;
+    const char *virtualselectionend;
+    const char *virtualselectionblockbegin;
+    const char *virtualselectionblockend;
+    const char *virtualfilenamebegin;
+    const char *virtualfilenameend;
+    const char *virtualdatasetnamebegin;
+    const char *virtualdatasetnameend;
 
 } h5tools_dump_header_t;
 

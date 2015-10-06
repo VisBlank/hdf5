@@ -20,6 +20,7 @@ if (HDF5_TEST_VFD)
       sec2
       stdio
       core
+      core_paged
       split
       multi
       family
@@ -463,6 +464,7 @@ add_test (
         tstint2.h5
         unregister_filter_1.h5
         unregister_filter_2.h5
+        vds_1.h5
     WORKING_DIRECTORY
         ${HDF5_TEST_BINARY_DIR}/H5TEST
 )
@@ -1157,10 +1159,18 @@ if (HDF5_TEST_VFD)
     set_tests_properties (VFD-${vfdname}-flush2 PROPERTIES DEPENDS VFD-${vfdname}-flush1)
     set_tests_properties (VFD-${vfdname}-flush1 PROPERTIES TIMEOUT 10)
     set_tests_properties (VFD-${vfdname}-flush2 PROPERTIES TIMEOUT 10)
+    set_tests_properties (VFD-${vfdname}-istore PROPERTIES TIMEOUT 1800)
+    if (NOT CYGWIN)
+      set_tests_properties (VFD-${vfdname}-cache PROPERTIES TIMEOUT 1800)
+    endif (NOT CYGWIN)
     if (BUILD_SHARED_LIBS)
       set_tests_properties (VFD-${vfdname}-flush2-shared PROPERTIES DEPENDS VFD-${vfdname}-flush1-shared)
       set_tests_properties (VFD-${vfdname}-flush1-shared PROPERTIES TIMEOUT 10)
       set_tests_properties (VFD-${vfdname}-flush2-shared PROPERTIES TIMEOUT 10)
+      set_tests_properties (VFD-${vfdname}-istore-shared PROPERTIES TIMEOUT 1800)
+      if (NOT CYGWIN)
+        set_tests_properties (VFD-${vfdname}-cache-shared PROPERTIES TIMEOUT 1800)
+      endif (NOT CYGWIN)
     endif (BUILD_SHARED_LIBS)
     if (HDF5_TEST_FHEAP_VFD)
       add_test (

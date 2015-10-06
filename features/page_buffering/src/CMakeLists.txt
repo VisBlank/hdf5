@@ -118,6 +118,7 @@ set (H5D_SRCS
     ${HDF5_SRC_DIR}/H5Dscatgath.c
     ${HDF5_SRC_DIR}/H5Dselect.c
     ${HDF5_SRC_DIR}/H5Dtest.c
+    ${HDF5_SRC_DIR}/H5Dvirtual.c
 )
 
 set (H5D_HDRS
@@ -776,6 +777,8 @@ set (H5_GENERATED_HEADERS
     ${HDF5_SRC_DIR}/H5overflow.h
 )
 
+option (HDF5_GENERATE_HEADERS "Rebuild Generated Files" ON)
+mark_as_advanced (HDF5_GENERATE_HEADERS)
 if (HDF5_GENERATE_HEADERS)
   find_package (Perl)
   if (PERL_FOUND)
@@ -806,11 +809,8 @@ if (HDF5_GENERATE_HEADERS)
         COMMENT " Creating Assignment overflow macro"
     )
 
-    add_custom_target(generate_precompiled DEPENDS
-    "${HDF5_SRC_DIR}/H5version.h;${HDF5_SRC_DIR}/H5overflow.h")
-
     add_custom_target(run_perl_scripts ALL
-        DEPENDS ${HDF5_SRC_DIR}/H5Edefin.h ${HDF5_SRC_DIR}/H5version.h ${HDF5_SRC_DIR}/H5overflow.h
+        DEPENDS ${HDF5_SRC_DIR}/H5Edefin.h ${HDF5_SRC_DIR}/H5Einit.h ${HDF5_SRC_DIR}/H5Epubgen.h ${HDF5_SRC_DIR}/H5Eterm.h ${HDF5_SRC_DIR}/H5version.h ${HDF5_SRC_DIR}/H5overflow.h
     )
   else (PERL_FOUND)
     message (STATUS "Cannot generate headers - perl not found")
@@ -826,7 +826,11 @@ TARGET_C_PROPERTIES (H5detect STATIC " " " ")
 if (MSVC OR MINGW)
   target_link_libraries (H5detect "ws2_32.lib")
 endif (MSVC OR MINGW)
-add_dependencies(H5detect generate_precompiled)
+if (HDF5_GENERATE_HEADERS)
+  add_dependencies(H5detect run_perl_scripts)
+else (HDF5_GENERATE_HEADERS)
+  add_dependencies(H5detect "${H5_GENERATED_HEADERS}")
+endif (HDF5_GENERATE_HEADERS)
 
 set (CMD $<TARGET_FILE:H5detect>)
 add_custom_command (
@@ -841,7 +845,11 @@ TARGET_C_PROPERTIES (H5make_libsettings STATIC " " " ")
 if (MSVC OR MINGW)
   target_link_libraries (H5make_libsettings "ws2_32.lib")
 endif (MSVC OR MINGW)
-add_dependencies(H5make_libsettings generate_precompiled)
+if (HDF5_GENERATE_HEADERS)
+  add_dependencies(H5make_libsettings run_perl_scripts)
+else (HDF5_GENERATE_HEADERS)
+  add_dependencies(H5make_libsettings "${H5_GENERATED_HEADERS}")
+endif (HDF5_GENERATE_HEADERS)
 
 set (CMD $<TARGET_FILE:H5make_libsettings>)
 add_custom_command (
@@ -873,6 +881,11 @@ set_target_properties (${HDF5_LIB_TARGET} PROPERTIES
     FOLDER libraries
     INTERFACE_INCLUDE_DIRECTORIES "$<INSTALL_INTERFACE:$<INSTALL_PREFIX>/include>"
 )
+if (HDF5_GENERATE_HEADERS)
+  add_dependencies(${HDF5_LIB_TARGET} run_perl_scripts)
+else (HDF5_GENERATE_HEADERS)
+  add_dependencies(${HDF5_LIB_TARGET} "${HDF5_SRC_DIR}/H5Edefin.h;${HDF5_SRC_DIR}/H5Einit.h;${HDF5_SRC_DIR}/H5Epubgen.h;${HDF5_SRC_DIR}/H5Eterm.h")
+endif (HDF5_GENERATE_HEADERS)
 
 option (HDF5_ENABLE_DEBUG_APIS "Turn on debugging in all packages" OFF)
 if (HDF5_ENABLE_DEBUG_APIS)
@@ -884,7 +897,7 @@ endif (HDF5_ENABLE_DEBUG_APIS)
 set (install_targets ${HDF5_LIB_TARGET})
 
 if (BUILD_SHARED_LIBS)
-  add_library (${HDF5_LIBSH_TARGET} SHARED ${common_SRCS} ${H5_PUBLIC_HEADERS} ${H5_PRIVATE_HEADERS})
+  add_library (${HDF5_LIBSH_TARGET} SHARED ${common_SRCS} ${H5_PUBLIC_HEADERS} ${H5_PRIVATE_HEADERS} ${H5_GENERATED_HEADERS})
   TARGET_C_PROPERTIES (${HDF5_LIBSH_TARGET} SHARED " " " ")
   target_link_libraries (${HDF5_LIBSH_TARGET} ${LINK_SHARED_LIBS})
   if (NOT WIN32)
@@ -901,6 +914,11 @@ if (BUILD_SHARED_LIBS)
       INTERFACE_INCLUDE_DIRECTORIES "$<INSTALL_INTERFACE:$<INSTALL_PREFIX>/include>"
       INTERFACE_COMPILE_DEFINITIONS H5_BUILT_AS_DYNAMIC_LIB=1
   )
+  if (HDF5_GENERATE_HEADERS)
+    add_dependencies(${HDF5_LIBSH_TARGET} run_perl_scripts)
+  else (HDF5_GENERATE_HEADERS)
+    add_dependencies(${HDF5_LIBSH_TARGET} "${HDF5_SRC_DIR}/H5Edefin.h;${HDF5_SRC_DIR}/H5Einit.h;${HDF5_SRC_DIR}/H5Epubgen.h;${HDF5_SRC_DIR}/H5Eterm.h")
+  endif (HDF5_GENERATE_HEADERS)
   if (HDF5_ENABLE_THREADSAFE)
     set_property (TARGET ${HDF5_LIBSH_TARGET}
         APPEND PROPERTY COMPILE_DEFINITIONS
@@ -924,6 +942,7 @@ if (NOT HDF5_INSTALL_NO_DEVELOPMENT)
   install (
       FILES
           ${H5_PUBLIC_HEADERS}
+          ${H5_GENERATED_HEADERS}
       DESTINATION
           ${HDF5_INSTALL_INCLUDE_DIR}
       COMPONENT
