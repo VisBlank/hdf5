@@ -20,7 +20,7 @@ include $(top_srcdir)/config/lt_vers.am
 JAVAC           = @JAVAC@
 JAR         	= @JAR@
 
-CLASSPATH=@CLASSPATH@:$(top_srcdir)/java/lib/slf4j-api-1.7.5.jar
+CLASSPATH=@CLASSPATH@:$(top_srcdir)/java/lib/jhdf5.jar:$(top_srcdir)/java/lib/junit.jar:$(top_srcdir)/java/lib/hamcrest-core.jar:$(top_srcdir)/java/lib/slf4j-api-1.7.5.jar:$(top_srcdir)/java/lib/ext/slf4j-nop-1.7.5.jar
 
 JAVA_SRCS = \
 	TestH5.java \
@@ -56,15 +56,27 @@ JAVA_SRCS = \
     TestH5Z.java \
     TestAll.java
 
+
 CLASS_DIR=$(TOP)/lib
-CP="$(CLASSPATH):$(CLASS_DIR):. "
+CLP="$(CLASSPATH):$(CLASS_DIR):. "
 JAR_DIR=$(CLASS_DIR)
 OUT_DIR=$(CLASS_DIR)/$(DIR)
 
-JFLAGS= -g -deprecation -d $(CLASS_DIR)	-classpath $(CP)
+JFLAGS= -g -deprecation -d $(CLASS_DIR)	-classpath $(CLP)
 JARFLAGS = cfm
 
 JC	= $(JAVAC) $(JFLAGS)
+
+JAVA_JUNIT  = $(JAVA_SRCS)
+noinst_JAVA = @JAVA_JUNIT@
+EXTRA_JAVA  = $(JAVA_JUNIT)
+TESTS_JUNIT = AllJunitTests
+EXTRA_TEST  = $(TESTS_JUNIT)
+
+AllJunitTests :
+	echo "#! /bin/sh" > $@
+	echo "exec @JUNIT@ test.TestAll" >> $@
+	chmod +x $@
 
 # .class.java rule, add file to list
 $(OUT_DIR)/%.class : %.java

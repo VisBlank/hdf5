@@ -198,7 +198,7 @@ set (HDF5_JAVA_LOGGING_NOP_JAR     ${HDF5_SOURCE_DIR}/java/lib/ext/slf4j-nop-1.7
 set (HDF5_JAVA_LOGGING_SIMPLE_JAR  ${HDF5_SOURCE_DIR}/java/lib/ext/slf4j-simple-1.7.5.jar)
 
 if (APPLE)
-  option (HDFJAVA_BUILD_FRAMEWORKS "Create a Mac OSX Framework" OFF)
+  option (HDF5_BUILD_FRAMEWORKS "TRUE to build as frameworks libraries, FALSE to build according to BUILD_SHARED_LIBS" FALSE)
 endif (APPLE)
 
 if (NOT HDF5_INSTALL_BIN_DIR)
@@ -237,6 +237,10 @@ if (NOT HDF5_INSTALL_DATA_DIR)
     set (HDF5_INSTALL_CMAKE_DIR cmake)
   endif (NOT WIN32)
 endif (NOT HDF5_INSTALL_DATA_DIR)
+
+if(DEFINED ADDITIONAL_CMAKE_PREFIX_PATH AND EXISTS "${ADDITIONAL_CMAKE_PREFIX_PATH}")
+  set (CMAKE_PREFIX_PATH ${ADDITIONAL_CMAKE_PREFIX_PATH} ${CMAKE_PREFIX_PATH})
+endif(DEFINED ADDITIONAL_CMAKE_PREFIX_PATH AND EXISTS "${ADDITIONAL_CMAKE_PREFIX_PATH}")
 
 #-----------------------------------------------------------------------------
 # parse the full version number from H5public.h and include in H5_VERS_INFO
@@ -348,7 +352,6 @@ set (CMAKE_INCLUDE_CURRENT_DIR_IN_INTERFACE ON)
 #-----------------------------------------------------------------------------
 # Mac OS X Options
 #-----------------------------------------------------------------------------
-option (HDF5_BUILD_FRAMEWORKS "TRUE to build as frameworks libraries, FALSE to build according to BUILD_SHARED_LIBS" TRUE)
 if (HDF5_BUILD_FRAMEWORKS AND NOT BUILD_SHARED_LIBS)
   set (BUILD_SHARED_LIBS ON CACHE BOOL "Build Shared Libraries")
 endif (HDF5_BUILD_FRAMEWORKS AND NOT BUILD_SHARED_LIBS)

@@ -53,11 +53,11 @@ HDF5SymbolTableException.java
 JNI_API=yes
 
 CLASS_DIR=$(TOP)/lib
-CP="$(CLASSPATH):$(CLASS_DIR):. "
+CLP="$(CLASSPATH):$(CLASS_DIR):. "
 JAR_DIR=$(CLASS_DIR)
 OUT_DIR=$(CLASS_DIR)/$(DIR)
 
-JFLAGS= -g -deprecation -d $(CLASS_DIR)	-classpath $(CP)
+JFLAGS= -g -deprecation -d $(CLASS_DIR)	-classpath $(CLP)
 JARFLAGS = cfm
 
 JC	= $(JAVAC) $(JFLAGS)

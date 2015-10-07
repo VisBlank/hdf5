@@ -53,8 +53,8 @@ Languages:
 @BUILD_CXX_CONDITIONAL_TRUE@             Shared C++ Library: @enable_shared@
 @BUILD_CXX_CONDITIONAL_TRUE@             Static C++ Library: @enable_static@
 
-                            JAVA: @HDF5_BUILD_JAVA@
-@BUILD_JAVA_CONDITIONAL_TRUE@                  Java Library: @enable_jni@
+                            JAVA: @HDF_JNI@
+@BUILD_JNI_CONDITIONAL_TRUE@                   Java Library: @enable_jni@
 
 Features:
 ---------

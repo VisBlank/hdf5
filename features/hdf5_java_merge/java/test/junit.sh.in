@@ -3,7 +3,7 @@
 # Set up default variable values if not supplied by the user.
 
 # where the new builds exist
-HDFBLD_HOME=@abs_top_builddir@
+HDFBLD_HOME=$(top_srcdir)/java
 export HDFBLD_HOME
 
 # where Java is installed (requires jdk1.7.x)
@@ -34,39 +34,5 @@ if $TEST -n "$JAVAPATH" ; then
         export PATH
 fi
 
-if $TEST -e /bin/uname; then
-   os_name=`/bin/uname -s`
-elif $TEST -e /usr/bin/uname; then
-   os_name=`/usr/bin/uname -s`
-else
-   os_name=unknown
-fi
 
-case  $os_name in
-    SunOS)
-        OS_NAME=solaris
-        ;;
-    Linux)
-        OS_NAME=linux
-        ;;
-    IRIX*)
-        OS_NAME=irix-6.5
-        ;;
-    OSF1)
-        OS_NAME=alpha
-        ;;
-    AIX)
-        OS_NAME=aix
-        ;;
-    Darwin)
-        OS_NAME=macosx
-        ;;
-    FreeBSD)
-        OS_NAME=freebsd
-        ;;
-    *)
-        echo "Unknown Operating System:  HDF-Java may not work correctly"
-        ;;
-esac
-
-(cd $HDFBLD_HOME/lib; $JAVAPATH/java -Xmx1024M -Djava.library.path=$HDFBLD_HOME"/lib/"$OS_NAME -ea org.junit.runner.JUnitCore test.TestAll)
+($JAVAPATH/java -Xmx1024M -Djava.library.path=$HDFBLD_HOME"/lib" -ea org.junit.runner.JUnitCore test.TestAll)
