@@ -2111,7 +2111,7 @@ public class H5 implements java.io.Serializable {
      **/
     public synchronized static native String H5Eget_msg(long msg_id, int[] type_list) throws HDF5LibraryException;
 
-    // long H5Eget_msg(int msg_id, H5E_TYPE type, String msg, IntegerType size);
+    // long H5Eget_msg(long msg_id, H5E_TYPE type, String msg, IntegerType size);
 
     /**
      * H5Eget_num retrieves the number of error records in the error stack specified by estack_id (including major,
@@ -3207,7 +3207,7 @@ public class H5 implements java.io.Serializable {
      * @exception HDF5LibraryException
      *                - Error from the HDF-5 Library.
      **/
-    public synchronized static native long H5Iget_type(long obj_id) throws HDF5LibraryException;
+    public synchronized static native int H5Iget_type(long obj_id) throws HDF5LibraryException;
 
     /**
      * H5Iget_type_ref retrieves the reference count on an ID type. The reference count is used by the library to

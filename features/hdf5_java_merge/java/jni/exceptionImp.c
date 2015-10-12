@@ -130,7 +130,7 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_exceptions_HDF5LibraryException_getMajo
   (JNIEnv *env, jobject obj)
 {
     H5E_num_t err_nums;
-    
+
     H5Ewalk2(H5E_DEFAULT, H5E_WALK_DOWNWARD, walk_error_callback, &err_nums);
 
     return (jlong) err_nums.maj_num;
@@ -404,16 +404,16 @@ jboolean h5libraryError( JNIEnv *env )
     char     *msg_str;
     int       rval;
     int       num_errs = 0;
-    int       min_num;
-    int       maj_num;
+    hid_t       min_num;
+    hid_t       maj_num;
     ssize_t   msg_size = 0;
     H5E_type_t error_msg_type;
     jstring   str = NULL;
     hid_t     stk_id = -1;
     H5E_num_t exceptionNumbers;
-    
+
     /* Save current stack contents for future use */
-    stk_id = H5Eget_current_stack(); /* This will clear current stack  */ 
+    stk_id = H5Eget_current_stack(); /* This will clear current stack  */
     getErrorNumbers(stk_id, &exceptionNumbers);
     maj_num = exceptionNumbers.maj_num;
     min_num = exceptionNumbers.min_num;
@@ -433,14 +433,14 @@ jboolean h5libraryError( JNIEnv *env )
         msg_size++; /* add extra space for the null terminator */
         msg_str = (char*)malloc(sizeof(char)*msg_size);
         if(msg_str) {
-            msg_size = H5Eget_msg((hid_t)min_num, &error_msg_type, (char *)msg_str, (size_t)msg_size);
+            msg_size = H5Eget_msg(min_num, &error_msg_type, (char *)msg_str, (size_t)msg_size);
             str = ENVPTR->NewStringUTF(ENVPAR msg_str);
             free(msg_str);
         }
     }
     else
         str = NULL;
-    H5Eset_current_stack(stk_id);    
+    H5Eset_current_stack(stk_id);
 
     args[0] = (char *)str;
     args[1] = 0;
