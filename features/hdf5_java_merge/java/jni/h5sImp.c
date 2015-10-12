@@ -469,12 +469,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Sget_1simple_1extent_1dims(JNIEnv *
         }
     }
 
-    fprintf(stdout, "\n\H5Sget_simple_extent_dims ! space_id=%ld\n\n",space_id);
     status = H5Sget_simple_extent_dims(space_id, (hsize_t *) sa, (hsize_t *) msa);
-    if(sa)
-    fprintf(stdout, "\n\nstatus = %d ! sa[0]=%ld\n\n",status,sa[0]);
-    if(msa)
-    fprintf(stdout, "\n\nstatus = %d ! msa[0]=%ld\n\n",status,msa[0]);
 
     if (status < 0) {
         if (dimsP != NULL) {
@@ -492,7 +487,6 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Sget_1simple_1extent_1dims(JNIEnv *
     if (dimsP != NULL) {
         for (i = 0; i < rank; i++) {
             dimsP[i] = sa[i];
-            fprintf(stdout, "\nsa[%d]=%ld\n",i,sa[i]);
         }
         free(sa);
         ENVPTR->ReleaseLongArrayElements(ENVPAR dims, dimsP, 0);
