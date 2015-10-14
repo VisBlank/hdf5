@@ -1,21 +1,121 @@
-#!/bin/sh
+#! /bin/sh
+#
+# Copyright by The HDF Group.
+# Copyright by the Board of Trustees of the University of Illinois.
+# All rights reserved.
+#
+# This file is part of HDF5.  The full HDF5 copyright notice, including
+# terms governing use, modification, and redistribution, is contained in
+# the files COPYING and Copyright.html.  COPYING can be found at the root
+# of the source code distribution tree; Copyright.html can be found at the
+# root level of an installed copy of the electronic HDF5 document set and
+# is linked from the top-level documents page.  It can also be found at
+# http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have
+# access to either file, you may request a copy from help@hdfgroup.org.
+#
+
+top_srcdir=@top_srcdir@
+srcdir=@srcdir@
 
 # Set up default variable values if not supplied by the user.
+RM='rm -rf'
+CMP='cmp'
+DIFF='diff -c'
+CP='cp'
+DIRNAME='dirname'
+LS='ls'
+AWK='awk'
 
-# where the new builds exist
-HDFBLD_HOME=$(top_srcdir)/java
-export HDFBLD_HOME
+# where the libs exist
+HDFLIB_HOME="$top_srcdir/java/lib"
+BLDLIBDIR="../lib"
+JARFILE=jar@PACKAGE_TARNAME@-@PACKAGE_VERSION@.jar
+TESTJARFILE=jar@PACKAGE_TARNAME@test.jar
+test -d $BLDLIBDIR || mkdir -p $BLDLIBDIR
+
+######################################################################
+# library files
+# --------------------------------------------------------------------
+# All the library files copy from source directory to test directory
+# NOTE: Keep this framework to add/remove test files.
+#       This list are also used for checking exist.
+#       Comment '#' without space can be used.
+# --------------------------------------------------------------------
+LIST_LIBRARY_FILES="
+$HDFLIB_HOME/hamcrest-core.jar
+$HDFLIB_HOME/junit.jar
+$HDFLIB_HOME/junit.jar
+$HDFLIB_HOME/slf4j-api-1.7.5.jar
+$HDFLIB_HOME/slf4j-simple-1.7.5.jar
+../jni/.libs/libjhdf5.so
+../hdf/$JARFILE
+"
+#
+# copy files from source dirs to test dir
+#
+COPY_LIBFILES="$LIST_LIBRARY_FILES"
+
+COPY_LIBFILES_TO_BLDLIBDIR()
+{
+    # copy test files. Used -f to make sure get a new copy
+    for tstfile in $COPY_LIBFILES
+    do
+        # ignore '#' comment
+        echo $tstfile | tr -d ' ' | grep '^#' > /dev/null
+        RET=$?
+        if [ $RET -eq 1 ]; then
+            # skip cp if srcdir is same as destdir
+            # this occurs when build/test performed in source dir and
+            # make cp fail
+            SDIR=`$DIRNAME $tstfile`
+            INODE_SDIR=`$LS -i -d $SDIR | $AWK -F' ' '{print $1}'`
+            INODE_DDIR=`$LS -i -d $TESTDIR | $AWK -F' ' '{print $1}'`
+            if [ "$INODE_SDIR" != "$INODE_DDIR" ]; then
+                $CP -f $tstfile $BLDLIBDIR
+                if [ $? -ne 0 ]; then
+                    echo "Error: FAILED to copy $tstfile ."
+
+                    # Comment out this to CREATE expected file
+                    exit $EXIT_FAILURE
+                fi
+            fi
+        fi
+    done
+}
+
+CLEAN_LIBFILES_AND_BLDLIBDIR()
+{
+    # skip rm if srcdir is same as destdir
+    # this occurs when build/test performed in source dir and
+    # make cp fail
+    SDIR=`$DIRNAME $tstfile`
+    INODE_SDIR=`$LS -i -d $SDIR | $AWK -F' ' '{print $1}'`
+    INODE_DDIR=`$LS -i -d $TESTDIR | $AWK -F' ' '{print $1}'`
+    if [ "$INODE_SDIR" != "$INODE_DDIR" ]; then
+        $RM $BLDLIBDIR
+    fi
+}
+
+# Print a line-line message left justified in a field of 70 characters
+# beginning with the word "Testing".
+#
+TESTING() {
+   SPACES="                                                               "
+   echo "Testing $* $SPACES" | cut -c1-70 | tr -d '\012'
+}
 
 # where Java is installed (requires jdk1.7.x)
-JAVAPATH=@JAVABIN@
-export JAVAPATH
+JAVAEXE=@JAVA@
+export JAVAEXE
 
 ###############################################################################
 #            DO NOT MODIFY BELOW THIS LINE
 ###############################################################################
 
+# prepare for test
+COPY_LIBFILES_TO_BLDLIBDIR
 
-CPATH=".:"$HDFBLD_HOME"/lib/jhdf5.jar:"$HDFBLD_HOME"/lib/junit.jar:"$HDFBLD_HOME"/lib/hamcrest-core.jar:"$HDFBLD_HOME"/lib/slf4j-api-1.7.5.jar:"$HDFBLD_HOME"/lib/ext/slf4j-nop-1.7.5.jar"
+CPATH=".:"$BLDLIBDIR"/"$JARFILE":"$BLDLIBDIR"/junit.jar:"$BLDLIBDIR"/hamcrest-core.jar:"$BLDLIBDIR"/slf4j-api-1.7.5.jar:"$BLDLIBDIR"/slf4j-simple-1.7.5.jar:"$TESTJARFILE""
 
 TEST=/usr/bin/test
 if [ ! -x /usr/bin/test ]
@@ -34,5 +134,8 @@ if $TEST -n "$JAVAPATH" ; then
         export PATH
 fi
 
+echo "$JAVAEXE -Xmx1024M -Dorg.slf4j.simpleLogger.defaultLog=trace -Djava.library.path=$BLDLIBDIR -cp $CLASSPATH -ea org.junit.runner.JUnitCore test.TestAll"
+($JAVAEXE -Xmx1024M -Dorg.slf4j.simpleLogger.defaultLog=trace -Djava.library.path=$BLDLIBDIR -cp $CLASSPATH -ea org.junit.runner.JUnitCore test.TestAll)
 
-($JAVAPATH/java -Xmx1024M -Djava.library.path=$HDFBLD_HOME"/lib" -ea org.junit.runner.JUnitCore test.TestAll)
+# Clean up temporary files/directories
+CLEAN_LIBFILES_AND_BLDLIBDIR

@@ -18,15 +18,10 @@ include $(top_srcdir)/config/commence.am
 
 ## Only recurse into subdirectories if the Java (JNI) interface is enabled.
 if BUILD_JNI_CONDITIONAL
-   SUBDIRS=jni hdf test
+
+# Mark this directory as part of the JNI API
+JNI_API=yes
+
+SUBDIRS=jni hdf test
+
 endif
-DIST_SUBDIRS = jni
-
-install-examples uninstall-examples: ;
-
-installcheck-local: ;
-
-# Clean examples when check-clean is invoked
-check-clean :: ;
-
-include $(top_srcdir)/config/conclude.am

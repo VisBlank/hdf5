@@ -660,6 +660,7 @@ AC_LANG_POP(C++)
 ## Check if they would like the Java native interface (JNI) compiled
 ##
 
+AC_SUBST([H5_CLASSPATH]) H5_CLASSPATH=""
 AC_MSG_CHECKING([if Java JNI interface enabled])
 
 AC_ARG_ENABLE([jni],
@@ -670,6 +671,15 @@ AC_ARG_ENABLE([jni],
 
 if test "X$HDF_JNI" = "Xyes"; then
   echo "yes"
+  if test "X$CLASSPATH" = "X"; then
+    H5_CLASSPATH=".:$srcdir/java/lib"
+  else
+    H5_CLASSPATH=".:$CLASSPATH:$srcdir/java/lib"
+  fi
+## Checks for programs.
+  AX_PROG_JAVAC
+  AX_PROG_JAVA
+  AX_PROG_JAR
   ## Find the include directories needed for building JNI code
   AX_JNI_INCLUDE_DIR()
   for JNI_INCLUDE_DIR in $JNI_INCLUDE_DIRS
@@ -677,9 +687,11 @@ if test "X$HDF_JNI" = "Xyes"; then
     JNIFLAGS="$JNIFLAGS -I$JNI_INCLUDE_DIR"
   done
   ## Find junit for testing the JNI code
-  CLASSPATH=$CLASSPATH:$srcdir/java/lib
   AX_CHECK_CLASSPATH()
+  CLASSPATH_ENV=$H5_CLASSPATH
   AX_CHECK_JUNIT()
+  AX_CHECK_JAVA_HOME
+
   AC_MSG_RESULT([yes])
 else
   AC_MSG_RESULT([no])
@@ -1880,9 +1892,9 @@ AC_ARG_ENABLE([debug],
 ## Default to no if producton is enabled
 if test "X-$DEBUG_PKG" = X- ; then
     if test "$enable_production" = yes ; then
-	DEBUG_PKG=no
+  DEBUG_PKG=no
     else
-	DEBUG_PKG=yes
+  DEBUG_PKG=yes
     fi
 fi
 
@@ -2130,11 +2142,11 @@ case "X-$enable_parallel" in
     ## Try link a simple MPI program.
     AC_MSG_CHECKING([whether a simple MPI-IO C program can be linked])
     AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <mpi.h>]],
-                   [[ MPI_Init(0, (void *)0); 
-		      MPI_File_open(0, (void *)0, 0, 0, (void *)0);]])], 
-		   [AC_MSG_RESULT([yes])],
-	  	   [AC_MSG_RESULT([no])
-		    AC_MSG_ERROR([unable to link a simple MPI-IO C program])])
+                   [[ MPI_Init(0, (void *)0);
+          MPI_File_open(0, (void *)0, 0, 0, (void *)0);]])],
+       [AC_MSG_RESULT([yes])],
+         [AC_MSG_RESULT([no])
+        AC_MSG_ERROR([unable to link a simple MPI-IO C program])])
 
     if test "X$HDF_FORTRAN" = "Xyes"; then
       PAC_PROG_FC_MPI_CHECK
@@ -3141,11 +3153,8 @@ AC_CONFIG_FILES([src/libhdf5.settings
                  java/Makefile
                  java/jni/Makefile
                  java/hdf/Makefile
-                 java/hdf/hdf5lib/Makefile
-                 java/hdf/hdf5lib/callbacks/Makefile
-                 java/hdf/hdf5lib/exceptions/Makefile
-                 java/hdf/hdf5lib/structs/Makefile
                  java/test/Makefile
+                 java/test/junit.sh
                  hl/Makefile
                  hl/src/Makefile
                  hl/test/Makefile

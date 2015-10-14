@@ -18,8 +18,12 @@
 include $(top_srcdir)/config/commence.am
 include $(top_srcdir)/config/lt_vers.am
 
+# Mark this directory as part of the JNI API
+JNI_API=yes
+
 # Include src directory and JNI flags
-AM_CFLAGS+=-I$(top_srcdir)/java/jni $(JNIFLAGS)
+AM_CPPFLAGS+=-I$(top_srcdir)/src $(top_srcdir)/java/jni $(JNIFLAGS)
+AM_CFLAGS+=-I$(top_srcdir)/src $(top_srcdir)/java/jni $(JNIFLAGS)
 
 # This is our main target
 lib_LTLIBRARIES=libjhdf5.la
@@ -34,8 +38,5 @@ libjhdf5_la_SOURCES=exceptionImp.c h5Constants.c nativeData.c h5util.c h5Imp.c \
 
 # HDF5 Java (JNI) library depends on HDF5 Library.
 libjhdf5_la_LIBADD=$(LIBHDF5)
-
-# Mark this directory as part of the JNI API
-JNI_API=yes
 
 include $(top_srcdir)/config/conclude.am

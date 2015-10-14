@@ -15,71 +15,80 @@
 # HDF5 Java native interface (JNI) Library Makefile(.in)
 
 include $(top_srcdir)/config/commence.am
-include $(top_srcdir)/config/lt_vers.am
 
-JAVAC           = @JAVAC@
-JAR         	= @JAR@
+# Mark this directory as part of the JNI API
+JNI_API=yes
 
-CLASSPATH=@CLASSPATH@:$(top_srcdir)/java/lib/jhdf5.jar:$(top_srcdir)/java/lib/junit.jar:$(top_srcdir)/java/lib/hamcrest-core.jar:$(top_srcdir)/java/lib/slf4j-api-1.7.5.jar:$(top_srcdir)/java/lib/ext/slf4j-nop-1.7.5.jar
+JAVAROOT = ..
 
-JAVA_SRCS = \
-	TestH5.java \
-    TestH5E.java \
-    TestH5Edefault.java \
-    TestH5Eregister.java \
-    TestH5Fparams.java \
-    TestH5Fbasic.java \
-    TestH5F.java \
-    TestH5Gbasic.java \
-    TestH5G.java \
-    TestH5Giterate.java \
-    TestH5Sbasic.java \
-    TestH5S.java \
-    TestH5Tparams.java \
-    TestH5Tbasic.java \
-    TestH5T.java \
-    TestH5Dparams.java \
-    TestH5D.java \
-    TestH5Dplist.java \
-    TestH5Lparams.java \
-    TestH5Lbasic.java \
-    TestH5Lcreate.java \
-    TestH5R.java \
-    TestH5P.java \
-    TestH5PData.java \
-    TestH5Pfapl.java \
-    TestH5A.java \
-    TestH5Oparams.java \
-    TestH5Obasic.java \
-    TestH5Ocreate.java \
-    TestH5Ocopy.java \
-    TestH5Z.java \
-    TestAll.java
+pkgpath = test
+CLASSPATH_ENV=CLASSPATH=.:$(JAVAROOT):$(top_srcdir)/java/lib/jhdf5.jar:$(top_srcdir)/java/lib/junit.jar:$(top_srcdir)/java/lib/hamcrest-core.jar:$(top_srcdir)/java/lib/slf4j-api-1.7.5.jar:$(top_srcdir)/java/lib/ext/slf4j-nop-1.7.5.jar:$$CLASSPATH
 
+jarfile = jar$(PACKAGE_TARNAME)test.jar
+TestAlldir = $(datadir)/java
 
-CLASS_DIR=$(TOP)/lib
-CLP="$(CLASSPATH):$(CLASS_DIR):. "
-JAR_DIR=$(CLASS_DIR)
-OUT_DIR=$(CLASS_DIR)/$(DIR)
+AM_JAVACFLAGS = -g -deprecation
 
-JFLAGS= -g -deprecation -d $(CLASS_DIR)	-classpath $(CLP)
-JARFLAGS = cfm
+TESTPACKAGE = 
 
-JC	= $(JAVAC) $(JFLAGS)
+TestAll_JAVA = \
+	${TESTPACKAGE}TestH5.java \
+    ${TESTPACKAGE}TestH5E.java \
+    ${TESTPACKAGE}TestH5Edefault.java \
+    ${TESTPACKAGE}TestH5Eregister.java \
+    ${TESTPACKAGE}TestH5Fparams.java \
+    ${TESTPACKAGE}TestH5Fbasic.java \
+    ${TESTPACKAGE}TestH5F.java \
+    ${TESTPACKAGE}TestH5Gbasic.java \
+    ${TESTPACKAGE}TestH5G.java \
+    ${TESTPACKAGE}TestH5Giterate.java \
+    ${TESTPACKAGE}TestH5Sbasic.java \
+    ${TESTPACKAGE}TestH5S.java \
+    ${TESTPACKAGE}TestH5Tparams.java \
+    ${TESTPACKAGE}TestH5Tbasic.java \
+    ${TESTPACKAGE}TestH5T.java \
+    ${TESTPACKAGE}TestH5Dparams.java \
+    ${TESTPACKAGE}TestH5D.java \
+    ${TESTPACKAGE}TestH5Dplist.java \
+    ${TESTPACKAGE}TestH5Lparams.java \
+    ${TESTPACKAGE}TestH5Lbasic.java \
+    ${TESTPACKAGE}TestH5Lcreate.java \
+    ${TESTPACKAGE}TestH5R.java \
+    ${TESTPACKAGE}TestH5P.java \
+    ${TESTPACKAGE}TestH5PData.java \
+    ${TESTPACKAGE}TestH5Pfapl.java \
+    ${TESTPACKAGE}TestH5A.java \
+    ${TESTPACKAGE}TestH5Oparams.java \
+    ${TESTPACKAGE}TestH5Obasic.java \
+    ${TESTPACKAGE}TestH5Ocreate.java \
+    ${TESTPACKAGE}TestH5Ocopy.java \
+    ${TESTPACKAGE}TestH5Z.java \
+    ${TESTPACKAGE}TestAll.java
 
-JAVA_JUNIT  = $(JAVA_SRCS)
-noinst_JAVA = @JAVA_JUNIT@
-EXTRA_JAVA  = $(JAVA_JUNIT)
+$(jarfile): classTestAll.stamp
+	$(JAR) cf $(JARFLAGS) $@ $(JAVAROOT)/$(pkgpath)/*.class
+
+TestAll_DATA = $(jarfile)
+
+check_SCRIPTS = junit.sh
+TEST_SCRIPT = $(check_SCRIPTS)
+
+CLEANFILES = classTestAll.stamp $(jarfile) $(TESTPACKAGE)/*.class junit.sh
+
+#JAVA_JUNIT  = $(JAVA_SRCS)
+#noinst_JAVA = @JAVA_JUNIT@
+#EXTRA_JAVA  = $(JAVA_JUNIT)
 TESTS_JUNIT = AllJunitTests
-EXTRA_TEST  = $(TESTS_JUNIT)
+#EXTRA_TEST  = $(TESTS_JUNIT)
 
 AllJunitTests :
 	echo "#! /bin/sh" > $@
 	echo "exec @JUNIT@ test.TestAll" >> $@
 	chmod +x $@
 
-# .class.java rule, add file to list
-$(OUT_DIR)/%.class : %.java
-	$(JC) $@
+clean:
+	rm -rf ${TESTPACKAGE}*.class
+	rm -f $(jarfile)
+	rm -f classTestAll.stamp
 
 include $(top_srcdir)/config/conclude.am
