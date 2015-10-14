@@ -29,6 +29,8 @@ AWK='awk'
 # where the libs exist
 HDFLIB_HOME="$top_srcdir/java/lib"
 BLDLIBDIR="../lib"
+BLDDIR="."
+HDFTEST_HOME="$top_srcdir/java/test"
 JARFILE=jar@PACKAGE_TARNAME@-@PACKAGE_VERSION@.jar
 TESTJARFILE=jar@PACKAGE_TARNAME@test.jar
 test -d $BLDLIBDIR || mkdir -p $BLDLIBDIR
@@ -50,6 +52,10 @@ $HDFLIB_HOME/slf4j-simple-1.7.5.jar
 ../jni/.libs/libjhdf5.so
 ../hdf/$JARFILE
 "
+LIST_DATA_FILES="
+$HDFTEST_HOME/h5ex_g_iterate.hdf
+"
+
 #
 # copy files from source dirs to test dir
 #
@@ -96,6 +102,49 @@ CLEAN_LIBFILES_AND_BLDLIBDIR()
     fi
 }
 
+COPY_DATAFILES="$LIST_DATA_FILES"
+
+COPY_DATAFILES_TO_BLDDIR()
+{
+    # copy test files. Used -f to make sure get a new copy
+    for tstfile in $COPY_DATAFILES
+    do
+        # ignore '#' comment
+        echo $tstfile | tr -d ' ' | grep '^#' > /dev/null
+        RET=$?
+        if [ $RET -eq 1 ]; then
+            # skip cp if srcdir is same as destdir
+            # this occurs when build/test performed in source dir and
+            # make cp fail
+            SDIR=`$DIRNAME $tstfile`
+            INODE_SDIR=`$LS -i -d $SDIR | $AWK -F' ' '{print $1}'`
+            INODE_DDIR=`$LS -i -d $TESTDIR | $AWK -F' ' '{print $1}'`
+            if [ "$INODE_SDIR" != "$INODE_DDIR" ]; then
+                $CP -f $tstfile $BLDDIR
+                if [ $? -ne 0 ]; then
+                    echo "Error: FAILED to copy $tstfile ."
+
+                    # Comment out this to CREATE expected file
+                    exit $EXIT_FAILURE
+                fi
+            fi
+        fi
+    done
+}
+
+CLEAN_DATAFILES_AND_BLDDIR()
+{
+    # skip rm if srcdir is same as destdir
+    # this occurs when build/test performed in source dir and
+    # make cp fail
+    SDIR=`$DIRNAME $tstfile`
+    INODE_SDIR=`$LS -i -d $SDIR | $AWK -F' ' '{print $1}'`
+    INODE_DDIR=`$LS -i -d $TESTDIR | $AWK -F' ' '{print $1}'`
+    if [ "$INODE_SDIR" != "$INODE_DDIR" ]; then
+        $RM $BLDDIR
+    fi
+}
+
 # Print a line-line message left justified in a field of 70 characters
 # beginning with the word "Testing".
 #
@@ -114,6 +163,7 @@ export JAVAEXE
 
 # prepare for test
 COPY_LIBFILES_TO_BLDLIBDIR
+COPY_DATAFILES_TO_BLDDIR
 
 CPATH=".:"$BLDLIBDIR"/"$JARFILE":"$BLDLIBDIR"/junit.jar:"$BLDLIBDIR"/hamcrest-core.jar:"$BLDLIBDIR"/slf4j-api-1.7.5.jar:"$BLDLIBDIR"/slf4j-simple-1.7.5.jar:"$TESTJARFILE""
 
@@ -139,3 +189,4 @@ echo "$JAVAEXE -Xmx1024M -Dorg.slf4j.simpleLogger.defaultLog=trace -Djava.librar
 
 # Clean up temporary files/directories
 CLEAN_LIBFILES_AND_BLDLIBDIR
+CLEAN_DATAFILES_AND_BLDDIR
