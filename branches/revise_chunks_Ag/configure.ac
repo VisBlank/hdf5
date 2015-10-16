@@ -60,7 +60,7 @@ AM_SILENT_RULES([yes])
 ##
 ## By default, it is enabled. Users can configure with
 ## --disable-maintainer-mode to prevent running the autotools.
-AM_MAINTAINER_MODE([enable])
+AM_MAINTAINER_MODE([disable])
 
 ## ----------------------------------------------------------------------
 ## Set prefix default (install directory) to a directory in the build area.
@@ -3068,8 +3068,10 @@ AC_CONFIG_FILES([src/libhdf5.settings
                  tools/h5dump/Makefile
                  tools/h5dump/testh5dump.sh
                  tools/h5dump/testh5dumppbits.sh
+                 tools/h5dump/testh5dumpvds.sh
                  tools/h5dump/testh5dumpxml.sh
                  tools/h5ls/testh5ls.sh
+                 tools/h5ls/testh5lsvds.sh
                  tools/h5import/Makefile
                  tools/h5import/h5importtestutil.sh
                  tools/h5diff/Makefile
@@ -3089,6 +3091,7 @@ AC_CONFIG_FILES([src/libhdf5.settings
 		 tools/misc/testh5clear.sh
                  tools/misc/testh5mkgrp.sh
                  tools/misc/testh5repart.sh
+                 tools/misc/vds/Makefile
                  tools/h5stat/testh5stat.sh
                  tools/h5stat/Makefile
                  tools/h5format_convert/Makefile
