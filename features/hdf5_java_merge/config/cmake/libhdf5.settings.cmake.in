@@ -53,7 +53,6 @@ Languages:
 @BUILD_CXX_CONDITIONAL_TRUE@             Static C++ Library: YES
 
                             JAVA: @HDF5_BUILD_JAVA@
-@BUILD_JAVA_CONDITIONAL_TRUE@                    Java Library: @HDF5_ENABLE_JAVA@
 
 Features:
 ---------

@@ -22,7 +22,7 @@ JNI_API=yes
 JAVAROOT = ..
 
 pkgpath = test
-CLASSPATH_ENV=CLASSPATH=.:$(JAVAROOT):$(top_srcdir)/java/lib/jhdf5.jar:$(top_srcdir)/java/lib/junit.jar:$(top_srcdir)/java/lib/hamcrest-core.jar:$(top_srcdir)/java/lib/slf4j-api-1.7.5.jar:$(top_srcdir)/java/lib/ext/slf4j-nop-1.7.5.jar:$$CLASSPATH
+CLASSPATH_ENV=CLASSPATH=.:$(JAVAROOT):$(top_srcdir)/java/lib/jhdf5.jar:$(top_srcdir)/java/lib/junit.jar:$(top_srcdir)/java/lib/hamcrest-core.jar:$(top_srcdir)/java/lib/slf4j-api-1.7.5.jar:$(top_srcdir)/java/lib/slf4j-simple-1.7.5.jar:$$CLASSPATH
 
 jarfile = jar$(PACKAGE_TARNAME)test.jar
 TestAlldir = $(datadir)/java

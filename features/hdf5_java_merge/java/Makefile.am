@@ -22,6 +22,6 @@ if BUILD_JNI_CONDITIONAL
 # Mark this directory as part of the JNI API
 JNI_API=yes
 
-SUBDIRS=jni hdf test
+SUBDIRS=jni hdf test examples
 
 endif

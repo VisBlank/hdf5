@@ -581,7 +581,6 @@ JUnit version 4.11
 .testH5OcopyRefsDatasettosameFile
 .testH5OcopyRefsDatasettodiffFile
 .testH5OcopyRefsAttr
-.testH5OcopyInvalidRef
 .testH5Oget_info_by_idx_n0_create
 .testH5Oget_info_softlink_dangle
 .testH5Oget_info_softlink
@@ -602,7 +601,7 @@ JUnit version 4.11
 
 Time:  XXXX
 
-OK (600 tests)
+OK (599 tests)
 
 HDF5-DIAG: Error detected in HDF5 (version (number)) thread (IDs):
   #000: (file name) line (number) in H5Fopen(): not file access property list

@@ -999,6 +999,7 @@ AC_CHECK_HEADERS([sys/socket.h sys/types.h])
 AC_CHECK_HEADERS([stddef.h setjmp.h features.h])
 AC_CHECK_HEADERS([dirent.h])
 AC_CHECK_HEADERS([stdint.h], [C9x=yes])
+AC_CHECK_HEADERS([stdbool.h])
 
 ## Darwin
 AC_CHECK_HEADERS([mach/mach_time.h])
@@ -1177,6 +1178,17 @@ cat >>confdefs.h <<\EOF
 EOF
 AC_CHECK_SIZEOF([off_t], [4])
 AC_CHECK_SIZEOF([off64_t], [8])
+
+if test "X$C9x" = "Xyes"; then
+  cat >>confdefs.h <<\EOF
+#ifdef HAVE_STDBOOL_H
+#include <stdbool.h> /* for bool definition */
+#else
+#define bool _Bool
+#endif
+EOF
+AC_CHECK_SIZEOF([bool], [1])
+fi
 
 ## Checkpoint the cache
 AC_CACHE_SAVE
@@ -1885,16 +1897,16 @@ AC_ARG_ENABLE([debug],
                                also specify a comma-separated list of
                                package names without the leading H5 or
                                the word no. The default is most packages
-             if production is disabled; no if it is enabled.
+			       if production is disabled; no if it is enabled.
                                ])],
               [DEBUG_PKG=$enableval])
 
 ## Default to no if producton is enabled
 if test "X-$DEBUG_PKG" = X- ; then
     if test "$enable_production" = yes ; then
-  DEBUG_PKG=no
+	DEBUG_PKG=no
     else
-  DEBUG_PKG=yes
+	DEBUG_PKG=yes
     fi
 fi
 
@@ -2142,11 +2154,11 @@ case "X-$enable_parallel" in
     ## Try link a simple MPI program.
     AC_MSG_CHECKING([whether a simple MPI-IO C program can be linked])
     AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <mpi.h>]],
-                   [[ MPI_Init(0, (void *)0);
-          MPI_File_open(0, (void *)0, 0, 0, (void *)0);]])],
-       [AC_MSG_RESULT([yes])],
-         [AC_MSG_RESULT([no])
-        AC_MSG_ERROR([unable to link a simple MPI-IO C program])])
+                   [[ MPI_Init(0, (void *)0); 
+		      MPI_File_open(0, (void *)0, 0, 0, (void *)0);]])], 
+		   [AC_MSG_RESULT([yes])],
+	  	   [AC_MSG_RESULT([no])
+		    AC_MSG_ERROR([unable to link a simple MPI-IO C program])])
 
     if test "X$HDF_FORTRAN" = "Xyes"; then
       PAC_PROG_FC_MPI_CHECK
@@ -2932,9 +2944,9 @@ esac
 AC_MSG_CHECKING([whether to have library information embedded in the executables])
 AC_ARG_ENABLE([embedded-libinfo],
     [AS_HELP_STRING([--enable-embedded-libinfo],
-  [Enable embedded library information [default=yes]])],
-  [enable_embedded_libinfo=$enableval],
-  [enable_embedded_libinfo=yes])
+	[Enable embedded library information [default=yes]])],
+	[enable_embedded_libinfo=$enableval],
+	[enable_embedded_libinfo=yes])
 
    if test "${enable_embedded_libinfo}" = "yes"; then
       AC_MSG_RESULT([yes])
@@ -3155,6 +3167,15 @@ AC_CONFIG_FILES([src/libhdf5.settings
                  java/hdf/Makefile
                  java/test/Makefile
                  java/test/junit.sh
+                 java/examples/Makefile
+                 java/examples/intro/Makefile
+                 java/examples/intro/runExample.sh
+                 java/examples/datasets/Makefile
+                 java/examples/datasets/runExample.sh
+                 java/examples/datatypes/Makefile
+                 java/examples/datatypes/runExample.sh
+                 java/examples/groups/Makefile
+                 java/examples/groups/runExample.sh
                  hl/Makefile
                  hl/src/Makefile
                  hl/test/Makefile
