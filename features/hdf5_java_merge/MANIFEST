@@ -2824,4 +2824,4 @@
 
 # CMake-specific User Scripts
 ./config/cmake/scripts/CTestScript.cmake
-./config/cmake/scripts/HDF518config.cmake
+./config/cmake/scripts/HDF5config.cmake
