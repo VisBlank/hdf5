@@ -119,7 +119,8 @@ check_PROGRAMS = $(am__EXEEXT_1) error_test$(EXEEXT) \
 	swmr_remove_reader$(EXEEXT) swmr_remove_writer$(EXEEXT) \
 	swmr_addrem_writer$(EXEEXT) swmr_sparse_reader$(EXEEXT) \
 	swmr_sparse_writer$(EXEEXT) swmr_check_compat_vfd$(EXEEXT) \
-	$(am__EXEEXT_2)
+	vds_swmr_gen$(EXEEXT) vds_swmr_reader$(EXEEXT) \
+	vds_swmr_writer$(EXEEXT) $(am__EXEEXT_2)
 @HAVE_SHARED_CONDITIONAL_TRUE@am__append_3 = plugin
 @BUILD_ALL_CONDITIONAL_TRUE@noinst_PROGRAMS = $(am__EXEEXT_3)
 @DIRECT_VFD_CONDITIONAL_TRUE@am__append_4 = direct
@@ -634,6 +635,18 @@ vds_SOURCES = vds.c
 vds_OBJECTS = vds.$(OBJEXT)
 vds_LDADD = $(LDADD)
 vds_DEPENDENCIES = libh5test.la $(LIBHDF5)
+vds_swmr_gen_SOURCES = vds_swmr_gen.c
+vds_swmr_gen_OBJECTS = vds_swmr_gen.$(OBJEXT)
+vds_swmr_gen_LDADD = $(LDADD)
+vds_swmr_gen_DEPENDENCIES = libh5test.la $(LIBHDF5)
+vds_swmr_reader_SOURCES = vds_swmr_reader.c
+vds_swmr_reader_OBJECTS = vds_swmr_reader.$(OBJEXT)
+vds_swmr_reader_LDADD = $(LDADD)
+vds_swmr_reader_DEPENDENCIES = libh5test.la $(LIBHDF5)
+vds_swmr_writer_SOURCES = vds_swmr_writer.c
+vds_swmr_writer_OBJECTS = vds_swmr_writer.$(OBJEXT)
+vds_swmr_writer_LDADD = $(LDADD)
+vds_swmr_writer_DEPENDENCIES = libh5test.la $(LIBHDF5)
 vfd_SOURCES = vfd.c
 vfd_OBJECTS = vfd.$(OBJEXT)
 vfd_LDADD = $(LDADD)
@@ -696,7 +709,8 @@ SOURCES = $(libdynlib1_la_SOURCES) $(libdynlib2_la_SOURCES) \
 	swmr_writer.c tcheck_version.c $(testhdf5_SOURCES) testmeta.c \
 	$(ttsafe_SOURCES) twriteorder.c unlink.c unregister.c \
 	$(use_append_chunk_SOURCES) $(use_append_mchunks_SOURCES) \
-	$(use_disable_mdc_flushes_SOURCES) vds.c vfd.c
+	$(use_disable_mdc_flushes_SOURCES) vds.c vds_swmr_gen.c \
+	vds_swmr_reader.c vds_swmr_writer.c vfd.c
 DIST_SOURCES = $(am__libdynlib1_la_SOURCES_DIST) \
 	$(am__libdynlib2_la_SOURCES_DIST) \
 	$(am__libdynlib3_la_SOURCES_DIST) $(libh5test_la_SOURCES) \
@@ -722,7 +736,8 @@ DIST_SOURCES = $(am__libdynlib1_la_SOURCES_DIST) \
 	swmr_writer.c tcheck_version.c $(testhdf5_SOURCES) testmeta.c \
 	$(ttsafe_SOURCES) twriteorder.c unlink.c unregister.c \
 	$(use_append_chunk_SOURCES) $(use_append_mchunks_SOURCES) \
-	$(use_disable_mdc_flushes_SOURCES) vds.c vfd.c
+	$(use_disable_mdc_flushes_SOURCES) vds.c vds_swmr_gen.c \
+	vds_swmr_reader.c vds_swmr_writer.c vfd.c
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -1257,7 +1272,8 @@ CHECK_CLEANFILES = *.chkexe *.chklog *.clog *.clog2 accum.h5 \
 	flushrefresh_VERIFICATION_CHECKPOINT1 \
 	flushrefresh_VERIFICATION_CHECKPOINT2 \
 	flushrefresh_VERIFICATION_DONE atomic_data accum_swmr_big.h5 \
-	ohdr_swmr.h5 test_swmr*.h5 cache_logging.h5
+	ohdr_swmr.h5 test_swmr*.h5 cache_logging.h5 vds_swmr.h5 \
+	vds_swmr_src_*.h5
 
 # Test scripts--
 #       testerror.sh: err_compat, error_test
@@ -1885,6 +1901,18 @@ vds$(EXEEXT): $(vds_OBJECTS) $(vds_DEPENDENCIES) $(EXTRA_vds_DEPENDENCIES)
 	@rm -f vds$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(vds_OBJECTS) $(vds_LDADD) $(LIBS)
 
+vds_swmr_gen$(EXEEXT): $(vds_swmr_gen_OBJECTS) $(vds_swmr_gen_DEPENDENCIES) $(EXTRA_vds_swmr_gen_DEPENDENCIES) 
+	@rm -f vds_swmr_gen$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(vds_swmr_gen_OBJECTS) $(vds_swmr_gen_LDADD) $(LIBS)
+
+vds_swmr_reader$(EXEEXT): $(vds_swmr_reader_OBJECTS) $(vds_swmr_reader_DEPENDENCIES) $(EXTRA_vds_swmr_reader_DEPENDENCIES) 
+	@rm -f vds_swmr_reader$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(vds_swmr_reader_OBJECTS) $(vds_swmr_reader_LDADD) $(LIBS)
+
+vds_swmr_writer$(EXEEXT): $(vds_swmr_writer_OBJECTS) $(vds_swmr_writer_DEPENDENCIES) $(EXTRA_vds_swmr_writer_DEPENDENCIES) 
+	@rm -f vds_swmr_writer$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(vds_swmr_writer_OBJECTS) $(vds_swmr_writer_LDADD) $(LIBS)
+
 vfd$(EXEEXT): $(vfd_OBJECTS) $(vfd_DEPENDENCIES) $(EXTRA_vfd_DEPENDENCIES) 
 	@rm -f vfd$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(vfd_OBJECTS) $(vfd_LDADD) $(LIBS)
@@ -2029,6 +2057,9 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/use_common.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/use_disable_mdc_flushes.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/vds.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/vds_swmr_gen.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/vds_swmr_reader.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/vds_swmr_writer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/vfd.Po@am__quote@
 
 .c.o:
