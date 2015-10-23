@@ -86,7 +86,8 @@ static herr_t H5O_visit(hid_t loc_id, const char *obj_name, H5_index_t idx_type,
     hid_t dxpl_id);
 static herr_t H5O_get_hdr_info_real(const H5O_t *oh, H5O_hdr_info_t *hdr);
 static const H5O_obj_class_t *H5O_obj_class_real(H5O_t *oh);
-#if 1 /* new code */ /* JRM */
+#if 0 /* new code */ /* JRM */
+/* mdc rings have made this code superfluous -- delete eventually */
 static herr_t H5O_get_chunk_addrs_real(const H5O_t *oh, unsigned nchunks, 
     haddr_t *addrs);
 #endif /* new code */ /* JRM */
@@ -2653,7 +2654,8 @@ done:
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5O_loc_free() */
 
-#if 1 /* new code */ /* JRM */
+#if 0 /* new code */ /* JRM */
+/* mdc rings have made this code superfluous -- delete eventually */
 
 /*-------------------------------------------------------------------------
  * Function:	H5O_get_chunk_addrs

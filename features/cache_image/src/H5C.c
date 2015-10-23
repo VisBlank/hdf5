@@ -543,6 +543,14 @@ H5C_create(size_t		      max_cache_size,
 	cache_ptr->slist_ring_size[i]		= (size_t)0;
     } /* end for */
 
+    for(i = 0; i < H5C__HASH_TABLE_LEN; i++)
+        (cache_ptr->index)[i] = NULL;
+
+    cache_ptr->il_len				= 0;
+    cache_ptr->il_size				= (size_t)0;
+    cache_ptr->il_head				= NULL;
+    cache_ptr->il_tail				= NULL;
+
     /* Tagging Field Initializations */
     cache_ptr->ignore_tags                      = FALSE;
 
@@ -556,9 +564,6 @@ H5C_create(size_t		      max_cache_size,
     cache_ptr->slist_len_increase		= 0;
     cache_ptr->slist_size_increase		= 0;
 #endif /* H5C_DO_SANITY_CHECKS */
-
-    for(i = 0; i < H5C__HASH_TABLE_LEN; i++)
-        (cache_ptr->index)[i] = NULL;
 
     cache_ptr->entries_removed_counter		= 0;
     cache_ptr->last_entry_removed_ptr		= NULL;
@@ -2003,6 +2008,8 @@ H5C_insert_entry(H5F_t *             f,
 
     entry_ptr->ht_next = NULL;
     entry_ptr->ht_prev = NULL;
+    entry_ptr->il_next = NULL;
+    entry_ptr->il_prev = NULL;
 
     entry_ptr->next = NULL;
     entry_ptr->prev = NULL;
@@ -2330,7 +2337,7 @@ H5C_move_entry(H5C_t *	     cache_ptr,
 
     if ( ! ( entry_ptr->destroy_in_progress ) ) {
 
-        H5C__DELETE_FROM_INDEX(cache_ptr, entry_ptr)
+        H5C__DELETE_FROM_INDEX(cache_ptr, entry_ptr, FAIL)
 
         if ( entry_ptr->in_slist ) {
 
@@ -7260,7 +7267,7 @@ H5C_flush_invalidate_ring(const H5F_t * f, hid_t dxpl_id, H5C_ring_t ring,
 #endif /* H5C_DO_SANITY_CHECKS */
 
             /* Since we are doing a destroy, we must make a pass through
-             * the hash table and try to flush - destroy all entries that
+             * the index list and try to flush - destroy all entries that
              * remain.
              *
              * It used to be that all entries remaining in the cache at
@@ -7270,116 +7277,140 @@ H5C_flush_invalidate_ring(const H5F_t * f, hid_t dxpl_id, H5C_ring_t ring,
              *
              * Writes to disk are possible here.
              */
-            for(i = 0; i < H5C__HASH_TABLE_LEN; i++) {
-                next_entry_ptr = cache_ptr->index[i];
+            next_entry_ptr = cache_ptr->il_head;
 
-                while(next_entry_ptr != NULL) {
-                    entry_ptr = next_entry_ptr;
-                    HDassert(entry_ptr->magic == H5C__H5C_CACHE_ENTRY_T_MAGIC);
-                    HDassert(entry_ptr->ring >= ring);
+            while(next_entry_ptr != NULL) {
 
-                    next_entry_ptr = entry_ptr->ht_next;
-                    HDassert((next_entry_ptr == NULL) ||
-                            (next_entry_ptr->magic == H5C__H5C_CACHE_ENTRY_T_MAGIC));
+                entry_ptr = next_entry_ptr;
+                HDassert(entry_ptr->magic == H5C__H5C_CACHE_ENTRY_T_MAGIC);
+                HDassert(entry_ptr->ring >= ring);
 
-                    if(((!entry_ptr->flush_me_last) ||
-                           ((entry_ptr->flush_me_last) &&
-                                (cache_ptr->num_last_entries >= cache_ptr->slist_len))) &&
-                           (entry_ptr->ring == ring)) {
+                next_entry_ptr = entry_ptr->il_next;
 
-                        if(entry_ptr->is_protected) {
-                            /* we have major problems -- but lets flush and 
-                             * destroy everything we can before we flag an 
-                             * error.
-                             */
-                            protected_entries++;
-                            if(!entry_ptr->in_slist)
-                                HDassert(!(entry_ptr->is_dirty));
-                        } else if(!(entry_ptr->is_pinned)) {
+                HDassert((next_entry_ptr == NULL) ||
+                       (next_entry_ptr->magic == H5C__H5C_CACHE_ENTRY_T_MAGIC));
 
-                            /* Test to see if we are can flush the entry now.
-                             * If we can, go ahead and flush.
-                             */
-                            if(entry_ptr->flush_dep_height == curr_flush_dep_height) {
-				/* if *entry_ptr is dirty, it is possible 
-                                 * that one or more other entries may be 
-                                 * either removed from the cache, loaded 
-                                 * into the cache, or moved to a new location
-                                 * in the file as a side effect of the flush.
-                                 *
-                                 * If this happens, and one of the target 
-                                 * entries happens to be the next entry in 
-                                 * the hash bucket, we could find ourselves 
-				 * either find ourselves either scanning a 
-                                 * non-existant entry, scanning through a 
-                                 * different bucket, or skipping an entry.
-                                 *
-                                 * Neither of these are good, so restart the 
-                                 * the scan at the head of the hash bucket 
-                                 * after the flush if *entry_ptr was dirty,
-                                 * on the off chance that the next entry was
-                                 * a target.
-                                 *
-                                 * This is not as inefficient at it might seem,
-                                 * as hash buckets typically have at most two
-                                 * or three entries.
-                                 */
-                                hbool_t entry_was_dirty;
+                if ( ( ( ! entry_ptr->flush_me_last ) 
+                       ||
+                       ( ( entry_ptr->flush_me_last ) 
+                         &&
+                         ( cache_ptr->num_last_entries >= 
+                           cache_ptr->slist_len ) 
+                       ) 
+                     ) 
+                     &&
+                     ( entry_ptr->ring == ring ) ) {
 
-                                entry_was_dirty = entry_ptr->is_dirty;
+                    if(entry_ptr->is_protected) {
 
-                                if(H5C__flush_single_entry(f, dxpl_id, entry_ptr, 
-                                        (cooked_flags | H5C__FLUSH_INVALIDATE_FLAG | H5C__DEL_FROM_SLIST_ON_DESTROY_FLAG),
-                                        NULL) < 0)
-                                    HGOTO_ERROR(H5E_CACHE, H5E_CANTFLUSH, FAIL, "Entry flush destroy failed.")
-
-				if(entry_was_dirty) {
-                                    /* update stats for hash bucket scan
-                                     * restart here.
-                                     *                   -- JRM 
-                                     */
-                                    next_entry_ptr = cache_ptr->index[i];
-				    H5C__UPDATE_STATS_FOR_HASH_BUCKET_SCAN_RESTART(cache_ptr)
-                                } /* end if */
-
-                                flushed_during_dep_loop = TRUE;
-                            } /* end if */
-                            else if(entry_ptr->flush_dep_height < curr_flush_dep_height)
-                                /* This shouldn't happen -- if it does, just scream and die.  */
-                                HGOTO_ERROR(H5E_CACHE, H5E_CANTFLUSH, FAIL, "dirty entry below current flush dep. height.")
-                        } /* end if */
-                    } /* end if */
-                    /* We can't do anything if the entry is pinned.  The
-                     * hope is that the entry will be unpinned as the
-                     * result of destroys of entries that reference it.
-                     *
-                     * We detect this by noting the change in the number
-                     * of pinned entries from pass to pass.  If it stops
-                     * shrinking before it hits zero, we scream and die.
-                     */
-                    /* if the serialize function on the entry we last evicted
-                     * loaded an entry into cache (as Quincey has promised me
-                     * it never will), and if the cache was full, it is
-                     * possible that *next_entry_ptr was flushed or evicted.
-                     *
-                     * Test to see if this happened here.  Note that if this
-                     * test is triggred, we are accessing a deallocated piece
-                     * of dynamically allocated memory, so we just scream and
-                     * die.
-                     *
-                     * Update: The code to restart the scan after flushes
-                     *         of dirty entries should make it impossible 
-                     *         to satisfy the following test.  Leave it in
-                     *         in case I am wrong.
-                     *                                    -- JRM
-                     */
-                    if((next_entry_ptr != NULL) && (next_entry_ptr->magic != H5C__H5C_CACHE_ENTRY_T_MAGIC))
-                        /* Something horrible has happened to
-                         * *next_entry_ptr -- scream and die.
+                        /* we have major problems -- but lets flush and 
+                         * destroy everything we can before we flag an 
+                         * error.
                          */
-                        HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, "next_entry_ptr->magic is invalid?!?!?.")
-                } /* end while loop scanning hash table bin */
-            } /* end for loop scanning hash table */
+                        protected_entries++;
+
+                        if(!entry_ptr->in_slist)
+
+                            HDassert(!(entry_ptr->is_dirty));
+
+                    } else if ( ! ( entry_ptr->is_pinned ) ) {
+
+                        /* Test to see if we are can flush the entry now.
+                         * If we can, go ahead and flush.
+                         */
+                        if ( entry_ptr->flush_dep_height == 
+                             curr_flush_dep_height ) {
+
+		            /* if *entry_ptr is dirty, it is possible 
+                             * that one or more other entries may be 
+                             * either removed from the cache, loaded 
+                             * into the cache, or moved to a new location
+                             * in the file as a side effect of the flush.
+                             *
+                             * If this happens, and one of the target 
+                             * entries happens to be the next entry in 
+                             * the index, we could find ourselves 
+			     * either find ourselves either scanning a 
+                             * non-existant entry, or skipping one or more
+                             * entries.
+                             *
+                             * Neither of these are good, so restart the 
+                             * the scan at the head of the index list
+                             * after the flush if *entry_ptr was dirty,
+                             * on the off chance that the next entry was
+                             * a target.
+                             */
+                            hbool_t entry_was_dirty;
+
+                            entry_was_dirty = entry_ptr->is_dirty;
+
+                            if ( H5C__flush_single_entry(f, dxpl_id, entry_ptr, 
+                                        (cooked_flags | 
+                                         H5C__FLUSH_INVALIDATE_FLAG | 
+                                         H5C__DEL_FROM_SLIST_ON_DESTROY_FLAG),
+                                        NULL) < 0)
+
+                                HGOTO_ERROR(H5E_CACHE, H5E_CANTFLUSH, FAIL,\
+                                            "Entry flush destroy failed.")
+
+		 	    if(entry_was_dirty) {
+
+                                /* update stats for index list scan
+                                 * restart here.
+                                 *                   -- JRM 
+                                 */
+                                next_entry_ptr = cache_ptr->il_head;
+
+			        H5C__UPDATE_STATS_FOR_HASH_BUCKET_SCAN_RESTART(cache_ptr)
+                            } /* end if */
+
+                            flushed_during_dep_loop = TRUE;
+                        } /* end if */
+                        else if ( entry_ptr->flush_dep_height < 
+                                  curr_flush_dep_height )
+
+                            /* This shouldn't happen -- if it does, just 
+                             * scream and die.  
+                             */
+                            HGOTO_ERROR(H5E_CACHE, H5E_CANTFLUSH, FAIL, \
+                                "dirty entry below current flush dep. height.")
+                    } /* end if */
+                } /* end if */
+                /* We can't do anything if the entry is pinned.  The
+                 * hope is that the entry will be unpinned as the
+                 * result of destroys of entries that reference it.
+                 *
+                 * We detect this by noting the change in the number
+                 * of pinned entries from pass to pass.  If it stops
+                 * shrinking before it hits zero, we scream and die.
+                 */
+                /* if the serialize function on the entry we last evicted
+                 * loaded an entry into cache (as Quincey has promised me
+                 * it never will), and if the cache was full, it is
+                 * possible that *next_entry_ptr was flushed or evicted.
+                 *
+                 * Test to see if this happened here.  Note that if this
+                 * test is triggred, we are accessing a deallocated piece
+                 * of dynamically allocated memory, so we just scream and
+                 * die.
+                 *
+                 * Update: The code to restart the scan after flushes
+                 *         of dirty entries should make it impossible 
+                 *         to satisfy the following test.  Leave it in
+                 *         in case I am wrong.
+                 *                                    -- JRM
+                 */
+                if ( ( next_entry_ptr != NULL ) 
+                     && 
+                     ( next_entry_ptr->magic != H5C__H5C_CACHE_ENTRY_T_MAGIC ) )
+
+                    /* Something horrible has happened to
+                     * *next_entry_ptr -- scream and die.
+                     */
+                    HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, \
+                                "next_entry_ptr->magic is invalid?!?!?.")
+
+            } /* end while loop scanning index list */
 
             /* Check for incrementing flush dependency height */
             if(flushed_during_dep_loop) {
@@ -8250,7 +8281,7 @@ H5C__flush_single_entry(const H5F_t *f, hid_t dxpl_id, H5C_cache_entry_t *entry_
 #endif /* new code */ /* JRM */
 
                         /* delete the entry from the hash table and the slist */
-                        H5C__DELETE_FROM_INDEX(cache_ptr, entry_ptr)
+                        H5C__DELETE_FROM_INDEX(cache_ptr, entry_ptr, FAIL)
                         H5C__REMOVE_ENTRY_FROM_SLIST(cache_ptr, entry_ptr)
 
 		        /* update the entry for its new address */
@@ -8450,7 +8481,7 @@ H5C__flush_single_entry(const H5F_t *f, hid_t dxpl_id, H5C_cache_entry_t *entry_
          * entry.
          */
 
-        H5C__DELETE_FROM_INDEX(cache_ptr, entry_ptr)
+        H5C__DELETE_FROM_INDEX(cache_ptr, entry_ptr, FAIL)
 
         if(entry_ptr->in_slist && del_from_slist_on_destroy)
             H5C__REMOVE_ENTRY_FROM_SLIST(cache_ptr, entry_ptr)
@@ -9043,6 +9074,8 @@ H5C_load_entry(H5F_t *             f,
     entry->flush_dep_height = 0;
     entry->ht_next              = NULL;
     entry->ht_prev              = NULL;
+    entry->il_next              = NULL;
+    entry->il_prev              = NULL;
 
     entry->next                 = NULL;
     entry->prev                 = NULL;

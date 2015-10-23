@@ -362,7 +362,8 @@ H5_DLL herr_t H5F__super_free(H5F_super_t *sblock);
 
 /* Superblock extension related routines */
 H5_DLL herr_t H5F_super_ext_open(H5F_t *f, haddr_t ext_addr, H5O_loc_t *ext_ptr);
-#if 1 /* new code */ /* JRM */
+#if 0 /* new code */ /* JRM */
+/* mdc rings has made this code superfluous -- delete eventually */
 H5_DLL herr_t H5F__super_ext_get_num_chunks(H5F_t *f, hid_t dxpl_id, 
     unsigned * nchunks_ptr);
 H5_DLL herr_t H5F__super_ext_get_chunk_addrs(H5F_t *f, hid_t dxpl_id, 

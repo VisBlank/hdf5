@@ -126,7 +126,8 @@ done:
     FUNC_LEAVE_NOAPI(ret_value)
 } /* H5F_super_ext_create() */
 
-#if 1 /* new code */ /* JRM */
+#if 0 /* new code */ /* JRM */
+      /* mdc rings have made this code superfluous -- delete eventually */
 
 /*-------------------------------------------------------------------------
  * Function:    H5F__super_ext_get_num_chunks
@@ -197,7 +198,8 @@ done:
 } /* H5F__super_ext_get_num_chunks() */
 #endif /* new code */ /* JRM */
 
-#if 1 /* new code */ /* JRM */
+#if 0 /* new code */ /* JRM */
+      /* mdc rings have made this code superfluous -- delete eventually */
 
 /*-------------------------------------------------------------------------
  * Function:    H5F__super_ext_get_chunk_addrs
