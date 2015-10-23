@@ -168,19 +168,19 @@ am__libhdf5_la_SOURCES_DIST = H5.c H5checksum.c H5dbg.c H5system.c \
 	H5B2.c H5B2cache.c H5B2dbg.c H5B2hdr.c H5B2int.c H5B2stat.c \
 	H5B2test.c H5C.c H5CS.c H5D.c H5Dbtree.c H5Dbtree2.c \
 	H5Dchunk.c H5Dcompact.c H5Dcontig.c H5Ddbg.c H5Ddeprec.c \
-	H5Dearray.c H5Defl.c H5Dfarray.c H5Dfill.c H5Dint.c H5Dio.c \
-	H5Dlayout.c H5Dnone.c H5Doh.c H5Dscatgath.c H5Dselect.c \
-	H5Dtest.c H5Dvirtual.c H5E.c H5Edeprec.c H5Eint.c H5EA.c \
-	H5EAcache.c H5EAdbg.c H5EAdblkpage.c H5EAdblock.c H5EAhdr.c \
-	H5EAiblock.c H5EAint.c H5EAsblock.c H5EAstat.c H5EAtest.c \
-	H5F.c H5Fint.c H5Faccum.c H5Fcwfs.c H5Fdbg.c H5Fdeprec.c \
-	H5Fefc.c H5Ffake.c H5Fio.c H5Fmount.c H5Fquery.c H5Fsfile.c \
-	H5Fsuper.c H5Fsuper_cache.c H5Ftest.c H5FA.c H5FAcache.c \
-	H5FAdbg.c H5FAdblock.c H5FAdblkpage.c H5FAhdr.c H5FAint.c \
-	H5FAstat.c H5FAtest.c H5FD.c H5FDcore.c H5FDfamily.c H5FDint.c \
-	H5FDlog.c H5FDmulti.c H5FDsec2.c H5FDspace.c H5FDstdio.c \
-	H5FDtest.c H5FL.c H5FO.c H5FS.c H5FScache.c H5FSdbg.c \
-	H5FSint.c H5FSsection.c H5FSstat.c H5FStest.c H5G.c \
+	H5Dearray.c H5Defl.c H5Dfarray.c H5Dsingle.c H5Dfill.c \
+	H5Dint.c H5Dio.c H5Dlayout.c H5Dnone.c H5Doh.c H5Dscatgath.c \
+	H5Dselect.c H5Dtest.c H5Dvirtual.c H5E.c H5Edeprec.c H5Eint.c \
+	H5EA.c H5EAcache.c H5EAdbg.c H5EAdblkpage.c H5EAdblock.c \
+	H5EAhdr.c H5EAiblock.c H5EAint.c H5EAsblock.c H5EAstat.c \
+	H5EAtest.c H5F.c H5Fint.c H5Faccum.c H5Fcwfs.c H5Fdbg.c \
+	H5Fdeprec.c H5Fefc.c H5Ffake.c H5Fio.c H5Fmount.c H5Fquery.c \
+	H5Fsfile.c H5Fsuper.c H5Fsuper_cache.c H5Ftest.c H5FA.c \
+	H5FAcache.c H5FAdbg.c H5FAdblock.c H5FAdblkpage.c H5FAhdr.c \
+	H5FAint.c H5FAstat.c H5FAtest.c H5FD.c H5FDcore.c H5FDfamily.c \
+	H5FDint.c H5FDlog.c H5FDmulti.c H5FDsec2.c H5FDspace.c \
+	H5FDstdio.c H5FDtest.c H5FL.c H5FO.c H5FS.c H5FScache.c \
+	H5FSdbg.c H5FSint.c H5FSsection.c H5FSstat.c H5FStest.c H5G.c \
 	H5Gbtree2.c H5Gcache.c H5Gcompact.c H5Gdense.c H5Gdeprec.c \
 	H5Gent.c H5Gint.c H5Glink.c H5Gloc.c H5Gname.c H5Gnode.c \
 	H5Gobj.c H5Goh.c H5Groot.c H5Gstab.c H5Gtest.c H5Gtraverse.c \
@@ -225,9 +225,9 @@ am_libhdf5_la_OBJECTS = H5.lo H5checksum.lo H5dbg.lo H5system.lo \
 	H5B2hdr.lo H5B2int.lo H5B2stat.lo H5B2test.lo H5C.lo H5CS.lo \
 	H5D.lo H5Dbtree.lo H5Dbtree2.lo H5Dchunk.lo H5Dcompact.lo \
 	H5Dcontig.lo H5Ddbg.lo H5Ddeprec.lo H5Dearray.lo H5Defl.lo \
-	H5Dfarray.lo H5Dfill.lo H5Dint.lo H5Dio.lo H5Dlayout.lo \
-	H5Dnone.lo H5Doh.lo H5Dscatgath.lo H5Dselect.lo H5Dtest.lo \
-	H5Dvirtual.lo H5E.lo H5Edeprec.lo H5Eint.lo H5EA.lo \
+	H5Dfarray.lo H5Dsingle.lo H5Dfill.lo H5Dint.lo H5Dio.lo \
+	H5Dlayout.lo H5Dnone.lo H5Doh.lo H5Dscatgath.lo H5Dselect.lo \
+	H5Dtest.lo H5Dvirtual.lo H5E.lo H5Edeprec.lo H5Eint.lo H5EA.lo \
 	H5EAcache.lo H5EAdbg.lo H5EAdblkpage.lo H5EAdblock.lo \
 	H5EAhdr.lo H5EAiblock.lo H5EAint.lo H5EAsblock.lo H5EAstat.lo \
 	H5EAtest.lo H5F.lo H5Fint.lo H5Faccum.lo H5Fcwfs.lo H5Fdbg.lo \
@@ -841,19 +841,19 @@ libhdf5_la_SOURCES = H5.c H5checksum.c H5dbg.c H5system.c H5timer.c \
 	H5B2cache.c H5B2dbg.c H5B2hdr.c H5B2int.c H5B2stat.c \
 	H5B2test.c H5C.c H5CS.c H5D.c H5Dbtree.c H5Dbtree2.c \
 	H5Dchunk.c H5Dcompact.c H5Dcontig.c H5Ddbg.c H5Ddeprec.c \
-	H5Dearray.c H5Defl.c H5Dfarray.c H5Dfill.c H5Dint.c H5Dio.c \
-	H5Dlayout.c H5Dnone.c H5Doh.c H5Dscatgath.c H5Dselect.c \
-	H5Dtest.c H5Dvirtual.c H5E.c H5Edeprec.c H5Eint.c H5EA.c \
-	H5EAcache.c H5EAdbg.c H5EAdblkpage.c H5EAdblock.c H5EAhdr.c \
-	H5EAiblock.c H5EAint.c H5EAsblock.c H5EAstat.c H5EAtest.c \
-	H5F.c H5Fint.c H5Faccum.c H5Fcwfs.c H5Fdbg.c H5Fdeprec.c \
-	H5Fefc.c H5Ffake.c H5Fio.c H5Fmount.c H5Fquery.c H5Fsfile.c \
-	H5Fsuper.c H5Fsuper_cache.c H5Ftest.c H5FA.c H5FAcache.c \
-	H5FAdbg.c H5FAdblock.c H5FAdblkpage.c H5FAhdr.c H5FAint.c \
-	H5FAstat.c H5FAtest.c H5FD.c H5FDcore.c H5FDfamily.c H5FDint.c \
-	H5FDlog.c H5FDmulti.c H5FDsec2.c H5FDspace.c H5FDstdio.c \
-	H5FDtest.c H5FL.c H5FO.c H5FS.c H5FScache.c H5FSdbg.c \
-	H5FSint.c H5FSsection.c H5FSstat.c H5FStest.c H5G.c \
+	H5Dearray.c H5Defl.c H5Dfarray.c H5Dsingle.c H5Dfill.c \
+	H5Dint.c H5Dio.c H5Dlayout.c H5Dnone.c H5Doh.c H5Dscatgath.c \
+	H5Dselect.c H5Dtest.c H5Dvirtual.c H5E.c H5Edeprec.c H5Eint.c \
+	H5EA.c H5EAcache.c H5EAdbg.c H5EAdblkpage.c H5EAdblock.c \
+	H5EAhdr.c H5EAiblock.c H5EAint.c H5EAsblock.c H5EAstat.c \
+	H5EAtest.c H5F.c H5Fint.c H5Faccum.c H5Fcwfs.c H5Fdbg.c \
+	H5Fdeprec.c H5Fefc.c H5Ffake.c H5Fio.c H5Fmount.c H5Fquery.c \
+	H5Fsfile.c H5Fsuper.c H5Fsuper_cache.c H5Ftest.c H5FA.c \
+	H5FAcache.c H5FAdbg.c H5FAdblock.c H5FAdblkpage.c H5FAhdr.c \
+	H5FAint.c H5FAstat.c H5FAtest.c H5FD.c H5FDcore.c H5FDfamily.c \
+	H5FDint.c H5FDlog.c H5FDmulti.c H5FDsec2.c H5FDspace.c \
+	H5FDstdio.c H5FDtest.c H5FL.c H5FO.c H5FS.c H5FScache.c \
+	H5FSdbg.c H5FSint.c H5FSsection.c H5FSstat.c H5FStest.c H5G.c \
 	H5Gbtree2.c H5Gcache.c H5Gcompact.c H5Gdense.c H5Gdeprec.c \
 	H5Gent.c H5Gint.c H5Glink.c H5Gloc.c H5Gname.c H5Gnode.c \
 	H5Gobj.c H5Goh.c H5Groot.c H5Gstab.c H5Gtest.c H5Gtraverse.c \
@@ -1081,6 +1081,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/H5Doh.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/H5Dscatgath.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/H5Dselect.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/H5Dsingle.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/H5Dtest.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/H5Dvirtual.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/H5E.Plo@am__quote@
