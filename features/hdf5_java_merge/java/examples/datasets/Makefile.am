@@ -17,17 +17,17 @@
 include $(top_srcdir)/config/commence.am
 
 # Mark this directory as part of the JNI API
-JNI_API=yes
+JAVA_API=yes
 
 JAVAROOT = ../..
 
 pkgpath = examples/datasets
-CLASSPATH_ENV=CLASSPATH=.:$(JAVAROOT):$(top_srcdir)/java/lib/jhdf5.jar:$(top_srcdir)/java/lib/slf4j-api-1.7.5.jar:$(top_srcdir)/java/lib/slf4j-simple-1.7.5.jar:$$CLASSPATH
+CLASSPATH_ENV=CLASSPATH=.:$(JAVAROOT):$(top_srcdir)/java/lib/hdf5_java.jar:$(top_srcdir)/java/lib/slf4j-api-1.7.5.jar:$(top_srcdir)/java/lib/ext/slf4j-simple-1.7.5.jar:$$CLASSPATH
 
 jarfile = jar$(PACKAGE_TARNAME)datasets.jar
 TestAlldir = $(datadir)/java
 
-AM_JAVACFLAGS = -g -deprecation
+AM_JAVACFLAGS = $(H5_JAVACFLAGS) -deprecation
 
 TESTPACKAGE = 
 

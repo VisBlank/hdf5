@@ -295,9 +295,9 @@ public class H5 implements java.io.Serializable {
         // else load standard library
         if (!isLibraryLoaded) {
             try {
-                s_libraryName = "jhdf5";
+                s_libraryName = "hdf5_java";
                 mappedName = System.mapLibraryName(s_libraryName);
-                System.loadLibrary("jhdf5");
+                System.loadLibrary("hdf5_java");
                 isLibraryLoaded = true;
             }
             catch (Throwable err) {

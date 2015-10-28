@@ -28,8 +28,7 @@ set (CMAKE_JAVA_INCLUDE_PATH "")
 #-----------------------------------------------------------------------------
 # Traverse source subdirectory
 #-----------------------------------------------------------------------------
-add_subdirectory (${HDF5_JAVA_SOURCE_DIR}/jni ${HDF5_JAVA_BINARY_DIR}/jni)
-add_subdirectory (${HDF5_JAVA_SOURCE_DIR}/hdf ${HDF5_JAVA_BINARY_DIR}/hdf)
+add_subdirectory (${HDF5_JAVA_SOURCE_DIR}/src ${HDF5_JAVA_BINARY_DIR}/src)
 
 #-----------------------------------------------------------------------------
 # Build the Java Examples

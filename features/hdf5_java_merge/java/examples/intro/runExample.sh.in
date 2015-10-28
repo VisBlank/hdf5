@@ -52,7 +52,7 @@ test -d $BLDLIBDIR || mkdir -p $BLDLIBDIR
 LIST_LIBRARY_FILES="
 $HDFLIB_HOME/slf4j-api-1.7.5.jar
 $HDFLIB_HOME/slf4j-simple-1.7.5.jar
-../../jni/.libs/libjhdf5.so
+../../jni/.libs/libhdf5_java.so
 ../../hdf/$JARFILE
 "
 LIST_DATA_FILES="

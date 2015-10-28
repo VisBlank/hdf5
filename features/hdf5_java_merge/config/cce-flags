@@ -30,8 +30,8 @@ if test X = "X$cc_flags_set"; then
         cc_vendor=cce
         cc_version=`echo $cc_version |sed 's/.*Version \([-a-z0-9\.\-]*\).*/\1/'`
         echo "compiler '$CC' is Cray $cc_vendor-$cc_version"
-	cc_version_info=$cc_version
-	cxx_version_info=$cc_version
+  cc_version_info=$cc_version
+  cxx_version_info=$cc_version
     fi
 fi
 
@@ -57,15 +57,18 @@ if test "X-cce" = "X-$cc_vendor"; then
     # -Wl,-s to remove all symbols for smaller file
     PROD_CFLAGS="-O3 -Wl,-s"
     PROD_CPPFLAGS=
+    PROD_JAVACFLAGS=
 
     # Debug
     DEBUG_CFLAGS="-g -O0"
     DEBUG_CPPFLAGS=
+    DEBUG_JAVACFLAGS="-g"
 
     # Profile
     # Use this for profiling with gprof
     PROFILE_CFLAGS="-g -p"
     PROFILE_CPPFLAGS=
+    PROFILE_JAVACFLAGS=
 
     # Flags are set
     cc_flags_set=yes

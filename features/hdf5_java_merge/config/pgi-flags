@@ -85,16 +85,19 @@ if test "X-pgcc" = "X-$cc_vendor"; then
         ;;
     esac
     PROD_CPPFLAGS=
+    PROD_JAVACFLAGS=
 
     # Debug
     DEBUG_CFLAGS="-g -Mbounds"
     DEBUG_CPPFLAGS=
+    DEBUG_JAVACFLAGS="-g"
 
     # Profile
     PROFILE_CFLAGS="-g -Mprof=func,line"
     # Use this for profiling with gprof
     #PROFILE_CFLAGS="-g -pg"
     PROFILE_CPPFLAGS=
+    PROFILE_JAVACFLAGS=
 
     # Flags are set
     cc_flags_set=yes

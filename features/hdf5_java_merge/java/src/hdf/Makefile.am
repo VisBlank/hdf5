@@ -17,21 +17,21 @@
 include $(top_srcdir)/config/commence.am
 
 # Mark this directory as part of the JNI API
-JNI_API=yes
+JAVA_API=yes
 
 JAVAROOT = ..
 
 jarfile = jar$(PACKAGE_TARNAME)-$(PACKAGE_VERSION).jar
-jhdf5dir = $(datadir)/java
+hdf5_javadir = $(datadir)/java
 
 pkgpath = hdf/hdf5lib
 CLASSPATH_ENV=CLASSPATH=.:$(JAVAROOT):$(top_srcdir)/java/lib/slf4j-api-1.7.5.jar:$$CLASSPATH
 
-AM_JAVACFLAGS = -g -deprecation
+AM_JAVACFLAGS = $(H5_JAVACFLAGS) -deprecation
 
 HDFPACKAGE = hdf5lib/
 
-jhdf5_JAVA =  \
+hdf5_java_JAVA =  \
 	${HDFPACKAGE}callbacks/Callbacks.java \
 	${HDFPACKAGE}callbacks/H5L_iterate_cb.java \
 	${HDFPACKAGE}callbacks/H5L_iterate_t.java \
@@ -76,17 +76,17 @@ jhdf5_JAVA =  \
 	${HDFPACKAGE}HDFArray.java  \
 	${HDFPACKAGE}HDFNativeData.java
 
-$(jarfile): classjhdf5.stamp
+$(jarfile): classhdf5_java.stamp
 	$(JAR) cf $(JARFLAGS) $@ $(JAVAROOT)/$(pkgpath)
 
-jhdf5_DATA = $(jarfile)
+hdf5_java_DATA = $(jarfile)
 
-CLEANFILES = classjhdf5.stamp $(jarfile) $(HDFPACKAGE)/callbacks/*.class $(HDFPACKAGE)/exceptions/*.class $(HDFPACKAGE)/structs/*.class $(HDFPACKAGE)/*.class
+CLEANFILES = classhdf5_java.stamp $(jarfile) $(HDFPACKAGE)/callbacks/*.class $(HDFPACKAGE)/exceptions/*.class $(HDFPACKAGE)/structs/*.class $(HDFPACKAGE)/*.class
 
 clean:
 	rm -rf ${HDFPACKAGE}*.class
 	rm -f $(jarfile)
-	rm -f classjhdf5.stamp
+	rm -f classhdf5_java.stamp
 
 
 # Clean examples when check-clean is invoked

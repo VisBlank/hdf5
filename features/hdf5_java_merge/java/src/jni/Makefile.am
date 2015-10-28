@@ -19,24 +19,24 @@ include $(top_srcdir)/config/commence.am
 include $(top_srcdir)/config/lt_vers.am
 
 # Mark this directory as part of the JNI API
-JNI_API=yes
+JAVA_API=yes
 
 # Include src directory and JNI flags
-AM_CPPFLAGS+=-I$(top_srcdir)/src $(top_srcdir)/java/jni $(JNIFLAGS)
-AM_CFLAGS+=-I$(top_srcdir)/src $(top_srcdir)/java/jni $(JNIFLAGS)
+AM_CPPFLAGS+=-I$(top_srcdir)/src $(top_srcdir)/java/src/jni $(JNIFLAGS)
+AM_CFLAGS+=-I$(top_srcdir)/src $(top_srcdir)/java/src/jni $(JNIFLAGS)
 
 # This is our main target
-lib_LTLIBRARIES=libjhdf5.la
+lib_LTLIBRARIES=libhdf5_java.la
 
 # Add libtool numbers to the HDF5 Java (JNI) library (from config/lt_vers.am)
-libjhdf5_la_LDFLAGS= -version-info $(LT_VERS_INTERFACE):$(LT_VERS_REVISION):$(LT_VERS_AGE) $(AM_LDFLAGS)
+libhdf5_java_la_LDFLAGS= -version-info $(LT_VERS_INTERFACE):$(LT_VERS_REVISION):$(LT_VERS_AGE) $(AM_LDFLAGS)
 
 # Source files for the library
-libjhdf5_la_SOURCES=exceptionImp.c h5Constants.c nativeData.c h5util.c h5Imp.c \
+libhdf5_java_la_SOURCES=exceptionImp.c h5Constants.c nativeData.c h5util.c h5Imp.c \
 	h5aImp.c h5dImp.c h5eImp.c h5fImp.c h5gImp.c h5iImp.c h5lImp.c h5oImp.c    \
 	h5pImp.c h5rImp.c h5sImp.c h5tImp.c h5zImp.c
 
 # HDF5 Java (JNI) library depends on HDF5 Library.
-libjhdf5_la_LIBADD=$(LIBHDF5)
+libhdf5_java_la_LIBADD=$(LIBHDF5)
 
 include $(top_srcdir)/config/conclude.am

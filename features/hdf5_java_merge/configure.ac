@@ -101,6 +101,7 @@ AC_CONFIG_COMMANDS([pubconf], [
 AC_CANONICAL_HOST
 AC_SUBST([CPPFLAGS])
 AC_SUBST([JNIFLAGS])
+AC_SUBST([JAVACFLAGS])
 
 ## H5_CFLAGS (and company) are for CFLAGS that should be used on HDF5, but
 ## not exported to h5cc (or h5fc, etc.)
@@ -109,6 +110,7 @@ AC_SUBST([H5_CPPFLAGS])
 AC_SUBST([H5_FCFLAGS])
 AC_SUBST([H5_CXXFLAGS])
 AC_SUBST([H5_JNIFLAGS])
+AC_SUBST([H5_JAVACFLAGS])
 AC_SUBST([H5_LDFLAGS])
 
 ## AM_CFLAGS (and company) are for CFLAGS that should be used on HDF5,
@@ -118,6 +120,7 @@ AC_SUBST([AM_FCFLAGS])
 AC_SUBST([AM_CXXFLAGS])
 AC_SUBST([AM_CPPFLAGS])
 AC_SUBST([AM_JNIFLAGS])
+AC_SUBST([AM_JAVACFLAGS])
 AC_SUBST([AM_LDFLAGS])
 
 ## Make sure flags are initialized.
@@ -125,12 +128,15 @@ AM_CFLAGS="${AM_CFLAGS}"
 AM_CXXFLAGS="${AM_CXXFLAGS}"
 AM_FCFLAGS="${AM_FCFLAGS}"
 AM_CPPFLAGS="${AM_CPPFLAGS}"
+AM_JNIFLAGS="${AM_JNIFLAGS}"
+AM_JAVACFLAGS="${AM_JAVACFLAGS}"
 AM_LDFLAGS="${AM_LDFLAGS}"
 CFLAGS="${CFLAGS}"
 CXXFLAGS="${CXXFLAGS}"
 FCFLAGS="${FCFLAGS}"
 CPPFLAGS="${CPPFLAGS}"
 JNIFLAGS="${JNIFLAGS}"
+JAVACFLAGS="${JAVACFLAGS}"
 LDFLAGS="${LDFLAGS}"
 
 ## Configure may need to alter any of the *FLAGS variables in order for
@@ -139,6 +145,7 @@ LDFLAGS="${LDFLAGS}"
 saved_user_CFLAGS="$CFLAGS"
 saved_user_CXXFLAGS="$CXXFLAGS"
 saved_user_FCFLAGS="$FCFLAGS"
+saved_user_JAVACFLAGS="$JAVACFLAGS"
 saved_user_LDFLAGS="$LDFLAGS"
 saved_user_CPPFLAGS="$CPPFLAGS"
 
@@ -163,7 +170,7 @@ AC_MSG_RESULT([done])
 ## FC: Fortran compiler.
 ## HDF_CXX: whether C++ is enabled. Default no.
 ## CXX: C++ compiler.
-## HDF_JNI: whether the Java JNI interface is enabled. Default no.
+## HDF_JAVA: whether the Java JNI interface is enabled. Default no.
 ## HDF5_HL: whether high-level library is enabled. Default is yes.
 ## INSTRUMENT: whether INSTRUMENT is enabled. No default set here.
 ## CODESTACK: whether CODESTACK is enabled. Default no.
@@ -183,7 +190,7 @@ AC_SUBST([HDF_FORTRAN]) HDF_FORTRAN=no
 AC_SUBST([FC]) HDF_FORTRAN=no
 AC_SUBST([HDF_CXX]) HDF_CXX=no
 AC_SUBST([CXX]) HDF_CXX=no
-AC_SUBST([HDF_JNI]) HDF_JNI=no
+AC_SUBST([HDF_JAVA]) HDF_JAVA=no
 AC_SUBST([HDF5_HL]) HDF5_HL=yes
 AC_SUBST([INSTRUMENT])
 AC_SUBST([CODESTACK]) CODESTACK=no
@@ -313,6 +320,7 @@ done
 ## reset this value at the end of configure, to preserve the user's settings.
 CFLAGS="${AM_CFLAGS} ${CFLAGS}"
 FCFLAGS="${AM_FCFLAGS} ${FCFLAGS}"
+JAVACFLAGS="${AM_JAVACFLAGS} ${JAVACFLAGS}"
 CXXFLAGS="${AM_CXXFLAGS} ${CXXFLAGS}"
 CPPFLAGS="${AM_CPPFLAGS} ${CPPFLAGS}"
 LDFLAGS="${AM_LDFLAGS} ${LDFLAGS}"
@@ -663,13 +671,13 @@ AC_LANG_POP(C++)
 AC_SUBST([H5_CLASSPATH]) H5_CLASSPATH=""
 AC_MSG_CHECKING([if Java JNI interface enabled])
 
-AC_ARG_ENABLE([jni],
-              [AS_HELP_STRING([--enable-jni],
+AC_ARG_ENABLE([java],
+              [AS_HELP_STRING([--enable-java],
                               [Compile the Java JNI interface [default=no]])],
-              [HDF_JNI=$enableval],
-              [HDF_JNI=no])
+              [HDF_JAVA=$enableval],
+              [HDF_JAVA=no])
 
-if test "X$HDF_JNI" = "Xyes"; then
+if test "X$HDF_JAVA" = "Xyes"; then
   echo "yes"
   if test "X$CLASSPATH" = "X"; then
     H5_CLASSPATH=".:$srcdir/java/lib"
@@ -955,6 +963,7 @@ case "X-$enable_production" in
     H5_CPPFLAGS="$H5_CPPFLAGS $PROD_CPPFLAGS"
     H5_CXXFLAGS="$H5_CXXFLAGS $PROD_CXXFLAGS"
     H5_FCFLAGS="$H5_FCFLAGS $PROD_FCFLAGS"
+    H5_JAVACFLAGS="$H5_JAVACFLAGS $PROD_JAVACFLAGS"
     ;;
   X-|X-no)
     enable_production="no"
@@ -964,6 +973,7 @@ case "X-$enable_production" in
     H5_CPPFLAGS="$H5_CPPFLAGS $DEBUG_CPPFLAGS"
     H5_CXXFLAGS="$H5_CXXFLAGS $DEBUG_CXXFLAGS"
     H5_FCFLAGS="$H5_FCFLAGS $DEBUG_FCFLAGS"
+    H5_JAVACFLAGS="$H5_JAVACFLAGS $DEBUG_JAVACFLAGS"
     ;;
   X-pg|X-profile)
     enable_production="profile"
@@ -973,6 +983,7 @@ case "X-$enable_production" in
     H5_CPPFLAGS="$H5_CPPFLAGS $PROFILE_CPPFLAGS"
     H5_CXXFLAGS="$H5_CXXFLAGS $PROFILE_CXXFLAGS"
     H5_FCFLAGS="$H5_FCFLAGS $PROFILE_FCFLAGS"
+    H5_JAVACFLAGS="$H5_JAVACFLAGS $PROFILE_JAVACFLAGS"
     ;;
   *)
     enable_production="user-defined"
@@ -1897,16 +1908,16 @@ AC_ARG_ENABLE([debug],
                                also specify a comma-separated list of
                                package names without the leading H5 or
                                the word no. The default is most packages
-			       if production is disabled; no if it is enabled.
+             if production is disabled; no if it is enabled.
                                ])],
               [DEBUG_PKG=$enableval])
 
 ## Default to no if producton is enabled
 if test "X-$DEBUG_PKG" = X- ; then
     if test "$enable_production" = yes ; then
-	DEBUG_PKG=no
+  DEBUG_PKG=no
     else
-	DEBUG_PKG=yes
+  DEBUG_PKG=yes
     fi
 fi
 
@@ -2154,11 +2165,11 @@ case "X-$enable_parallel" in
     ## Try link a simple MPI program.
     AC_MSG_CHECKING([whether a simple MPI-IO C program can be linked])
     AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <mpi.h>]],
-                   [[ MPI_Init(0, (void *)0); 
-		      MPI_File_open(0, (void *)0, 0, 0, (void *)0);]])], 
-		   [AC_MSG_RESULT([yes])],
-	  	   [AC_MSG_RESULT([no])
-		    AC_MSG_ERROR([unable to link a simple MPI-IO C program])])
+                   [[ MPI_Init(0, (void *)0);
+          MPI_File_open(0, (void *)0, 0, 0, (void *)0);]])],
+       [AC_MSG_RESULT([yes])],
+         [AC_MSG_RESULT([no])
+        AC_MSG_ERROR([unable to link a simple MPI-IO C program])])
 
     if test "X$HDF_FORTRAN" = "Xyes"; then
       PAC_PROG_FC_MPI_CHECK
@@ -2944,9 +2955,9 @@ esac
 AC_MSG_CHECKING([whether to have library information embedded in the executables])
 AC_ARG_ENABLE([embedded-libinfo],
     [AS_HELP_STRING([--enable-embedded-libinfo],
-	[Enable embedded library information [default=yes]])],
-	[enable_embedded_libinfo=$enableval],
-	[enable_embedded_libinfo=yes])
+  [Enable embedded library information [default=yes]])],
+  [enable_embedded_libinfo=$enableval],
+  [enable_embedded_libinfo=yes])
 
    if test "${enable_embedded_libinfo}" = "yes"; then
       AC_MSG_RESULT([yes])
@@ -3011,6 +3022,7 @@ CFLAGS="$saved_user_CFLAGS"
 FCFLAGS="$saved_user_FCFLAGS"
 CXXFLAGS="$saved_user_CXXFLAGS"
 CPPFLAGS="$saved_user_CPPFLAGS"
+JAVACFLAGS="$saved_user_JAVACFLAGS"
 LDFLAGS="$saved_user_LDFLAGS"
 
 
@@ -3021,7 +3033,7 @@ LDFLAGS="$saved_user_LDFLAGS"
 AM_CONDITIONAL([BUILD_CXX_CONDITIONAL], [test "X$HDF_CXX" = "Xyes"])
 AM_CONDITIONAL([BUILD_PARALLEL_CONDITIONAL], [test -n "$TESTPARALLEL"])
 AM_CONDITIONAL([BUILD_FORTRAN_CONDITIONAL], [test "X$HDF_FORTRAN" = "Xyes"])
-AM_CONDITIONAL([BUILD_JNI_CONDITIONAL], [test "X$HDF_JNI" = "Xyes"])
+AM_CONDITIONAL([BUILD_JNI_CONDITIONAL], [test "X$HDF_JAVA" = "Xyes"])
 AM_CONDITIONAL([BUILD_HDF5_HL_CONDITIONAL], [test "X$HDF5_HL" = "Xyes"])
 
 
@@ -3163,8 +3175,9 @@ AC_CONFIG_FILES([src/libhdf5.settings
                  fortran/examples/run-fortran-ex.sh
                  fortran/examples/testh5fc.sh
                  java/Makefile
-                 java/jni/Makefile
-                 java/hdf/Makefile
+                 java/src/Makefile
+                 java/src/jni/Makefile
+                 java/src/hdf/Makefile
                  java/test/Makefile
                  java/test/junit.sh
                  java/examples/Makefile
