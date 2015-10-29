@@ -1,3 +1,18 @@
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * Copyright by The HDF Group.                                               *
+ * Copyright by the Board of Trustees of the University of Illinois.         *
+ * All rights reserved.                                                      *
+ *                                                                           *
+ * This file is part of HDF5.  The full HDF5 copyright notice, including     *
+ * terms governing use, modification, and redistribution, is contained in    *
+ * the files COPYING and Copyright.html.  COPYING can be found at the root   *
+ * of the source code distribution tree; Copyright.html can be found at the  *
+ * root level of an installed copy of the electronic HDF5 document set and   *
+ * is linked from the top-level documents page.  It can also be found at     *
+ * http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
+ * access to either file, you may request a copy from help@hdfgroup.org.     *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 package test;
 
 import static org.junit.Assert.assertFalse;
@@ -27,7 +42,7 @@ public class TestH5T {
         File file = null;
         try {
             file = new File(filename);
-        } 
+        }
         catch (Throwable err) {}
 
         if (file.exists()) {
@@ -53,18 +68,18 @@ public class TestH5T {
     public void deleteH5file() throws HDF5LibraryException {
         if (H5strdid >= 0)
             try {H5.H5Tclose(H5strdid);} catch (Exception ex) {}
-        if (H5fid > 0) 
+        if (H5fid > 0)
             try {H5.H5Fclose(H5fid);} catch (Exception ex) {}
 
         _deleteFile(H5_FILE);
         System.out.println();
     }
-    
+
     @Test(expected = HDF5LibraryException.class)
     public void testH5Tequal_type_error() throws Throwable {
         H5.H5Tequal(HDF5Constants.H5T_INTEGER, H5strdid);
     }
-    
+
     @Test
     public void testH5Tget_class() {
         try {
@@ -78,11 +93,11 @@ public class TestH5T {
             fail("testH5Tget_class: " + err);
         }
     }
-    
+
     @Test
     public void testH5Tget_size() {
-        long dt_size = -1; 
-        
+        long dt_size = -1;
+
         try {
             dt_size = H5.H5Tget_size(H5strdid);
         }
@@ -92,11 +107,11 @@ public class TestH5T {
         }
         assertTrue("testH5Tget_size", dt_size > 0);
     }
-    
+
     @Test
     public void testH5Tset_size() {
-        long dt_size = 5; 
-        
+        long dt_size = 5;
+
         try {
             H5.H5Tset_size(H5strdid, dt_size);
         }
@@ -113,7 +128,7 @@ public class TestH5T {
         }
         assertTrue("testH5Tget_size", dt_size == 5);
     }
-    
+
     @Test
     public void testH5Tarray_create() {
        long filetype_id = -1;
@@ -132,7 +147,7 @@ public class TestH5T {
                try {H5.H5Tclose(filetype_id);} catch (Exception ex) {}
        }
     }
-    
+
     @Test
     public void testH5Tget_array_ndims() {
        long filetype_id = -1;
@@ -160,7 +175,7 @@ public class TestH5T {
                try {H5.H5Tclose(filetype_id);} catch (Exception ex) {}
        }
     }
-    
+
     @Test
     public void testH5Tget_array_dims() {
        long filetype_id = -1;
@@ -191,7 +206,7 @@ public class TestH5T {
                try {H5.H5Tclose(filetype_id);} catch (Exception ex) {}
        }
     }
-    
+
     @Test
     public void testH5Tenum_functions() {
         long       filetype_id =-1;
@@ -236,15 +251,15 @@ public class TestH5T {
             // Query member number and member index by member name, for enumeration type
             assertTrue("Can't get member number", H5.H5Tget_nmembers(filetype_id) == 5);
             assertTrue("Can't get correct index number", H5.H5Tget_member_index(filetype_id, "ORANGE") == 3);
-    
+
             // Query member value by member name, for enumeration type
             H5.H5Tenum_valueof (filetype_id, "ORANGE", enum_val);
             assertTrue("Incorrect value for enum member", enum_val[0]==13);
-    
+
             // Query member value by member index, for enumeration type
             H5.H5Tget_member_value (filetype_id, 2, enum_val);
             assertTrue("Incorrect value for enum member", enum_val[0]==12);
-    
+
             // Query member name by member value, for enumeration type
             enum_val[0] = 14;
             enum_name = H5.H5Tenum_nameof(filetype_id, enum_val, 16);
@@ -259,7 +274,7 @@ public class TestH5T {
                 try {H5.H5Tclose(filetype_id);} catch (Exception ex) {}
         }
     }
-    
+
     @Test
     public void testH5Tenum_create_functions() {
         long      filetype_id = -1;
@@ -299,7 +314,7 @@ public class TestH5T {
                 try {H5.H5Tclose(filetype_id);} catch (Exception ex) {}
         }
     }
-    
+
     @Test
     public void testH5Topaque_functions() {
         long       filetype_id = -1;
@@ -329,7 +344,7 @@ public class TestH5T {
                 try {H5.H5Tclose(filetype_id);} catch (Exception ex) {}
         }
     }
-    
+
     @Test
     public void testH5Tvlen_create() {
         long filetype_id = -1;
@@ -352,7 +367,7 @@ public class TestH5T {
                try {H5.H5Tclose(filetype_id);} catch (Exception ex) {}
        }
     }
-    
+
     @Test
     public void testH5Tis_variable_str() {
        long filetype_id = -1;
@@ -368,7 +383,7 @@ public class TestH5T {
            int vlclass = H5.H5Tget_class(filetype_id);
            assertTrue("testH5Tis_variable_str:H5Tget_class", vlclass == HDF5Constants.H5T_STRING);
            assertFalse("testH5Tvlen_create:H5Tget_class", vlclass == HDF5Constants.H5T_VLEN);
-           
+
            assertTrue("testH5Tis_variable_str:H5Tis_variable_str", H5.H5Tis_variable_str(filetype_id));
 
            // Verify that the class detects as a string
@@ -383,7 +398,7 @@ public class TestH5T {
                try {H5.H5Tclose(filetype_id);} catch (Exception ex) {}
        }
     }
-    
+
     @Test
     public void testH5Tcompound_functions() {
         long       filetype_id =-1;
@@ -415,21 +430,21 @@ public class TestH5T {
             assertTrue("Can't get correct class", H5.H5Tdetect_class(filetype_id, HDF5Constants.H5T_FLOAT));
             // Make certain that an incorrect class is not detected
             assertFalse("Can get incorrect class", H5.H5Tdetect_class(filetype_id, HDF5Constants.H5T_TIME));
-            
+
             // Query member name by member index
             String index_name = H5.H5Tget_member_name (filetype_id, 0);
             assertTrue("Incorrect name for member index", index_name.compareTo("Lon")==0);
-            
+
             // Query member offset by member no
             long index_offset = H5.H5Tget_member_offset (filetype_id, 1);
             assertTrue("Incorrect offset for member no", index_offset == 8);
-            
+
             // Query member type by member index
             long index_type = H5.H5Tget_member_type (filetype_id, 0);
             assertTrue("Incorrect type for member index", H5.H5Tequal(HDF5Constants.H5T_NATIVE_DOUBLE, index_type));
             if (index_type >= 0)
                 try {H5.H5Tclose(index_type);} catch (Exception ex) {}
-           
+
         }
         catch (Throwable err) {
             err.printStackTrace();

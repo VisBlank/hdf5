@@ -1,15 +1,17 @@
-/****************************************************************************
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Copyright by The HDF Group.                                               *
  * Copyright by the Board of Trustees of the University of Illinois.         *
  * All rights reserved.                                                      *
  *                                                                           *
- * This file is part of HDF Java Products. The full HDF Java copyright       *
- * notice, including terms governing use, modification, and redistribution,  *
- * is contained in the file, COPYING.  COPYING can be found at the root of   *
- * the source code distribution tree. You can also access it online  at      *
- * http://www.hdfgroup.org/products/licenses.html.  If you do not have       *
- * access to the file, you may request a copy from help@hdfgroup.org.        *
- ****************************************************************************/
+ * This file is part of HDF5.  The full HDF5 copyright notice, including     *
+ * terms governing use, modification, and redistribution, is contained in    *
+ * the files COPYING and Copyright.html.  COPYING can be found at the root   *
+ * of the source code distribution tree; Copyright.html can be found at the  *
+ * root level of an installed copy of the electronic HDF5 document set and   *
+ * is linked from the top-level documents page.  It can also be found at     *
+ * http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
+ * access to either file, you may request a copy from help@hdfgroup.org.     *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 package hdf.hdf5lib;
 
@@ -37,7 +39,7 @@ public class HDFNativeData {
 
     /**
      * Convert an array of bytes into an array of ints
-     * 
+     *
      * @param data
      *            The input array of bytes
      * @return an array of int
@@ -46,7 +48,7 @@ public class HDFNativeData {
 
     /**
      * Convert an array of bytes into an array of floats
-     * 
+     *
      * @param data
      *            The input array of bytes
      * @return an array of float
@@ -55,7 +57,7 @@ public class HDFNativeData {
 
     /**
      * Convert an array of bytes into an array of shorts
-     * 
+     *
      * @param data
      *            The input array of bytes
      * @return an array of short
@@ -64,7 +66,7 @@ public class HDFNativeData {
 
     /**
      * Convert an array of bytes into an array of long
-     * 
+     *
      * @param data
      *            The input array of bytes
      * @return an array of long
@@ -77,7 +79,7 @@ public class HDFNativeData {
 
     /**
      * Convert an array of bytes into an array of double
-     * 
+     *
      * @param data
      *            The input array of bytes
      * @return an array of double
@@ -86,7 +88,7 @@ public class HDFNativeData {
 
     /**
      * Convert a range from an array of bytes into an array of int
-     * 
+     *
      * @param start
      *            The position in the input array of bytes to start
      * @param len
@@ -100,7 +102,7 @@ public class HDFNativeData {
 
     /**
      * Convert 4 bytes from an array of bytes into a single int
-     * 
+     *
      * @param start
      *            The position in the input array of bytes to start
      * @param data
@@ -115,7 +117,7 @@ public class HDFNativeData {
 
     /**
      * Convert a range from an array of bytes into an array of short
-     * 
+     *
      * @param start
      *            The position in the input array of bytes to start
      * @param len
@@ -129,7 +131,7 @@ public class HDFNativeData {
 
     /**
      * Convert 2 bytes from an array of bytes into a single short
-     * 
+     *
      * @param start
      *            The position in the input array of bytes to start
      * @param data
@@ -144,7 +146,7 @@ public class HDFNativeData {
 
     /**
      * Convert a range from an array of bytes into an array of float
-     * 
+     *
      * @param start
      *            The position in the input array of bytes to start
      * @param len
@@ -158,7 +160,7 @@ public class HDFNativeData {
 
     /**
      * Convert 4 bytes from an array of bytes into a single float
-     * 
+     *
      * @param start
      *            The position in the input array of bytes to start
      * @param data
@@ -173,7 +175,7 @@ public class HDFNativeData {
 
     /**
      * Convert a range from an array of bytes into an array of long
-     * 
+     *
      * @param start
      *            The position in the input array of bytes to start
      * @param len
@@ -187,7 +189,7 @@ public class HDFNativeData {
 
     /**
      * Convert 8 bytes from an array of bytes into a single long
-     * 
+     *
      * @param start
      *            The position in the input array of bytes to start
      * @param data
@@ -202,7 +204,7 @@ public class HDFNativeData {
 
     /**
      * Convert a range from an array of bytes into an array of double
-     * 
+     *
      * @param start
      *            The position in the input array of bytes to start
      * @param len
@@ -216,7 +218,7 @@ public class HDFNativeData {
 
     /**
      * Convert 8 bytes from an array of bytes into a single double
-     * 
+     *
      * @param start
      *            The position in the input array of bytes to start
      * @param data
@@ -231,7 +233,7 @@ public class HDFNativeData {
 
     /**
      * Convert a range from an array of int into an array of bytes.
-     * 
+     *
      * @param start
      *            The position in the input array of int to start
      * @param len
@@ -245,7 +247,7 @@ public class HDFNativeData {
 
     /**
      * Convert a range from an array of short into an array of bytes.
-     * 
+     *
      * @param start
      *            The position in the input array of int to start
      * @param len
@@ -259,7 +261,7 @@ public class HDFNativeData {
 
     /**
      * Convert a range from an array of float into an array of bytes.
-     * 
+     *
      * @param start
      *            The position in the input array of int to start
      * @param len
@@ -273,7 +275,7 @@ public class HDFNativeData {
 
     /**
      * Convert a range from an array of long into an array of bytes.
-     * 
+     *
      * @param start
      *            The position in the input array of int to start
      * @param len
@@ -287,7 +289,7 @@ public class HDFNativeData {
 
     /**
      * Convert a range from an array of double into an array of bytes.
-     * 
+     *
      * @param start
      *            The position in the input array of double to start
      * @param len
@@ -303,7 +305,7 @@ public class HDFNativeData {
      * Convert a single byte into an array of one byte.
      * <p>
      * (This is a trivial method.)
-     * 
+     *
      * @param data
      *            The input byte
      * @return an array of bytes
@@ -314,7 +316,7 @@ public class HDFNativeData {
      * Convert a single Byte object into an array of one byte.
      * <p>
      * (This is an almost trivial method.)
-     * 
+     *
      * @param data
      *            The input Byte
      * @return an array of bytes
@@ -325,7 +327,7 @@ public class HDFNativeData {
 
     /**
      * Convert a single int into an array of 4 bytes.
-     * 
+     *
      * @param data
      *            The input int
      * @return an array of bytes
@@ -334,7 +336,7 @@ public class HDFNativeData {
 
     /**
      * Convert a single Integer object into an array of 4 bytes.
-     * 
+     *
      * @param data
      *            The input Integer
      * @return an array of bytes
@@ -345,7 +347,7 @@ public class HDFNativeData {
 
     /**
      * Convert a single short into an array of 2 bytes.
-     * 
+     *
      * @param data
      *            The input short
      * @return an array of bytes
@@ -354,7 +356,7 @@ public class HDFNativeData {
 
     /**
      * Convert a single Short object into an array of 2 bytes.
-     * 
+     *
      * @param data
      *            The input Short
      * @return an array of bytes
@@ -365,7 +367,7 @@ public class HDFNativeData {
 
     /**
      * Convert a single float into an array of 4 bytes.
-     * 
+     *
      * @param data
      *            The input float
      * @return an array of bytes
@@ -374,7 +376,7 @@ public class HDFNativeData {
 
     /**
      * Convert a single Float object into an array of 4 bytes.
-     * 
+     *
      * @param data
      *            The input Float
      * @return an array of bytes
@@ -385,7 +387,7 @@ public class HDFNativeData {
 
     /**
      * Convert a single long into an array of 8 bytes.
-     * 
+     *
      * @param data
      *            The input long
      * @return an array of bytes
@@ -394,7 +396,7 @@ public class HDFNativeData {
 
     /**
      * Convert a single Long object into an array of 8 bytes.
-     * 
+     *
      * @param data
      *            The input Long
      * @return an array of bytes
@@ -405,7 +407,7 @@ public class HDFNativeData {
 
     /**
      * Convert a single double into an array of 8 bytes.
-     * 
+     *
      * @param data
      *            The input double
      * @return an array of bytes
@@ -414,7 +416,7 @@ public class HDFNativeData {
 
     /**
      * Convert a single Double object into an array of 8 bytes.
-     * 
+     *
      * @param data
      *            The input Double
      * @return an array of bytes
@@ -425,7 +427,7 @@ public class HDFNativeData {
 
     /**
      * Create a Number object from an array of bytes.
-     * 
+     *
      * @param barray
      *            The bytes to be converted
      * @param obj

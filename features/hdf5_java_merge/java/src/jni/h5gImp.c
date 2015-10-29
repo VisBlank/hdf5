@@ -3,12 +3,14 @@
  * Copyright by the Board of Trustees of the University of Illinois.         *
  * All rights reserved.                                                      *
  *                                                                           *
- * This file is part of HDF Java Products. The full HDF Java copyright       *
- * notice, including terms governing use, modification, and redistribution,  *
- * is contained in the file, COPYING.  COPYING can be found at the root of   *
- * the source code distribution tree. You can also access it online  at      *
- * http://www.hdfgroup.org/products/licenses.html.  If you do not have       *
- * access to the file, you may request a copy from help@hdfgroup.org.        *
+ * This file is part of HDF5.  The full HDF5 copyright notice, including     *
+ * terms governing use, modification, and redistribution, is contained in    *
+ * the files COPYING and Copyright.html.  COPYING can be found at the root   *
+ * of the source code distribution tree; Copyright.html can be found at the  *
+ * root level of an installed copy of the electronic HDF5 document set and   *
+ * is linked from the top-level documents page.  It can also be found at     *
+ * http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
+ * access to either file, you may request a copy from help@hdfgroup.org.     *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 /*
@@ -1027,9 +1029,9 @@ herr_t obj_info_all(hid_t loc_id, const char *name, const H5L_info_t *info, void
         *(datainfo->objname+datainfo->count) = (char *) malloc(strlen(name)+1);
         strcpy(*(datainfo->objname+datainfo->count), name);
 
-		*(datainfo->fno+datainfo->count) = object_info.fileno;
-		*(datainfo->objno+datainfo->count) = (unsigned long)object_info.addr;
-		/*
+    *(datainfo->fno+datainfo->count) = object_info.fileno;
+    *(datainfo->objno+datainfo->count) = (unsigned long)object_info.addr;
+    /*
         if(info->type==H5L_TYPE_HARD)
             *(datainfo->objno+datainfo->count) = (unsigned long)info->u.address;
         else

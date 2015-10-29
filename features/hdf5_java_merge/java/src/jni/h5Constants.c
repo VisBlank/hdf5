@@ -3,12 +3,14 @@
  * Copyright by the Board of Trustees of the University of Illinois.         *
  * All rights reserved.                                                      *
  *                                                                           *
- * This file is part of HDF Java Products. The full HDF Java copyright       *
- * notice, including terms governing use, modification, and redistribution,  *
- * is contained in the file, COPYING.  COPYING can be found at the root of   *
- * the source code distribution tree. You can also access it online  at      *
- * http://www.hdfgroup.org/products/licenses.html.  If you do not have       *
- * access to the file, you may request a copy from help@hdfgroup.org.        *
+ * This file is part of HDF5.  The full HDF5 copyright notice, including     *
+ * terms governing use, modification, and redistribution, is contained in    *
+ * the files COPYING and Copyright.html.  COPYING can be found at the root   *
+ * of the source code distribution tree; Copyright.html can be found at the  *
+ * root level of an installed copy of the electronic HDF5 document set and   *
+ * is linked from the top-level documents page.  It can also be found at     *
+ * http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
+ * access to either file, you may request a copy from help@hdfgroup.org.     *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 /*
@@ -43,16 +45,16 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_HDF5Constants_H5_1ITER_1N(JNIEnv *env, j
 
 JNIEXPORT jint JNICALL Java_hdf_hdf5lib_HDF5Constants_H5AC_1CURR_1CACHE_1CONFIG_1VERSION(JNIEnv *env, jclass cls) { return H5AC__CURR_CACHE_CONFIG_VERSION; }
 JNIEXPORT jint JNICALL Java_hdf_hdf5lib_HDF5Constants_H5AC_1MAX_1TRACE_1FILE_1NAME_1LEN(JNIEnv *env, jclass cls) { return H5AC__MAX_TRACE_FILE_NAME_LEN; }
-JNIEXPORT jint JNICALL Java_hdf_hdf5lib_HDF5Constants_H5AC_1METADATA_1WRITE_1STRATEGY_1PROCESS_1ZERO_1ONLY(JNIEnv *env, jclass cls) { 
-#if (H5_VERS_RELEASE >= 6) 
-    return H5AC_METADATA_WRITE_STRATEGY__PROCESS_0_ONLY; 
+JNIEXPORT jint JNICALL Java_hdf_hdf5lib_HDF5Constants_H5AC_1METADATA_1WRITE_1STRATEGY_1PROCESS_1ZERO_1ONLY(JNIEnv *env, jclass cls) {
+#if (H5_VERS_RELEASE >= 6)
+    return H5AC_METADATA_WRITE_STRATEGY__PROCESS_0_ONLY;
 #else
     return 0;
 #endif
 }
 
 JNIEXPORT jint JNICALL Java_hdf_hdf5lib_HDF5Constants_H5AC_1METADATA_1WRITE_1STRATEGY_1DISTRIBUTED(JNIEnv *env, jclass cls) {
-#if (H5_VERS_RELEASE >= 6) 
+#if (H5_VERS_RELEASE >= 6)
     return H5AC_METADATA_WRITE_STRATEGY__DISTRIBUTED;
 #else
     return 0;
@@ -221,7 +223,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_HDF5Constants_H5F_1SCOPE_1LOCAL(JNIEnv *
 JNIEXPORT jint JNICALL Java_hdf_hdf5lib_HDF5Constants_H5F_1UNLIMITED(JNIEnv *env, jclass cls) { return (jint)H5F_UNLIMITED; }
 
 JNIEXPORT jint JNICALL Java_hdf_hdf5lib_HDF5Constants_H5FD_1CORE(JNIEnv *env, jclass cls) { return H5FD_CORE; }
-JNIEXPORT jint JNICALL Java_hdf_hdf5lib_HDF5Constants_H5FD_1DIRECT(JNIEnv *env, jclass cls) { 
+JNIEXPORT jint JNICALL Java_hdf_hdf5lib_HDF5Constants_H5FD_1DIRECT(JNIEnv *env, jclass cls) {
 #ifdef H5_HAVE_DIRECT
     return H5FD_DIRECT;
 #else
@@ -234,7 +236,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_HDF5Constants_H5FD_1MPIO(JNIEnv *env, jc
 JNIEXPORT jint JNICALL Java_hdf_hdf5lib_HDF5Constants_H5FD_1MULTI(JNIEnv *env, jclass cls) { return H5FD_MULTI; }
 JNIEXPORT jint JNICALL Java_hdf_hdf5lib_HDF5Constants_H5FD_1SEC2(JNIEnv *env, jclass cls) { return H5FD_SEC2; }
 JNIEXPORT jint JNICALL Java_hdf_hdf5lib_HDF5Constants_H5FD_1STDIO(JNIEnv *env, jclass cls) { return H5FD_STDIO; }
-JNIEXPORT jint JNICALL Java_hdf_hdf5lib_HDF5Constants_H5FD_1WINDOWS(JNIEnv *env, jclass cls) { 
+JNIEXPORT jint JNICALL Java_hdf_hdf5lib_HDF5Constants_H5FD_1WINDOWS(JNIEnv *env, jclass cls) {
 #ifdef H5_HAVE_WINDOWS
     return H5FD_DIRECT;
 #else
@@ -254,7 +256,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_HDF5Constants_H5FD_1LOG_1NUM_1WRITE(JNIE
 JNIEXPORT jint JNICALL Java_hdf_hdf5lib_HDF5Constants_H5FD_1LOG_1NUM_1SEEK(JNIEnv *env, jclass cls) { return H5FD_LOG_NUM_SEEK; }
 JNIEXPORT jint JNICALL Java_hdf_hdf5lib_HDF5Constants_H5FD_1LOG_1NUM_1TRUNCATE(JNIEnv *env, jclass cls) {
 #if (H5_VERS_RELEASE > 6) /* H5_VERSION_GE(1,8,7) */
-    return H5FD_LOG_NUM_TRUNCATE; 
+    return H5FD_LOG_NUM_TRUNCATE;
 #else
     return 0;
 #endif
@@ -263,7 +265,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_HDF5Constants_H5FD_1LOG_1NUM_1IO(JNIEnv 
 JNIEXPORT jint JNICALL Java_hdf_hdf5lib_HDF5Constants_H5FD_1LOG_1TIME_1OPEN(JNIEnv *env, jclass cls) { return H5FD_LOG_TIME_OPEN; }
 JNIEXPORT jint JNICALL Java_hdf_hdf5lib_HDF5Constants_H5FD_1LOG_1TIME_1STAT(JNIEnv *env, jclass cls) {
 #if (H5_VERS_RELEASE > 6) /* H5_VERSION_GE(1,8,7) */
-    return H5FD_LOG_TIME_STAT; 
+    return H5FD_LOG_TIME_STAT;
 #else
     return 0;
 #endif

@@ -1,3 +1,18 @@
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * Copyright by The HDF Group.                                               *
+ * Copyright by the Board of Trustees of the University of Illinois.         *
+ * All rights reserved.                                                      *
+ *                                                                           *
+ * This file is part of HDF5.  The full HDF5 copyright notice, including     *
+ * terms governing use, modification, and redistribution, is contained in    *
+ * the files COPYING and Copyright.html.  COPYING can be found at the root   *
+ * of the source code distribution tree; Copyright.html can be found at the  *
+ * root level of an installed copy of the electronic HDF5 document set and   *
+ * is linked from the top-level documents page.  It can also be found at     *
+ * http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
+ * access to either file, you may request a copy from help@hdfgroup.org.     *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 package test;
 
 import static org.junit.Assert.assertFalse;
@@ -24,7 +39,7 @@ public class TestH5Tbasic {
     public void nextTestName() {
         System.out.println();
     }
-    
+
     @Test
     public void testH5Tcopy() {
         long H5strdid = -1;
@@ -41,7 +56,7 @@ public class TestH5Tbasic {
                 try {H5.H5Tclose(H5strdid);} catch (Exception ex) {}
         }
     }
-    
+
     @Test
     public void testH5Tequal() {
         long H5strdid = -1;
@@ -79,7 +94,7 @@ public class TestH5Tbasic {
                 try {H5.H5Tclose(H5strdid);} catch (Exception ex) {}
         }
     }
-    
+
     @Test
     public void testH5Tconvert() {
         String[] strs = {"a1234","b1234"};
@@ -89,17 +104,17 @@ public class TestH5Tbasic {
         long dstId = -1;
         int dimSize = strs.length;
         byte[]   buf = new byte[dimSize*dstLen];
-        
+
         for (int i=0; i<dimSize; i++)
             System.arraycopy(strs[i].getBytes(), 0, buf, i*srcLen, 5);
-   
+
         try {
             srcId = H5.H5Tcopy(HDF5Constants.H5T_C_S1);
             H5.H5Tset_size(srcId, (long)srcLen);
-     
+
             dstId = H5.H5Tcopy(HDF5Constants.H5T_C_S1);
             H5.H5Tset_size(dstId, (long)dstLen);
-     
+
             H5.H5Tconvert(srcId, dstId, dimSize, buf, null, HDF5Constants.H5P_DEFAULT);
         }
         catch (Throwable err) {
@@ -110,12 +125,12 @@ public class TestH5Tbasic {
             try {H5.H5Tclose(srcId);} catch (Exception ex) {}
             try {H5.H5Tclose(dstId);} catch (Exception ex) {}
         }
-        
+
         for (int i=0; i<strs.length; i++) {
             assertTrue((new String(buf, i*dstLen, dstLen)).startsWith(strs[i]));
         }
     }
-    
+
     @Test
     public void testH5Torder_size() {
         long H5strdid = -1;

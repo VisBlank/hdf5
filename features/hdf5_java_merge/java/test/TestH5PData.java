@@ -1,3 +1,18 @@
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * Copyright by The HDF Group.                                               *
+ * Copyright by the Board of Trustees of the University of Illinois.         *
+ * All rights reserved.                                                      *
+ *                                                                           *
+ * This file is part of HDF5.  The full HDF5 copyright notice, including     *
+ * terms governing use, modification, and redistribution, is contained in    *
+ * the files COPYING and Copyright.html.  COPYING can be found at the root   *
+ * of the source code distribution tree; Copyright.html can be found at the  *
+ * root level of an installed copy of the electronic HDF5 document set and   *
+ * is linked from the top-level documents page.  It can also be found at     *
+ * http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
+ * access to either file, you may request a copy from help@hdfgroup.org.     *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 package test;
 
 import static org.junit.Assert.assertTrue;
@@ -20,7 +35,7 @@ import org.junit.rules.TestName;
 
 public class TestH5PData {
     @Rule public TestName testname = new TestName();
-    
+
     private static final String H5_FILE = "test.h5";
     private static final int DIM_X = 12;
     private static final int DIM_Y = 18;
@@ -57,7 +72,7 @@ public class TestH5PData {
         try {
             did = H5.H5Dcreate(fid, name, HDF5Constants.H5T_NATIVE_FLOAT, dsid,
                     HDF5Constants.H5P_DEFAULT, HDF5Constants.H5P_DEFAULT, dapl);
-        } 
+        }
         catch (Throwable err) {
             err.printStackTrace();
             fail("H5.H5Dcreate: " + err);
@@ -94,20 +109,20 @@ public class TestH5PData {
 
     @After
     public void deleteH5file() throws HDF5LibraryException {
-        if (H5dsid > 0) 
+        if (H5dsid > 0)
             try {H5.H5Sclose(H5dsid);} catch (Exception ex) {}
-        if (H5did > 0) 
-            try {H5.H5Dclose(H5did);} catch (Exception ex) {}       
-        if (H5fid > 0) 
+        if (H5did > 0)
+            try {H5.H5Dclose(H5did);} catch (Exception ex) {}
+        if (H5fid > 0)
             try {H5.H5Fclose(H5fid);} catch (Exception ex) {}
- 
+
         _deleteFile(H5_FILE);
-        
+
         if (plist_id > 0)
             try {H5.H5Pclose(plist_id);} catch (Exception ex) {}
         System.out.println();
     }
-    
+
     @Test
     public void testH5Pdata_transform() {
         String f_to_c = "(5/9.0)*(x-32)";
@@ -116,12 +131,12 @@ public class TestH5PData {
         NumberFormat formatter = new DecimalFormat("#0.000");
 
         try {
-            H5.H5Pset_data_transform(plist_id, f_to_c);  
+            H5.H5Pset_data_transform(plist_id, f_to_c);
             H5.H5Dwrite(H5did, HDF5Constants.H5T_NATIVE_DOUBLE, HDF5Constants.H5S_ALL, HDF5Constants.H5S_ALL,
                     plist_id, windchillF);
             H5.H5Dread(H5did, HDF5Constants.H5T_NATIVE_DOUBLE, HDF5Constants.H5S_ALL, HDF5Constants.H5S_ALL,
                     HDF5Constants.H5P_DEFAULT, windchillFread);
-        } 
+        }
         catch (Throwable err) {
             err.printStackTrace();
             fail("H5Pdata_transform: " + err);
@@ -134,17 +149,17 @@ public class TestH5PData {
                 assertTrue("H5Pdata_transform: <"+row+","+col+">"+Fread+"="+Cstr, Fread.compareTo(Cstr)==0);
             }
     }
-    
+
     @Test
     public void testH5P_buffer() {
         long default_size = 0;
         long size = 0;
 
         try {
-            default_size = H5.H5Pget_buffer_size(plist_id);  
-            H5.H5Pset_buffer_size(plist_id, DIM_X*DIM_Y);  
-            size = H5.H5Pget_buffer_size(plist_id);  
-        } 
+            default_size = H5.H5Pget_buffer_size(plist_id);
+            H5.H5Pset_buffer_size(plist_id, DIM_X*DIM_Y);
+            size = H5.H5Pget_buffer_size(plist_id);
+        }
         catch (Throwable err) {
             err.printStackTrace();
             fail("H5P_buffer: " + err);

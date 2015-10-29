@@ -3,12 +3,14 @@
  * Copyright by the Board of Trustees of the University of Illinois.         *
  * All rights reserved.                                                      *
  *                                                                           *
- * This file is part of HDF Java Products. The full HDF Java copyright       *
- * notice, including terms governing use, modification, and redistribution,  *
- * is contained in the file, COPYING.  COPYING can be found at the root of   *
- * the source code distribution tree. You can also access it online  at      *
- * http://www.hdfgroup.org/products/licenses.html.  If you do not have       *
- * access to the file, you may request a copy from help@hdfgroup.org.        *
+ * This file is part of HDF5.  The full HDF5 copyright notice, including     *
+ * terms governing use, modification, and redistribution, is contained in    *
+ * the files COPYING and Copyright.html.  COPYING can be found at the root   *
+ * of the source code distribution tree; Copyright.html can be found at the  *
+ * root level of an installed copy of the electronic HDF5 document set and   *
+ * is linked from the top-level documents page.  It can also be found at     *
+ * http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
+ * access to either file, you may request a copy from help@hdfgroup.org.     *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 /*
@@ -52,10 +54,10 @@ extern "C" {
 
 #ifdef __cplusplus
   #define CBENVPTR (cbenv)
-  #define CBENVPAR 
+  #define CBENVPAR
   #define JVMPTR (jvm)
-  #define JVMPAR 
-  #define JVMPAR2 
+  #define JVMPAR
+  #define JVMPAR2
 #else
   #define CBENVPTR (*cbenv)
   #define CBENVPAR cbenv,
@@ -1685,13 +1687,13 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Dread_1reg_1ref_1data (JNIEnv *env,
         if (region_obj >= 0) {
             region = H5Rget_region(did, H5R_DATASET_REGION, ref_data[i]);
             if (region >= 0) {
-				region_type = H5Sget_select_type(region);
-				if(region_type==H5S_SEL_POINTS) {
-					h5str_dump_region_points_data(&h5str, region, region_obj);
-				}
-				else {
-					h5str_dump_region_blocks_data(&h5str, region, region_obj);
-				}
+        region_type = H5Sget_select_type(region);
+        if(region_type==H5S_SEL_POINTS) {
+          h5str_dump_region_points_data(&h5str, region, region_obj);
+        }
+        else {
+          h5str_dump_region_blocks_data(&h5str, region, region_obj);
+        }
 
                 H5Sclose(region);
             }
@@ -1876,7 +1878,7 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Dfill
     jbyte    *buffP;
     jboolean  isCopy1;
     jboolean  isCopy2;
-    
+
     if(fill) {
         fillP = ENVPTR->GetByteArrayElements(ENVPAR fill, &isCopy1);
         if (fillP == NULL) {
@@ -1886,7 +1888,7 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Dfill
     }
     else
         fillP = NULL;
-    
+
     if (buf == NULL) {
         h5nullArgument(env, "H5Dfill:  buf is NULL");
         return;
@@ -1897,7 +1899,7 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Dfill
         h5JNIFatalError(env, "H5Dfill:  buf not pinned");
         return;
     }
-    
+
     status = H5Dfill((const void*)fillP, (hid_t)fill_type_id, (void*)buffP, (hid_t)buf_type_id, (hid_t)space_id);
     if (status < 0) {
         ENVPTR->ReleaseByteArrayElements(ENVPAR buf, buffP, JNI_ABORT);
@@ -1907,7 +1909,7 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Dfill
         h5libraryError(env);
         return;
     }
-    
+
     if (isCopy2 == JNI_TRUE) {
         ENVPTR->ReleaseByteArrayElements(ENVPAR buf, buffP, 0);
     }
@@ -1986,7 +1988,7 @@ herr_t H5D_iterate_cb(void* elem, hid_t elem_id, unsigned ndim, const hsize_t *p
         JVMPTR->DetachCurrentThread(JVMPAR);
         return -1;
     }
-    
+
     if (elem == NULL) {
         JVMPTR->DetachCurrentThread(JVMPAR);
         return -1;
@@ -2003,7 +2005,7 @@ herr_t H5D_iterate_cb(void* elem, hid_t elem_id, unsigned ndim, const hsize_t *p
         return -1;
     }
     CBENVPTR->SetByteArrayRegion(CBENVPAR elemArray, 0, size, (jbyte *)elem);
-    
+
     pointArray = CBENVPTR->NewLongArray(CBENVPAR 2);
     if (pointArray == NULL) {
         JVMPTR->DetachCurrentThread(JVMPAR);
@@ -2031,7 +2033,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Diterate
     jboolean      isCopy;
     jbyte        *buffP;
     herr_t        status = -1;
-    
+
     ENVPTR->GetJavaVM(ENVPAR &jvm);
     visit_callback = callback_op;
 
@@ -2053,19 +2055,19 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Diterate
         h5JNIFatalError(env, "H5Diterate:  buf not pinned");
         return -1;
     }
-    
+
     status = H5Diterate((void*)buffP, (hid_t)buf_type, (hid_t)space, (H5D_operator_t)H5D_iterate_cb, (void*)op_data);
-    
+
     if (status < 0) {
        ENVPTR->ReleaseByteArrayElements(ENVPAR buf, buffP, JNI_ABORT);
        h5libraryError(env);
        return status;
     }
-    
+
     if (isCopy == JNI_TRUE) {
         ENVPTR->ReleaseByteArrayElements(ENVPAR buf, buffP, 0);
     }
-    
+
     return status;
 }
 

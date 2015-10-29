@@ -1,3 +1,18 @@
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * Copyright by The HDF Group.                                               *
+ * Copyright by the Board of Trustees of the University of Illinois.         *
+ * All rights reserved.                                                      *
+ *                                                                           *
+ * This file is part of HDF5.  The full HDF5 copyright notice, including     *
+ * terms governing use, modification, and redistribution, is contained in    *
+ * the files COPYING and Copyright.html.  COPYING can be found at the root   *
+ * of the source code distribution tree; Copyright.html can be found at the  *
+ * root level of an installed copy of the electronic HDF5 document set and   *
+ * is linked from the top-level documents page.  It can also be found at     *
+ * http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
+ * access to either file, you may request a copy from help@hdfgroup.org.     *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 package test;
 
 import static org.junit.Assert.assertEquals;
@@ -22,7 +37,7 @@ import org.junit.rules.TestName;
 
 public class TestH5Pfapl {
     @Rule public TestName testname = new TestName();
-    
+
     private static final String H5_FILE = "test.h5";
     private static final String H5_LOG_FILE = "test.log";
     private static final String H5_FAMILY_FILE = "test%05d";
@@ -63,19 +78,19 @@ public class TestH5Pfapl {
         File file = null;
         try {
             file = new File(filename);
-        } 
+        }
         catch (Throwable err) {}
 
         if (file.exists()) {
             try {file.delete();} catch (SecurityException e) {}
         }
     }
-    
+
     private final void _deleteLogFile() {
         File file = null;
         try {
             file = new File(H5_LOG_FILE);
-        } 
+        }
         catch (Throwable err) {}
 
         if (file.exists()) {
@@ -89,7 +104,7 @@ public class TestH5Pfapl {
             java.text.DecimalFormat myFormat = new java.text.DecimalFormat("00000");
             try {
                 file = new File("test"+myFormat.format(new Integer(indx))+".h5");
-            } 
+            }
             catch (Throwable err) {}
 
             if (file.exists()) {
@@ -105,7 +120,7 @@ public class TestH5Pfapl {
         for(int indx = 1;indx<7;indx++) {
             try {
                 file = new File(H5_MULTI_FILE+"-"+MULTI_LETTERS[indx]+".h5");
-            } 
+            }
             catch (Throwable err) {}
 
             if (file.exists()) {
@@ -119,7 +134,7 @@ public class TestH5Pfapl {
         try {
             did = H5.H5Dcreate(fid, name, HDF5Constants.H5T_STD_I32BE, dsid,
                     HDF5Constants.H5P_DEFAULT, HDF5Constants.H5P_DEFAULT, dapl);
-        } 
+        }
         catch (Throwable err) {
             err.printStackTrace();
             fail("H5.H5Dcreate: " + err);
@@ -134,7 +149,7 @@ public class TestH5Pfapl {
             H5Fdsid = H5.H5Screate_simple(2, H5Fdims, null);
             H5Fdid = H5.H5Dcreate(H5fid, "dsfloat", HDF5Constants.H5T_NATIVE_FLOAT, H5Fdsid,
                     HDF5Constants.H5P_DEFAULT, HDF5Constants.H5P_DEFAULT, HDF5Constants.H5P_DEFAULT);
-        } 
+        }
         catch (Throwable err) {
             err.printStackTrace();
             fail("H5.H5Dcreate: " + err);
@@ -294,25 +309,25 @@ public class TestH5Pfapl {
             try {H5.H5Pclose(plist_id);} catch (Exception ex) {}
         if (btplist_id > 0)
             try {H5.H5Pclose(btplist_id);} catch (Exception ex) {}
-        
-        if (H5Fdsid > 0) 
+
+        if (H5Fdsid > 0)
             try {H5.H5Sclose(H5Fdsid);} catch (Exception ex) {}
-        if (H5Fdid > 0) 
+        if (H5Fdid > 0)
             try {H5.H5Dclose(H5Fdid);} catch (Exception ex) {}
-        if (H5dsid > 0) 
+        if (H5dsid > 0)
             try {H5.H5Sclose(H5dsid);} catch (Exception ex) {}
-        if (H5did > 0) 
+        if (H5did > 0)
             try {H5.H5Dclose(H5did);} catch (Exception ex) {}
-        if (H5fid > 0) 
+        if (H5fid > 0)
             try {H5.H5Fclose(H5fid);} catch (Exception ex) {}
         System.out.println();
     }
-    
+
     @Test
     public void testH5Pget_libver_bounds() {
         int ret_val = -1;
         int[] libver = new int[2];
-        
+
         try {
             ret_val = H5.H5Pget_libver_bounds(fapl_id, libver);
         }
@@ -326,10 +341,10 @@ public class TestH5Pfapl {
         // Check the Latest Version if the library
         assertEquals(HDF5Constants.H5F_LIBVER_LATEST, libver[1]);
     }
-       
+
     @Test
     public void testH5Pset_libver_bounds() {
-        
+
         int ret_val = -1;
         int low = HDF5Constants.H5F_LIBVER_EARLIEST;
         int high = HDF5Constants.H5F_LIBVER_LATEST;
@@ -367,7 +382,7 @@ public class TestH5Pfapl {
         }
         assertTrue("H5Pset_elink_fapl", ret_val >= 0);
     }
-    
+
     @Test
     public void testH5Pget_elink_fapl() {
         long ret_val_id = -1;
@@ -385,7 +400,7 @@ public class TestH5Pfapl {
                 try {H5.H5Pclose(ret_val_id);} catch (Exception ex) {}
         }
     }
-    
+
     @Test
     public void testH5P_elink_fapl() {
         long ret_val_id = -1;
@@ -403,7 +418,7 @@ public class TestH5Pfapl {
                 try {H5.H5Pclose(ret_val_id);} catch (Exception ex) {}
         }
     }
-    
+
     @Test
     public void testH5P_elink_file_cache_size() {
         long elink_fapl_id = -1;
@@ -438,7 +453,7 @@ public class TestH5Pfapl {
                 try {H5.H5Pclose(elink_fapl_id);} catch (Exception ex) {}
         }
     }
-    
+
     @Test
     public void testH5P_btree_ratios() {
         double[] left = {0.1};
@@ -454,7 +469,7 @@ public class TestH5Pfapl {
             fail("H5P_btree_ratios: " + err);
         }
     }
-    
+
     @Test
     public void testH5P_edc_check() {
         int ret_val_id = -1;
@@ -470,7 +485,7 @@ public class TestH5Pfapl {
             fail("H5P_edc_check: " + err);
         }
     }
-    
+
     @Test
     public void testH5P_fclose_degree() {
         int ret_val_id = -1;
@@ -501,7 +516,7 @@ public class TestH5Pfapl {
             fail("H5P_fclose_degree: H5F_CLOSE_SEMI " + err);
         }
     }
-    
+
     @Test
     public void testH5P_alignment() {
         long[] align = {0,0};
@@ -527,7 +542,7 @@ public class TestH5Pfapl {
             fail("H5P_alignment: " + err);
         }
     }
-    
+
     @Test
     public void testH5P_meta_block_size() {
         long meta_size = 0;
@@ -550,7 +565,7 @@ public class TestH5Pfapl {
             fail("H5P_meta_block_size: " + err);
         }
     }
-    
+
     @Test
     public void testH5P_small_data_block_size() {
         long[] align = {0};
@@ -573,7 +588,7 @@ public class TestH5Pfapl {
             fail("H5P_small_data_block_size: " + err);
         }
     }
-    
+
     @Test
     public void testH5P_hyper_vector_size() {
         long[] align = {0};
@@ -596,7 +611,7 @@ public class TestH5Pfapl {
             fail("H5P_hyper_vector_size: " + err);
         }
     }
-    
+
     @Test
     public void testH5P_cache() {
         long[] rdcc_nelmts = {0};
@@ -623,7 +638,7 @@ public class TestH5Pfapl {
             fail("H5P_cache: " + err);
         }
     }
-    
+
     @Test
     public void testH5P_chunk_cache() {
         long[] rdcc_nslots = {0};
@@ -650,7 +665,7 @@ public class TestH5Pfapl {
             fail("H5P_chunk_cache: " + err);
         }
     }
-    
+
     @Test
     public void testH5P_sieve_buf_size() {
         long buf_size = 0;
@@ -673,7 +688,7 @@ public class TestH5Pfapl {
             fail("H5P_sieve_buf_size: " + err);
         }
     }
-    
+
     @Test
     public void testH5P_gc_references() {
         boolean ret_val_id = false;
@@ -687,7 +702,7 @@ public class TestH5Pfapl {
             fail("H5P_gc_references: " + err);
         }
     }
-    
+
     @Test
     public void testH5Pget_mdc_config() {
         H5AC_cache_config_t cache_config = null;
@@ -700,7 +715,7 @@ public class TestH5Pfapl {
             fail("H5Pget_mdc_config: " + err);
         }
     }
-    
+
     @Test
     public void testH5Pset_mdc_config() {
         H5AC_cache_config_t cache_config = null;
@@ -724,7 +739,7 @@ public class TestH5Pfapl {
             fail("H5Pset_mdc_config: " + err);
         }
     }
-    
+
     @Test
     public void testH5P_fapl_core() {
         if (HDF5Constants.H5FD_CORE < 0)
@@ -750,7 +765,7 @@ public class TestH5Pfapl {
             fail("H5Pget_fapl_core: " + err);
         }
     }
-    
+
     @Test
     public void testH5P_fapl_family() {
         if (HDF5Constants.H5FD_FAMILY < 0)
@@ -778,7 +793,7 @@ public class TestH5Pfapl {
         _createH5familyFile(fapl_id);
         deleteH5familyfile();
     }
-    
+
     @Test
     public void testH5P_family_offset() {
         if (HDF5Constants.H5FD_FAMILY < 0)
@@ -811,7 +826,7 @@ public class TestH5Pfapl {
         }
         deleteH5familyfile();
     }
-    
+
     @Test
     public void testH5Pset_fapl_sec2() {
         if (HDF5Constants.H5FD_SEC2 < 0)
@@ -828,7 +843,7 @@ public class TestH5Pfapl {
         _createH5File(fapl_id);
         deleteH5file();
     }
-    
+
     @Test
     public void testH5Pset_fapl_stdio() {
         if (HDF5Constants.H5FD_STDIO < 0)
@@ -845,7 +860,7 @@ public class TestH5Pfapl {
         _createH5File(fapl_id);
         deleteH5file();
     }
-    
+
     @Test
     public void testH5Pset_fapl_log() {
         if (HDF5Constants.H5FD_LOG < 0)
@@ -864,17 +879,17 @@ public class TestH5Pfapl {
         deleteH5file();
         _deleteLogFile();
     }
-    
+
     @Test
     public void testH5P_fapl_muti_nulls() {
         if (HDF5Constants.H5FD_MULTI < 0)
             return;
-        
+
         int[] member_map = null;
         long[] member_fapl = null;
         String[] member_name = null;
         long[] member_addr = null;
-        
+
         try {
             H5.H5Pset_fapl_multi(fapl_id, member_map, member_fapl, member_name, member_addr, true);
             int driver_type = H5.H5Pget_driver(fapl_id);
@@ -895,13 +910,13 @@ public class TestH5Pfapl {
         _createH5multiFile(fapl_id);
         deleteH5multifile();
     }
-    
+
     @Test
     public void testH5P_fapl_muti_defaults() {
         if (HDF5Constants.H5FD_MULTI < 0)
             return;
         int H5FD_MEM_NTYPES = HDF5Constants.H5FD_MEM_NTYPES; // 7
-        
+
         long sH5FD_MEM_DEFAULT_HADDR = HDF5Constants.H5FD_DEFAULT_HADDR_SIZE;
         long sH5FD_MEM_HADDR = HDF5Constants.H5FD_MEM_DEFAULT_SIZE;
         long sH5FD_MEM_SUPER_HADDR = HDF5Constants.H5FD_MEM_DEFAULT_SUPER_SIZE;
@@ -909,12 +924,12 @@ public class TestH5Pfapl {
         long sH5FD_MEM_DRAW_HADDR = HDF5Constants.H5FD_MEM_DEFAULT_DRAW_SIZE;
         long sH5FD_MEM_GHEAP_HADDR = HDF5Constants.H5FD_MEM_DEFAULT_GHEAP_SIZE;
         long sH5FD_MEM_LHEAP_HADDR = HDF5Constants.H5FD_MEM_DEFAULT_LHEAP_SIZE;
-        long sH5FD_MEM_OHDR_HADDR = HDF5Constants.H5FD_MEM_DEFAULT_OHDR_SIZE;        
+        long sH5FD_MEM_OHDR_HADDR = HDF5Constants.H5FD_MEM_DEFAULT_OHDR_SIZE;
         int[] member_map = null;
         long[] member_fapl = null;
         String[] member_name = null;
         long[] member_addr = null;
-        
+
         try {
             H5.H5Pset_fapl_multi(fapl_id, member_map, member_fapl, member_name, member_addr, true);
             int driver_type = H5.H5Pget_driver(fapl_id);
@@ -953,7 +968,7 @@ public class TestH5Pfapl {
         _createH5multiFileDS();
         deleteH5multifile();
     }
-    
+
     @Test
     public void testH5P_fapl_muti() {
         if (HDF5Constants.H5FD_MULTI < 0)
@@ -983,7 +998,7 @@ public class TestH5Pfapl {
 
         member_name[HDF5Constants.H5FD_MEM_GHEAP] = new String("%s-gheap.h5");
         member_addr[HDF5Constants.H5FD_MEM_GHEAP] = (HADDR_DEFAULT_SIZE/4)*3;
-        
+
         try {
             H5.H5Pset_fapl_multi(fapl_id, member_map, member_fapl, member_name, member_addr, true);
             int driver_type = H5.H5Pget_driver(fapl_id);
@@ -1066,12 +1081,12 @@ public class TestH5Pfapl {
             }
         }
     }
-    
+
     @Test
     public void testH5P_fapl_split() {
         if (HDF5Constants.H5FD_MULTI < 0)
             return;
-        
+
         try {
             H5.H5Pset_fapl_split(fapl_id, "-meta.h5", HDF5Constants.H5P_DEFAULT, "-raw.h5", HDF5Constants.H5P_DEFAULT);
             int driver_type = H5.H5Pget_driver(fapl_id);
@@ -1116,7 +1131,7 @@ public class TestH5Pfapl {
             }
         }
     }
-    
+
     @Test
     public void testH5P_fapl_direct() {
         if (HDF5Constants.H5FD_DIRECT < 0)
@@ -1144,7 +1159,7 @@ public class TestH5Pfapl {
         _createH5File(fapl_id);
         deleteH5file();
     }
-    
+
     @Test
     public void testH5Pset_fapl_windows() {
         if (HDF5Constants.H5FD_WINDOWS < 0)
@@ -1161,7 +1176,7 @@ public class TestH5Pfapl {
         _createH5File(fapl_id);
         deleteH5file();
     }
-    
+
     @Test
     public void testH5Pmulti_transform() {
         if (HDF5Constants.H5FD_MULTI < 0)
@@ -1180,7 +1195,7 @@ public class TestH5Pfapl {
         try {
             H5.H5Pset_data_transform(plist_id, f_to_c);
             H5.H5Pset_btree_ratios(btplist_id, 0.1, 0.5, 0.7);
-        } 
+        }
         catch (Throwable err) {
             err.printStackTrace();
             fail("H5Pdata_transform: " + err);
@@ -1246,7 +1261,7 @@ public class TestH5Pfapl {
             assertTrue("H5Pget_fapl_muti: file_size ", file_size >= HADDRMAX/4 || file_size <= HADDRMAX/2);
             _createH5multiFileDS();
             _createFloatDataset();
-        } 
+        }
         catch (Throwable err) {
             err.printStackTrace();
             fail("H5Pdata_transform: " + err);
@@ -1256,7 +1271,7 @@ public class TestH5Pfapl {
                     plist_id, windchillF);
             H5.H5Dread(H5Fdid, HDF5Constants.H5T_NATIVE_DOUBLE, HDF5Constants.H5S_ALL, HDF5Constants.H5S_ALL,
                     HDF5Constants.H5P_DEFAULT, windchillFread);
-        } 
+        }
         catch (Throwable err) {
             err.printStackTrace();
             fail("H5Pdata_transform: " + err);

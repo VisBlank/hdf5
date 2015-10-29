@@ -1,6 +1,18 @@
-/**
- * 
- */
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * Copyright by The HDF Group.                                               *
+ * Copyright by the Board of Trustees of the University of Illinois.         *
+ * All rights reserved.                                                      *
+ *                                                                           *
+ * This file is part of HDF5.  The full HDF5 copyright notice, including     *
+ * terms governing use, modification, and redistribution, is contained in    *
+ * the files COPYING and Copyright.html.  COPYING can be found at the root   *
+ * of the source code distribution tree; Copyright.html can be found at the  *
+ * root level of an installed copy of the electronic HDF5 document set and   *
+ * is linked from the top-level documents page.  It can also be found at     *
+ * http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
+ * access to either file, you may request a copy from help@hdfgroup.org.     *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 package test;
 
 import static org.junit.Assert.assertTrue;
@@ -30,7 +42,7 @@ public class TestH5Sbasic {
 
     @Test//(expected = HDF5LibraryException.class)
     public void testH5Sclose_invalid() throws Throwable {
-    	int sid = H5.H5Sclose(-1);
+        int sid = H5.H5Sclose(-1);
         assertTrue(sid == 0);
     }
 
@@ -120,7 +132,7 @@ public class TestH5Sbasic {
         int rank = 2;
         long dims[] = {5, 5};
         long maxdims[] = {10, 10};
-        
+
         try {
             sid = H5.H5Screate_simple(rank, dims, maxdims);
             assertTrue("H5.H5Screate_simple", sid > 0);
@@ -135,7 +147,7 @@ public class TestH5Sbasic {
             try {H5.H5Sclose(sid);} catch (Exception ex) {}
         }
     }
-    
+
     @Test
     public void testH5Screate_simple_unlimted() {
         long sid = -1;
@@ -143,7 +155,7 @@ public class TestH5Sbasic {
         int rank = 2;
         long dims[] = {5, 5};
         long maxdims[] = {HDF5Constants.H5S_UNLIMITED, HDF5Constants.H5S_UNLIMITED};
-        
+
         try {
             sid = H5.H5Screate_simple(rank, dims, maxdims);
             assertTrue("H5.H5Screate_simple", sid > 0);
@@ -158,7 +170,7 @@ public class TestH5Sbasic {
             try {H5.H5Sclose(sid);} catch (Exception ex) {}
         }
     }
-    
+
     @Test
     public void testH5Screate_simple_unlimted_1d() {
         long sid = -1;
@@ -166,7 +178,7 @@ public class TestH5Sbasic {
         int rank = 1;
         long dims[] = {5};
         long maxdims[] = {HDF5Constants.H5S_UNLIMITED};
-        
+
         try {
             sid = H5.H5Screate_simple(rank, dims, maxdims);
             assertTrue("H5.H5Screate_simple", sid > 0);
@@ -180,14 +192,14 @@ public class TestH5Sbasic {
         finally {
             try {H5.H5Sclose(sid);} catch (Exception ex) {}
         }
-    }   
+    }
 
     @Test
     public void testH5Screate_simple_max_default() {
         long sid = -1;
         int rank = 2;
         long dims[] = {5, 5};
-        
+
         try {
             sid = H5.H5Screate_simple(rank, dims, null);
             assertTrue("H5.H5Screate_simple_max_default", sid > 0);
@@ -207,7 +219,7 @@ public class TestH5Sbasic {
         int rank = 2;
         long dims[] = {5, 5};
         long maxdims[] = {10, 10};
-        
+
         try {
             sid = H5.H5Screate(HDF5Constants.H5S_SIMPLE);
             assertTrue("H5.H5Screate_simple_extent",sid > 0);

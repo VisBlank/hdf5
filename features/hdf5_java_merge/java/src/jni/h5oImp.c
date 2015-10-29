@@ -3,12 +3,14 @@
  * Copyright by the Board of Trustees of the University of Illinois.         *
  * All rights reserved.                                                      *
  *                                                                           *
- * This file is part of HDF Java Products. The full HDF Java copyright       *
- * notice, including terms governing use, modification, and redistribution,  *
- * is contained in the file, COPYING.  COPYING can be found at the root of   *
- * the source code distribution tree. You can also access it online  at      *
- * http://www.hdfgroup.org/products/licenses.html.  If you do not have       *
- * access to the file, you may request a copy from help@hdfgroup.org.        *
+ * This file is part of HDF5.  The full HDF5 copyright notice, including     *
+ * terms governing use, modification, and redistribution, is contained in    *
+ * the files COPYING and Copyright.html.  COPYING can be found at the root   *
+ * of the source code distribution tree; Copyright.html can be found at the  *
+ * root level of an installed copy of the electronic HDF5 document set and   *
+ * is linked from the top-level documents page.  It can also be found at     *
+ * http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
+ * access to either file, you may request a copy from help@hdfgroup.org.     *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 /*
@@ -29,10 +31,10 @@ extern "C" {
 
 #ifdef __cplusplus
 #define CBENVPTR (cbenv)
-#define CBENVPAR 
+#define CBENVPAR
 #define JVMPTR (jvm)
-#define JVMPAR 
-#define JVMPAR2 
+#define JVMPAR
+#define JVMPAR2
 #else
 #define CBENVPTR (*cbenv)
 #define CBENVPAR cbenv,
@@ -90,7 +92,7 @@ extern "C" {
 
         return (jint)retVal;
     }
-    
+
     /*
      * Class:     hdf_hdf5lib_H5
      * Method:    H5Ocopy
@@ -103,24 +105,24 @@ extern "C" {
         char    *lDstName;
         jboolean isCopy;
         herr_t   status = -1;
-        
+
         if (cur_name == NULL) {
             h5nullArgument(env, "H5Ocopy:  cur_name is NULL");
             return;
         }
-        
+
         lCurName = (char*)ENVPTR->GetStringUTFChars(ENVPAR cur_name, &isCopy);
         if (lCurName == NULL) {
             h5JNIFatalError(env, "H5Ocopy:  cur_name not pinned");
             return;
         }
-        
+
         if (dst_name == NULL) {
             ENVPTR->ReleaseStringUTFChars(ENVPAR cur_name, lCurName);
             h5nullArgument(env, "H5Ocopy:  dst_name is NULL");
             return;
         }
-        
+
         lDstName = (char*)ENVPTR->GetStringUTFChars(ENVPAR dst_name, &isCopy);
         if (lDstName == NULL) {
             ENVPTR->ReleaseStringUTFChars(ENVPAR cur_name, lCurName);
@@ -132,15 +134,15 @@ extern "C" {
 
         ENVPTR->ReleaseStringUTFChars(ENVPAR cur_name, lCurName);
         ENVPTR->ReleaseStringUTFChars(ENVPAR dst_name, lDstName);
-        
+
         if (status < 0) {
            h5libraryError(env);
            return;
         }
-        
+
         return;
     }
-    
+
     /*
      * Class:     hdf_hdf5lib_H5
      * Method:    H5Oget_info
@@ -237,7 +239,7 @@ extern "C" {
 
         return ret_info_t;
     }
-    
+
     /*
      * Class:     hdf_hdf5lib_H5
      * Method:    H5Oget_info_by_name
@@ -349,7 +351,7 @@ extern "C" {
 
         return ret_info_t;
     }
-    
+
     /*
      * Class:     hdf_hdf5lib_H5
      * Method:    H5Oget_info_by_idx
@@ -374,7 +376,7 @@ extern "C" {
             h5nullArgument(env, "H5Oget_info_by_idx:  name is NULL");
             return NULL;
         }
-        
+
         lName = (char*)ENVPTR->GetStringUTFChars(ENVPAR name, &isCopy);
         if (lName == NULL) {
             h5JNIFatalError(env, "H5Oget_info_by_idx:  name not pinned");
@@ -461,7 +463,7 @@ extern "C" {
 
         return ret_info_t;
     }
-    
+
     /*
      * Class:     hdf_hdf5lib_H5
      * Method:    H5Olink
@@ -473,12 +475,12 @@ extern "C" {
         char    *lDstName;
         jboolean isCopy;
         herr_t   status = -1;
-        
+
         if (dst_name == NULL) {
             h5nullArgument(env, "H5Ocreate_hard:  dst_name is NULL");
             return;
         }
-        
+
         lDstName = (char*)ENVPTR->GetStringUTFChars(ENVPAR dst_name, &isCopy);
         if (lDstName == NULL) {
             h5JNIFatalError( env, "H5Ocreate_hard:  dst_name not pinned");
@@ -488,12 +490,12 @@ extern "C" {
         status = H5Olink((hid_t)cur_loc_id, (hid_t)dst_loc_id, (const char*)lDstName, (hid_t)create_id, (hid_t)access_id);
 
         ENVPTR->ReleaseStringUTFChars(ENVPAR dst_name, lDstName);
-        
+
         if (status < 0) {
            h5libraryError(env);
            return;
         }
-        
+
         return;
     }
 
@@ -603,7 +605,7 @@ extern "C" {
         JVMPTR->DetachCurrentThread(JVMPAR);
         return status;
     }
-    
+
     /*
      * Class:     hdf_hdf5lib_H5
      * Method:    H5Ovisit
@@ -614,7 +616,7 @@ extern "C" {
               jobject callback_op, jobject op_data)
     {
         herr_t        status = -1;
-        
+
         ENVPTR->GetJavaVM(ENVPAR &jvm);
         visit_callback = callback_op;
 
@@ -626,17 +628,17 @@ extern "C" {
             h5nullArgument(env, "H5Ovisit:  callback_op is NULL");
             return -1;
         }
-        
+
         status = H5Ovisit((hid_t)grp_id, (H5_index_t)idx_type, (H5_iter_order_t)order, (H5O_iterate_t)H5O_iterate_cb, (void*)op_data);
-        
+
         if (status < 0) {
            h5libraryError(env);
            return status;
         }
-        
+
         return status;
     }
-    
+
     /*
      * Class:     hdf_hdf5lib_H5
      * Method:    H5Ovisit_by_name
@@ -649,15 +651,15 @@ extern "C" {
         jboolean      isCopy;
         char         *lName;
         herr_t        status = -1;
-        
+
         ENVPTR->GetJavaVM(ENVPAR &jvm);
         visit_callback = callback_op;
-        
+
         if (name == NULL) {
             h5nullArgument(env, "H5Ovisit_by_name:  name is NULL");
             return -1;
         }
-        
+
         lName = (char*)ENVPTR->GetStringUTFChars(ENVPAR name, &isCopy);
         if (lName == NULL) {
             h5JNIFatalError(env, "H5Ovisit_by_name:  name not pinned");
@@ -672,16 +674,16 @@ extern "C" {
             h5nullArgument(env, "H5Ovisit_by_name:  callback_op is NULL");
             return -1;
         }
-        
+
         status = H5Ovisit_by_name((hid_t)grp_id, (const char*)lName, (H5_index_t)idx_type, (H5_iter_order_t)order, (H5O_iterate_t)H5O_iterate_cb, (void*)op_data, (hid_t)access_id);
 
         ENVPTR->ReleaseStringUTFChars(ENVPAR name, lName);
-        
+
         if (status < 0) {
            h5libraryError(env);
            return status;
         }
-        
+
         return status;
     }
 
@@ -803,7 +805,7 @@ extern "C" {
                 h5JNIFatalError( env, "H5Oget_comment:  return string not allocated");
                 return NULL;
             }
-        } 
+        }
         else {
             free(oComment);
             h5libraryError(env);
@@ -869,7 +871,7 @@ extern "C" {
                 h5JNIFatalError( env, "H5Oget_comment_by_name:  return string not allocated");
                 return NULL;
             }
-        } 
+        }
         else {
             free(oComment);
             h5libraryError(env);

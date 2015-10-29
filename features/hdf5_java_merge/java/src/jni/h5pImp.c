@@ -3,12 +3,14 @@
  * Copyright by the Board of Trustees of the University of Illinois.         *
  * All rights reserved.                                                      *
  *                                                                           *
- * This file is part of HDF Java Products. The full HDF Java copyright       *
- * notice, including terms governing use, modification, and redistribution,  *
- * is contained in the file, COPYING.  COPYING can be found at the root of   *
- * the source code distribution tree. You can also access it online  at      *
- * http://www.hdfgroup.org/products/licenses.html.  If you do not have       *
- * access to the file, you may request a copy from help@hdfgroup.org.        *
+ * This file is part of HDF5.  The full HDF5 copyright notice, including     *
+ * terms governing use, modification, and redistribution, is contained in    *
+ * the files COPYING and Copyright.html.  COPYING can be found at the root   *
+ * of the source code distribution tree; Copyright.html can be found at the  *
+ * root level of an installed copy of the electronic HDF5 document set and   *
+ * is linked from the top-level documents page.  It can also be found at     *
+ * http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
+ * access to either file, you may request a copy from help@hdfgroup.org.     *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 /*
@@ -1358,7 +1360,7 @@ JNIEXPORT jboolean JNICALL Java_hdf_hdf5lib_H5_H5Pget_1gcreferences
         h5libraryError(env);
         return JNI_FALSE;
     }
-    
+
     if (gc_ref_val == 1) {
         return JNI_TRUE;
     }
@@ -2730,36 +2732,36 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Pget_1filter2
         *cd_nelmtsArray = cd_nelmts_t;
     }
     else {
-		if (cd_values == NULL) {
-			h5badArgument(env, "H5Pget_filter:  cd_values is NULL");
-			return -1;
-		}
-		cd_valuesArray = (jint *)ENVPTR->GetIntArrayElements(ENVPAR cd_values, &isCopy);
-		if (cd_valuesArray == NULL)  {
-	        ENVPTR->ReleaseIntArrayElements(ENVPAR filter_config, filter_configArray, JNI_ABORT);
-			ENVPTR->ReleaseLongArrayElements(ENVPAR cd_nelmts, cd_nelmtsArray, JNI_ABORT);
-			ENVPTR->ReleaseIntArrayElements(ENVPAR flags, flagsArray, JNI_ABORT);
-			free(filter);
-			h5JNIFatalError(env,  "H5Pget_filter:  elmts array not pinned");
-			return -1;
-		}
+    if (cd_values == NULL) {
+      h5badArgument(env, "H5Pget_filter:  cd_values is NULL");
+      return -1;
+    }
+    cd_valuesArray = (jint *)ENVPTR->GetIntArrayElements(ENVPAR cd_values, &isCopy);
+    if (cd_valuesArray == NULL)  {
+          ENVPTR->ReleaseIntArrayElements(ENVPAR filter_config, filter_configArray, JNI_ABORT);
+      ENVPTR->ReleaseLongArrayElements(ENVPAR cd_nelmts, cd_nelmtsArray, JNI_ABORT);
+      ENVPTR->ReleaseIntArrayElements(ENVPAR flags, flagsArray, JNI_ABORT);
+      free(filter);
+      h5JNIFatalError(env,  "H5Pget_filter:  elmts array not pinned");
+      return -1;
+    }
 
-		{
-			/* direct cast (size_t *)variable fails on 32-bit environment */
-			long long cd_nelmts_temp = *(cd_nelmtsArray);
-			size_t cd_nelmts_t = (size_t)cd_nelmts_temp;
+    {
+      /* direct cast (size_t *)variable fails on 32-bit environment */
+      long long cd_nelmts_temp = *(cd_nelmtsArray);
+      size_t cd_nelmts_t = (size_t)cd_nelmts_temp;
 
-			status = H5Pget_filter2((hid_t)plist, (int)filter_number,
-				(unsigned int *)flagsArray, &cd_nelmts_t, (unsigned int *)cd_valuesArray,
-				(size_t)namelen, filter, (unsigned int *)filter_configArray);
+      status = H5Pget_filter2((hid_t)plist, (int)filter_number,
+        (unsigned int *)flagsArray, &cd_nelmts_t, (unsigned int *)cd_valuesArray,
+        (size_t)namelen, filter, (unsigned int *)filter_configArray);
 
-			*cd_nelmtsArray = cd_nelmts_t;
-		}
+      *cd_nelmtsArray = cd_nelmts_t;
+    }
     }
 
     if (status < 0) {
-		if (cd_values)
-	        ENVPTR->ReleaseIntArrayElements(ENVPAR cd_values, cd_valuesArray, JNI_ABORT);
+    if (cd_values)
+          ENVPTR->ReleaseIntArrayElements(ENVPAR cd_values, cd_valuesArray, JNI_ABORT);
         ENVPTR->ReleaseIntArrayElements(ENVPAR filter_config, filter_configArray, JNI_ABORT);
         ENVPTR->ReleaseLongArrayElements(ENVPAR cd_nelmts, cd_nelmtsArray, JNI_ABORT);
         ENVPTR->ReleaseIntArrayElements(ENVPAR flags, flagsArray, JNI_ABORT);
@@ -2767,8 +2769,8 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Pget_1filter2
         h5libraryError(env);
         return -1;
     }
-	if (cd_values)
-	    ENVPTR->ReleaseIntArrayElements(ENVPAR cd_values, cd_valuesArray, 0);
+  if (cd_values)
+      ENVPTR->ReleaseIntArrayElements(ENVPAR cd_values, cd_valuesArray, 0);
     ENVPTR->ReleaseIntArrayElements(ENVPAR filter_config, filter_configArray, 0);
     ENVPTR->ReleaseLongArrayElements(ENVPAR cd_nelmts, cd_nelmtsArray, 0);
     ENVPTR->ReleaseIntArrayElements(ENVPAR flags, flagsArray, 0);
@@ -3975,7 +3977,7 @@ JNIEXPORT jboolean JNICALL Java_hdf_hdf5lib_H5_H5Pget_1fapl_1multi
     jstring  str;
     jboolean isCopy;
     int relax = 0;
-    
+
     if (memb_map) {
         themapArray = (jint *)ENVPTR->GetIntArrayElements(ENVPAR memb_map, &isCopy);
         if (themapArray == NULL) {
@@ -4002,9 +4004,9 @@ JNIEXPORT jboolean JNICALL Java_hdf_hdf5lib_H5_H5Pget_1fapl_1multi
             return -1;
         }
     }
-    
+
     if (memb_name) mName = (char **)calloc(H5FD_MEM_NTYPES, sizeof (*mName));
-    
+
     status = H5Pget_fapl_multi((hid_t)tid, (H5FD_mem_t *)themapArray, (hid_t *)thefaplArray, mName, (haddr_t *)theaddrArray, (hbool_t *)&relax);
     if (status < 0) {
         if (memb_map) ENVPTR->ReleaseIntArrayElements(ENVPAR memb_map, themapArray, JNI_ABORT);
@@ -4038,7 +4040,7 @@ JNIEXPORT jboolean JNICALL Java_hdf_hdf5lib_H5_H5Pget_1fapl_1multi
         }
         h5str_array_free(mName, H5FD_MEM_NTYPES);
     }
-    
+
     return (relax!=0);
 }
 
@@ -4061,7 +4063,7 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Pset_1fapl_1multi
     jboolean     bb;
     const char **mName = NULL;
     char  *member_name[H5FD_MEM_NTYPES];
-    
+
     if (memb_map) {
         themapArray = (jint *)ENVPTR->GetIntArrayElements(ENVPAR memb_map, &isCopy);
         if (themapArray == NULL) {
@@ -4111,7 +4113,7 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Pset_1fapl_1multi
         }
         mName = (const char **)member_name;
     }
-    
+
     status = H5Pset_fapl_multi((hid_t)tid, (const H5FD_mem_t *)themapArray, (const hid_t *)thefaplArray, mName, (const haddr_t *)theaddrArray, (hbool_t)relax);
 
     if (status < 0) {
@@ -4385,7 +4387,7 @@ JNIEXPORT jobject JNICALL Java_hdf_hdf5lib_H5_H5Pget_1mdc_1config
     args[27].d = cacheinfo.empty_reserve;
     args[28].i = cacheinfo.dirty_bytes_threshold;
 #if (H5_VERS_RELEASE >= 6)
-    args[29].i = cacheinfo.metadata_write_strategy;    
+    args[29].i = cacheinfo.metadata_write_strategy;
 #endif
     ret_info_t = ENVPTR->NewObjectA(ENVPAR cls, constructor, args);
     return ret_info_t;
@@ -4405,7 +4407,7 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Pset_1mdc_1config
     jstring     j_str;
     const char *str;
     H5AC_cache_config_t cacheinfo;
-    
+
     cls = ENVPTR->GetObjectClass(ENVPAR cache_config);
     fid = ENVPTR->GetFieldID(ENVPAR cls, "version", "I");
     if(fid == 0) {
@@ -4417,7 +4419,7 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Pset_1mdc_1config
         h5JNIFatalError(env, "H5Pset_mdc_config: loading version failed");
         return;
     }
-    
+
     fid = ENVPTR->GetFieldID(ENVPAR cls, "rpt_fcn_enabled", "Z");
     if(fid == 0) {
         h5badArgument(env, "H5Pset_mdc_config:  rpt_fcn_enabled");
@@ -4428,7 +4430,7 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Pset_1mdc_1config
         h5JNIFatalError(env, "H5Pset_mdc_config: loading rpt_fcn_enabled failed");
         return;
     }
-    
+
     fid = ENVPTR->GetFieldID(ENVPAR cls, "open_trace_file", "Z");
     if(fid == 0) {
         h5badArgument(env, "H5Pset_mdc_config:  open_trace_file");
@@ -4439,7 +4441,7 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Pset_1mdc_1config
         h5JNIFatalError(env, "H5Pset_mdc_config: loading open_trace_file failed");
         return;
     }
-    
+
     fid = ENVPTR->GetFieldID(ENVPAR cls, "close_trace_file", "Z");
     if(fid == 0) {
         h5badArgument(env, "H5Pset_mdc_config:  close_trace_file");
@@ -4450,7 +4452,7 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Pset_1mdc_1config
         h5JNIFatalError(env, "H5Pset_mdc_config: loading close_trace_file failed");
         return;
     }
-    
+
     fid = ENVPTR->GetFieldID(ENVPAR cls, "trace_file_name", "Ljava/lang/String;");
     if(fid == 0) {
         h5badArgument(env, "H5Pset_mdc_config:  trace_file_name");
@@ -4468,7 +4470,7 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Pset_1mdc_1config
         h5JNIFatalError(env, "H5Pset_mdc_config: loading trace_file_name failed");
         return;
     }
-    
+
     fid = ENVPTR->GetFieldID(ENVPAR cls, "evictions_enabled", "Z");
     if(fid == 0) {
         h5badArgument(env, "H5Pset_mdc_config:  evictions_enabled");
@@ -4479,7 +4481,7 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Pset_1mdc_1config
         h5JNIFatalError(env, "H5Pset_mdc_config: loading evictions_enabled failed");
         return;
     }
-    
+
     fid = ENVPTR->GetFieldID(ENVPAR cls, "set_initial_size", "Z");
     if(fid == 0) {
         h5badArgument(env, "H5Pset_mdc_config:  set_initial_size");
@@ -4490,7 +4492,7 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Pset_1mdc_1config
         h5JNIFatalError(env, "H5Pset_mdc_config: loading set_initial_size failed");
         return;
     }
-    
+
     fid = ENVPTR->GetFieldID(ENVPAR cls, "initial_size", "J");
     if(fid == 0) {
         h5badArgument(env, "H5Pset_mdc_config:  initial_size");
@@ -4501,7 +4503,7 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Pset_1mdc_1config
         h5JNIFatalError(env, "H5Pset_mdc_config: loading initial_size failed");
         return;
     }
-    
+
     fid = ENVPTR->GetFieldID(ENVPAR cls, "min_clean_fraction", "D");
     if(fid == 0) {
         h5badArgument(env, "H5Pset_mdc_config:  min_clean_fraction");
@@ -4512,7 +4514,7 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Pset_1mdc_1config
         h5JNIFatalError(env, "H5Pset_mdc_config: loading min_clean_fraction failed");
         return;
     }
-    
+
     fid = ENVPTR->GetFieldID(ENVPAR cls, "max_size", "J");
     if(fid == 0) {
         h5badArgument(env, "H5Pset_mdc_config:  max_size");
@@ -4523,7 +4525,7 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Pset_1mdc_1config
         h5JNIFatalError(env, "H5Pset_mdc_config: loading max_size failed");
         return;
     }
-    
+
     fid = ENVPTR->GetFieldID(ENVPAR cls, "min_size", "J");
     if(fid == 0) {
         h5badArgument(env, "H5Pset_mdc_config:  min_size");
@@ -4534,7 +4536,7 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Pset_1mdc_1config
         h5JNIFatalError(env, "H5Pset_mdc_config: loading min_size failed");
         return;
     }
-    
+
     fid = ENVPTR->GetFieldID(ENVPAR cls, "epoch_length", "J");
     if(fid == 0) {
         h5badArgument(env, "H5Pset_mdc_config:  epoch_length");
@@ -4545,7 +4547,7 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Pset_1mdc_1config
         h5JNIFatalError(env, "H5Pset_mdc_config: loading epoch_length failed");
         return;
     }
-    
+
     fid = ENVPTR->GetFieldID(ENVPAR cls, "incr_mode", "I");
     if(fid == 0) {
         h5badArgument(env, "H5Pset_mdc_config:  incr_mode");
@@ -4556,7 +4558,7 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Pset_1mdc_1config
         h5JNIFatalError(env, "H5Pset_mdc_config: loading incr_mode failed");
         return;
     }
-    
+
     fid = ENVPTR->GetFieldID(ENVPAR cls, "lower_hr_threshold", "D");
     if(fid == 0) {
         h5badArgument(env, "H5Pset_mdc_config:  lower_hr_threshold");
@@ -4567,7 +4569,7 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Pset_1mdc_1config
         h5JNIFatalError(env, "H5Pset_mdc_config: loading lower_hr_threshold failed");
         return;
     }
-    
+
     fid = ENVPTR->GetFieldID(ENVPAR cls, "increment", "D");
     if(fid == 0) {
         h5badArgument(env, "H5Pset_mdc_config:  increment");
@@ -4578,7 +4580,7 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Pset_1mdc_1config
         h5JNIFatalError(env, "H5Pset_mdc_config: loading increment failed");
         return;
     }
-    
+
     fid = ENVPTR->GetFieldID(ENVPAR cls, "apply_max_increment", "Z");
     if(fid == 0) {
         h5badArgument(env, "H5Pset_mdc_config:  apply_max_increment");
@@ -4589,7 +4591,7 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Pset_1mdc_1config
         h5JNIFatalError(env, "H5Pset_mdc_config: loading apply_max_increment failed");
         return;
     }
-    
+
     fid = ENVPTR->GetFieldID(ENVPAR cls, "max_increment", "J");
     if(fid == 0) {
         h5badArgument(env, "H5Pset_mdc_config:  max_increment");
@@ -4600,7 +4602,7 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Pset_1mdc_1config
         h5JNIFatalError(env, "H5Pset_mdc_config: loading max_increment failed");
         return;
     }
-    
+
     fid = ENVPTR->GetFieldID(ENVPAR cls, "flash_incr_mode", "I");
     if(fid == 0) {
         h5badArgument(env, "H5Pset_mdc_config:  flash_incr_mode");
@@ -4611,7 +4613,7 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Pset_1mdc_1config
         h5JNIFatalError(env, "H5Pset_mdc_config: loading flash_incr_mode failed");
         return;
     }
-    
+
     fid = ENVPTR->GetFieldID(ENVPAR cls, "flash_multiple", "D");
     if(fid == 0) {
         h5badArgument(env, "H5Pset_mdc_config:  flash_multiple");
@@ -4622,7 +4624,7 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Pset_1mdc_1config
         h5JNIFatalError(env, "H5Pset_mdc_config: loading flash_multiple failed");
         return;
     }
-    
+
     fid = ENVPTR->GetFieldID(ENVPAR cls, "flash_threshold", "D");
     if(fid == 0) {
         h5badArgument(env, "H5Pset_mdc_config:  flash_threshold");
@@ -4633,7 +4635,7 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Pset_1mdc_1config
         h5JNIFatalError(env, "H5Pset_mdc_config: loading flash_threshold failed");
         return;
     }
-    
+
     fid = ENVPTR->GetFieldID(ENVPAR cls, "decr_mode", "I");
     if(fid == 0) {
         h5badArgument(env, "H5Pset_mdc_config:  decr_mode");
@@ -4644,7 +4646,7 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Pset_1mdc_1config
         h5JNIFatalError(env, "H5Pset_mdc_config: loading decr_mode failed");
         return;
     }
-    
+
     fid = ENVPTR->GetFieldID(ENVPAR cls, "upper_hr_threshold", "D");
     if(fid == 0) {
         h5badArgument(env, "H5Pset_mdc_config:  upper_hr_threshold");
@@ -4655,7 +4657,7 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Pset_1mdc_1config
         h5JNIFatalError(env, "H5Pset_mdc_config: loading upper_hr_threshold failed");
         return;
     }
-    
+
     fid = ENVPTR->GetFieldID(ENVPAR cls, "decrement", "D");
     if(fid == 0) {
         h5badArgument(env, "H5Pset_mdc_config:  decrement");
@@ -4666,7 +4668,7 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Pset_1mdc_1config
         h5JNIFatalError(env, "H5Pset_mdc_config: loading decrement failed");
         return;
     }
-    
+
     fid = ENVPTR->GetFieldID(ENVPAR cls, "apply_max_decrement", "Z");
     if(fid == 0) {
         h5badArgument(env, "H5Pset_mdc_config:  apply_max_decrement");
@@ -4677,7 +4679,7 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Pset_1mdc_1config
         h5JNIFatalError(env, "H5Pset_mdc_config: loading apply_max_decrement failed");
         return;
     }
-    
+
     fid = ENVPTR->GetFieldID(ENVPAR cls, "max_decrement", "J");
     if(fid == 0) {
         h5badArgument(env, "H5Pset_mdc_config:  max_decrement");
@@ -4688,7 +4690,7 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Pset_1mdc_1config
         h5JNIFatalError(env, "H5Pset_mdc_config: loading max_decrement failed");
         return;
     }
-    
+
     fid = ENVPTR->GetFieldID(ENVPAR cls, "epochs_before_eviction", "I");
     if(fid == 0) {
         h5badArgument(env, "H5Pset_mdc_config:  epochs_before_eviction");
@@ -4699,7 +4701,7 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Pset_1mdc_1config
         h5JNIFatalError(env, "H5Pset_mdc_config: loading epochs_before_eviction failed");
         return;
     }
-    
+
     fid = ENVPTR->GetFieldID(ENVPAR cls, "apply_empty_reserve", "Z");
     if(fid == 0) {
         h5badArgument(env, "H5Pset_mdc_config:  apply_empty_reserve");
@@ -4710,7 +4712,7 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Pset_1mdc_1config
         h5JNIFatalError(env, "H5Pset_mdc_config: loading apply_empty_reserve failed");
         return;
     }
-    
+
     fid = ENVPTR->GetFieldID(ENVPAR cls, "empty_reserve", "D");
     if(fid == 0) {
         h5badArgument(env, "H5Pset_mdc_config:  empty_reserve");
@@ -4721,7 +4723,7 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Pset_1mdc_1config
         h5JNIFatalError(env, "H5Pset_mdc_config: loading empty_reserve failed");
         return;
     }
-    
+
     fid = ENVPTR->GetFieldID(ENVPAR cls, "dirty_bytes_threshold", "I");
     if(fid == 0) {
         h5badArgument(env, "H5Pset_mdc_config:  dirty_bytes_threshold");
@@ -4732,20 +4734,20 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Pset_1mdc_1config
         h5JNIFatalError(env, "H5Pset_mdc_config: loading dirty_bytes_threshold failed");
         return;
     }
-    
+
     fid = ENVPTR->GetFieldID(ENVPAR cls, "metadata_write_strategy", "I");
     if(fid == 0) {
         h5badArgument(env, "H5Pset_mdc_config:  metadata_write_strategy");
         return;
     }
 #if (H5_VERS_RELEASE >= 6)
-    cacheinfo.metadata_write_strategy = ENVPTR->GetIntField(ENVPAR cache_config, fid);    
+    cacheinfo.metadata_write_strategy = ENVPTR->GetIntField(ENVPAR cache_config, fid);
 #endif
     if(ENVPTR->ExceptionOccurred(ENVONLY)) {
         h5JNIFatalError(env, "H5Pset_mdc_config: loading metadata_write_strategy failed");
         return;
     }
-    
+
     status = H5Pset_mdc_config((hid_t)plist, (H5AC_cache_config_t*)&cacheinfo);
 
     if (status < 0) {
@@ -4888,7 +4890,7 @@ JNIEXPORT jboolean JNICALL Java_hdf_hdf5lib_H5_H5Pget_1obj_1track_1times
         h5libraryError(env);
         return JNI_FALSE;
     }
-    
+
     if (track_times == 1) {
         return JNI_TRUE;
     }
@@ -4918,7 +4920,7 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Pset_1obj_1track_1times
     if (status < 0) {
         h5libraryError(env);
     }
-    
+
     return;
 }
 
@@ -4938,9 +4940,9 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Pget_1char_1encoding
     if (status < 0) {
         h5libraryError(env);
     }
-    
+
     return encoding;
-    
+
 }
 
 /*
@@ -4958,9 +4960,9 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Pset_1char_1encoding
     if (status < 0) {
         h5libraryError(env);
     }
-    
+
     return;
-    
+
 }
 
 #ifdef __cplusplus

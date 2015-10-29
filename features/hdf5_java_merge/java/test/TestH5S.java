@@ -1,6 +1,18 @@
-/**
- * 
- */
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * Copyright by The HDF Group.                                               *
+ * Copyright by the Board of Trustees of the University of Illinois.         *
+ * All rights reserved.                                                      *
+ *                                                                           *
+ * This file is part of HDF5.  The full HDF5 copyright notice, including     *
+ * terms governing use, modification, and redistribution, is contained in    *
+ * the files COPYING and Copyright.html.  COPYING can be found at the root   *
+ * of the source code distribution tree; Copyright.html can be found at the  *
+ * root level of an installed copy of the electronic HDF5 document set and   *
+ * is linked from the top-level documents page.  It can also be found at     *
+ * http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
+ * access to either file, you may request a copy from help@hdfgroup.org.     *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 package test;
 
 
@@ -59,7 +71,7 @@ public class TestH5S {
     @Test
     public void testH5Sget_simple_extent_dims_null() {
         int read_rank = -1;
-        
+
         try {
             read_rank = H5.H5Sget_simple_extent_dims(H5sid, null, null);
             assertTrue("H5.H5Sget_simple_extent_dims", H5rank == read_rank);
@@ -75,7 +87,7 @@ public class TestH5S {
         int read_rank = -1;
         long dims[] = {5, 5};
         long maxdims[] = {10, 10};
-        
+
         try {
             read_rank = H5.H5Sget_simple_extent_dims(H5sid, dims, maxdims);
             assertTrue("H5.H5Sget_simple_extent_dims", H5rank == read_rank);
@@ -117,7 +129,7 @@ public class TestH5S {
     @Test
     public void testH5Sis_simple() {
         boolean result = false;
-        
+
         try {
             result = H5.H5Sis_simple(H5sid);
             assertTrue("H5.H5Sis_simple", result);
@@ -193,7 +205,7 @@ public class TestH5S {
     public void testH5Sextent_copy() {
         long sid = -1;
         int class_type = -1;
-        
+
         try {
             sid = H5.H5Screate(HDF5Constants.H5S_NULL);
             assertTrue("H5.H5Screate_null", sid > 0);
@@ -214,7 +226,7 @@ public class TestH5S {
     public void testH5Sextent_equal() {
         long sid = -1;
         boolean result = false;
-        
+
         try {
             sid = H5.H5Screate(HDF5Constants.H5S_NULL);
             assertTrue("H5.H5Screate_null",sid > 0);
@@ -223,7 +235,7 @@ public class TestH5S {
             err.printStackTrace();
             fail("H5.H5Screate: null " + err);
         }
-        
+
         try {
             result = H5.H5Sextent_equal(sid, H5sid);
             assertFalse("H5.testH5Sextent_equal",result);
@@ -246,7 +258,7 @@ public class TestH5S {
         long decoded_sid = -1;
         byte[] null_sbuf = null;
         boolean result = false;
-        
+
         try {
             sid = H5.H5Screate(HDF5Constants.H5S_NULL);
             assertTrue("H5.H5Screate_null", sid > 0);
@@ -255,7 +267,7 @@ public class TestH5S {
             err.printStackTrace();
             fail("H5.H5Screate: null " + err);
         }
-        
+
         try {
             null_sbuf = H5.H5Sencode(sid);
             assertFalse("H5.testH5Sencode", null_sbuf==null);
@@ -269,7 +281,7 @@ public class TestH5S {
                 try {H5.H5Sclose(sid);} catch (Exception ex) {}
             }
         }
-        
+
         try {
             decoded_sid = H5.H5Sdecode(null_sbuf);
             assertTrue("H5.testH5Sdecode", decoded_sid>0);
@@ -295,7 +307,7 @@ public class TestH5S {
         boolean result = false;
         int iresult = -1;
         long lresult = -1;
-        
+
         try {
             sid = H5.H5Screate(HDF5Constants.H5S_SCALAR);
             assertTrue("H5.H5Screate_null", sid > 0);
@@ -304,7 +316,7 @@ public class TestH5S {
             err.printStackTrace();
             fail("H5.H5Screate: null " + err);
         }
-        
+
         try {
             scalar_sbuf = H5.H5Sencode(sid);
             assertFalse("H5.testH5Sencode", scalar_sbuf==null);
@@ -318,18 +330,18 @@ public class TestH5S {
                 try {H5.H5Sclose(sid);} catch (Exception ex) {}
             }
         }
-        
+
         try {
             decoded_sid = H5.H5Sdecode(scalar_sbuf);
             assertTrue("H5.testH5Sdecode", decoded_sid>0);
-    
+
             result = H5.H5Sextent_equal(sid, decoded_sid);
             assertTrue("H5.testH5Sextent_equal", result);
-            
+
             /* Verify decoded dataspace */
             lresult = H5.H5Sget_simple_extent_npoints(decoded_sid);
             assertTrue("H5.testH5Sget_simple_extent_npoints", lresult==1);
-    
+
             iresult = H5.H5Sget_simple_extent_ndims(decoded_sid);
             assertTrue("H5.testH5Sget_simple_extent_ndims", iresult==0);
         }
@@ -411,8 +423,8 @@ public class TestH5S {
 
     @Test
     public void testH5Sget_select_bounds() {
-        long lowbounds[] = {-1,-1}; 
-        long hibounds[] = {-1,-1}; 
+        long lowbounds[] = {-1,-1};
+        long hibounds[] = {-1,-1};
         try {
             H5.H5Sget_select_bounds(H5sid, lowbounds, hibounds);
             assertTrue("H5.H5Sget_select_bounds", 0 == lowbounds[0]);
@@ -429,8 +441,8 @@ public class TestH5S {
     @Test
     public void testH5Soffset_simple() {
         long coord[][] = {{2,2},{2,4},{4,2},{4,4}}; /* Coordinates for point selection */
-        long lowbounds[] = {-1,-1}; 
-        long hibounds[] = {-1,-1}; 
+        long lowbounds[] = {-1,-1};
+        long hibounds[] = {-1,-1};
         try {
             H5.H5Sselect_elements(H5sid, HDF5Constants.H5S_SELECT_SET, 4, coord);
             H5.H5Sget_select_bounds(H5sid, lowbounds, hibounds);
@@ -461,11 +473,11 @@ public class TestH5S {
     @Test
     public void testH5Sget_select_hyper() {
         long space1 = -1;
-        long start[] = {0,0}; 
-        long stride[] = {1,1}; 
-        long count[] = {1,1}; 
-        long block[] = {4,4}; 
-        long nblocks;   // Number of hyperslab blocks 
+        long start[] = {0,0};
+        long stride[] = {1,1};
+        long count[] = {1,1};
+        long block[] = {4,4};
+        long nblocks;   // Number of hyperslab blocks
         long blocks[] = {-1, -1, -1, -1, -1, -1, -1, -1};    // List of blocks
         try {
             // Copy "all" selection & space
@@ -473,15 +485,15 @@ public class TestH5S {
             assertTrue("H5.H5Scopy", H5sid > 0);
             // 'AND' "all" selection with another hyperslab
             H5.H5Sselect_hyperslab(space1, HDF5Constants.H5S_SELECT_AND, start, stride, count, block);
-    
+
             // Verify that there is only one block
             nblocks = H5.H5Sget_select_hyper_nblocks(space1);
             assertTrue("H5Sget_select_hyper_nblocks", nblocks == 1);
-    
+
             // Retrieve the block defined
             H5.H5Sget_select_hyper_blocklist(space1, 0, nblocks, blocks);
-    
-            // Verify that the correct block is defined 
+
+            // Verify that the correct block is defined
             assertTrue("H5.H5Sget_select_hyper_blocklist", start[0] == blocks[0]);
             assertTrue("H5.H5Sget_select_hyper_blocklist", start[1] == blocks[1]);
             assertTrue("H5.H5Sget_select_hyper_blocklist", (block[0]-1) == blocks[2]);
@@ -499,10 +511,10 @@ public class TestH5S {
     @Test
     public void testH5Sget_select_valid() {
         long space1 = -1;
-        long start[] = {1,0}; 
-        long stride[] = {1,1}; 
-        long count[] = {2,3}; 
-        long block[] = {1,1}; 
+        long start[] = {1,0};
+        long stride[] = {1,1};
+        long count[] = {2,3};
+        long block[] = {1,1};
         long offset[] = {0,0};    // Offset of selection
 
         try {
@@ -511,13 +523,13 @@ public class TestH5S {
             assertTrue("H5.H5Scopy", H5sid > 0);
             // 'AND' "all" selection with another hyperslab
             H5.H5Sselect_hyperslab(space1, HDF5Constants.H5S_SELECT_SET, start, stride, count, block);
-    
+
             // Check a valid offset
-            offset[0]=-1; 
+            offset[0]=-1;
             offset[1]=0;
             H5.H5Soffset_simple(space1, offset);
             assertTrue("H5Sselect_valid", H5.H5Sselect_valid(space1));
-    
+
             // Check an invalid offset
             offset[0]=10;
             offset[1]=0;

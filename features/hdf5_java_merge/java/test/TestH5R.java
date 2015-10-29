@@ -1,3 +1,18 @@
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * Copyright by The HDF Group.                                               *
+ * Copyright by the Board of Trustees of the University of Illinois.         *
+ * All rights reserved.                                                      *
+ *                                                                           *
+ * This file is part of HDF5.  The full HDF5 copyright notice, including     *
+ * terms governing use, modification, and redistribution, is contained in    *
+ * the files COPYING and Copyright.html.  COPYING can be found at the root   *
+ * of the source code distribution tree; Copyright.html can be found at the  *
+ * root level of an installed copy of the electronic HDF5 document set and   *
+ * is linked from the top-level documents page.  It can also be found at     *
+ * http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
+ * access to either file, you may request a copy from help@hdfgroup.org.     *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 package test;
 
 import static org.junit.Assert.assertEquals;
@@ -34,7 +49,7 @@ public class TestH5R {
         File file = null;
         try {
             file = new File(filename);
-        } 
+        }
         catch (Throwable err) {}
 
         if (file.exists()) {
@@ -57,7 +72,7 @@ public class TestH5R {
 
         return did;
     }
-    
+
     private final long _createGroup(long fid, String name) {
         long gid = -1;
         try {
@@ -86,7 +101,7 @@ public class TestH5R {
             H5gid = _createGroup(H5fid, "Group1");
             H5did2 = _createDataset(H5gid, H5dsid, "dset2", HDF5Constants.H5P_DEFAULT);
             H5did = _createDataset(H5fid, H5dsid, "dset", HDF5Constants.H5P_DEFAULT);
-          
+
         }
         catch (Throwable err) {
             err.printStackTrace();
@@ -101,17 +116,17 @@ public class TestH5R {
 
     @After
     public void deleteH5file() throws HDF5LibraryException {
-        if (H5dsid > 0) 
+        if (H5dsid > 0)
             try {H5.H5Sclose(H5dsid);} catch (Exception ex) {}
-        if (H5did > 0) 
-            try {H5.H5Dclose(H5did);} catch (Exception ex) {}      
-        if (H5fid > 0) 
+        if (H5did > 0)
+            try {H5.H5Dclose(H5did);} catch (Exception ex) {}
+        if (H5fid > 0)
             try {H5.H5Fclose(H5fid);} catch (Exception ex) {}
-        if (H5gid > 0) 
+        if (H5gid > 0)
             try {H5.H5Gclose(H5gid);} catch (Exception ex) {}
-        if (H5did2 > 0) 
+        if (H5did2 > 0)
             try {H5.H5Dclose(H5did2);} catch (Exception ex) {}
- 
+
         _deleteFile(H5_FILE);
         System.out.println();
     }
@@ -124,7 +139,7 @@ public class TestH5R {
         byte[] ref=null;
         String[] name= {""};
         String objName = "/dset";
-        
+
         try {
             ref = H5.H5Rcreate(H5fid, objName, ref_type, -1);
         }
@@ -132,19 +147,19 @@ public class TestH5R {
             err.printStackTrace();
             fail("H5.H5Rget_name:H5Rcreate " + err);
         }
-        
+
         try {
             ret_val = H5.H5Rget_name(loc_id, ref_type, ref, name, 16);
-        } 
+        }
         catch (Throwable err) {
             err.printStackTrace();
             fail("H5.H5Rget_name: " + err);
         }
-        
+
         assertTrue("testH5Rget_name: H5Rget_name", ret_val>0);
         assertTrue("The name of the object: ", objName.equals(name[0]));
     }
-    
+
     @Test
     public void testH5Rget_obj_type2() {
         int  ref_type=HDF5Constants.H5R_OBJECT;
@@ -163,12 +178,12 @@ public class TestH5R {
 
         try {
             obj_type = H5.H5Rget_obj_type(H5fid, HDF5Constants.H5R_OBJECT, ref, otype);
-        } 
+        }
         catch (Throwable err) {
             err.printStackTrace();
             fail("H5.H5Rget_obj_type2: " + err);
         }
-        assertEquals(obj_type, HDF5Constants.H5O_TYPE_DATASET);        
+        assertEquals(obj_type, HDF5Constants.H5O_TYPE_DATASET);
     }
 
     @Test
@@ -182,9 +197,9 @@ public class TestH5R {
             err.printStackTrace();
             fail("H5.H5Rcreate: " + err);
         }
-        assertNotNull(ref);      
+        assertNotNull(ref);
     }
-    
+
     @Test
     public void testH5Rcreate_regionrefobj() {
         byte[] ref = null;
@@ -197,7 +212,7 @@ public class TestH5R {
         }
         assertNotNull(ref);
     }
-    
+
     @Test
     public void testH5Rdereference() {
         byte[] ref1 = null;
@@ -205,12 +220,12 @@ public class TestH5R {
         long dataset_id = -1;
         long group_id = -1;
         try {
-            //Create reference on dataset 
+            //Create reference on dataset
             ref1 = H5.H5Rcreate(H5fid, "/dset", HDF5Constants.H5R_DATASET_REGION, H5dsid);
             dataset_id= H5.H5Rdereference(H5fid, HDF5Constants.H5P_DEFAULT, HDF5Constants.H5R_DATASET_REGION, ref1);
-            
+
             //Create reference on group
-            ref2 = H5.H5Rcreate(H5gid, "/Group1", HDF5Constants.H5R_OBJECT, -1);           
+            ref2 = H5.H5Rcreate(H5gid, "/Group1", HDF5Constants.H5R_OBJECT, -1);
             group_id= H5.H5Rdereference(H5gid, HDF5Constants.H5P_DEFAULT, HDF5Constants.H5R_OBJECT, ref2);
             assertNotNull(ref1);
             assertNotNull(ref2);
@@ -226,7 +241,7 @@ public class TestH5R {
             try {H5.H5Gclose(group_id);} catch (Exception ex) {}
         }
     }
-    
+
     @Test
     public void testH5Rget_region() {
         byte[] ref = null;
@@ -245,7 +260,7 @@ public class TestH5R {
             try {H5.H5Sclose(dsid);} catch (Exception ex) {}
         }
     }
-    
+
     @Test(expected = IllegalArgumentException.class)
     public void testH5Rget_name_Invalidreftype() throws Throwable {
         byte[] ref = null;
@@ -253,14 +268,14 @@ public class TestH5R {
         ref = H5.H5Rcreate(H5fid, "/dset", HDF5Constants.H5R_OBJECT, -1);
         H5.H5Rget_name(H5fid, HDF5Constants.H5R_DATASET_REGION, ref, name, 16);
     }
-    
+
     @Test(expected = NullPointerException.class)
     public void testH5Rget_name_NULLreference() throws Throwable {
         byte[] ref = null;
-        String[] name= {""};     
+        String[] name= {""};
         H5.H5Rget_name(H5fid, HDF5Constants.H5R_OBJECT, ref, name, 16);
     }
-    
+
     @Test(expected = HDF5LibraryException.class)
     public void testH5Rget_obj_type2_Invalidreftype() throws Throwable {
         byte[] ref = null;
@@ -268,48 +283,48 @@ public class TestH5R {
         ref = H5.H5Rcreate(H5fid, "/dset", HDF5Constants.H5R_OBJECT, -1);
         H5.H5Rget_obj_type(H5fid, HDF5Constants.H5R_DATASET_REGION, ref, otype);
     }
-    
+
     @Test(expected = HDF5LibraryException.class)
     public void testH5Rcreate_InvalidObjectName() throws Throwable {
          H5.H5Rcreate(H5fid, "/GROUPS", HDF5Constants.H5R_OBJECT, -1);
     }
-    
+
     @Test(expected = HDF5LibraryException.class)
     public void testH5Rcreate_Invalidspace_id() throws Throwable {
          H5.H5Rcreate(H5fid, "/dset", HDF5Constants.H5R_DATASET_REGION, -1);
     }
-    
+
     @Test(expected = IllegalArgumentException.class)
     public void testH5Rcreate_Invalidreftype() throws Throwable {
         H5.H5Rcreate(H5fid, "/dset", HDF5Constants.H5R_BADTYPE, -1);
     }
-    
+
     @Test(expected = IllegalArgumentException.class)
     public void testH5Rgetregion_Invalidreftype() throws Throwable {
         byte[] ref = null;
         ref = H5.H5Rcreate(H5fid, "/dset", HDF5Constants.H5R_OBJECT, H5dsid);
         H5.H5Rget_region(H5fid, HDF5Constants.H5R_DATASET_REGION, ref);
     }
-    
+
     @Test(expected = IllegalArgumentException.class)
     public void testH5Rgetregion_Badreferencetype() throws Throwable {
         byte[] ref = null;
         ref = H5.H5Rcreate(H5fid, "/dset", HDF5Constants.H5R_OBJECT, H5dsid);
         H5.H5Rget_region(H5fid, HDF5Constants.H5R_OBJECT, ref);
     }
-    
+
     @Test(expected = NullPointerException.class)
     public void testH5Rgetregion_Nullreference() throws Throwable {
         byte[] ref = null;
         H5.H5Rget_region(H5fid, HDF5Constants.H5R_DATASET_REGION, ref);
     }
-    
+
     @Test(expected = NullPointerException.class)
     public void testH5Rdereference_Nullreference() throws Throwable {
         byte[] ref = null;
         H5.H5Rdereference(H5did2, HDF5Constants.H5P_DEFAULT, HDF5Constants.H5R_OBJECT, ref);
     }
-    
+
     @Test(expected = IllegalArgumentException.class)
     public void testH5Rdereference_Invalidreference() throws Throwable {
         byte[] ref1 = null;
@@ -318,5 +333,5 @@ public class TestH5R {
         ref2 = H5.H5Rcreate(H5gid, "/Group1", HDF5Constants.H5R_OBJECT, -1);
         H5.H5Rdereference(H5gid, HDF5Constants.H5P_DEFAULT, HDF5Constants.H5R_OBJECT, ref1);
     }
-  
+
 }
