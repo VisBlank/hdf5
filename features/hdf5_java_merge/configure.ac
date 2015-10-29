@@ -2810,7 +2810,7 @@ CXX_NOFLAGS=`echo $CXX | sed 's/ -.*//'`
 if `echo $CXX_NOFLAGS | grep ^/ >/dev/null 2>&1`; then
   CXX_VERSION="$CXX"
 else
-  CXX_VERSION="$FC";
+  CXX_VERSION="$CXX";
   for x in `echo $PATH | sed -e 's/:/ /g'`; do
     if test -x $x/$CXX_NOFLAGS; then
       CXX_VERSION="$x/$CXX"
@@ -2820,6 +2820,27 @@ else
 fi
 if test -n "$cxx_version_info"; then
   CXX_VERSION="$CXX_VERSION ( $cxx_version_info)"
+fi
+
+AC_SUBST([JAVA_VERSION])
+## Strip anything that looks like a flag off of $JAVA
+JAVA_NOFLAGS=`echo $JAVA | sed 's/ -.*//'`
+
+if `echo $JAVA_NOFLAGS | grep ^/ >/dev/null 2>&1`; then
+  JAVA_VERSION="$JAVA"
+else
+  JAVA_VERSION="$JAVA";
+  for x in `echo $PATH | sed -e 's/:/ /g'`; do
+    if test -x $x/$JAVA_NOFLAGS; then
+      JAVA_VERSION="$x/$JAVA"
+      break
+    fi
+  done
+fi
+java_version_info=`$JAVA -version 2>&1 |\
+  grep 'version' | sed 's/\(.*(version) [-a-z0-9\. ]*\).*/\1/'`
+if test -n "$java_version_info"; then
+  JAVA_VERSION="$JAVA_VERSION ( $java_version_info)"
 fi
 
 ## ----------------------------------------------------------------------
