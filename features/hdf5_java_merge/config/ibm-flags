@@ -31,13 +31,13 @@ if test X = "X$cc_flags_set"; then
     cc_version="`$CC $CFLAGS -qversion 2>&1 | grep 'IBM XL C/C++'`"
     if test X != "X$cc_version"; then
         cc_vendor="XL"
-  cc_version="`$CC $CFLAGS -qversion 2>&1 | sed -n 's/Version: \([0-9\.]*\).*/\1/p'`"
-  cc_version_info="IBM XL C/C++ $cc_version"
+	cc_version="`$CC $CFLAGS -qversion 2>&1 | sed -n 's/Version: \([0-9\.]*\).*/\1/p'`"
+	cc_version_info="IBM XL C/C++ $cc_version"
         echo "compiler '$CC' is IBM $cc_vendor-$cc_version"
 
         # Some more version numbers.
         # XL version numbers are of the form: "major.minor.X.Y"
-  # (Need to find out the official meaning of the 4 components.)
+	# (Need to find out the official meaning of the 4 components.)
         cc_vers_major=`echo $cc_version | cut -f1 -d.`
         cc_vers_minor=`echo $cc_version | cut -f2 -d.`
         cc_vers_patch=`echo $cc_version | cut -f3 -d.`
@@ -89,8 +89,8 @@ if test X != X$FC; then
     fc_version="`$FC $FCFLAGS -qversion 2>&1 | grep 'IBM XL Fortran'`"
     if test X != "X$fc_version"; then
         fc_vendor="XL"
-  fc_version="`$FC $FCFLAGS -qversion 2>&1 | sed -n 's/Version: \([0-9\.]*\).*/\1/p'`"
-  fc_version_info="IBM XL Fortran $fc_version"
+	fc_version="`$FC $FCFLAGS -qversion 2>&1 | sed -n 's/Version: \([0-9\.]*\).*/\1/p'`"
+	fc_version_info="IBM XL Fortran $fc_version"
         echo "compiler '$FC' is IBM $fc_vendor-$fc_version"
 
     fi
@@ -103,8 +103,8 @@ if test X != X$CXX; then
     cxx_version="`$CXX $CXXFLAGS -qversion 2>&1 | grep 'IBM XL C/C++'`"
     if test X != "X$cxx_version"; then
         cxx_vendor="XL"
-  cxx_version="`$CXX $CXXFLAGS -qversion 2>&1 | sed -n 's/Version: \([0-9\.]*\).*/\1/p'`"
-  cxx_version_info="IBM XL C/C++ $cxx_version"
+	cxx_version="`$CXX $CXXFLAGS -qversion 2>&1 | sed -n 's/Version: \([0-9\.]*\).*/\1/p'`"
+	cxx_version_info="IBM XL C/C++ $cxx_version"
         echo "compiler '$CXX' is IBM $cxx_vendor-$cxx_version"
 
     fi

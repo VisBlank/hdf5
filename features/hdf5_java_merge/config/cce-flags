@@ -30,8 +30,8 @@ if test X = "X$cc_flags_set"; then
         cc_vendor=cce
         cc_version=`echo $cc_version |sed 's/.*Version \([-a-z0-9\.\-]*\).*/\1/'`
         echo "compiler '$CC' is Cray $cc_vendor-$cc_version"
-  cc_version_info=$cc_version
-  cxx_version_info=$cc_version
+	cc_version_info=$cc_version
+	cxx_version_info=$cc_version
     fi
 fi
 

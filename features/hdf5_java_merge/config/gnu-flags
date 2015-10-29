@@ -39,10 +39,10 @@ if test X = "X$cc_flags_set"; then
     cc_vendor=`echo $cc_version |sed 's/\([a-z]*\).*/\1/'`
     cc_version=`echo $cc_version |sed 's/[-a-z]//g'`
     if test X = "X$cc_vendor" -a X != "X$cc_version"; then
-  cc_vendor=gcc
+	cc_vendor=gcc
     fi
     if test "-" != "$cc_vendor-$cc_version"; then
-  echo "compiler '$CC' is GNU $cc_vendor-$cc_version"
+	echo "compiler '$CC' is GNU $cc_vendor-$cc_version"
     fi
 
     # Some version numbers
