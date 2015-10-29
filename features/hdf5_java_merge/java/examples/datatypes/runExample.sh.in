@@ -14,6 +14,7 @@
 # access to either file, you may request a copy from help@hdfgroup.org.
 #
 
+top_builddir=@top_builddir@
 top_srcdir=@top_srcdir@
 srcdir=@srcdir@
 
@@ -36,7 +37,7 @@ nerrors=0
 HDFLIB_HOME="$top_srcdir/java/lib"
 BLDLIBDIR="./lib"
 BLDDIR="."
-HDFTEST_HOME="$top_srcdir/java/examples/dattypes"
+HDFTEST_HOME="$top_srcdir/java/examples/datatypes"
 JARFILE=jar@PACKAGE_TARNAME@-@PACKAGE_VERSION@.jar
 TESTJARFILE=jar@PACKAGE_TARNAME@datatypes.jar
 test -d $BLDLIBDIR || mkdir -p $BLDLIBDIR
@@ -51,9 +52,9 @@ test -d $BLDLIBDIR || mkdir -p $BLDLIBDIR
 # --------------------------------------------------------------------
 LIST_LIBRARY_FILES="
 $HDFLIB_HOME/slf4j-api-1.7.5.jar
-$HDFLIB_HOME/slf4j-simple-1.7.5.jar
-../../jni/.libs/libhdf5_java.so
-../../hdf/$JARFILE
+$HDFLIB_HOME/ext/slf4j-simple-1.7.5.jar
+$top_builddir/java/src/jni/.libs/libhdf5_java.so
+$top_builddir/java/src/hdf/$JARFILE
 "
 LIST_DATA_FILES="
 $HDFTEST_HOME/../testfiles/examples.datatypes.H5Ex_T_Array.txt

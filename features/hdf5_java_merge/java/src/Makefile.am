@@ -17,10 +17,10 @@
 include $(top_srcdir)/config/commence.am
 
 ## Only recurse into subdirectories if the Java (JNI) interface is enabled.
-if BUILD_JNI_CONDITIONAL
+if BUILD_JAVA_CONDITIONAL
 
 # Mark this directory as part of the JNI API
-JNI_API=yes
+JAVA_API=yes
 
 SUBDIRS=jni hdf
 

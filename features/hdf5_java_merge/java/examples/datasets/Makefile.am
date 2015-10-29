@@ -22,7 +22,8 @@ JAVA_API=yes
 JAVAROOT = ../..
 
 pkgpath = examples/datasets
-CLASSPATH_ENV=CLASSPATH=.:$(JAVAROOT):$(top_srcdir)/java/lib/hdf5_java.jar:$(top_srcdir)/java/lib/slf4j-api-1.7.5.jar:$(top_srcdir)/java/lib/ext/slf4j-simple-1.7.5.jar:$$CLASSPATH
+hdfjarfile = jar$(PACKAGE_TARNAME)-$(PACKAGE_VERSION).jar
+CLASSPATH_ENV=CLASSPATH=.:$(JAVAROOT):$(top_builddir)/java/src/hdf/$(hdfjarfile):$(top_srcdir)/java/lib/slf4j-api-1.7.5.jar:$(top_srcdir)/java/lib/ext/slf4j-simple-1.7.5.jar:$$CLASSPATH
 
 jarfile = jar$(PACKAGE_TARNAME)datasets.jar
 TestAlldir = $(datadir)/java

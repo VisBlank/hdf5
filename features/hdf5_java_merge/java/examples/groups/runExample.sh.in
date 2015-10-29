@@ -14,6 +14,7 @@
 # access to either file, you may request a copy from help@hdfgroup.org.
 #
 
+top_builddir=@top_builddir@
 top_srcdir=@top_srcdir@
 srcdir=@srcdir@
 
@@ -35,7 +36,7 @@ nerrors=0
 # where the libs exist
 HDFLIB_HOME="$top_srcdir/java/lib"
 BLDLIBDIR="./lib"
-BLDREFDIR="./groups/groups"
+BLDREFDIR="./groups"
 BLDDIR="."
 HDFTEST_HOME="$top_srcdir/java/examples/groups"
 JARFILE=jar@PACKAGE_TARNAME@-@PACKAGE_VERSION@.jar
@@ -53,9 +54,9 @@ test -d $BLDREFDIR || mkdir -p $BLDREFDIR
 # --------------------------------------------------------------------
 LIST_LIBRARY_FILES="
 $HDFLIB_HOME/slf4j-api-1.7.5.jar
-$HDFLIB_HOME/slf4j-simple-1.7.5.jar
-../../jni/.libs/libhdf5_java.so
-../../hdf/$JARFILE
+$HDFLIB_HOME/ext/slf4j-simple-1.7.5.jar
+$top_builddir/java/src/jni/.libs/libhdf5_java.so
+$top_builddir/java/src/hdf/$JARFILE
 "
 LIST_REF_FILES="
 $HDFTEST_HOME/h5ex_g_iterate.h5
