@@ -207,7 +207,7 @@ int getErrorNumbers(hid_t stk_id, H5E_num_t *err_nums)
  *  and the Java native method immediately raises the
  *  exception.
  */
-jboolean h5outOfMemory( JNIEnv *env, char *functName)
+jboolean h5outOfMemory( JNIEnv *env, const char *functName)
 {
     jmethodID jm;
     jclass jc;
@@ -248,7 +248,7 @@ jboolean h5outOfMemory( JNIEnv *env, char *functName)
  *  and the Java native method immediately raises the
  *  exception.
  */
-jboolean h5JNIFatalError( JNIEnv *env, char *functName)
+jboolean h5JNIFatalError( JNIEnv *env, const char *functName)
 {
     jmethodID jm;
     jclass jc;
@@ -287,7 +287,7 @@ jboolean h5JNIFatalError( JNIEnv *env, char *functName)
  *  and the Java native method immediately raises the
  *  exception.
  */
-jboolean h5nullArgument( JNIEnv *env, char *functName)
+jboolean h5nullArgument( JNIEnv *env, const char *functName)
 {
     jmethodID jm;
     jclass jc;
@@ -327,7 +327,7 @@ jboolean h5nullArgument( JNIEnv *env, char *functName)
  *  and the Java native method immediately raises the
  *  exception.
  */
-jboolean h5badArgument( JNIEnv *env, char *functName)
+jboolean h5badArgument( JNIEnv *env, const char *functName)
 {
     jmethodID jm;
     jclass jc;
@@ -366,7 +366,7 @@ jboolean h5badArgument( JNIEnv *env, char *functName)
  *  and the Java native method immediately raises the
  *  exception.
  */
-jboolean h5unimplemented( JNIEnv *env, char *functName)
+jboolean h5unimplemented( JNIEnv *env, const char *functName)
 {
     jmethodID jm;
     jclass jc;
@@ -476,7 +476,7 @@ jboolean h5libraryError( JNIEnv *env )
  *  and the Java native method immediately raises the
  *  exception.
  */
-jboolean h5raiseException( JNIEnv *env, char *exception, char *message)
+jboolean h5raiseException( JNIEnv *env, const char *exception, const char *message)
 {
     jmethodID jm;
     jclass jc;

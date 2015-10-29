@@ -29,6 +29,7 @@ extern "C" {
 #include <stdlib.h>
 #include <string.h>
 #include "h5jni.h"
+#include "h5aImp.h"
 
 #ifdef H5_HAVE_WIN32_API
   #define strtoll(S,R,N)     _strtoi64(S,R,N)
@@ -36,13 +37,13 @@ extern "C" {
   #define strtof(S,R)    atof(S)
 #endif /* H5_HAVE_WIN32_API */
 
-herr_t H5AreadVL_str (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf);
-herr_t H5AreadVL_num (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf);
-herr_t H5AreadVL_comp (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf);
+static herr_t H5AreadVL_str (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf);
+static herr_t H5AreadVL_num (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf);
+static herr_t H5AreadVL_comp (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf);
 
-herr_t H5AwriteVL_str (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf);
-herr_t H5AwriteVL_num (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf);
-herr_t H5AwriteVL_comp (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf);
+static herr_t H5AwriteVL_str (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf);
+static herr_t H5AwriteVL_num (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf);
+static herr_t H5AwriteVL_comp (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf);
 
 /*
  * Class:     hdf_hdf5lib_H5
@@ -54,7 +55,7 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Acreate
           jlong space_id, jlong create_plist)
 {
     hid_t status;
-    char* aName;
+    const char* aName;
     jboolean isCopy;
 
     if (name == NULL) {
@@ -62,7 +63,7 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Acreate
         return -1;
     }
 
-    aName = (char *)ENVPTR->GetStringUTFChars(ENVPAR name, &isCopy);
+    aName = ENVPTR->GetStringUTFChars(ENVPAR name, &isCopy);
 
     if (aName == NULL) {
         h5JNIFatalError( env, "H5Acreate: aName is not pinned");
@@ -89,7 +90,7 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Aopen_1name
   (JNIEnv *env, jclass clss, jlong loc_id, jstring name)
 {
     hid_t status;
-    char* aName;
+    const char* aName;
     jboolean isCopy;
 
     if (name == NULL) {
@@ -97,7 +98,7 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Aopen_1name
         return -1;
     }
 
-    aName = (char *)ENVPTR->GetStringUTFChars(ENVPAR name,&isCopy);
+    aName = ENVPTR->GetStringUTFChars(ENVPAR name,&isCopy);
 
     if (aName == NULL) {
         h5JNIFatalError( env,"H5Aopen_name: name is not pinned");
@@ -194,12 +195,13 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5AwriteVL
     return (jint)status;
 }
 
+static
 herr_t H5AwriteVL_num (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf)
 {
     herr_t  status = -1;
     int     n;
     hvl_t  *wdata = NULL;
-    jint    i,j;
+    jint    i;
     unsigned char   tmp_uchar = 0;
     char            tmp_char = 0;
     unsigned short  tmp_ushort = 0;
@@ -216,7 +218,6 @@ herr_t H5AwriteVL_num (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf)
     H5T_class_t     tclass = H5Tget_class(tid);
     size_t          size = H5Tget_size(tid);
     H5T_sign_t      nsign = H5Tget_sign(tid);
-//    hid_t           sid = H5Aget_space(tid);
     hid_t           basetid = -1;
     hid_t           basesid = -1;
     H5T_class_t     basetclass = -1;
@@ -227,51 +228,43 @@ herr_t H5AwriteVL_num (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf)
         basetid = H5Tget_super(tid);
         size = H5Tget_size(basetid);
         basetclass = H5Tget_class(basetid);
-//        basesid = H5Aget_space(basetid);
     }
     n = ENVPTR->GetArrayLength(ENVPAR (jarray)buf);
-printf("H5AwriteVL_num: n=%d of len %d\n", n, sizeof(buf));
 
-    wdata = (hvl_t *)calloc(n+1, sizeof(hvl_t));
+    wdata = (hvl_t *)calloc((size_t)(n+1), sizeof(hvl_t));
     if (!wdata) {
         h5JNIFatalError(env, "H5AwriteVL_str:  cannot allocate buffer");
         return -1;
     }
     for (i = 0; i < n; i++) {
-        int j;
+        int m;
 
         jstring obj = (jstring) ENVPTR->GetObjectArrayElement(ENVPAR (jobjectArray) buf, i);
         if (obj != 0) {
             jsize length = ENVPTR->GetStringUTFLength(ENVPAR obj);
             const char *utf8 = ENVPTR->GetStringUTFChars(ENVPAR obj, 0);
-printf("utf8=%s\n", utf8);
-            temp = malloc(length+1);
-            strncpy(temp, utf8, length);
+            temp = malloc((size_t)length+1);
+            strncpy(temp, utf8, (size_t)length);
             temp[length] = '\0';
-printf("temp=%s\n", temp);
             token = strtok(temp, ",");
-printf("token[0]:%s\n", token);
-            j = 1;
+            m = 1;
             while (1) {
                 token = strtok (NULL, ",");
-printf("token[%d]:%s\n", j, token);
                 if (token == NULL)
                     break;
-                j++;
+                m++;
             }
-printf("H5AwriteVL_num: count=%d obj_len=%d of utf8_len %d\n", j, length, sizeof(utf8));
-            wdata[i].p = malloc(j * size);
-            wdata[i].len = j;
+            wdata[i].p = malloc((size_t)m * size);
+            wdata[i].len = (size_t)m;
 
-            strncpy(temp, utf8, length);
+            strncpy(temp, utf8, (size_t)length);
             temp[length] = '\0';
             switch (tclass) {
                 case H5T_FLOAT:
                     if (sizeof(float) == size) {
-printf("float:%s\n", utf8);
-                        j = 0;
+                        m = 0;
                         tmp_float = strtof(strtok(temp, ","), NULL);
-                        ((float *)wdata[i].p)[j++] = tmp_float;
+                        ((float *)wdata[i].p)[m++] = tmp_float;
 
                         while (1) {
                             token = strtok (NULL, ",");
@@ -280,14 +273,13 @@ printf("float:%s\n", utf8);
                             if (token[0] == ' ')
                                 token++;
                             tmp_float = strtof(token, NULL);
-                            ((float *)wdata[i].p)[j++] = tmp_float;
+                            ((float *)wdata[i].p)[m++] = tmp_float;
                         }
                     }
                     else if (sizeof(double) == size) {
-printf("double:%s\n", utf8);
-                        j = 0;
+                        m = 0;
                         tmp_double = strtod(strtok(temp, ","), NULL);
-                        ((double *)wdata[i].p)[j++] = tmp_double;
+                        ((double *)wdata[i].p)[m++] = tmp_double;
 
                         while (1) {
                             token = strtok (NULL, ",");
@@ -296,15 +288,14 @@ printf("double:%s\n", utf8);
                             if (token[0] == ' ')
                                 token++;
                             tmp_double = strtod(token, NULL);
-                            ((double *)wdata[i].p)[j++] = tmp_double;
+                            ((double *)wdata[i].p)[m++] = tmp_double;
                         }
                     }
 #if H5_SIZEOF_LONG_DOUBLE !=0
                     else if (sizeof(long double) == size) {
-printf("longdouble:%s\n", utf8);
-                        j = 0;
+                        m = 0;
                         tmp_ldouble = strtold(strtok(temp, ","), NULL);
-                        ((long double *)wdata[i].p)[j++] = tmp_ldouble;
+                        ((long double *)wdata[i].p)[m++] = tmp_ldouble;
 
                         while (1) {
                             token = strtok (NULL, ",");
@@ -313,7 +304,7 @@ printf("longdouble:%s\n", utf8);
                             if (token[0] == ' ')
                                 token++;
                             tmp_ldouble = strtold(token, NULL);
-                            ((long double *)wdata[i].p)[j++] = tmp_ldouble;
+                            ((long double *)wdata[i].p)[m++] = tmp_ldouble;
                         }
                    }
 #endif
@@ -321,10 +312,9 @@ printf("longdouble:%s\n", utf8);
                 case H5T_INTEGER:
                     if (sizeof(char) == size) {
                         if(H5T_SGN_NONE == nsign) {
-printf("uchar:%s\n", utf8);
-                            j = 0;
+                            m = 0;
                             tmp_uchar = (unsigned char)strtoul(strtok(temp, ","), NULL, 10);
-                            ((unsigned char *)wdata[i].p)[j++] = tmp_uchar;
+                            ((unsigned char *)wdata[i].p)[m++] = tmp_uchar;
 
                             while (1) {
                                 token = strtok (NULL, ",");
@@ -333,14 +323,13 @@ printf("uchar:%s\n", utf8);
                                 if (token[0] == ' ')
                                     token++;
                                 tmp_uchar = (unsigned char)strtoul(token, NULL, 10);
-                                ((unsigned char *)wdata[i].p)[j++] = tmp_uchar;
+                                ((unsigned char *)wdata[i].p)[m++] = tmp_uchar;
                             }
                         }
                         else {
-printf("char:%s\n", utf8);
-                            j = 0;
+                            m = 0;
                             tmp_char = (char)strtoul(strtok(temp, ","), NULL, 10);
-                            ((char *)wdata[i].p)[j++] = tmp_char;
+                            ((char *)wdata[i].p)[m++] = tmp_char;
 
                             while (1) {
                                 token = strtok (NULL, ",");
@@ -349,16 +338,15 @@ printf("char:%s\n", utf8);
                                 if (token[0] == ' ')
                                     token++;
                                 tmp_char = (char)strtoul(token, NULL, 10);
-                                ((char *)wdata[i].p)[j++] = tmp_char;
+                                ((char *)wdata[i].p)[m++] = tmp_char;
                             }
                         }
                     }
                     else if (sizeof(int) == size) {
                         if(H5T_SGN_NONE == nsign) {
-printf("uint:%s\n", utf8);
-                            j = 0;
+                            m = 0;
                             tmp_uint = (unsigned int)strtoul(strtok(temp, ","), NULL, 10);
-                            ((unsigned int *)wdata[i].p)[j++] = tmp_uint;
+                            ((unsigned int *)wdata[i].p)[m++] = tmp_uint;
 
                             while (1) {
                                 token = strtok (NULL, ",");
@@ -367,14 +355,13 @@ printf("uint:%s\n", utf8);
                                 if (token[0] == ' ')
                                     token++;
                                 tmp_uint = (unsigned int)strtoul(token, NULL, 10);
-                                ((unsigned int *)wdata[i].p)[j++] = tmp_uint;
+                                ((unsigned int *)wdata[i].p)[m++] = tmp_uint;
                             }
                         }
                         else {
-printf("int:%s\n", utf8);
-                            j = 0;
+                            m = 0;
                             tmp_int = (int)strtoul(strtok(temp, ","), NULL, 10);
-                            ((int *)wdata[i].p)[j++] = tmp_int;
+                            ((int *)wdata[i].p)[m++] = tmp_int;
 
                             while (1) {
                                 token = strtok (NULL, ",");
@@ -383,16 +370,15 @@ printf("int:%s\n", utf8);
                                 if (token[0] == ' ')
                                     token++;
                                 tmp_int = (int)strtoul(token, NULL, 10);
-                                ((int *)wdata[i].p)[j++] = tmp_int;
+                                ((int *)wdata[i].p)[m++] = tmp_int;
                             }
                         }
                     }
                     else if (sizeof(short) == size) {
                         if(H5T_SGN_NONE == nsign) {
-printf("ushort:%s\n", utf8);
-                            j = 0;
+                            m = 0;
                             tmp_ushort = (unsigned short)strtoul(strtok(temp, ","), NULL, 10);
-                            ((unsigned short *)wdata[i].p)[j++] = tmp_ushort;
+                            ((unsigned short *)wdata[i].p)[m++] = tmp_ushort;
 
                             while (1) {
                                 token = strtok (NULL, ",");
@@ -401,14 +387,13 @@ printf("ushort:%s\n", utf8);
                                 if (token[0] == ' ')
                                     token++;
                                 tmp_ushort = (unsigned short)strtoul(token, NULL, 10);
-                                ((unsigned short *)wdata[i].p)[j++] = tmp_ushort;
+                                ((unsigned short *)wdata[i].p)[m++] = tmp_ushort;
                             }
                         }
                         else {
-printf("short:%s\n", utf8);
-                            j = 0;
+                            m = 0;
                             tmp_short = (short)strtoul(strtok(temp, ","), NULL, 10);
-                            ((short *)wdata[i].p)[j++] = tmp_short;
+                            ((short *)wdata[i].p)[m++] = tmp_short;
 
                             while (1) {
                                 token = strtok (NULL, ",");
@@ -417,16 +402,15 @@ printf("short:%s\n", utf8);
                                 if (token[0] == ' ')
                                     token++;
                                 tmp_short = (short)strtoul(token, NULL, 10);
-                                ((short *)wdata[i].p)[j++] = tmp_short;
+                                ((short *)wdata[i].p)[m++] = tmp_short;
                             }
                         }
                     }
                     else if (sizeof(long) == size) {
                         if(H5T_SGN_NONE == nsign) {
-printf("ulong:%s\n", utf8);
-                            j = 0;
+                            m = 0;
                             tmp_ulong = strtoul(strtok(temp, ","), NULL, 10);
-                            ((unsigned long *)wdata[i].p)[j++] = tmp_ulong;
+                            ((unsigned long *)wdata[i].p)[m++] = tmp_ulong;
 
                             while (1) {
                                 token = strtok (NULL, ",");
@@ -435,14 +419,13 @@ printf("ulong:%s\n", utf8);
                                 if (token[0] == ' ')
                                     token++;
                                 tmp_ulong = strtoul(token, NULL, 10);
-                                ((unsigned long *)wdata[i].p)[j++] = tmp_ulong;
+                                ((unsigned long *)wdata[i].p)[m++] = tmp_ulong;
                             }
                         }
                         else {
-printf("long:%s\n", utf8);
-                            j = 0;
+                            m = 0;
                             tmp_long = strtol(strtok(temp, ","), NULL, 10);
-                            ((long *)wdata[i].p)[j++] = tmp_long;
+                            ((long *)wdata[i].p)[m++] = tmp_long;
 
                             while (1) {
                                 token = strtok (NULL, ",");
@@ -451,16 +434,15 @@ printf("long:%s\n", utf8);
                                 if (token[0] == ' ')
                                     token++;
                                 tmp_long = strtol(token, NULL, 10);
-                                ((long *)wdata[i].p)[j++] = tmp_long;
+                                ((long *)wdata[i].p)[m++] = tmp_long;
                             }
                         }
                     }
                     else if (sizeof(long long) == size) {
                         if(H5T_SGN_NONE == nsign) {
-printf("ulonglong:%s\n", utf8);
-                            j = 0;
+                            m = 0;
                             tmp_ullong = strtoull(strtok(temp, ","), NULL, 10);
-                            ((unsigned long long *)wdata[i].p)[j++] = tmp_ullong;
+                            ((unsigned long long *)wdata[i].p)[m++] = tmp_ullong;
 
                             while (1) {
                                 token = strtok (NULL, ",");
@@ -469,14 +451,13 @@ printf("ulonglong:%s\n", utf8);
                                 if (token[0] == ' ')
                                     token++;
                                 tmp_ullong = strtoull(token, NULL, 10);
-                                ((unsigned long long *)wdata[i].p)[j++] = tmp_ullong;
+                                ((unsigned long long *)wdata[i].p)[m++] = tmp_ullong;
                             }
                         }
                         else {
-printf("longlong:%s\n", utf8);
-                            j = 0;
+                            m = 0;
                             tmp_llong = strtoll(strtok(temp, ","), NULL, 10);
-                            ((long long *)wdata[i].p)[j++] = tmp_llong;
+                            ((long long *)wdata[i].p)[m++] = tmp_llong;
 
                             while (1) {
                                 token = strtok (NULL, ",");
@@ -485,44 +466,39 @@ printf("longlong:%s\n", utf8);
                                 if (token[0] == ' ')
                                     token++;
                                 tmp_llong = strtoll(token, NULL, 10);
-                                ((long long *)wdata[i].p)[j++] = tmp_llong;
+                                ((long long *)wdata[i].p)[m++] = tmp_llong;
                             }
                        }
                     }
                     break;
                 case H5T_STRING:
                     {
-printf("string:%s\n", utf8);
                     }
                     break;
                 case H5T_COMPOUND:
                     {
-printf("compound:%s\n", utf8);
                     }
                     break;
                 case H5T_ENUM:
                     {
-printf("enum:%s\n", utf8);
                     }
                     break;
                 case H5T_REFERENCE:
-printf("reference:%s\n", utf8);
+                    {
+                    }
                     break;
                 case H5T_ARRAY:
                     {
-printf("array:%s\n", utf8);
                     }
                     break;
                 case H5T_VLEN:
                     {
-printf("vlen:type size=%d, %s\n", size, utf8);
                         switch (basetclass) {
                         case H5T_FLOAT:
                             if (sizeof(float) == size) {
-printf("vlfloat:%s\n", utf8);
-                                j = 0;
+                                m = 0;
                                 tmp_float = strtof(strtok(temp, ","), NULL);
-                                ((float *)wdata[i].p)[j++] = tmp_float;
+                                ((float *)wdata[i].p)[m++] = tmp_float;
 
                                 while (1) {
                                     token = strtok (NULL, ",");
@@ -531,14 +507,13 @@ printf("vlfloat:%s\n", utf8);
                                     if (token[0] == ' ')
                                         token++;
                                     tmp_float = strtof(token, NULL);
-                                    ((float *)wdata[i].p)[j++] = tmp_float;
+                                    ((float *)wdata[i].p)[m++] = tmp_float;
                                 }
                             }
                             else if (sizeof(double) == size) {
-printf("vldouble:%s\n", utf8);
-                                j = 0;
+                                m = 0;
                                 tmp_double = strtod(strtok(temp, ","), NULL);
-                                ((double *)wdata[i].p)[j++] = tmp_double;
+                                ((double *)wdata[i].p)[m++] = tmp_double;
 
                                 while (1) {
                                     token = strtok (NULL, ",");
@@ -547,15 +522,14 @@ printf("vldouble:%s\n", utf8);
                                     if (token[0] == ' ')
                                         token++;
                                     tmp_double = strtod(token, NULL);
-                                    ((double *)wdata[i].p)[j++] = tmp_double;
+                                    ((double *)wdata[i].p)[m++] = tmp_double;
                                 }
                             }
         #if H5_SIZEOF_LONG_DOUBLE !=0
                             else if (sizeof(long double) == size) {
-printf("vllongdouble:%s\n", utf8);
-                                j = 0;
+                                m = 0;
                                 tmp_ldouble = strtold(strtok(temp, ","), NULL);
-                                ((long double *)wdata[i].p)[j++] = tmp_ldouble;
+                                ((long double *)wdata[i].p)[m++] = tmp_ldouble;
 
                                 while (1) {
                                     token = strtok (NULL, ",");
@@ -564,7 +538,7 @@ printf("vllongdouble:%s\n", utf8);
                                     if (token[0] == ' ')
                                         token++;
                                     tmp_ldouble = strtold(token, NULL);
-                                    ((long double *)wdata[i].p)[j++] = tmp_ldouble;
+                                    ((long double *)wdata[i].p)[m++] = tmp_ldouble;
                                 }
                            }
         #endif
@@ -572,10 +546,9 @@ printf("vllongdouble:%s\n", utf8);
                         case H5T_INTEGER:
                             if (sizeof(char) == size) {
                                 if(H5T_SGN_NONE == nsign) {
-printf("vluchar:%s\n", utf8);
-                                    j = 0;
+                                    m = 0;
                                     tmp_uchar = (unsigned char)strtoul(strtok(temp, ","), NULL, 10);
-                                    ((unsigned char *)wdata[i].p)[j++] = tmp_uchar;
+                                    ((unsigned char *)wdata[i].p)[m++] = tmp_uchar;
 
                                     while (1) {
                                         token = strtok (NULL, ",");
@@ -584,14 +557,13 @@ printf("vluchar:%s\n", utf8);
                                         if (token[0] == ' ')
                                             token++;
                                         tmp_uchar = (unsigned char)strtoul(token, NULL, 10);
-                                        ((unsigned char *)wdata[i].p)[j++] = tmp_uchar;
+                                        ((unsigned char *)wdata[i].p)[m++] = tmp_uchar;
                                     }
                                 }
                                 else {
-printf("vlchar:%s\n", utf8);
-                                    j = 0;
+                                    m = 0;
                                     tmp_char = (char)strtoul(strtok(temp, ","), NULL, 10);
-                                    ((char *)wdata[i].p)[j++] = tmp_char;
+                                    ((char *)wdata[i].p)[m++] = tmp_char;
 
                                     while (1) {
                                         token = strtok (NULL, ",");
@@ -600,33 +572,30 @@ printf("vlchar:%s\n", utf8);
                                         if (token[0] == ' ')
                                             token++;
                                         tmp_char = (char)strtoul(token, NULL, 10);
-                                        ((char *)wdata[i].p)[j++] = tmp_char;
+                                        ((char *)wdata[i].p)[m++] = tmp_char;
                                     }
                                 }
                             }
                             else if (sizeof(int) == size) {
                                 if(H5T_SGN_NONE == nsign) {
-printf("vluint:%s\n", utf8);
-                                    j = 0;
+                                    m = 0;
                                     tmp_uint = (unsigned int)strtoul(strtok(temp, ","), NULL, 10);
-                                    ((unsigned int *)wdata[i].p)[j++] = tmp_uint;
+                                    ((unsigned int *)wdata[i].p)[m++] = tmp_uint;
 
                                     while (1) {
                                         token = strtok (NULL, ",");
-printf("token[%d]:%s\n", j, token);
                                         if (token == NULL)
                                             break;
                                         if (token[0] == ' ')
                                             token++;
                                         tmp_uint = (unsigned int)strtoul(token, NULL, 10);
-                                        ((unsigned int *)wdata[i].p)[j++] = tmp_uint;
+                                        ((unsigned int *)wdata[i].p)[m++] = tmp_uint;
                                     }
                                 }
                                 else {
-printf("vlint:%s\n", utf8);
-                                    j = 0;
+                                    m = 0;
                                     tmp_int = (int)strtoul(strtok(temp, ","), NULL, 10);
-                                    ((int *)wdata[i].p)[j++] = tmp_int;
+                                    ((int *)wdata[i].p)[m++] = tmp_int;
 
                                     while (1) {
                                         token = strtok (NULL, ",");
@@ -635,46 +604,43 @@ printf("vlint:%s\n", utf8);
                                         if (token[0] == ' ')
                                             token++;
                                         tmp_int = (int)strtoul(token, NULL, 10);
-                                        ((int *)wdata[i].p)[j++] = tmp_int;
+                                        ((int *)wdata[i].p)[m++] = tmp_int;
                                     }
                                 }
                             }
                             else if (sizeof(short) == size) {
                                 if(H5T_SGN_NONE == nsign) {
-printf("vlushort:%s\n", utf8);
-                                    j = 0;
+                                    m = 0;
                                     tmp_ushort = (unsigned short)strtoul(strtok(temp, ","), NULL, 10);
-                                    ((unsigned short *)wdata[i].p)[j++] = tmp_ushort;
+                                    ((unsigned short *)wdata[i].p)[m++] = tmp_ushort;
 
                                     while (1) {
                                         token = strtok (NULL, ",");
                                         if (token == NULL)
                                             break;
                                         tmp_ushort = (unsigned short)strtoul(token, NULL, 10);
-                                        ((unsigned short *)wdata[i].p)[j++] = tmp_ushort;
+                                        ((unsigned short *)wdata[i].p)[m++] = tmp_ushort;
                                     }
                                 }
                                 else {
-printf("vlshort:%s\n", utf8);
-                                    j = 0;
+                                    m = 0;
                                     tmp_short = (short)strtoul(strtok(temp, ","), NULL, 10);
-                                    ((short *)wdata[i].p)[j++] = tmp_short;
+                                    ((short *)wdata[i].p)[m++] = tmp_short;
 
                                     while (1) {
                                         token = strtok (NULL, ",");
                                         if (token == NULL)
                                             break;
                                         tmp_short = (short)strtoul(token, NULL, 10);
-                                        ((short *)wdata[i].p)[j++] = tmp_short;
+                                        ((short *)wdata[i].p)[m++] = tmp_short;
                                     }
                                 }
                             }
                             else if (sizeof(long) == size) {
                                 if(H5T_SGN_NONE == nsign) {
-printf("vlulong:%s\n", utf8);
-                                    j = 0;
+                                    m = 0;
                                     tmp_ulong = strtoul(strtok(temp, ","), NULL, 10);
-                                    ((unsigned long *)wdata[i].p)[j++] = tmp_ulong;
+                                    ((unsigned long *)wdata[i].p)[m++] = tmp_ulong;
 
                                     while (1) {
                                         token = strtok (NULL, ",");
@@ -683,14 +649,13 @@ printf("vlulong:%s\n", utf8);
                                         if (token[0] == ' ')
                                             token++;
                                         tmp_ulong = strtoul(token, NULL, 10);
-                                        ((unsigned long *)wdata[i].p)[j++] = tmp_ulong;
+                                        ((unsigned long *)wdata[i].p)[m++] = tmp_ulong;
                                     }
                                 }
                                 else {
-printf("vllong:%s\n", utf8);
-                                    j = 0;
+                                    m = 0;
                                     tmp_long = strtol(strtok(temp, ","), NULL, 10);
-                                    ((long *)wdata[i].p)[j++] = tmp_long;
+                                    ((long *)wdata[i].p)[m++] = tmp_long;
 
                                     while (1) {
                                         token = strtok (NULL, ",");
@@ -699,16 +664,15 @@ printf("vllong:%s\n", utf8);
                                         if (token[0] == ' ')
                                             token++;
                                         tmp_long = strtol(token, NULL, 10);
-                                        ((long *)wdata[i].p)[j++] = tmp_long;
+                                        ((long *)wdata[i].p)[m++] = tmp_long;
                                     }
                                 }
                             }
                             else if (sizeof(long long) == size) {
                                 if(H5T_SGN_NONE == nsign) {
-printf("vlulonglong:%s\n", utf8);
-                                    j = 0;
+                                    m = 0;
                                     tmp_ullong = strtoull(strtok(temp, ","), NULL, 10);
-                                    ((unsigned long long *)wdata[i].p)[j++] = tmp_ullong;
+                                    ((unsigned long long *)wdata[i].p)[m++] = tmp_ullong;
 
                                     while (1) {
                                         token = strtok (NULL, ",");
@@ -717,14 +681,13 @@ printf("vlulonglong:%s\n", utf8);
                                         if (token[0] == ' ')
                                             token++;
                                         tmp_ullong = strtoull(token, NULL, 10);
-                                        ((unsigned long long *)wdata[i].p)[j++] = tmp_ullong;
+                                        ((unsigned long long *)wdata[i].p)[m++] = tmp_ullong;
                                     }
                                 }
                                 else {
-printf("vllonglong:%s\n", utf8);
-                                    j = 0;
+                                    m = 0;
                                     tmp_llong = strtoll(strtok(temp, ","), NULL, 10);
-                                    ((long long *)wdata[i].p)[j++] = tmp_llong;
+                                    ((long long *)wdata[i].p)[m++] = tmp_llong;
 
                                     while (1) {
                                         token = strtok (NULL, ",");
@@ -733,7 +696,7 @@ printf("vllonglong:%s\n", utf8);
                                         if (token[0] == ' ')
                                             token++;
                                         tmp_llong = strtoll(token, NULL, 10);
-                                        ((long long *)wdata[i].p)[j++] = tmp_llong;
+                                        ((long long *)wdata[i].p)[m++] = tmp_llong;
                                     }
                                }
                             }
@@ -749,15 +712,12 @@ printf("vllonglong:%s\n", utf8);
 
     status = H5Awrite((hid_t)aid, (hid_t)tid, wdata);
 
-    // now free memory
     for (i = 0; i < n; i++) {
        if(wdata[i].p) {
            free(wdata[i].p);
        }
     }
-//    H5Dvlen_reclaim(tid, sid, H5P_DEFAULT, wdata);
     free(wdata);
-//    H5Sclose(sid);
 
     if (status < 0) {
         h5libraryError(env);
@@ -766,6 +726,7 @@ printf("vllonglong:%s\n", utf8);
     return status;
 }
 
+static
 herr_t H5AwriteVL_comp (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf)
 {
     herr_t      status;
@@ -776,6 +737,7 @@ herr_t H5AwriteVL_comp (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf)
     return status;
 }
 
+static
 herr_t H5AwriteVL_str (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf)
 {
     herr_t  status = -1;
@@ -785,13 +747,13 @@ herr_t H5AwriteVL_str (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf)
 
     size = ENVPTR->GetArrayLength(ENVPAR (jarray) buf);
 
-    wdata = (char**)calloc(size + 1, sizeof (char*));
+    wdata = (char**)calloc((size_t)size + 1, sizeof(char*));
     if (!wdata) {
         h5JNIFatalError(env, "H5AwriteVL_str:  cannot allocate buffer");
         return -1;
     }
 
-    memset(wdata, 0, size * sizeof(char*));
+    memset(wdata, 0, (size_t)size * sizeof(char*));
     for (i = 0; i < size; ++i) {
         jstring obj = (jstring) ENVPTR->GetObjectArrayElement(ENVPAR (jobjectArray) buf, i);
         if (obj != 0) {
@@ -799,10 +761,10 @@ herr_t H5AwriteVL_str (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf)
             const char *utf8 = ENVPTR->GetStringUTFChars(ENVPAR obj, 0);
 
             if (utf8) {
-                wdata[i] = (char*)malloc(length + 1);
+                wdata[i] = (char*)malloc((size_t)length + 1);
                 if (wdata[i]) {
-                    memset(wdata[i], 0, (length + 1));
-                    strncpy(wdata[i], utf8, length);
+                    memset(wdata[i], 0, ((size_t)length + 1));
+                    strncpy(wdata[i], utf8, (size_t)length);
                 }
             }
 
@@ -813,7 +775,6 @@ herr_t H5AwriteVL_str (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf)
 
     status = H5Awrite((hid_t)aid, (hid_t)tid, wdata);
 
-    // now free memory
     for (i = 0; i < size; i++) {
        if(wdata[i]) {
            free(wdata[i]);
@@ -910,17 +871,17 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5_H5Aget_1name
     char *aName;
     jstring str;
     hssize_t size;
-    long bs;
+    ssize_t bs;
 
     if (buf_size==0 && name == NULL)
       return (jlong) H5Aget_name((hid_t)attr_id, 0, NULL);
 
-    bs = (long)buf_size;
+    bs = (ssize_t)buf_size;
     if (bs <= 0) {
         h5badArgument( env, "H5Aget_name:  buf_size <= 0");
         return -1;
     }
-    aName = (char*)malloc(sizeof(char)*bs);
+    aName = (char*)malloc(sizeof(char) * (size_t)bs);
     if (aName == NULL) {
         h5outOfMemory( env, "H5Aget_name:  malloc failed");
         return -1;
@@ -975,7 +936,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Adelete
   (JNIEnv *env, jclass clss, jlong loc_id, jstring name)
 {
     herr_t status;
-    char* aName;
+    const char* aName;
     jboolean isCopy;
 
     if (name == NULL) {
@@ -983,7 +944,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Adelete
         return -1;
     }
 
-    aName = (char *)ENVPTR->GetStringUTFChars(ENVPAR name,&isCopy);
+    aName = ENVPTR->GetStringUTFChars(ENVPAR name,&isCopy);
 
     if (aName == NULL) {
         h5JNIFatalError( env,"H5Adelete: name is not pinned");
@@ -1051,6 +1012,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5AreadVL
     }
 }
 
+static
 herr_t H5AreadVL_num (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf)
 {
     herr_t  status;
@@ -1065,14 +1027,14 @@ herr_t H5AreadVL_num (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf)
     hsize_t dims[H5S_MAX_RANK];
 
     n = ENVPTR->GetArrayLength(ENVPAR buf);
-    rdata = (hvl_t *)calloc(n+1, sizeof(hvl_t));
+    rdata = (hvl_t *)calloc((size_t)n+1, sizeof(hvl_t));
     if (rdata == NULL) {
         h5JNIFatalError( env, "H5AreadVL_num:  failed to allocate buff for read");
         return -1;
     }
 
     status = H5Aread(aid, tid, rdata);
-    dims[0] = n;
+    dims[0] = (hsize_t)n;
     sid = H5Screate_simple(1, dims, NULL);
     if (status < 0) {
         H5Dvlen_reclaim(tid, sid, H5P_DEFAULT, rdata);
@@ -1115,6 +1077,7 @@ herr_t H5AreadVL_num (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf)
     return status;
 }
 
+static
 herr_t H5AreadVL_comp (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf)
 {
     herr_t      status;
@@ -1131,7 +1094,7 @@ herr_t H5AreadVL_comp (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf)
     size = (((H5Tget_size(tid))>(H5Tget_size(p_type))) ? (H5Tget_size(tid)) : (H5Tget_size(p_type)));
     H5Tclose(p_type);
     n = ENVPTR->GetArrayLength(ENVPAR buf);
-    rdata = (char *)malloc(n * size);
+    rdata = (char *)malloc((size_t)n * size);
 
     if (rdata == NULL) {
         h5JNIFatalError(env, "H5AreadVL_comp:  failed to allocate buff for read");
@@ -1157,7 +1120,7 @@ herr_t H5AreadVL_comp (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf)
 
     for (i = 0; i < n; i++) {
         h5str.s[0] = '\0';
-        h5str_sprintf(&h5str, aid, tid, rdata + i * size, 0);
+        h5str_sprintf(&h5str, aid, tid, rdata + ((size_t)i * size), 0);
         jstr = ENVPTR->NewStringUTF(ENVPAR h5str.s);
         ENVPTR->SetObjectArrayElement(ENVPAR buf, i, jstr);
     }
@@ -1169,6 +1132,7 @@ herr_t H5AreadVL_comp (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf)
     return status;
 }
 
+static
 herr_t H5AreadVL_str (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf)
 {
     herr_t status=-1;
@@ -1180,7 +1144,7 @@ herr_t H5AreadVL_str (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf)
 
     n = ENVPTR->GetArrayLength(ENVPAR buf);
 
-    strs =(char **)malloc(n*sizeof(char *));
+    strs =(char **)malloc((size_t)n * sizeof(char *));
     if (strs == NULL) {
         h5JNIFatalError( env, "H5AreadVL_str:  failed to allocate buff for read variable length strings");
         return -1;
@@ -1188,7 +1152,7 @@ herr_t H5AreadVL_str (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf)
 
     status = H5Aread(aid, tid, strs);
     if (status < 0) {
-        dims[0] = n;
+        dims[0] = (hsize_t)n;
         sid = H5Screate_simple(1, dims, NULL);
         H5Dvlen_reclaim(tid, sid, H5P_DEFAULT, strs);
         H5Sclose(sid);
@@ -1248,11 +1212,11 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Acopy
         return -1;
     }
 
-    total_size = H5Sget_simple_extent_npoints(sid) * H5Tget_size(tid);
+    total_size = (hsize_t)H5Sget_simple_extent_npoints(sid) * (hsize_t)H5Tget_size(tid);
 
     H5Sclose(sid);
 
-    buf = (jbyte *)malloc( (int) (total_size * sizeof(jbyte)));
+    buf = (jbyte *)malloc( (size_t)total_size * sizeof(jbyte));
     if (buf == NULL) {
     H5Tclose(tid);
         h5outOfMemory( env, "H5Acopy:  malloc failed");
@@ -1301,7 +1265,7 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Acreate2
         jlong space_id, jlong create_plist, jlong access_plist)
 {
     hid_t status;
-    char* aName;
+    const char *aName;
     jboolean isCopy;
 
     if (name == NULL) {
@@ -1309,7 +1273,7 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Acreate2
         return -1;
     }
 
-    aName = (char *)ENVPTR->GetStringUTFChars(ENVPAR name, &isCopy);
+    aName = ENVPTR->GetStringUTFChars(ENVPAR name, &isCopy);
 
     if (aName == NULL) {
         h5JNIFatalError( env, "H5Acreate2: aName is not pinned");
@@ -1338,7 +1302,7 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Aopen
 
 {
    hid_t retVal;
-   char* aName;
+   const char *aName;
    jboolean isCopy;
 
    if (name == NULL) {
@@ -1346,7 +1310,7 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Aopen
         return -1;
     }
 
-    aName = (char *)ENVPTR->GetStringUTFChars(ENVPAR name, &isCopy);
+    aName = ENVPTR->GetStringUTFChars(ENVPAR name, &isCopy);
 
     if (aName == NULL) {
         h5JNIFatalError( env, "H5Aopen: aName is not pinned");
@@ -1373,7 +1337,7 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Aopen_1by_1idx
   (JNIEnv *env, jclass clss, jlong loc_id, jstring name, jint idx_type, jint order, jlong n, jlong aapl_id, jlong lapl_id)
 {
   hid_t retVal;
-  char* aName;
+  const char *aName;
   jboolean isCopy;
 
   if (name == NULL) {
@@ -1381,7 +1345,7 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Aopen_1by_1idx
     return -1;
   }
 
-  aName = (char *)ENVPTR->GetStringUTFChars(ENVPAR name, &isCopy);
+  aName = ENVPTR->GetStringUTFChars(ENVPAR name, &isCopy);
 
   if (aName == NULL) {
     h5JNIFatalError( env, "H5Aopen_by_idx: aName is not pinned");
@@ -1409,7 +1373,7 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Acreate_1by_1name
 (JNIEnv *env, jclass clss, jlong loc_id, jstring obj_name, jstring attr_name, jlong type_id, jlong space_id, jlong acpl_id, jlong aapl_id, jlong lapl_id)
 {
   hid_t retVal;
-  char *aName, *attrName;
+  const char *aName, *attrName;
   jboolean isCopy;
 
   if (obj_name == NULL) {
@@ -1420,12 +1384,12 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Acreate_1by_1name
     h5nullArgument( env, "H5Acreate_by_name:  attribute name is NULL");
     return -1;
   }
-  aName = (char *)ENVPTR->GetStringUTFChars(ENVPAR obj_name, &isCopy);
+  aName = ENVPTR->GetStringUTFChars(ENVPAR obj_name, &isCopy);
   if (aName == NULL) {
     h5JNIFatalError( env, "H5Acreate_by_name: aName is not pinned");
     return -1;
   }
-  attrName = (char *)ENVPTR->GetStringUTFChars(ENVPAR attr_name, &isCopy);
+  attrName = ENVPTR->GetStringUTFChars(ENVPAR attr_name, &isCopy);
   if (attrName == NULL) {
     ENVPTR->ReleaseStringUTFChars(ENVPAR obj_name,aName);
     h5JNIFatalError( env, "H5Acreate_by_name: attrName is not pinned");
@@ -1452,36 +1416,36 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Acreate_1by_1name
 JNIEXPORT jboolean JNICALL Java_hdf_hdf5lib_H5_H5Aexists_1by_1name
   (JNIEnv *env, jclass clss, jlong loc_id, jstring obj_name, jstring attr_name, jlong lapl_id)
 {
-   htri_t retVal;
-   char *aName, *attrName;
-   jboolean isCopy;
+    htri_t retVal;
+    const char *aName, *attrName;
+    jboolean isCopy;
 
-  if (obj_name == NULL) {
+    if (obj_name == NULL) {
         h5nullArgument( env, "H5Aexists_by_name:  object name is NULL");
-        return -1;
-  }
-  if (attr_name == NULL) {
+        return 0;
+    }
+    if (attr_name == NULL) {
         h5nullArgument( env, "H5Aexists_by_name:  attribute name is NULL");
-        return -1;
-  }
-    aName = (char *)ENVPTR->GetStringUTFChars(ENVPAR obj_name, &isCopy);
+        return 0;
+    }
+    aName = ENVPTR->GetStringUTFChars(ENVPAR obj_name, &isCopy);
     if (aName == NULL) {
         h5JNIFatalError( env, "H5Aexists_by_name: aName is not pinned");
-        return -1;
+        return 0;
     }
-    attrName = (char *)ENVPTR->GetStringUTFChars(ENVPAR attr_name, &isCopy);
+    attrName = ENVPTR->GetStringUTFChars(ENVPAR attr_name, &isCopy);
     if (attrName == NULL) {
-    ENVPTR->ReleaseStringUTFChars(ENVPAR obj_name,aName);
+        ENVPTR->ReleaseStringUTFChars(ENVPAR obj_name,aName);
         h5JNIFatalError( env, "H5Aexists_by_name: attrName is not pinned");
-        return -1;
+        return 0;
     }
 
-  retVal = H5Aexists_by_name((hid_t)loc_id, aName, attrName, (hid_t)lapl_id);
+    retVal = H5Aexists_by_name((hid_t)loc_id, aName, attrName, (hid_t)lapl_id);
 
-  ENVPTR->ReleaseStringUTFChars(ENVPAR obj_name,aName);
-  ENVPTR->ReleaseStringUTFChars(ENVPAR attr_name,attrName);
+    ENVPTR->ReleaseStringUTFChars(ENVPAR obj_name,aName);
+    ENVPTR->ReleaseStringUTFChars(ENVPAR attr_name,attrName);
 
-  if (retVal< 0) {
+    if (retVal< 0) {
         h5libraryError(env);
     }
     return (jboolean)retVal;
@@ -1496,7 +1460,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Arename
   (JNIEnv *env, jclass clss, jlong loc_id, jstring old_attr_name, jstring new_attr_name)
 {
     herr_t retVal;
-    char *oName, *nName;
+    const char *oName, *nName;
     jboolean isCopy;
 
     if (old_attr_name == NULL) {
@@ -1508,12 +1472,12 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Arename
         return -1;
     }
 
-    oName = (char *)ENVPTR->GetStringUTFChars(ENVPAR old_attr_name,&isCopy);
+    oName = ENVPTR->GetStringUTFChars(ENVPAR old_attr_name,&isCopy);
     if (oName == NULL) {
         h5JNIFatalError( env, "H5Arename:  old_attr_name not pinned");
         return -1;
     }
-    nName = (char *)ENVPTR->GetStringUTFChars(ENVPAR new_attr_name,&isCopy);
+    nName = ENVPTR->GetStringUTFChars(ENVPAR new_attr_name,&isCopy);
     if (nName == NULL) {
         ENVPTR->ReleaseStringUTFChars(ENVPAR old_attr_name,oName);
         h5JNIFatalError( env, "H5Arename:  new_attr_name not pinned");
@@ -1541,7 +1505,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Arename_1by_1name
   (JNIEnv *env, jclass clss, jlong loc_id, jstring obj_name, jstring old_attr_name, jstring new_attr_name, jlong lapl_id)
 {
   herr_t retVal;
-  char *aName, *oName, *nName;
+  const char *aName, *oName, *nName;
   jboolean isCopy;
 
   if (obj_name == NULL) {
@@ -1557,18 +1521,18 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Arename_1by_1name
     return -1;
   }
 
-  aName = (char *)ENVPTR->GetStringUTFChars(ENVPAR obj_name, &isCopy);
+  aName = ENVPTR->GetStringUTFChars(ENVPAR obj_name, &isCopy);
   if (aName == NULL) {
     h5JNIFatalError( env, "H5Arename_by_name: object name is not pinned");
     return -1;
   }
-  oName = (char *)ENVPTR->GetStringUTFChars(ENVPAR old_attr_name,&isCopy);
+  oName = ENVPTR->GetStringUTFChars(ENVPAR old_attr_name,&isCopy);
   if (oName == NULL) {
     ENVPTR->ReleaseStringUTFChars(ENVPAR obj_name,aName);
     h5JNIFatalError( env, "H5Arename_by_name:  old_attr_name not pinned");
     return -1;
   }
-  nName = (char *)ENVPTR->GetStringUTFChars(ENVPAR new_attr_name,&isCopy);
+  nName = ENVPTR->GetStringUTFChars(ENVPAR new_attr_name,&isCopy);
   if (nName == NULL) {
     ENVPTR->ReleaseStringUTFChars(ENVPAR obj_name,aName);
     ENVPTR->ReleaseStringUTFChars(ENVPAR old_attr_name,oName);
@@ -1597,7 +1561,7 @@ JNIEXPORT jstring JNICALL Java_hdf_hdf5lib_H5_H5Aget_1name_1by_1idx
   (JNIEnv *env, jclass clss, jlong loc_id, jstring obj_name, jint idx_type, jint order, jlong n, jlong lapl_id)
 {
   size_t   buf_size;
-  char    *aName;
+  const char *aName;
   char    *aValue;
   jboolean isCopy;
   jlong    status_size;
@@ -1607,7 +1571,7 @@ JNIEXPORT jstring JNICALL Java_hdf_hdf5lib_H5_H5Aget_1name_1by_1idx
     h5nullArgument( env, "H5Aget_name_by_idx:  object name is NULL");
     return NULL;
   }
-  aName = (char*)ENVPTR->GetStringUTFChars(ENVPAR obj_name, &isCopy);
+  aName = ENVPTR->GetStringUTFChars(ENVPAR obj_name, &isCopy);
   if (aName == NULL) {
     h5JNIFatalError( env, "H5Aget_name_by_idx:  name not pinned");
     return NULL;
@@ -1704,7 +1668,7 @@ JNIEXPORT jobject JNICALL Java_hdf_hdf5lib_H5_H5Aget_1info
     args[0].z = ainfo.corder_valid;
     args[1].j = ainfo.corder;
     args[2].i = ainfo.cset;
-    args[3].j = ainfo.data_size;
+    args[3].j = (jlong)ainfo.data_size;
     ret_info_t = ENVPTR->NewObjectA(ENVPAR cls, constructor, args);
     return ret_info_t;
 
@@ -1719,7 +1683,7 @@ JNIEXPORT jobject JNICALL Java_hdf_hdf5lib_H5_H5Aget_1info_1by_1idx
   (JNIEnv *env, jclass clss, jlong loc_id, jstring obj_name, jint idx_type, jint order, jlong n, jlong lapl_id)
 {
 
-    char      *aName;
+    const char *aName;
     herr_t     status;
     H5A_info_t ainfo;
     jboolean   isCopy;
@@ -1733,14 +1697,14 @@ JNIEXPORT jobject JNICALL Java_hdf_hdf5lib_H5_H5Aget_1info_1by_1idx
         return NULL;
     }
 
-    aName = (char*)ENVPTR->GetStringUTFChars(ENVPAR obj_name, &isCopy);
+    aName = ENVPTR->GetStringUTFChars(ENVPAR obj_name, &isCopy);
     if (aName == NULL) {
         h5JNIFatalError( env, "H5Aget_info_by_idx: object name not pinned");
         return NULL;
     }
 
-  status = H5Aget_info_by_idx((hid_t)loc_id, (const char*)aName, (H5_index_t)idx_type,
-    (H5_iter_order_t)order, (hsize_t)n, (H5A_info_t*)&ainfo, (hid_t)lapl_id);
+    status = H5Aget_info_by_idx((hid_t)loc_id, (const char*)aName, (H5_index_t)idx_type,
+            (H5_iter_order_t)order, (hsize_t)n, (H5A_info_t*)&ainfo, (hid_t)lapl_id);
 
     ENVPTR->ReleaseStringUTFChars(ENVPAR obj_name, aName);
 
@@ -1752,11 +1716,11 @@ JNIEXPORT jobject JNICALL Java_hdf_hdf5lib_H5_H5Aget_1info_1by_1idx
     // get a reference to your class if you don't have it already
     cls = ENVPTR->FindClass(ENVPAR "hdf/hdf5lib/structs/H5A_info_t");
     // get a reference to the constructor; the name is <init>
-  constructor = ENVPTR->GetMethodID(ENVPAR cls, "<init>", "(ZJIJ)V");
+    constructor = ENVPTR->GetMethodID(ENVPAR cls, "<init>", "(ZJIJ)V");
     args[0].z = ainfo.corder_valid;
     args[1].j = ainfo.corder;
     args[2].i = ainfo.cset;
-    args[3].j = ainfo.data_size;
+    args[3].j = (jlong)ainfo.data_size;
     ret_info_t = ENVPTR->NewObjectA(ENVPAR cls, constructor, args);
     return ret_info_t;
 }
@@ -1769,8 +1733,8 @@ JNIEXPORT jobject JNICALL Java_hdf_hdf5lib_H5_H5Aget_1info_1by_1idx
 JNIEXPORT jobject JNICALL Java_hdf_hdf5lib_H5_H5Aget_1info_1by_1name
   (JNIEnv *env, jclass clss, jlong loc_id, jstring obj_name, jstring attr_name, jlong lapl_id)
 {
-    char      *aName;
-    char    *attrName;
+    const char *aName;
+    const char *attrName;
     herr_t     status;
     H5A_info_t ainfo;
     jboolean   isCopy;
@@ -1787,12 +1751,12 @@ JNIEXPORT jobject JNICALL Java_hdf_hdf5lib_H5_H5Aget_1info_1by_1name
         h5nullArgument( env, "H5Aget_info_by_name: attr_name is NULL");
         return NULL;
     }
-    aName = (char*)ENVPTR->GetStringUTFChars(ENVPAR obj_name, &isCopy);
+    aName = ENVPTR->GetStringUTFChars(ENVPAR obj_name, &isCopy);
     if (aName == NULL) {
         h5JNIFatalError( env, "H5Aget_info_by_name: object name not pinned");
         return NULL;
     }
-    attrName = (char*)ENVPTR->GetStringUTFChars(ENVPAR attr_name, &isCopy);
+    attrName = ENVPTR->GetStringUTFChars(ENVPAR attr_name, &isCopy);
     if (attrName == NULL) {
     ENVPTR->ReleaseStringUTFChars(ENVPAR obj_name, aName);
         h5JNIFatalError( env, "H5Aget_info_by_name: Attribute name not pinned");
@@ -1816,7 +1780,7 @@ JNIEXPORT jobject JNICALL Java_hdf_hdf5lib_H5_H5Aget_1info_1by_1name
     args[0].z = ainfo.corder_valid;
     args[1].j = ainfo.corder;
     args[2].i = ainfo.cset;
-    args[3].j = ainfo.data_size;
+    args[3].j = (jlong)ainfo.data_size;
     ret_info_t = ENVPTR->NewObjectA(ENVPAR cls, constructor, args);
     return ret_info_t;
 }
@@ -1829,26 +1793,26 @@ JNIEXPORT jobject JNICALL Java_hdf_hdf5lib_H5_H5Aget_1info_1by_1name
 JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Adelete_1by_1name
   (JNIEnv *env, jclass clss, jlong loc_id, jstring obj_name, jstring attr_name, jlong lapl_id)
 {
-   herr_t retVal;
-   char *aName, *attrName;
-   jboolean isCopy;
+    herr_t retVal;
+    const char *aName, *attrName;
+    jboolean isCopy;
 
-   if (obj_name == NULL) {
+    if (obj_name == NULL) {
         h5nullArgument( env, "H5Adelete_by_name:  object name is NULL");
         return -1;
-   }
-   if (attr_name == NULL) {
+    }
+    if (attr_name == NULL) {
         h5nullArgument( env, "H5Adelete_by_name:  attribute name is NULL");
         return -1;
-   }
-    aName = (char *)ENVPTR->GetStringUTFChars(ENVPAR obj_name, &isCopy);
+    }
+    aName = ENVPTR->GetStringUTFChars(ENVPAR obj_name, &isCopy);
     if (aName == NULL) {
         h5JNIFatalError( env, "H5Adelete_by_name: aName is not pinned");
         return -1;
     }
-    attrName = (char *)ENVPTR->GetStringUTFChars(ENVPAR attr_name, &isCopy);
+    attrName = ENVPTR->GetStringUTFChars(ENVPAR attr_name, &isCopy);
     if (attrName == NULL) {
-    ENVPTR->ReleaseStringUTFChars(ENVPAR obj_name,aName);
+        ENVPTR->ReleaseStringUTFChars(ENVPAR obj_name,aName);
         h5JNIFatalError( env, "H5Adelete_by_name: attrName is not pinned");
         return -1;
     }
@@ -1871,7 +1835,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Adelete_1by_1name
 JNIEXPORT jboolean JNICALL Java_hdf_hdf5lib_H5_H5Aexists
   (JNIEnv *env, jclass clss, jlong obj_id, jstring attr_name)
 {
-    char    *aName;
+    const char *aName;
     jboolean isCopy;
     htri_t   bval = 0;
 
@@ -1879,7 +1843,7 @@ JNIEXPORT jboolean JNICALL Java_hdf_hdf5lib_H5_H5Aexists
         h5nullArgument( env, "H5Aexists: attr_name is NULL");
         return JNI_FALSE;
     }
-    aName = (char*)ENVPTR->GetStringUTFChars(ENVPAR attr_name, &isCopy);
+    aName = ENVPTR->GetStringUTFChars(ENVPAR attr_name, &isCopy);
     if (aName == NULL) {
         h5JNIFatalError( env, "H5Aexists: attr_name not pinned");
         return JNI_FALSE;
@@ -1908,7 +1872,7 @@ JNIEXPORT jboolean JNICALL Java_hdf_hdf5lib_H5_H5Aexists
 JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Adelete_1by_1idx
   (JNIEnv *env, jclass clss, jlong loc_id, jstring obj_name, jint idx_type, jint order, jlong n, jlong lapl_id)
 {
-  char      *aName;
+  const char *aName;
   herr_t     status;
   jboolean   isCopy;
 
@@ -1917,7 +1881,7 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Adelete_1by_1idx
     return;
   }
 
-  aName = (char*)ENVPTR->GetStringUTFChars(ENVPAR obj_name, &isCopy);
+  aName = ENVPTR->GetStringUTFChars(ENVPAR obj_name, &isCopy);
   if (aName == NULL) {
     h5JNIFatalError( env, "H5Adelete_by_idx: obj_name not pinned");
     return;
@@ -1943,7 +1907,7 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Aopen_1by_1name
 
 {
     hid_t status;
-    char *aName, *oName;
+    const char *aName, *oName;
     jboolean isCopy;
 
     if (obj_name == NULL) {
@@ -1955,12 +1919,12 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Aopen_1by_1name
         return -1;
     }
 
-    oName = (char *)ENVPTR->GetStringUTFChars(ENVPAR obj_name,&isCopy);
+    oName = ENVPTR->GetStringUTFChars(ENVPAR obj_name,&isCopy);
     if (oName == NULL) {
         h5JNIFatalError( env,"_H5Aopen_by_name: obj_name is not pinned");
         return -1;
     }
-    aName = (char *)ENVPTR->GetStringUTFChars(ENVPAR attr_name,&isCopy);
+    aName = ENVPTR->GetStringUTFChars(ENVPAR attr_name,&isCopy);
     if (aName == NULL) {
     ENVPTR->ReleaseStringUTFChars(ENVPAR obj_name,oName);
         h5JNIFatalError( env,"_H5Aopen_by_name: attr_name is not pinned");
