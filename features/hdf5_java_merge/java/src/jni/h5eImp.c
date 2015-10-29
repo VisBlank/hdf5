@@ -61,7 +61,7 @@ extern "C" {
             h5libraryError(env);
             return 0;
         }
-        return is_stack;
+        return (jboolean)is_stack;
     }
 
     /*
@@ -73,16 +73,16 @@ extern "C" {
       (JNIEnv *env, jclass cls, jstring cls_name, jstring lib_name, jstring version)
     {
         hid_t ret_val = -1;
-        char* the_cls_name;
-        char* the_lib_name;
-        char* the_version;
+        const char* the_cls_name;
+        const char* the_lib_name;
+        const char* the_version;
         jboolean isCopy;
 
         if(cls_name==NULL) {
             h5nullArgument( env, "H5Eregister_class: error class name is NULL");
             return ret_val;
         }
-        the_cls_name = (char *)ENVPTR->GetStringUTFChars(ENVPAR cls_name,&isCopy);
+        the_cls_name = ENVPTR->GetStringUTFChars(ENVPAR cls_name,&isCopy);
         if (the_cls_name == NULL) {
             h5JNIFatalError( env, "H5Eregister_class: error class name not pinned");
             return ret_val;
@@ -91,7 +91,7 @@ extern "C" {
             h5nullArgument( env, "H5Eregister_class: client library or application name is NULL");
             return ret_val;
         }
-        the_lib_name = (char *)ENVPTR->GetStringUTFChars(ENVPAR lib_name,&isCopy);
+        the_lib_name = ENVPTR->GetStringUTFChars(ENVPAR lib_name,&isCopy);
         if (the_lib_name == NULL) {
             h5JNIFatalError( env, "H5Eregister_class: client name not pinned");
             return ret_val;
@@ -100,7 +100,7 @@ extern "C" {
             h5nullArgument( env, "H5Eregister_class: version of the client library or application is NULL");
             return ret_val;
         }
-        the_version = (char *)ENVPTR->GetStringUTFChars(ENVPAR version,&isCopy);
+        the_version = ENVPTR->GetStringUTFChars(ENVPAR version,&isCopy);
         if (the_version == NULL) {
             h5JNIFatalError( env, "H5Eregister_class: version not pinned");
             return ret_val;
@@ -164,7 +164,7 @@ extern "C" {
       (JNIEnv *env, jclass cls, jlong err_id, jint msg_type, jstring err_msg)
     {
         hid_t ret_val = -1;
-        char* the_err_msg;
+        const char *the_err_msg;
         jboolean isCopy;
         H5E_type_t error_msg_type = (H5E_type_t)msg_type;
 
@@ -176,7 +176,7 @@ extern "C" {
             h5nullArgument( env, "H5Ecreate_msg: error message is NULL");
             return ret_val;
         }
-        the_err_msg = (char *)ENVPTR->GetStringUTFChars(ENVPAR err_msg,&isCopy);
+        the_err_msg = ENVPTR->GetStringUTFChars(ENVPAR err_msg,&isCopy);
         if (the_err_msg == NULL) {
             h5JNIFatalError( env, "H5Ecreate_msg: error message not pinned");
             return ret_val;
@@ -314,7 +314,7 @@ extern "C" {
         }
 
         buf_size++; /* add extra space for the null terminator */
-        namePtr = (char*)malloc(sizeof(char)*buf_size);
+        namePtr = (char*)malloc(sizeof(char) * (size_t)buf_size);
         if (namePtr == NULL) {
             h5outOfMemory( env, "H5Eget_class_name:  malloc failed");
             return NULL;
@@ -428,7 +428,7 @@ extern "C" {
         }
 
         buf_size++; /* add extra space for the null terminator */
-        namePtr = (char*)malloc(sizeof(char)*buf_size);
+        namePtr = (char*)malloc(sizeof(char) * (size_t)buf_size);
         if (namePtr == NULL) {
             h5outOfMemory( env, "H5Eget_msg:  malloc failed");
             return NULL;

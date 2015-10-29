@@ -38,13 +38,13 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-extern jboolean h5JNIFatalError(JNIEnv *, char *);
-extern jboolean h5nullArgument(JNIEnv *, char *);
-extern jboolean h5badArgument (JNIEnv *, char *);
-extern jboolean h5outOfMemory (JNIEnv *, char *);
+extern jboolean h5JNIFatalError(JNIEnv *, const char *);
+extern jboolean h5nullArgument(JNIEnv *, const char *);
+extern jboolean h5badArgument (JNIEnv *, const char *);
+extern jboolean h5outOfMemory (JNIEnv *, const char *);
 extern jboolean h5libraryError(JNIEnv *env );
-extern jboolean h5raiseException(JNIEnv *, char *, char *);
-extern jboolean h5unimplemented( JNIEnv *env, char *functName);
+extern jboolean h5raiseException(JNIEnv *, const char *, const char *);
+extern jboolean h5unimplemented( JNIEnv *env, const char *functName);
 
 /* implemented at H5.c */
 extern jint get_enum_value(JNIEnv *env, jobject enum_obj);
