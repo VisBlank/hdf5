@@ -74,3 +74,4 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_exceptions_HDF5LibraryException_getMino
 #ifdef __cplusplus
 }
 #endif
+#endif

@@ -23,15 +23,21 @@
 extern "C" {
 #endif
 
+
+/***********/
+/* Headers */
+/***********/
 #include "hdf5.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include "jni.h"
 #include "h5jni.h"
+#include "exceptionImp.h"
 
-/*
-#include "H5Eprivate.h"
-*/
+
+/*******************/
+/* Local Variables */
+/*******************/
 /*  These types are copied from H5Eprivate.h
  *  They should be moved to a public include file, and deleted from
  *  here.
@@ -58,9 +64,14 @@ typedef struct H5E_num_t {
     hid_t min_num;
 } H5E_num_t;
 
-hid_t getMajorErrorNumber();
-hid_t getMinorErrorNumber();
-int getErrorNumbers(hid_t stk_id, H5E_num_t*);
+
+/********************/
+/* Local Prototypes */
+/********************/
+static hid_t getMajorErrorNumber(void);
+static hid_t getMinorErrorNumber(void);
+static int getErrorNumbers(hid_t stk_id, H5E_num_t*);
+static const char *defineHDF5LibraryException(hid_t maj_num);
 
 /* get the major and minor error numbers on the top of the error stack */
 static
@@ -75,8 +86,6 @@ herr_t walk_error_callback(unsigned n, const H5E_error2_t *err_desc, void *_err_
 
     return 0;
 }
-
-char *defineHDF5LibraryException(hid_t maj_num);
 
 /*
  * Class:     hdf_hdf5lib_exceptions_HDF5Library
@@ -103,13 +112,13 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_exceptions_HDF5LibraryException_printSta
   (JNIEnv *env, jobject obj, jstring file_name)
 {
     FILE *stream;
-    char *file;
+    const char *file;
 
     if (file_name == NULL) {
         H5Eprint2(H5E_DEFAULT, stderr);
     }
     else {
-        file = (char *)ENVPTR->GetStringUTFChars(ENVPAR file_name,0);
+        file = ENVPTR->GetStringUTFChars(ENVPAR file_name,0);
         stream = fopen(file, "a+");
         H5Eprint2(H5E_DEFAULT, stream);
         ENVPTR->ReleaseStringUTFChars(ENVPAR file_name, file);
@@ -138,7 +147,8 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_exceptions_HDF5LibraryException_getMajo
     return (jlong) err_nums.maj_num;
 }
 
-hid_t getMajorErrorNumber()
+static
+hid_t getMajorErrorNumber(void)
 {
     H5E_num_t err_nums;
     err_nums.maj_num = 0;
@@ -166,7 +176,8 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_exceptions_HDF5LibraryException_getMino
     return (jlong) getMinorErrorNumber();
 }
 
-hid_t getMinorErrorNumber()
+static
+hid_t getMinorErrorNumber(void)
 {
     H5E_num_t err_nums;
     err_nums.maj_num = 0;
@@ -177,6 +188,7 @@ hid_t getMinorErrorNumber()
     return err_nums.min_num;
 }
 
+static
 int getErrorNumbers(hid_t stk_id, H5E_num_t *err_nums)
 {
     err_nums->maj_num = 0;
@@ -401,7 +413,7 @@ jboolean h5libraryError( JNIEnv *env )
     jmethodID jm;
     jclass    jc;
     char     *args[2];
-    char     *exception;
+    const char     *exception;
     jobject   ex;
     char     *msg_str;
     int       rval;
@@ -420,7 +432,7 @@ jboolean h5libraryError( JNIEnv *env )
     maj_num = exceptionNumbers.maj_num;
     min_num = exceptionNumbers.min_num;
 
-    exception = (char *)defineHDF5LibraryException(maj_num);
+    exception = defineHDF5LibraryException(maj_num);
     jc = ENVPTR->FindClass(ENVPAR exception);
     if (jc == NULL) {
         return JNI_FALSE;
@@ -431,9 +443,9 @@ jboolean h5libraryError( JNIEnv *env )
     }
     /* get the length of the name */
     msg_size = H5Eget_msg(min_num, NULL, NULL, 0);
-    if(msg_size>0) {
+    if(msg_size > 0) {
         msg_size++; /* add extra space for the null terminator */
-        msg_str = (char*)malloc(sizeof(char)*msg_size);
+        msg_str = (char*)malloc(sizeof(char) * (size_t)msg_size);
         if(msg_str) {
             msg_size = H5Eget_msg(min_num, &error_msg_type, (char *)msg_str, (size_t)msg_size);
             str = ENVPTR->NewStringUTF(ENVPAR msg_str);
@@ -532,7 +544,8 @@ jboolean buildException( JNIEnv *env, char *exception, jint HDFerr)
  *  defineHDF5LibraryException()  returns the name of the sub-class
  *  which goes with an HDF-5 error code.
  */
-char *defineHDF5LibraryException(hid_t maj_num)
+static
+const char *defineHDF5LibraryException(hid_t maj_num)
 {
     H5E_major_t err_num = (H5E_major_t) maj_num;
 
