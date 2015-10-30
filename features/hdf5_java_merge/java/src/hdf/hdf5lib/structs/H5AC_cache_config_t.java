@@ -52,7 +52,7 @@ public class H5AC_cache_config_t implements Serializable{
     public boolean          apply_empty_reserve;
     public double           empty_reserve;
     // parallel configuration fields:
-    public int              dirty_bytes_threshold;
+    public long             dirty_bytes_threshold;
     public int              metadata_write_strategy;
 
     public H5AC_cache_config_t (int version, boolean rpt_fcn_enabled, boolean open_trace_file,
@@ -63,7 +63,7 @@ public class H5AC_cache_config_t implements Serializable{
             double flash_multiple, double flash_threshold, int decr_mode, double upper_hr_threshold,
             double decrement, boolean apply_max_decrement, long max_decrement,
             int epochs_before_eviction, boolean apply_empty_reserve, double empty_reserve,
-            int dirty_bytes_threshold, int metadata_write_strategy)
+            long dirty_bytes_threshold, int metadata_write_strategy)
     {
         this.version = version;
         this.rpt_fcn_enabled = rpt_fcn_enabled;

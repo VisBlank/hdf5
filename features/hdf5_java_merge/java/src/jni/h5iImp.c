@@ -27,6 +27,7 @@ extern "C" {
 #include <stdlib.h>
 #include <jni.h>
 #include "h5jni.h"
+#include "h5iImp.h"
 
 /*
  * Class:     hdf_hdf5lib_H5
@@ -66,12 +67,12 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5_H5Iget_1name
 
     bs = (long)buf_size;
     if (bs <= 0) {
-        h5badArgument( env, "H5Iget_name:  buf_size <= 0");
+        h5badArgument(env, "H5Iget_name:  buf_size <= 0");
         return -1;
     }
-    aName = (char*)malloc(sizeof(char)*bs);
+    aName = (char*)malloc(sizeof(char) * (size_t)bs);
     if (aName == NULL) {
-        h5outOfMemory( env, "H5Iget_name:  malloc failed");
+        h5outOfMemory(env, "H5Iget_name:  malloc failed");
         return -1;
     }
 
@@ -100,7 +101,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Iget_1ref
   (JNIEnv *env, jclass clss, jlong obj_id)
 {
     int retVal = -1;
-    retVal = H5Iget_ref( (hid_t)obj_id);
+    retVal = H5Iget_ref((hid_t)obj_id);
     if (retVal < 0) {
         h5libraryError(env);
     }
@@ -116,7 +117,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Iinc_1ref
   (JNIEnv *env, jclass clss, jlong obj_id)
 {
     int retVal = -1;
-    retVal = H5Iinc_ref( (hid_t)obj_id);
+    retVal = H5Iinc_ref((hid_t)obj_id);
     if (retVal < 0) {
         h5libraryError(env);
     }
@@ -132,7 +133,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Idec_1ref
   (JNIEnv *env, jclass clss, jlong obj_id)
 {
     int retVal = -1;
-    retVal = H5Idec_ref( (hid_t)obj_id);
+    retVal = H5Idec_ref((hid_t)obj_id);
     if (retVal < 0) {
         h5libraryError(env);
     }
@@ -158,7 +159,7 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5_H5Iget_1file_1id
 {
     hid_t file_id = 0;
 
-    file_id = H5Iget_file_id ((hid_t) obj_id);
+    file_id = H5Iget_file_id((hid_t)obj_id);
 
     if (file_id < 0) {
         h5libraryError(env);

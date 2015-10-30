@@ -43,6 +43,8 @@ extern "C" {
 #define JVMPAR2 jvm,
 #endif
 
+static herr_t H5O_iterate_cb(hid_t g_id, const char *name, const H5O_info_t *info, void *op_data);
+
     /*
      * Class:     hdf_hdf5lib_H5
      * Method:    _H5Oopen
@@ -52,7 +54,7 @@ extern "C" {
       (JNIEnv *env, jclass clss, jlong loc_id, jstring name, jlong access_plist_id)
     {
         hid_t    status;
-        char*    oName;
+        const char *oName;
         jboolean isCopy;
 
         if (name == NULL) {
@@ -60,7 +62,7 @@ extern "C" {
             return -1;
         }
 
-        oName = (char *)ENVPTR->GetStringUTFChars(ENVPAR name,&isCopy);
+        oName = ENVPTR->GetStringUTFChars(ENVPAR name,&isCopy);
 
         if (oName == NULL) {
             h5JNIFatalError( env, "H5Oopen:  object name not pinned");
@@ -101,8 +103,8 @@ extern "C" {
     JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Ocopy
       (JNIEnv *env, jclass clss, jlong cur_loc_id, jstring cur_name, jlong dst_loc_id, jstring dst_name, jlong create_id, jlong access_id)
     {
-        char    *lCurName;
-        char    *lDstName;
+        const char *lCurName;
+        const char *lDstName;
         jboolean isCopy;
         herr_t   status = -1;
 
@@ -111,7 +113,7 @@ extern "C" {
             return;
         }
 
-        lCurName = (char*)ENVPTR->GetStringUTFChars(ENVPAR cur_name, &isCopy);
+        lCurName = ENVPTR->GetStringUTFChars(ENVPAR cur_name, &isCopy);
         if (lCurName == NULL) {
             h5JNIFatalError(env, "H5Ocopy:  cur_name not pinned");
             return;
@@ -123,14 +125,14 @@ extern "C" {
             return;
         }
 
-        lDstName = (char*)ENVPTR->GetStringUTFChars(ENVPAR dst_name, &isCopy);
+        lDstName = ENVPTR->GetStringUTFChars(ENVPAR dst_name, &isCopy);
         if (lDstName == NULL) {
             ENVPTR->ReleaseStringUTFChars(ENVPAR cur_name, lCurName);
             h5JNIFatalError(env, "H5Ocopy:  dst_name not pinned");
             return;
         }
 
-        status = H5Ocopy((hid_t)cur_loc_id, (const char*)lCurName, (hid_t)dst_loc_id, (const char*)lDstName, (hid_t)create_id, (hid_t)access_id);
+        status = H5Ocopy((hid_t)cur_loc_id, lCurName, (hid_t)dst_loc_id, lDstName, (hid_t)create_id, (hid_t)access_id);
 
         ENVPTR->ReleaseStringUTFChars(ENVPAR cur_name, lCurName);
         ENVPTR->ReleaseStringUTFChars(ENVPAR dst_name, lDstName);
@@ -180,16 +182,16 @@ extern "C" {
             h5JNIFatalError( env, "JNI error: GetMethodID H5O_hdr_info_t failed\n");
            return NULL;
         }
-        args[0].i = infobuf.hdr.version;
-        args[1].i = infobuf.hdr.nmesgs;
-        args[2].i = infobuf.hdr.nchunks;
-        args[3].i = infobuf.hdr.flags;
-        args[4].j = infobuf.hdr.space.total;
-        args[5].j = infobuf.hdr.space.meta;
-        args[6].j = infobuf.hdr.space.mesg;
-        args[7].j = infobuf.hdr.space.free;
-        args[8].j = infobuf.hdr.mesg.present;
-        args[9].j = infobuf.hdr.mesg.shared;
+        args[0].i = (jint)infobuf.hdr.version;
+        args[1].i = (jint)infobuf.hdr.nmesgs;
+        args[2].i = (jint)infobuf.hdr.nchunks;
+        args[3].i = (jint)infobuf.hdr.flags;
+        args[4].j = (jlong)infobuf.hdr.space.total;
+        args[5].j = (jlong)infobuf.hdr.space.meta;
+        args[6].j = (jlong)infobuf.hdr.space.mesg;
+        args[7].j = (jlong)infobuf.hdr.space.free;
+        args[8].j = (jlong)infobuf.hdr.mesg.present;
+        args[9].j = (jlong)infobuf.hdr.mesg.shared;
         hdrinfobuf = ENVPTR->NewObjectA(ENVPAR cls, constructor, args);
 
         // get a reference to the H5_ih_info_t class
@@ -204,11 +206,11 @@ extern "C" {
             h5JNIFatalError( env, "JNI error: GetMethodID H5_ih_info_t failed\n");
            return NULL;
         }
-        args[0].j = infobuf.meta_size.obj.index_size;
-        args[1].j = infobuf.meta_size.obj.heap_size;
+        args[0].j = (jlong)infobuf.meta_size.obj.index_size;
+        args[1].j = (jlong)infobuf.meta_size.obj.heap_size;
         ihinfobuf1 = ENVPTR->NewObjectA(ENVPAR cls, constructor, args);
-        args[0].j = infobuf.meta_size.attr.index_size;
-        args[1].j = infobuf.meta_size.attr.heap_size;
+        args[0].j = (jlong)infobuf.meta_size.attr.index_size;
+        args[1].j = (jlong)infobuf.meta_size.attr.heap_size;
         ihinfobuf2 = ENVPTR->NewObjectA(ENVPAR cls, constructor, args);
 
         // get a reference to the H5O_info_t class
@@ -223,11 +225,11 @@ extern "C" {
             h5JNIFatalError( env, "JNI error: GetMethodID H5O_info_t failed\n");
            return NULL;
         }
-        args[0].j = infobuf.fileno;
-        args[1].j = infobuf.addr;
+        args[0].j = (jlong)infobuf.fileno;
+        args[1].j = (jlong)infobuf.addr;
         args[2].i = infobuf.type;
-        args[3].i = infobuf.rc;
-        args[4].j = infobuf.num_attrs;
+        args[3].i = (jint)infobuf.rc;
+        args[4].j = (jlong)infobuf.num_attrs;
         args[5].j = infobuf.atime;
         args[6].j = infobuf.mtime;
         args[7].j = infobuf.ctime;
@@ -248,7 +250,7 @@ extern "C" {
     JNIEXPORT jobject JNICALL Java_hdf_hdf5lib_H5_H5Oget_1info_1by_1name
     (JNIEnv *env, jclass clss, jlong loc_id, jstring name, jlong access_id)
     {
-        char       *lName;
+        const char *lName;
         herr_t      status;
         H5O_info_t  infobuf;
         jboolean    isCopy;
@@ -265,13 +267,13 @@ extern "C" {
             return NULL;
         }
 
-        lName = (char*)ENVPTR->GetStringUTFChars(ENVPAR name, &isCopy);
+        lName = ENVPTR->GetStringUTFChars(ENVPAR name, &isCopy);
         if (lName == NULL) {
             h5JNIFatalError(env, "H5Oget_info_by_name:  name not pinned");
             return NULL;
         }
 
-        status = H5Oget_info_by_name((hid_t)loc_id, (const char*)lName, (H5O_info_t*)&infobuf, (hid_t)access_id);
+        status = H5Oget_info_by_name((hid_t)loc_id, lName, (H5O_info_t*)&infobuf, (hid_t)access_id);
 
         ENVPTR->ReleaseStringUTFChars(ENVPAR name, lName);
 
@@ -292,16 +294,16 @@ extern "C" {
             h5JNIFatalError( env, "JNI error: GetMethodID H5O_hdr_info_t failed\n");
            return NULL;
         }
-        args[0].i = infobuf.hdr.version;
-        args[1].i = infobuf.hdr.nmesgs;
-        args[2].i = infobuf.hdr.nchunks;
-        args[3].i = infobuf.hdr.flags;
-        args[4].j = infobuf.hdr.space.total;
-        args[5].j = infobuf.hdr.space.meta;
-        args[6].j = infobuf.hdr.space.mesg;
-        args[7].j = infobuf.hdr.space.free;
-        args[8].j = infobuf.hdr.mesg.present;
-        args[9].j = infobuf.hdr.mesg.shared;
+        args[0].i = (jint)infobuf.hdr.version;
+        args[1].i = (jint)infobuf.hdr.nmesgs;
+        args[2].i = (jint)infobuf.hdr.nchunks;
+        args[3].i = (jint)infobuf.hdr.flags;
+        args[4].j = (jlong)infobuf.hdr.space.total;
+        args[5].j = (jlong)infobuf.hdr.space.meta;
+        args[6].j = (jlong)infobuf.hdr.space.mesg;
+        args[7].j = (jlong)infobuf.hdr.space.free;
+        args[8].j = (jlong)infobuf.hdr.mesg.present;
+        args[9].j = (jlong)infobuf.hdr.mesg.shared;
         hdrinfobuf = ENVPTR->NewObjectA(ENVPAR cls, constructor, args);
 
         // get a reference to the H5_ih_info_t class
@@ -316,11 +318,11 @@ extern "C" {
             h5JNIFatalError( env, "JNI error: GetMethodID H5_ih_info_t failed\n");
            return NULL;
         }
-        args[0].j = infobuf.meta_size.obj.index_size;
-        args[1].j = infobuf.meta_size.obj.heap_size;
+        args[0].j = (jlong)infobuf.meta_size.obj.index_size;
+        args[1].j = (jlong)infobuf.meta_size.obj.heap_size;
         ihinfobuf1 = ENVPTR->NewObjectA(ENVPAR cls, constructor, args);
-        args[0].j = infobuf.meta_size.attr.index_size;
-        args[1].j = infobuf.meta_size.attr.heap_size;
+        args[0].j = (jlong)infobuf.meta_size.attr.index_size;
+        args[1].j = (jlong)infobuf.meta_size.attr.heap_size;
         ihinfobuf2 = ENVPTR->NewObjectA(ENVPAR cls, constructor, args);
 
         // get a reference to the H5O_info_t class
@@ -335,11 +337,11 @@ extern "C" {
             h5JNIFatalError( env, "JNI error: GetMethodID H5O_info_t failed\n");
            return NULL;
         }
-        args[0].j = infobuf.fileno;
-        args[1].j = infobuf.addr;
+        args[0].j = (jlong)infobuf.fileno;
+        args[1].j = (jlong)infobuf.addr;
         args[2].i = infobuf.type;
-        args[3].i = infobuf.rc;
-        args[4].j = infobuf.num_attrs;
+        args[3].i = (jint)infobuf.rc;
+        args[4].j = (jlong)infobuf.num_attrs;
         args[5].j = infobuf.atime;
         args[6].j = infobuf.mtime;
         args[7].j = infobuf.ctime;
@@ -360,7 +362,7 @@ extern "C" {
     JNIEXPORT jobject JNICALL Java_hdf_hdf5lib_H5_H5Oget_1info_1by_1idx
     (JNIEnv *env, jclass clss, jlong loc_id, jstring name, jint index_field, jint order, jlong link_n, jlong access_id)
     {
-        char       *lName;
+        const char *lName;
         herr_t      status;
         H5O_info_t  infobuf;
         jboolean    isCopy;
@@ -377,13 +379,13 @@ extern "C" {
             return NULL;
         }
 
-        lName = (char*)ENVPTR->GetStringUTFChars(ENVPAR name, &isCopy);
+        lName = ENVPTR->GetStringUTFChars(ENVPAR name, &isCopy);
         if (lName == NULL) {
             h5JNIFatalError(env, "H5Oget_info_by_idx:  name not pinned");
             return NULL;
         }
 
-        status = H5Oget_info_by_idx((hid_t)loc_id, (const char*)lName, (H5_index_t)index_field, (H5_iter_order_t)order, (hsize_t)link_n, (H5O_info_t*)&infobuf, (hid_t)access_id);
+        status = H5Oget_info_by_idx((hid_t)loc_id, lName, (H5_index_t)index_field, (H5_iter_order_t)order, (hsize_t)link_n, (H5O_info_t*)&infobuf, (hid_t)access_id);
 
         ENVPTR->ReleaseStringUTFChars(ENVPAR name, lName);
 
@@ -404,16 +406,16 @@ extern "C" {
             h5JNIFatalError( env, "JNI error: GetMethodID H5O_hdr_info_t failed\n");
            return NULL;
         }
-        args[0].i = infobuf.hdr.version;
-        args[1].i = infobuf.hdr.nmesgs;
-        args[2].i = infobuf.hdr.nchunks;
-        args[3].i = infobuf.hdr.flags;
-        args[4].j = infobuf.hdr.space.total;
-        args[5].j = infobuf.hdr.space.meta;
-        args[6].j = infobuf.hdr.space.mesg;
-        args[7].j = infobuf.hdr.space.free;
-        args[8].j = infobuf.hdr.mesg.present;
-        args[9].j = infobuf.hdr.mesg.shared;
+        args[0].i = (jint)infobuf.hdr.version;
+        args[1].i = (jint)infobuf.hdr.nmesgs;
+        args[2].i = (jint)infobuf.hdr.nchunks;
+        args[3].i = (jint)infobuf.hdr.flags;
+        args[4].j = (jlong)infobuf.hdr.space.total;
+        args[5].j = (jlong)infobuf.hdr.space.meta;
+        args[6].j = (jlong)infobuf.hdr.space.mesg;
+        args[7].j = (jlong)infobuf.hdr.space.free;
+        args[8].j = (jlong)infobuf.hdr.mesg.present;
+        args[9].j = (jlong)infobuf.hdr.mesg.shared;
         hdrinfobuf = ENVPTR->NewObjectA(ENVPAR cls, constructor, args);
 
         // get a reference to the H5_ih_info_t class
@@ -428,11 +430,11 @@ extern "C" {
             h5JNIFatalError( env, "JNI error: GetMethodID H5_ih_info_t failed\n");
            return NULL;
         }
-        args[0].j = infobuf.meta_size.obj.index_size;
-        args[1].j = infobuf.meta_size.obj.heap_size;
+        args[0].j = (jlong)infobuf.meta_size.obj.index_size;
+        args[1].j = (jlong)infobuf.meta_size.obj.heap_size;
         ihinfobuf1 = ENVPTR->NewObjectA(ENVPAR cls, constructor, args);
-        args[0].j = infobuf.meta_size.attr.index_size;
-        args[1].j = infobuf.meta_size.attr.heap_size;
+        args[0].j = (jlong)infobuf.meta_size.attr.index_size;
+        args[1].j = (jlong)infobuf.meta_size.attr.heap_size;
         ihinfobuf2 = ENVPTR->NewObjectA(ENVPAR cls, constructor, args);
 
         // get a reference to the H5O_info_t class
@@ -447,11 +449,11 @@ extern "C" {
             h5JNIFatalError( env, "JNI error: GetMethodID H5O_info_t failed\n");
            return NULL;
         }
-        args[0].j = infobuf.fileno;
-        args[1].j = infobuf.addr;
+        args[0].j = (jlong)infobuf.fileno;
+        args[1].j = (jlong)infobuf.addr;
         args[2].i = infobuf.type;
-        args[3].i = infobuf.rc;
-        args[4].j = infobuf.num_attrs;
+        args[3].i = (jint)infobuf.rc;
+        args[4].j = (jlong)infobuf.num_attrs;
         args[5].j = infobuf.atime;
         args[6].j = infobuf.mtime;
         args[7].j = infobuf.ctime;
@@ -472,7 +474,7 @@ extern "C" {
     JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Olink
       (JNIEnv *env, jclass clss, jlong cur_loc_id, jlong dst_loc_id, jstring dst_name, jlong create_id, jlong access_id)
     {
-        char    *lDstName;
+        const char *lDstName;
         jboolean isCopy;
         herr_t   status = -1;
 
@@ -481,13 +483,13 @@ extern "C" {
             return;
         }
 
-        lDstName = (char*)ENVPTR->GetStringUTFChars(ENVPAR dst_name, &isCopy);
+        lDstName = ENVPTR->GetStringUTFChars(ENVPAR dst_name, &isCopy);
         if (lDstName == NULL) {
             h5JNIFatalError( env, "H5Ocreate_hard:  dst_name not pinned");
             return;
         }
 
-        status = H5Olink((hid_t)cur_loc_id, (hid_t)dst_loc_id, (const char*)lDstName, (hid_t)create_id, (hid_t)access_id);
+        status = H5Olink((hid_t)cur_loc_id, (hid_t)dst_loc_id, lDstName, (hid_t)create_id, (hid_t)access_id);
 
         ENVPTR->ReleaseStringUTFChars(ENVPAR dst_name, lDstName);
 
@@ -499,6 +501,7 @@ extern "C" {
         return;
     }
 
+    static
     herr_t H5O_iterate_cb(hid_t g_id, const char *name, const H5O_info_t *info, void *op_data) {
         JNIEnv    *cbenv;
         jint       status;
@@ -543,16 +546,16 @@ extern "C" {
             JVMPTR->DetachCurrentThread(JVMPAR);
            return -1;
         }
-        args[0].i = info->hdr.version;
-        args[1].i = info->hdr.nmesgs;
-        args[2].i = info->hdr.nchunks;
-        args[3].i = info->hdr.flags;
-        args[4].j = info->hdr.space.total;
-        args[5].j = info->hdr.space.meta;
-        args[6].j = info->hdr.space.mesg;
-        args[7].j = info->hdr.space.free;
-        args[8].j = info->hdr.mesg.present;
-        args[9].j = info->hdr.mesg.shared;
+        args[0].i = (jint)info->hdr.version;
+        args[1].i = (jint)info->hdr.nmesgs;
+        args[2].i = (jint)info->hdr.nchunks;
+        args[3].i = (jint)info->hdr.flags;
+        args[4].j = (jlong)info->hdr.space.total;
+        args[5].j = (jlong)info->hdr.space.meta;
+        args[6].j = (jlong)info->hdr.space.mesg;
+        args[7].j = (jlong)info->hdr.space.free;
+        args[8].j = (jlong)info->hdr.mesg.present;
+        args[9].j = (jlong)info->hdr.mesg.shared;
         hdrinfobuf = CBENVPTR->NewObjectA(CBENVPAR cls, constructor, args);
 
         // get a reference to the H5_ih_info_t class
@@ -567,11 +570,11 @@ extern "C" {
             JVMPTR->DetachCurrentThread(JVMPAR);
            return -1;
         }
-        args[0].j = info->meta_size.obj.index_size;
-        args[1].j = info->meta_size.obj.heap_size;
+        args[0].j = (jlong)info->meta_size.obj.index_size;
+        args[1].j = (jlong)info->meta_size.obj.heap_size;
         ihinfobuf1 = CBENVPTR->NewObjectA(CBENVPAR cls, constructor, args);
-        args[0].j = info->meta_size.attr.index_size;
-        args[1].j = info->meta_size.attr.heap_size;
+        args[0].j = (jlong)info->meta_size.attr.index_size;
+        args[1].j = (jlong)info->meta_size.attr.heap_size;
         ihinfobuf2 = CBENVPTR->NewObjectA(CBENVPAR cls, constructor, args);
 
         // get a reference to the H5O_info_t class
@@ -586,11 +589,11 @@ extern "C" {
             JVMPTR->DetachCurrentThread(JVMPAR);
            return -1;
         }
-        args[0].j = info->fileno;
-        args[1].j = info->addr;
+        args[0].j = (jlong)info->fileno;
+        args[1].j = (jlong)info->addr;
         args[2].i = info->type;
-        args[3].i = info->rc;
-        args[4].j = info->num_attrs;
+        args[3].i = (jint)info->rc;
+        args[4].j = (jlong)info->num_attrs;
         args[5].j = info->atime;
         args[6].j = info->mtime;
         args[7].j = info->ctime;
@@ -649,7 +652,7 @@ extern "C" {
               jobject callback_op, jobject op_data, jlong access_id)
     {
         jboolean      isCopy;
-        char         *lName;
+        const char   *lName;
         herr_t        status = -1;
 
         ENVPTR->GetJavaVM(ENVPAR &jvm);
@@ -660,7 +663,7 @@ extern "C" {
             return -1;
         }
 
-        lName = (char*)ENVPTR->GetStringUTFChars(ENVPAR name, &isCopy);
+        lName = ENVPTR->GetStringUTFChars(ENVPAR name, &isCopy);
         if (lName == NULL) {
             h5JNIFatalError(env, "H5Ovisit_by_name:  name not pinned");
             return -1;
@@ -675,7 +678,7 @@ extern "C" {
             return -1;
         }
 
-        status = H5Ovisit_by_name((hid_t)grp_id, (const char*)lName, (H5_index_t)idx_type, (H5_iter_order_t)order, (H5O_iterate_t)H5O_iterate_cb, (void*)op_data, (hid_t)access_id);
+        status = H5Ovisit_by_name((hid_t)grp_id, lName, (H5_index_t)idx_type, (H5_iter_order_t)order, (H5O_iterate_t)H5O_iterate_cb, (void*)op_data, (hid_t)access_id);
 
         ENVPTR->ReleaseStringUTFChars(ENVPAR name, lName);
 
@@ -695,22 +698,22 @@ extern "C" {
     JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Oset_1comment
       (JNIEnv *env, jclass clss, jlong loc_id, jstring comment)
     {
-        herr_t  status;
-        char    *oComment;
-        jboolean isCopy;
+        herr_t      status;
+        const char *oComment;
+        jboolean    isCopy;
 
         if (comment == NULL) {
             oComment = NULL;
         }
         else {
-            oComment = (char *)ENVPTR->GetStringUTFChars(ENVPAR comment, &isCopy);
+            oComment = ENVPTR->GetStringUTFChars(ENVPAR comment, &isCopy);
             if (oComment == NULL) {
                 h5JNIFatalError( env, "H5Oset_comment:  comment not pinned");
                 return;
             }
         }
 
-        status = H5Oset_comment((hid_t)loc_id, (const char*)oComment);
+        status = H5Oset_comment((hid_t)loc_id, oComment);
 
         ENVPTR->ReleaseStringUTFChars(ENVPAR comment, oComment);
 
@@ -727,16 +730,16 @@ extern "C" {
     JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Oset_1comment_1by_1name
       (JNIEnv *env, jclass clss, jlong loc_id, jstring name, jstring comment, jlong access_id)
     {
-        herr_t   status;
-        char    *oName;
-        char    *oComment;
-        jboolean isCopy;
+        herr_t      status;
+        const char *oName;
+        const char *oComment;
+        jboolean    isCopy;
 
         if (name == NULL) {
             h5nullArgument( env, "H5Oset_comment_by_name:  name is NULL");
             return;
         }
-        oName = (char *)ENVPTR->GetStringUTFChars(ENVPAR name, &isCopy);
+        oName = ENVPTR->GetStringUTFChars(ENVPAR name, &isCopy);
         if (oName == NULL) {
             h5JNIFatalError( env, "H5Oset_comment_by_name:  name not pinned");
             return;
@@ -745,7 +748,7 @@ extern "C" {
             oComment = NULL;
         }
         else {
-            oComment = (char *)ENVPTR->GetStringUTFChars(ENVPAR comment,&isCopy);
+            oComment = ENVPTR->GetStringUTFChars(ENVPAR comment,&isCopy);
             if (oComment == NULL) {
                 ENVPTR->ReleaseStringUTFChars(ENVPAR name, oName);
                 h5JNIFatalError( env, "H5Oset_comment_by_name:  comment not pinned");
@@ -753,7 +756,7 @@ extern "C" {
             }
         }
 
-        status = H5Oset_comment_by_name((hid_t)loc_id, (const char*)oName, (const char*)oComment, (hid_t)access_id);
+        status = H5Oset_comment_by_name((hid_t)loc_id, oName, oComment, (hid_t)access_id);
 
         ENVPTR->ReleaseStringUTFChars(ENVPAR comment, oComment);
         ENVPTR->ReleaseStringUTFChars(ENVPAR name, oName);
@@ -773,7 +776,7 @@ extern "C" {
       (JNIEnv *env, jclass clss, jlong loc_id)
     {
         char   *oComment;
-        size_t  buf_size;
+        ssize_t  buf_size;
         ssize_t status;
         jstring str;
 
@@ -788,7 +791,7 @@ extern "C" {
         }
 
         buf_size++; /* add extra space for the null terminator */
-        oComment = (char *)malloc(sizeof(char)*buf_size);
+        oComment = (char *)malloc(sizeof(char) * (size_t)buf_size);
         if (oComment == NULL) {
             /* exception -- out of memory */
             h5outOfMemory( env, "H5Oget_comment:  malloc failed");
@@ -824,8 +827,8 @@ extern "C" {
       (JNIEnv *env, jclass clss, jlong loc_id, jstring name, jlong access_id)
     {
         char    *oComment;
-        char    *oName;
-        size_t   buf_size;
+        const char *oName;
+        ssize_t   buf_size;
         ssize_t  status;
         jstring  str;
         jboolean isCopy;
@@ -834,14 +837,14 @@ extern "C" {
             h5nullArgument( env, "H5Oget_comment_by_name:  name is NULL");
             return NULL;
         }
-        oName = (char *)ENVPTR->GetStringUTFChars(ENVPAR name, &isCopy);
+        oName = ENVPTR->GetStringUTFChars(ENVPAR name, &isCopy);
         if (oName == NULL) {
             h5JNIFatalError( env, "H5Oget_comment_by_name:  name not pinned");
             return NULL;
         }
 
         /* get the length of the comment */
-        buf_size = H5Oget_comment_by_name((hid_t)loc_id, (const char*)oName, NULL, 0, (hid_t)access_id);
+        buf_size = H5Oget_comment_by_name((hid_t)loc_id, oName, NULL, 0, (hid_t)access_id);
         if (buf_size < 0) {
             ENVPTR->ReleaseStringUTFChars(ENVPAR name, oName);
             h5badArgument( env, "H5Oget_comment_by_name:  buf_size < 0");
@@ -853,14 +856,14 @@ extern "C" {
         }
 
         buf_size++; /* add extra space for the null terminator */
-        oComment = (char *)malloc(sizeof(char)*buf_size);
+        oComment = (char *)malloc(sizeof(char) * (size_t)buf_size);
         if (oComment == NULL) {
             ENVPTR->ReleaseStringUTFChars(ENVPAR name, oName);
             h5outOfMemory( env, "H5Oget_comment_by_name:  malloc failed");
             return NULL;
         }
 
-        status = H5Oget_comment_by_name((hid_t)loc_id, (const char*)oName, (char*)oComment, (size_t)buf_size, (hid_t)access_id);
+        status = H5Oget_comment_by_name((hid_t)loc_id, oName, (char*)oComment, (size_t)buf_size, (hid_t)access_id);
         ENVPTR->ReleaseStringUTFChars(ENVPAR name, oName);
 
         if (status >= 0) {

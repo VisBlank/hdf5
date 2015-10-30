@@ -43,6 +43,8 @@ extern "C" {
 #define JVMPAR2 jvm,
 #endif
 
+static herr_t H5L_iterate_cb(hid_t g_id, const char *name, const H5L_info_t *info, void *op_data);
+
     /*
      * Class:     hdf_hdf5lib_H5
      * Method:    H5Lcopy
@@ -51,8 +53,8 @@ extern "C" {
     JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Lcopy
       (JNIEnv *env, jclass clss, jlong cur_loc_id, jstring cur_name, jlong dst_loc_id, jstring dst_name, jlong create_id, jlong access_id)
     {
-        char    *lCurName;
-        char    *lDstName;
+        const char *lCurName;
+        const char *lDstName;
         jboolean isCopy;
         herr_t   status = -1;
 
@@ -61,7 +63,7 @@ extern "C" {
             return;
         }
 
-        lCurName = (char*)ENVPTR->GetStringUTFChars(ENVPAR cur_name, &isCopy);
+        lCurName = ENVPTR->GetStringUTFChars(ENVPAR cur_name, &isCopy);
         if (lCurName == NULL) {
             h5JNIFatalError(env, "H5Lcopy:  cur_name not pinned");
             return;
@@ -73,14 +75,14 @@ extern "C" {
             return;
         }
 
-        lDstName = (char*)ENVPTR->GetStringUTFChars(ENVPAR dst_name, &isCopy);
+        lDstName = ENVPTR->GetStringUTFChars(ENVPAR dst_name, &isCopy);
         if (lDstName == NULL) {
             ENVPTR->ReleaseStringUTFChars(ENVPAR cur_name, lCurName);
             h5JNIFatalError(env, "H5Lcopy:  dst_name not pinned");
             return;
         }
 
-        status = H5Lcopy((hid_t)cur_loc_id, (const char*)lCurName, (hid_t)dst_loc_id, (const char*)lDstName, (hid_t)create_id, (hid_t)access_id);
+        status = H5Lcopy((hid_t)cur_loc_id, lCurName, (hid_t)dst_loc_id, lDstName, (hid_t)create_id, (hid_t)access_id);
 
         ENVPTR->ReleaseStringUTFChars(ENVPAR cur_name, lCurName);
         ENVPTR->ReleaseStringUTFChars(ENVPAR dst_name, lDstName);
@@ -100,65 +102,65 @@ extern "C" {
      */
     JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Lcreate_1external
     (JNIEnv *env, jclass clss, jstring file_name, jstring cur_name, jlong dst_loc_id, jstring dst_name, jlong create_id, jlong access_id)
-  {
-      char    *lFileName;
-      char    *lCurName;
-      char    *lDstName;
-      jboolean isCopy;
-      herr_t   status = -1;
+    {
+        const char *lFileName;
+        const char *lCurName;
+        const char *lDstName;
+        jboolean isCopy;
+        herr_t   status = -1;
 
-      if (file_name == NULL) {
-          h5nullArgument(env, "H5Lcreate_external:  file_name is NULL");
-          return;
-      }
+        if (file_name == NULL) {
+            h5nullArgument(env, "H5Lcreate_external:  file_name is NULL");
+            return;
+        }
 
-      lFileName = (char*)ENVPTR->GetStringUTFChars(ENVPAR file_name, &isCopy);
-      if (lFileName == NULL) {
-          h5JNIFatalError(env, "H5Lcreate_external:  file_name not pinned");
-          return;
-      }
+        lFileName = ENVPTR->GetStringUTFChars(ENVPAR file_name, &isCopy);
+        if (lFileName == NULL) {
+            h5JNIFatalError(env, "H5Lcreate_external:  file_name not pinned");
+            return;
+        }
 
-      if (cur_name == NULL) {
-          ENVPTR->ReleaseStringUTFChars(ENVPAR file_name, lFileName);
-          h5nullArgument(env, "H5Lcreate_external:  cur_name is NULL");
-          return;
-      }
+        if (cur_name == NULL) {
+            ENVPTR->ReleaseStringUTFChars(ENVPAR file_name, lFileName);
+            h5nullArgument(env, "H5Lcreate_external:  cur_name is NULL");
+            return;
+        }
 
-      lCurName = (char*)ENVPTR->GetStringUTFChars(ENVPAR cur_name,&isCopy);
-      if (lCurName == NULL) {
-          ENVPTR->ReleaseStringUTFChars(ENVPAR file_name, lFileName);
-          h5JNIFatalError(env, "H5Lcreate_external:  cur_name not pinned");
-          return;
-      }
+        lCurName = ENVPTR->GetStringUTFChars(ENVPAR cur_name,&isCopy);
+        if (lCurName == NULL) {
+            ENVPTR->ReleaseStringUTFChars(ENVPAR file_name, lFileName);
+            h5JNIFatalError(env, "H5Lcreate_external:  cur_name not pinned");
+            return;
+        }
 
-      if (dst_name == NULL) {
-          ENVPTR->ReleaseStringUTFChars(ENVPAR file_name, lFileName);
-          ENVPTR->ReleaseStringUTFChars(ENVPAR cur_name, lCurName);
-          h5nullArgument(env, "H5Lcreate_external:  dst_name is NULL");
-          return;
-      }
+        if (dst_name == NULL) {
+            ENVPTR->ReleaseStringUTFChars(ENVPAR file_name, lFileName);
+            ENVPTR->ReleaseStringUTFChars(ENVPAR cur_name, lCurName);
+            h5nullArgument(env, "H5Lcreate_external:  dst_name is NULL");
+            return;
+        }
 
-      lDstName = (char*)ENVPTR->GetStringUTFChars(ENVPAR dst_name, &isCopy);
-      if (lDstName == NULL) {
-          ENVPTR->ReleaseStringUTFChars(ENVPAR file_name, lFileName);
-          ENVPTR->ReleaseStringUTFChars(ENVPAR cur_name, lCurName);
-          h5JNIFatalError(env, "H5Lcreate_external:  dst_name not pinned");
-          return;
-      }
+        lDstName = ENVPTR->GetStringUTFChars(ENVPAR dst_name, &isCopy);
+        if (lDstName == NULL) {
+            ENVPTR->ReleaseStringUTFChars(ENVPAR file_name, lFileName);
+            ENVPTR->ReleaseStringUTFChars(ENVPAR cur_name, lCurName);
+            h5JNIFatalError(env, "H5Lcreate_external:  dst_name not pinned");
+            return;
+        }
 
-      status = H5Lcreate_external((const char*)lFileName, (const char*)lCurName, (hid_t)dst_loc_id, (const char*)lDstName, (hid_t)create_id, (hid_t)access_id);
+        status = H5Lcreate_external(lFileName, lCurName, (hid_t)dst_loc_id, lDstName, (hid_t)create_id, (hid_t)access_id);
 
-      ENVPTR->ReleaseStringUTFChars(ENVPAR file_name, lFileName);
-      ENVPTR->ReleaseStringUTFChars(ENVPAR cur_name, lCurName);
-      ENVPTR->ReleaseStringUTFChars(ENVPAR dst_name, lDstName);
+        ENVPTR->ReleaseStringUTFChars(ENVPAR file_name, lFileName);
+        ENVPTR->ReleaseStringUTFChars(ENVPAR cur_name, lCurName);
+        ENVPTR->ReleaseStringUTFChars(ENVPAR dst_name, lDstName);
 
-      if (status < 0) {
-         h5libraryError(env);
-         return;
-      }
+        if (status < 0) {
+            h5libraryError(env);
+            return;
+        }
 
-      return;
-  }
+        return;
+    }
 
     /*
      * Class:     hdf_hdf5lib_H5
@@ -168,8 +170,8 @@ extern "C" {
     JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Lcreate_1hard
       (JNIEnv *env, jclass clss, jlong cur_loc_id, jstring cur_name, jlong dst_loc_id, jstring dst_name, jlong create_id, jlong access_id)
     {
-        char    *lCurName;
-        char    *lDstName;
+        const char *lCurName;
+        const char *lDstName;
         jboolean isCopy;
         herr_t   status = -1;
 
@@ -178,7 +180,7 @@ extern "C" {
             return;
         }
 
-        lCurName = (char*)ENVPTR->GetStringUTFChars(ENVPAR cur_name, &isCopy);
+        lCurName = ENVPTR->GetStringUTFChars(ENVPAR cur_name, &isCopy);
         if (lCurName == NULL) {
             h5JNIFatalError(env, "H5Lcreate_hard:  cur_name not pinned");
             return;
@@ -190,21 +192,21 @@ extern "C" {
             return;
         }
 
-        lDstName = (char*)ENVPTR->GetStringUTFChars(ENVPAR dst_name, &isCopy);
+        lDstName = ENVPTR->GetStringUTFChars(ENVPAR dst_name, &isCopy);
         if (lDstName == NULL) {
             ENVPTR->ReleaseStringUTFChars(ENVPAR cur_name, lCurName);
             h5JNIFatalError(env, "H5Lcreate_hard:  dst_name not pinned");
             return;
         }
 
-        status = H5Lcreate_hard((hid_t)cur_loc_id, (const char*)lCurName, (hid_t)dst_loc_id, (const char*)lDstName, (hid_t)create_id, (hid_t)access_id);
+        status = H5Lcreate_hard((hid_t)cur_loc_id, lCurName, (hid_t)dst_loc_id, lDstName, (hid_t)create_id, (hid_t)access_id);
 
         ENVPTR->ReleaseStringUTFChars(ENVPAR cur_name, lCurName);
         ENVPTR->ReleaseStringUTFChars(ENVPAR dst_name, lDstName);
 
         if (status < 0) {
-           h5libraryError(env);
-           return;
+            h5libraryError(env);
+            return;
         }
 
         return;
@@ -218,8 +220,8 @@ extern "C" {
     JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Lcreate_1soft
       (JNIEnv *env, jclass clss, jstring cur_name, jlong dst_loc_id, jstring dst_name, jlong create_id, jlong access_id)
     {
-        char    *lCurName;
-        char    *lDstName;
+        const char *lCurName;
+        const char *lDstName;
         jboolean isCopy;
         herr_t   status = -1;
 
@@ -228,7 +230,7 @@ extern "C" {
             return;
         }
 
-        lCurName = (char*)ENVPTR->GetStringUTFChars(ENVPAR cur_name, &isCopy);
+        lCurName = ENVPTR->GetStringUTFChars(ENVPAR cur_name, &isCopy);
         if (lCurName == NULL) {
             h5JNIFatalError(env, "H5Lcreate_soft:  cur_name not pinned");
             return;
@@ -240,14 +242,14 @@ extern "C" {
             return;
         }
 
-        lDstName = (char*)ENVPTR->GetStringUTFChars(ENVPAR dst_name,&isCopy);
+        lDstName = ENVPTR->GetStringUTFChars(ENVPAR dst_name,&isCopy);
         if (lDstName == NULL) {
             ENVPTR->ReleaseStringUTFChars(ENVPAR cur_name, lCurName);
             h5JNIFatalError(env, "H5Lcreate_soft:  dst_name not pinned");
             return;
         }
 
-        status = H5Lcreate_soft((const char*)lCurName, (hid_t)dst_loc_id, (const char*)lDstName, (hid_t)create_id, (hid_t)access_id);
+        status = H5Lcreate_soft(lCurName, (hid_t)dst_loc_id, lDstName, (hid_t)create_id, (hid_t)access_id);
 
         ENVPTR->ReleaseStringUTFChars(ENVPAR cur_name, lCurName);
         ENVPTR->ReleaseStringUTFChars(ENVPAR dst_name, lDstName);
@@ -268,7 +270,7 @@ extern "C" {
     JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Ldelete
       (JNIEnv *env, jclass clss, jlong loc_id, jstring name, jlong access_id)
     {
-        char    *lName;
+        const char *lName;
         jboolean isCopy;
         herr_t   status = -1;
 
@@ -277,13 +279,13 @@ extern "C" {
             return;
         }
 
-        lName = (char*)ENVPTR->GetStringUTFChars(ENVPAR name, &isCopy);
+        lName = ENVPTR->GetStringUTFChars(ENVPAR name, &isCopy);
         if (lName == NULL) {
             h5JNIFatalError(env, "H5Ldelete:  name not pinned");
             return;
         }
 
-        status = H5Ldelete((hid_t)loc_id, (const char*)lName, (hid_t)access_id);
+        status = H5Ldelete((hid_t)loc_id, lName, (hid_t)access_id);
 
         ENVPTR->ReleaseStringUTFChars(ENVPAR name, lName);
 
@@ -301,7 +303,7 @@ extern "C" {
     JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Ldelete_1by_1idx
     (JNIEnv *env, jclass clss, jlong loc_id, jstring name, jint index_field, jint order, jlong link_n, jlong access_id)
     {
-        char      *lName;
+        const char *lName;
         herr_t     status;
         jboolean   isCopy;
         hsize_t    n = (hsize_t)link_n;
@@ -311,13 +313,13 @@ extern "C" {
             return;
         }
 
-        lName = (char*)ENVPTR->GetStringUTFChars(ENVPAR name, &isCopy);
+        lName = ENVPTR->GetStringUTFChars(ENVPAR name, &isCopy);
         if (lName == NULL) {
             h5JNIFatalError(env, "H5Ldelete_by_idx:  name not pinned");
             return;
         }
 
-        status = H5Ldelete_by_idx((hid_t)loc_id, (const char*)lName, (H5_index_t)index_field, (H5_iter_order_t)order, n, (hid_t)access_id);
+        status = H5Ldelete_by_idx((hid_t)loc_id, lName, (H5_index_t)index_field, (H5_iter_order_t)order, n, (hid_t)access_id);
 
         ENVPTR->ReleaseStringUTFChars(ENVPAR name, lName);
 
@@ -335,7 +337,7 @@ extern "C" {
     JNIEXPORT jboolean JNICALL Java_hdf_hdf5lib_H5_H5Lexists
       (JNIEnv *env, jclass clss, jlong loc_id, jstring name, jlong access_id)
     {
-        char    *lName;
+        const char *lName;
         jboolean isCopy;
         htri_t   bval = 0;
 
@@ -344,13 +346,13 @@ extern "C" {
             return JNI_FALSE;
         }
 
-        lName = (char*)ENVPTR->GetStringUTFChars(ENVPAR name, &isCopy);
+        lName = ENVPTR->GetStringUTFChars(ENVPAR name, &isCopy);
         if (lName == NULL) {
             h5JNIFatalError(env, "H5Lexists:  name not pinned");
             return JNI_FALSE;
         }
 
-        bval = H5Lexists((hid_t)loc_id, (const char*)lName, (hid_t)access_id);
+        bval = H5Lexists((hid_t)loc_id, lName, (hid_t)access_id);
         ENVPTR->ReleaseStringUTFChars(ENVPAR name, lName);
 
         if (bval > 0) {
@@ -373,7 +375,7 @@ extern "C" {
     JNIEXPORT jobject JNICALL Java_hdf_hdf5lib_H5_H5Lget_1info
     (JNIEnv *env, jclass clss, jlong loc_id, jstring name, jlong access_id)
     {
-        char      *lName;
+        const char *lName;
         herr_t     status;
         H5L_info_t infobuf;
         jboolean   isCopy;
@@ -387,13 +389,13 @@ extern "C" {
             return NULL;
         }
 
-        lName = (char*)ENVPTR->GetStringUTFChars(ENVPAR name, &isCopy);
+        lName = ENVPTR->GetStringUTFChars(ENVPAR name, &isCopy);
         if (lName == NULL) {
             h5JNIFatalError(env, "H5Lget_info:  name not pinned");
             return NULL;
         }
 
-        status = H5Lget_info((hid_t)loc_id, (const char*)lName, (H5L_info_t*)&infobuf, (hid_t)access_id);
+        status = H5Lget_info((hid_t)loc_id, lName, (H5L_info_t*)&infobuf, (hid_t)access_id);
 
         ENVPTR->ReleaseStringUTFChars(ENVPAR name, lName);
 
@@ -419,9 +421,9 @@ extern "C" {
         args[2].j = infobuf.corder;
         args[3].i = infobuf.cset;
         if(infobuf.type==0)
-            args[4].j = infobuf.u.address;
+            args[4].j = (jlong)infobuf.u.address;
         else
-            args[4].j = infobuf.u.val_size;
+            args[4].j = (jlong)infobuf.u.val_size;
         ret_info_t = ENVPTR->NewObjectA(ENVPAR cls, constructor, args);
         return ret_info_t;
     }
@@ -434,7 +436,7 @@ extern "C" {
     JNIEXPORT jobject JNICALL Java_hdf_hdf5lib_H5_H5Lget_1info_1by_1idx
     (JNIEnv *env, jclass clss, jlong loc_id, jstring name, jint index_field, jint order, jlong link_n, jlong access_id)
     {
-        char      *lName;
+        const char *lName;
         herr_t     status;
         H5L_info_t infobuf;
         jboolean   isCopy;
@@ -448,13 +450,13 @@ extern "C" {
             return NULL;
         }
 
-        lName = (char*)ENVPTR->GetStringUTFChars(ENVPAR name, &isCopy);
+        lName = ENVPTR->GetStringUTFChars(ENVPAR name, &isCopy);
         if (lName == NULL) {
             h5JNIFatalError(env, "H5Lget_info_by_idx:  name not pinned");
             return NULL;
         }
 
-        status = H5Lget_info_by_idx((hid_t)loc_id, (const char*)lName, (H5_index_t)index_field, (H5_iter_order_t)order, (hsize_t)link_n, (H5L_info_t*)&infobuf, (hid_t)access_id);
+        status = H5Lget_info_by_idx((hid_t)loc_id, lName, (H5_index_t)index_field, (H5_iter_order_t)order, (hsize_t)link_n, (H5L_info_t*)&infobuf, (hid_t)access_id);
 
         ENVPTR->ReleaseStringUTFChars(ENVPAR name, lName);
 
@@ -480,9 +482,9 @@ extern "C" {
         args[2].j = infobuf.corder;
         args[3].i = infobuf.cset;
         if(infobuf.type==0)
-            args[4].j = infobuf.u.address;
+            args[4].j = (jlong)infobuf.u.address;
         else
-            args[4].j = infobuf.u.val_size;
+            args[4].j = (jlong)infobuf.u.val_size;
         ret_info_t = ENVPTR->NewObjectA(ENVPAR cls, constructor, args);
         return ret_info_t;
     }
@@ -496,7 +498,7 @@ extern "C" {
     (JNIEnv *env, jclass clss, jlong loc_id, jstring name, jint index_field, jint order, jlong link_n, jlong access_id)
     {
         size_t   buf_size;
-        char    *lName;
+        const char *lName;
         char    *lValue;
         jboolean isCopy;
         jlong    status_size;
@@ -507,14 +509,14 @@ extern "C" {
             return NULL;
         }
 
-        lName = (char*)ENVPTR->GetStringUTFChars(ENVPAR name, &isCopy);
+        lName = ENVPTR->GetStringUTFChars(ENVPAR name, &isCopy);
         if (lName == NULL) {
             h5JNIFatalError(env, "H5Lget_name_by_idx:  name not pinned");
             return NULL;
         }
 
         /* get the length of the link name */
-        status_size = H5Lget_name_by_idx((hid_t)loc_id, (const char*)lName, (H5_index_t)index_field, (H5_iter_order_t)order, (hsize_t)link_n, (char*)NULL, (size_t)0, (hid_t)H5P_DEFAULT);
+        status_size = H5Lget_name_by_idx((hid_t)loc_id, lName, (H5_index_t)index_field, (H5_iter_order_t)order, (hsize_t)link_n, (char*)NULL, (size_t)0, (hid_t)H5P_DEFAULT);
         if(status_size < 0) {
             ENVPTR->ReleaseStringUTFChars(ENVPAR name, lName);
             h5libraryError(env);
@@ -529,7 +531,7 @@ extern "C" {
             return NULL;
         }
 
-        status_size = H5Lget_name_by_idx((hid_t)loc_id, (const char*)lName, (H5_index_t)index_field, (H5_iter_order_t)order, (hsize_t)link_n, (char*)lValue, (size_t)buf_size, (hid_t)access_id);
+        status_size = H5Lget_name_by_idx((hid_t)loc_id, lName, (H5_index_t)index_field, (H5_iter_order_t)order, (hsize_t)link_n, (char*)lValue, (size_t)buf_size, (hid_t)access_id);
 
         ENVPTR->ReleaseStringUTFChars(ENVPAR name, lName);
 
@@ -563,7 +565,7 @@ extern "C" {
         size_t      buf_size;
         herr_t      status;
         H5L_info_t  infobuf;
-        char       *lName;
+        const char *lName;
         char       *lValue;
         const char *file_name;
         const char *obj_name;
@@ -575,14 +577,14 @@ extern "C" {
             return -1;
         }
 
-        lName = (char*)ENVPTR->GetStringUTFChars(ENVPAR name,&isCopy);
+        lName = ENVPTR->GetStringUTFChars(ENVPAR name,&isCopy);
         if (lName == NULL) {
             h5JNIFatalError(env, "H5Lget_val:  name not pinned");
             return -1;
         }
 
         /* get the length of the link val */
-        status = H5Lget_info((hid_t)loc_id, (const char*)lName, (H5L_info_t*)&infobuf, (hid_t)H5P_DEFAULT);
+        status = H5Lget_info((hid_t)loc_id, lName, (H5L_info_t*)&infobuf, (hid_t)H5P_DEFAULT);
         if(status < 0) {
             ENVPTR->ReleaseStringUTFChars(ENVPAR name, lName);
             h5libraryError(env);
@@ -603,7 +605,7 @@ extern "C" {
             return -1;
         }
 
-        status = H5Lget_val((hid_t)loc_id, (const char*)lName, (void*)lValue, (size_t)buf_size, (hid_t)access_id);
+        status = H5Lget_val((hid_t)loc_id, lName, (void*)lValue, (size_t)buf_size, (hid_t)access_id);
 
         ENVPTR->ReleaseStringUTFChars(ENVPAR name, lName);
         if (status < 0) {
@@ -666,7 +668,7 @@ extern "C" {
         herr_t      status;
         size_t      buf_size;
         H5L_info_t  infobuf;
-        char       *lName;
+        const char *lName;
         void       *lValue;
         const char *file_name;
         const char *obj_name;
@@ -678,14 +680,14 @@ extern "C" {
             return -1;
         }
 
-        lName = (char*)ENVPTR->GetStringUTFChars(ENVPAR name, &isCopy);
+        lName = ENVPTR->GetStringUTFChars(ENVPAR name, &isCopy);
         if (lName == NULL) {
             h5JNIFatalError(env, "H5Lget_val_by_idx:  name not pinned");
             return -1;
         }
 
         /* get the length of the link valuee */
-        status = H5Lget_info_by_idx((hid_t)loc_id, (const char*)lName, (H5_index_t)index_field, (H5_iter_order_t)order, (hsize_t)link_n, (H5L_info_t*)&infobuf, (hid_t)access_id);
+        status = H5Lget_info_by_idx((hid_t)loc_id, lName, (H5_index_t)index_field, (H5_iter_order_t)order, (hsize_t)link_n, (H5L_info_t*)&infobuf, (hid_t)access_id);
         if(status < 0) {
             ENVPTR->ReleaseStringUTFChars(ENVPAR name, lName);
             h5libraryError(env);
@@ -704,7 +706,7 @@ extern "C" {
             return -1;
         }
 
-        status = H5Lget_val_by_idx((hid_t)loc_id, (const char*)lName, (H5_index_t)index_field, (H5_iter_order_t)order, (hsize_t)link_n, (void*)lValue, (size_t)buf_size, (hid_t)access_id);
+        status = H5Lget_val_by_idx((hid_t)loc_id, lName, (H5_index_t)index_field, (H5_iter_order_t)order, (hsize_t)link_n, (void*)lValue, (size_t)buf_size, (hid_t)access_id);
 
         ENVPTR->ReleaseStringUTFChars(ENVPAR name, lName);
         if (status < 0) {
@@ -763,8 +765,8 @@ extern "C" {
     JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Lmove
       (JNIEnv *env, jclass clss, jlong cur_loc_id, jstring cur_name, jlong dst_loc_id, jstring dst_name, jlong create_id, jlong access_id)
     {
-        char    *lCurName;
-        char    *lDstName;
+        const char *lCurName;
+        const char *lDstName;
         jboolean isCopy;
         herr_t   status = -1;
 
@@ -773,7 +775,7 @@ extern "C" {
             return;
         }
 
-        lCurName = (char*)ENVPTR->GetStringUTFChars(ENVPAR cur_name, &isCopy);
+        lCurName = ENVPTR->GetStringUTFChars(ENVPAR cur_name, &isCopy);
         if (lCurName == NULL) {
             h5JNIFatalError(env, "H5Lcreate_hard:  cur_name not pinned");
             return;
@@ -785,14 +787,14 @@ extern "C" {
             return;
         }
 
-        lDstName = (char*)ENVPTR->GetStringUTFChars(ENVPAR dst_name, &isCopy);
+        lDstName = ENVPTR->GetStringUTFChars(ENVPAR dst_name, &isCopy);
         if (lDstName == NULL) {
             ENVPTR->ReleaseStringUTFChars(ENVPAR cur_name, lCurName);
             h5JNIFatalError( env, "H5Lcreate_hard:  dst_name not pinned");
             return;
         }
 
-        status = H5Lmove((hid_t)cur_loc_id, (const char*)lCurName, (hid_t)dst_loc_id, (const char*)lDstName, (hid_t)create_id, (hid_t)access_id);
+        status = H5Lmove((hid_t)cur_loc_id, lCurName, (hid_t)dst_loc_id, lDstName, (hid_t)create_id, (hid_t)access_id);
 
         ENVPTR->ReleaseStringUTFChars(ENVPAR cur_name, lCurName);
         ENVPTR->ReleaseStringUTFChars(ENVPAR dst_name, lDstName);
@@ -805,6 +807,7 @@ extern "C" {
         return;
     }
 
+    static
     herr_t H5L_iterate_cb(hid_t g_id, const char *name, const H5L_info_t *info, void *op_data) {
         JNIEnv    *cbenv;
         jint       status;
@@ -853,9 +856,9 @@ extern "C" {
         args[2].j = info->corder;
         args[3].i = info->cset;
         if(info->type==0)
-            args[4].j = info->u.address;
+            args[4].j = (jlong)info->u.address;
         else
-            args[4].j = info->u.val_size;
+            args[4].j = (jlong)info->u.val_size;
         cb_info_t = CBENVPTR->NewObjectA(CBENVPAR cls, constructor, args);
 
         status = CBENVPTR->CallIntMethod(CBENVPAR visit_callback, mid, g_id, str, cb_info_t, op_data);
@@ -907,7 +910,7 @@ extern "C" {
               jobject callback_op, jobject op_data, jlong access_id)
     {
         jboolean      isCopy;
-        char         *lName;
+        const char   *lName;
         herr_t        status = -1;
 
         ENVPTR->GetJavaVM(ENVPAR &jvm);
@@ -918,7 +921,7 @@ extern "C" {
             return -1;
         }
 
-        lName = (char*)ENVPTR->GetStringUTFChars(ENVPAR name, &isCopy);
+        lName = ENVPTR->GetStringUTFChars(ENVPAR name, &isCopy);
         if (lName == NULL) {
             h5JNIFatalError(env, "H5Lvisit_by_name:  name not pinned");
             return -1;
@@ -933,7 +936,7 @@ extern "C" {
             return -1;
         }
 
-        status = H5Lvisit_by_name((hid_t)grp_id, (const char*)lName, (H5_index_t)idx_type, (H5_iter_order_t)order, (H5L_iterate_t)H5L_iterate_cb, (void*)op_data, (hid_t)access_id);
+        status = H5Lvisit_by_name((hid_t)grp_id, lName, (H5_index_t)idx_type, (H5_iter_order_t)order, (H5L_iterate_t)H5L_iterate_cb, (void*)op_data, (hid_t)access_id);
 
         ENVPTR->ReleaseStringUTFChars(ENVPAR name, lName);
 
@@ -989,7 +992,7 @@ extern "C" {
               jlong idx, jobject callback_op, jobject op_data, jlong access_id)
     {
         jboolean      isCopy;
-        char         *lName;
+        const char   *lName;
         hsize_t       start_idx = (hsize_t)idx;
         herr_t        status = -1;
 
@@ -1001,7 +1004,7 @@ extern "C" {
             return -1;
         }
 
-        lName = (char*)ENVPTR->GetStringUTFChars(ENVPAR name, &isCopy);
+        lName = ENVPTR->GetStringUTFChars(ENVPAR name, &isCopy);
         if (lName == NULL) {
             h5JNIFatalError(env, "H5Literate_by_name:  name not pinned");
             return -1;
@@ -1016,7 +1019,7 @@ extern "C" {
             return -1;
         }
 
-        status = H5Literate_by_name((hid_t)grp_id, (const char*)lName, (H5_index_t)idx_type, (H5_iter_order_t)order, (hsize_t*)&start_idx, (H5L_iterate_t)H5L_iterate_cb, (void*)op_data, (hid_t)access_id);
+        status = H5Literate_by_name((hid_t)grp_id, lName, (H5_index_t)idx_type, (H5_iter_order_t)order, (hsize_t*)&start_idx, (H5L_iterate_t)H5L_iterate_cb, (void*)op_data, (hid_t)access_id);
 
         ENVPTR->ReleaseStringUTFChars(ENVPAR name, lName);
 
