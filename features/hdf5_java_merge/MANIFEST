@@ -2428,10 +2428,12 @@
 ./java/src/jni/exceptionImp.h
 ./java/src/jni/h5Constants.c
 ./java/src/jni/nativeData.c
+./java/src/jni/nativeData.h
 ./java/src/jni/h5jni.h
 ./java/src/jni/h5util.c
 ./java/src/jni/h5util.h
 ./java/src/jni/h5Imp.c
+./java/src/jni/h5Imp.h
 ./java/src/jni/h5aImp.c
 ./java/src/jni/h5aImp.h
 ./java/src/jni/h5dImp.c
