@@ -2838,7 +2838,7 @@ else
   done
 fi
 java_version_info=`$JAVA -version 2>&1 |\
-  grep 'version' | sed 's/\(.*(version) [-a-z0-9\. ]*\).*/\1/'`
+  grep 'version' | sed -e 's/version "//' | sed -e 's/"//'`
 if test -n "$java_version_info"; then
   JAVA_VERSION="$JAVA_VERSION ( $java_version_info)"
 fi
