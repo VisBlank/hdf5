@@ -1132,7 +1132,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Pset_1buffer
 JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Pget_1buffer
   (JNIEnv *env, jclass clss, jlong plist, jbyteArray tconv, jbyteArray bkg)
 {
-    h5unimplemented(env, "H5Pset_buffer:  not implemented");
+    h5unimplemented(env, "H5Pget_buffer:  not implemented");
     return -1;
 #ifdef notdef
 
@@ -1200,15 +1200,12 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Pset_1buffer_1size
 JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5_H5Pget_1buffer_1size
   (JNIEnv *env, jclass clss, jlong plist)
 {
-    size_t     size = 0;
-
-    size = H5Pget_buffer((hid_t)plist, NULL, NULL);
-    if (size = 0) {
+    size_t size = H5Pget_buffer((hid_t)plist, NULL, NULL);
+    if (size == 0) {
         h5libraryError(env);
         return -1;
     }
-
-    return (jlong)size;
+    return size;
 }
 
 /*
@@ -4353,7 +4350,7 @@ JNIEXPORT jobject JNICALL Java_hdf_hdf5lib_H5_H5Pget_1mdc_1config
     // get a reference to your class if you don't have it already
     cls = ENVPTR->FindClass(ENVPAR "hdf/hdf5lib/structs/H5AC_cache_config_t");
     // get a reference to the constructor; the name is <init>
-    constructor = ENVPTR->GetMethodID(ENVPAR cls, "<init>", "(IZZZLjava/lang/String;ZZJDJJJIDDZJIDDIDDZJIZDII)V");
+    constructor = ENVPTR->GetMethodID(ENVPAR cls, "<init>", "(IZZZLjava/lang/String;ZZJDJJJIDDZJIDDIDDZJIZDJI)V");
     args[0].i = cacheinfo.version;
     args[1].z = cacheinfo.rpt_fcn_enabled;
     args[2].z = cacheinfo.open_trace_file;
@@ -4385,7 +4382,7 @@ JNIEXPORT jobject JNICALL Java_hdf_hdf5lib_H5_H5Pget_1mdc_1config
     args[25].i = cacheinfo.epochs_before_eviction;
     args[26].z = cacheinfo.apply_empty_reserve;
     args[27].d = cacheinfo.empty_reserve;
-    args[28].i = (jint)cacheinfo.dirty_bytes_threshold;
+    args[28].j = (jlong)cacheinfo.dirty_bytes_threshold;
 #if (H5_VERS_RELEASE >= 6)
     args[29].i = cacheinfo.metadata_write_strategy;
 #endif
@@ -4724,7 +4721,7 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Pset_1mdc_1config
         return;
     }
 
-    fid = ENVPTR->GetFieldID(ENVPAR cls, "dirty_bytes_threshold", "I");
+    fid = ENVPTR->GetFieldID(ENVPAR cls, "dirty_bytes_threshold", "J");
     if(fid == 0) {
         h5badArgument(env, "H5Pset_mdc_config:  dirty_bytes_threshold");
         return;

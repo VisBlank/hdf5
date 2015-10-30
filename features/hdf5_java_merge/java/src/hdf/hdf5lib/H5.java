@@ -3795,7 +3795,7 @@ public class H5 implements java.io.Serializable {
      * @exception HDF5LibraryException
      *                - Error from the HDF-5 Library.
      **/
-    public synchronized static native String H5Oget_comment(long obj_id) throws HDF5LibraryException;
+    public synchronized static native String H5Oget_comment(long obj_id) throws HDF5LibraryException, IllegalArgumentException;
 
     /**
      * H5Oset_comment sets the comment for the specified object.
@@ -3831,7 +3831,7 @@ public class H5 implements java.io.Serializable {
      *                - name is null.
      **/
     public synchronized static native String H5Oget_comment_by_name(long loc_id, String name, long lapl_id)
-            throws HDF5LibraryException, NullPointerException;
+            throws HDF5LibraryException, IllegalArgumentException, NullPointerException;
 
     // long H5Oget_comment_by_name(int loc_id, String name, String comment, long bufsize, int lapl_id);
 
@@ -4418,8 +4418,8 @@ public class H5 implements java.io.Serializable {
     public synchronized static native int H5Pget_buffer(long plist, byte[] tconv, byte[] bkg)
             throws HDF5LibraryException, IllegalArgumentException;
 
-    public synchronized static native long H5Pget_buffer_size(long plist) throws HDF5LibraryException,
-    IllegalArgumentException;
+    public synchronized static native long H5Pget_buffer_size(long plist)
+            throws HDF5LibraryException, IllegalArgumentException;
 
     /**
      * H5Pset_buffer sets type conversion and background buffers. status to TRUE or FALSE.

@@ -162,9 +162,9 @@ public class TestH5PData {
         }
         catch (Throwable err) {
             err.printStackTrace();
-            fail("H5P_buffer: " + err);
+            fail("H5P_buffer fail: " + err);
         }
         assertTrue("H5P_buffer default: "+default_size, default_size==1024*1024);
-        assertTrue("H5P_buffer default: "+size, size==DIM_X*DIM_Y);
+        assertTrue("H5P_buffer size: "+size, size==DIM_X*DIM_Y);
     }
 }
