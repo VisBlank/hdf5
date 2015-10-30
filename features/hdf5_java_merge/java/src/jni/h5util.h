@@ -35,14 +35,14 @@ typedef struct h5str_t {
     size_t   max;  /* the allocated size of the string */
 } h5str_t;
 
-void    h5str_new (h5str_t *str, size_t len);
-void    h5str_free (h5str_t *str);
-void    h5str_resize (h5str_t *str, size_t new_len);
-char*   h5str_append (h5str_t *str, const char* cstr);
-int     h5str_sprintf(h5str_t *str, hid_t container, hid_t tid, void *buf, int expand_data);
-void    h5str_array_free(char **strs, size_t len);
-int     h5str_dump_simple_dset(FILE *stream, hid_t dset, int binary_order);
-int     h5str_dump_region_blocks_data(h5str_t *str, hid_t region, hid_t region_obj);
-int     h5str_dump_region_points_data(h5str_t *str, hid_t region, hid_t region_obj);
+extern void    h5str_new (h5str_t *str, size_t len);
+extern void    h5str_free (h5str_t *str);
+extern void    h5str_resize (h5str_t *str, size_t new_len);
+extern char*   h5str_append (h5str_t *str, const char* cstr);
+extern size_t  h5str_sprintf(h5str_t *str, hid_t container, hid_t tid, void *buf, int expand_data);
+extern void    h5str_array_free(char **strs, size_t len);
+extern int     h5str_dump_simple_dset(FILE *stream, hid_t dset, int binary_order);
+extern int     h5str_dump_region_blocks_data(h5str_t *str, hid_t region, hid_t region_obj);
+extern int     h5str_dump_region_points_data(h5str_t *str, hid_t region, hid_t region_obj);
 
 #endif  /* H5UTIL_H__ */

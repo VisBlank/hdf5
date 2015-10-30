@@ -44,6 +44,7 @@ extern "C" {
 #include <jni.h>
 #include "hdf5.h"
 #include "h5jni.h"
+#include "nativeData.h"
 
 
 /* returns int [] */
@@ -74,7 +75,7 @@ jbyteArray bdata)  /* IN: array of bytes */
 
     blen = ENVPTR->GetArrayLength(ENVPAR bdata);
 
-    len = blen/sizeof(jint);
+    len = blen/(int)sizeof(jint);
     rarray = ENVPTR->NewIntArray(ENVPAR len);
     if (rarray == NULL) {
         ENVPTR->ReleaseByteArrayElements(ENVPAR bdata,barr,JNI_ABORT);
@@ -131,7 +132,7 @@ jbyteArray bdata)  /* IN: array of bytes */
     }
     blen = ENVPTR->GetArrayLength(ENVPAR bdata);
 
-    len = blen/sizeof(jfloat);
+    len = blen/(int)sizeof(jfloat);
     rarray = ENVPTR->NewFloatArray(ENVPAR len);
     if (rarray == NULL) {
         ENVPTR->ReleaseByteArrayElements(ENVPAR bdata,barr,JNI_ABORT);
@@ -188,7 +189,7 @@ jbyteArray bdata)  /* IN: array of bytes */
 
     blen = ENVPTR->GetArrayLength(ENVPAR bdata);
 
-    len = blen/sizeof(jshort);
+    len = blen/(int)sizeof(jshort);
     rarray = ENVPTR->NewShortArray(ENVPAR len);
     if (rarray == NULL) {
         ENVPTR->ReleaseByteArrayElements(ENVPAR bdata,barr,JNI_ABORT);
@@ -246,7 +247,7 @@ jbyteArray bdata)  /* IN: array of bytes */
     }
     blen = ENVPTR->GetArrayLength(ENVPAR bdata);
 
-    len = blen/sizeof(jlong);
+    len = blen/(int)sizeof(jlong);
     rarray = ENVPTR->NewLongArray(ENVPAR len);
     if (rarray == NULL) {
         ENVPTR->ReleaseByteArrayElements(ENVPAR bdata,barr,JNI_ABORT);
@@ -302,7 +303,7 @@ jbyteArray bdata)  /* IN: array of bytes */
     }
     blen = ENVPTR->GetArrayLength(ENVPAR bdata);
 
-    len = blen/sizeof(jdouble);
+    len = blen/(int)sizeof(jdouble);
     rarray = ENVPTR->NewDoubleArray(ENVPAR len);
     if (rarray == NULL) {
         ENVPTR->ReleaseByteArrayElements(ENVPAR bdata,barr,JNI_ABORT);
@@ -360,7 +361,7 @@ jbyteArray bdata)  /* IN: array of bytes */
     }
 
     blen = ENVPTR->GetArrayLength(ENVPAR bdata);
-    if ((start < 0) || ((int)(start + (len*sizeof(jint))) > blen)) {
+    if ((start < 0) || ((int)(start + (len*(int)sizeof(jint))) > blen)) {
         ENVPTR->ReleaseByteArrayElements(ENVPAR bdata,barr,JNI_ABORT);
         h5JNIFatalError(env,  "byteToInt: getLen failed");
         return NULL;
@@ -423,7 +424,7 @@ jbyteArray bdata)  /* IN: array of bytes */
     }
 
     blen = ENVPTR->GetArrayLength(ENVPAR bdata);
-    if ((start < 0) || ((int)(start + (len*(sizeof(jshort)))) > blen)) {
+    if ((start < 0) || ((int)(start + (len*(int)sizeof(jshort))) > blen)) {
         ENVPTR->ReleaseByteArrayElements(ENVPAR bdata,barr,JNI_ABORT);
         h5badArgument( env,  "byteToShort: start or len is out of bounds");
         return NULL;
@@ -487,7 +488,7 @@ jbyteArray bdata)  /* IN: array of bytes */
     }
 
     blen = ENVPTR->GetArrayLength(ENVPAR bdata);
-    if ((start < 0) || ((int)(start + (len*(sizeof(jfloat)))) > blen)) {
+    if ((start < 0) || ((int)(start + (len*(int)sizeof(jfloat))) > blen)) {
         ENVPTR->ReleaseByteArrayElements(ENVPAR bdata,barr,JNI_ABORT);
         h5badArgument( env,  "byteToFloat: start or len is out of bounds");
         return NULL;
@@ -550,7 +551,7 @@ jbyteArray bdata)  /* IN: array of bytes */
     }
 
     blen = ENVPTR->GetArrayLength(ENVPAR bdata);
-    if ((start < 0) || ((int)(start + (len*(sizeof(jlong)))) > blen)) {
+    if ((start < 0) || ((int)(start + (len*(int)sizeof(jlong))) > blen)) {
         ENVPTR->ReleaseByteArrayElements(ENVPAR bdata,barr,JNI_ABORT);
         h5badArgument( env,  "byteToLong: start or len is out of bounds");
         return NULL;
@@ -615,7 +616,7 @@ jbyteArray bdata)  /* IN: array of bytes */
     }
 
     blen = ENVPTR->GetArrayLength(ENVPAR bdata);
-    if ((start < 0) || ((int)(start + (len*(sizeof(jdouble)))) > blen)) {
+    if ((start < 0) || ((int)(start + (len*(int)sizeof(jdouble))) > blen)) {
         ENVPTR->ReleaseByteArrayElements(ENVPAR bdata,barr,JNI_ABORT);
         h5badArgument( env,  "byteToDouble: start or len is out of bounds");
         return NULL;
@@ -693,7 +694,7 @@ jintArray idata)  /* IN: array of int */
 
     ip = iarr + start;
 
-    blen = ilen * sizeof(jint);
+    blen = ilen * (int)sizeof(jint);
     rarray = ENVPTR->NewByteArray(ENVPAR blen);
     if (rarray == NULL) {
         ENVPTR->ReleaseIntArrayElements(ENVPAR idata,iarr,JNI_ABORT);
@@ -765,7 +766,7 @@ jshortArray idata)  /* IN: array of short */
 
     ip = iarr + start;
 
-    blen = ilen * sizeof(jshort);
+    blen = ilen * (int)sizeof(jshort);
     rarray = ENVPTR->NewByteArray(ENVPAR blen);
     if (rarray == NULL) {
         ENVPTR->ReleaseShortArrayElements(ENVPAR idata,iarr,JNI_ABORT);
@@ -838,7 +839,7 @@ jfloatArray idata)  /* IN: array of float */
 
     ip = iarr + start;
 
-    blen = ilen * sizeof(jfloat);
+    blen = ilen * (int)sizeof(jfloat);
     rarray = ENVPTR->NewByteArray(ENVPAR blen);
     if (rarray == NULL) {
         ENVPTR->ReleaseFloatArrayElements(ENVPAR idata,iarr,JNI_ABORT);
@@ -910,7 +911,7 @@ jdoubleArray idata)  /* IN: array of double */
 
     ip = iarr + start;
 
-    blen = ilen * sizeof(jdouble);
+    blen = ilen * (int)sizeof(jdouble);
     rarray = ENVPTR->NewByteArray(ENVPAR blen);
     if (rarray == NULL) {
         ENVPTR->ReleaseDoubleArrayElements(ENVPAR idata,iarr,JNI_ABORT);
@@ -983,7 +984,7 @@ jlongArray idata)  /* IN: array of long */
 
     ip = iarr + start;
 
-    blen = ilen * sizeof(jlong);
+    blen = ilen * (int)sizeof(jlong);
     rarray = ENVPTR->NewByteArray(ENVPAR blen);
     if (rarray == NULL) {
         ENVPTR->ReleaseLongArrayElements(ENVPAR idata,iarr,JNI_ABORT);

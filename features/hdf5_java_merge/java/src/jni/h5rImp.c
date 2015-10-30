@@ -26,6 +26,7 @@ extern "C" {
 #include <jni.h>
 #include <stdlib.h>
 #include "h5jni.h"
+#include "h5rImp.h"
 
 
 /*
@@ -36,10 +37,10 @@ extern "C" {
 JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Rcreate
   (JNIEnv *env, jclass clss, jbyteArray ref, jlong loc_id, jstring name, jint ref_type, jlong space_id)
 {
-    char* rName;
-    jboolean isCopy;
-    herr_t status;
-    jbyte *refP;
+    const char *rName;
+    jboolean    isCopy;
+    herr_t      status;
+    jbyte      *refP;
 
     if (ref == NULL) {
         h5nullArgument( env, "H5Rcreate:  ref is NULL");
@@ -71,7 +72,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Rcreate
         h5JNIFatalError(env,  "H5Rcreate:  ref not pinned");
         return -1;
     }
-    rName = (char *)ENVPTR->GetStringUTFChars(ENVPAR name, &isCopy);
+    rName = ENVPTR->GetStringUTFChars(ENVPAR name, &isCopy);
     if (rName == NULL) {
         ENVPTR->ReleaseByteArrayElements(ENVPAR ref,refP,JNI_ABORT);
         h5JNIFatalError(env,  "H5Rcreate:  name not pinned");

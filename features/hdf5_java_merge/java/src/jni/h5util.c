@@ -30,31 +30,32 @@ extern "C" {
 #include "h5util.h"
 #include "jni.h"
 
-    /* size of hyperslab buffer when a dataset is bigger than H5TOOLS_MALLOCSIZE */
-    hsize_t H5TOOLS_BUFSIZE = (32 * 1024 * 1024);  /* 32 MB */
-    int     H5TOOLS_TEXT_BLOCK = 16;  /* Number of elements on a line in a text export file */
+/* size of hyperslab buffer when a dataset is bigger than H5TOOLS_MALLOCSIZE */
+hsize_t H5TOOLS_BUFSIZE = (32 * 1024 * 1024);  /* 32 MB */
+int     H5TOOLS_TEXT_BLOCK = 16;  /* Number of elements on a line in a text export file */
 
-    JavaVM *jvm;
-    jobject visit_callback;
+JavaVM *jvm;
+jobject visit_callback;
 
-int     h5str_dump_region_blocks(h5str_t *str, hid_t region, hid_t region_obj);
-int     h5str_dump_region_points(h5str_t *str, hid_t region, hid_t region_obj);
-int     h5str_is_zero(const void *_mem, size_t size);
-hid_t   h5str_get_native_type(hid_t type);
-hid_t   h5str_get_little_endian_type(hid_t type);
-hid_t   h5str_get_big_endian_type(hid_t type);
-htri_t  h5str_detect_vlen(hid_t tid);
-htri_t  h5str_detect_vlen_str(hid_t tid);
-int     h5tools_dump_simple_data(FILE *stream, hid_t container, hid_t type, void *_mem, hsize_t nelmts);
-int     h5str_render_bin_output(FILE *stream, hid_t container, hid_t tid, void *_mem, hsize_t block_nelmts);
-int     render_bin_output_region_data_blocks(FILE *stream, hid_t region_id,
+static int     h5str_dump_region_blocks(h5str_t *str, hid_t region, hid_t region_obj);
+static int     h5str_dump_region_points(h5str_t *str, hid_t region, hid_t region_obj);
+static int     h5str_is_zero(const void *_mem, size_t size);
+static hid_t   h5str_get_native_type(hid_t type);
+static hid_t   h5str_get_little_endian_type(hid_t type);
+static hid_t   h5str_get_big_endian_type(hid_t type);
+static htri_t  h5str_detect_vlen(hid_t tid);
+static htri_t  h5str_detect_vlen_str(hid_t tid);
+static int     h5tools_dump_simple_data(FILE *stream, hid_t container, hid_t type, void *_mem, hsize_t nelmts);
+static int     h5str_render_bin_output(FILE *stream, hid_t container, hid_t tid, void *_mem, hsize_t block_nelmts);
+static int     render_bin_output_region_data_blocks(FILE *stream, hid_t region_id,
             hid_t container, int ndims, hid_t type_id, hssize_t nblocks, hsize_t *ptdata);
-int     render_bin_output_region_blocks(FILE *stream, hid_t region_space,
+static int     render_bin_output_region_blocks(FILE *stream, hid_t region_space,
             hid_t region_id, hid_t container);
-int     render_bin_output_region_data_points(FILE *stream, hid_t region_space, hid_t region_id,
+static int     render_bin_output_region_data_points(FILE *stream, hid_t region_space, hid_t region_id,
             hid_t container, int ndims, hid_t type_id, hssize_t npoints, hsize_t *ptdata);
-int     render_bin_output_region_points(FILE *stream, hid_t region_space,
+static int     render_bin_output_region_points(FILE *stream, hid_t region_space,
             hid_t region_id, hid_t container);
+
 /** frees memory held by array of strings */
 void h5str_array_free(char **strs, size_t len) {
     size_t i;
@@ -130,7 +131,7 @@ char* h5str_append(h5str_t *str, const char* cstr) {
  On success, the total number of characters printed is returned.
  On error, a negative number is returned.
  */
-int h5str_sprintf(h5str_t *str, hid_t container, hid_t tid, void *ptr, int expand_data) {
+size_t h5str_sprintf(h5str_t *str, hid_t container, hid_t tid, void *ptr, int expand_data) {
     unsigned char   tmp_uchar = 0;
     char            tmp_char = 0;
     unsigned short  tmp_ushort = 0;
@@ -150,8 +151,7 @@ int h5str_sprintf(h5str_t *str, hid_t container, hid_t tid, void *ptr, int expan
     size_t          offset;
     size_t          nll;
     char           *this_str;
-    int             this_strlen;
-    int             i;
+    size_t          this_strlen;
     int             n;
     int             len;
     hvl_t          *vlptr;
@@ -163,7 +163,7 @@ int h5str_sprintf(h5str_t *str, hid_t container, hid_t tid, void *ptr, int expan
     int bdata_print = 0;
 
     if (!str || !ptr)
-        return -1;
+        return 0;
 
     /* Build default formats for long long types */
     if (!fmt_llong[0]) {
@@ -174,56 +174,56 @@ int h5str_sprintf(h5str_t *str, hid_t container, hid_t tid, void *ptr, int expan
     this_str = NULL;
     this_strlen = 0;
 
-  switch (tclass) {
+    switch (tclass) {
     case H5T_FLOAT:
         if (sizeof(float) == size) {
             /* if (H5Tequal(tid, H5T_NATIVE_FLOAT)) */
-        memcpy(&tmp_float, ptr, sizeof(float));
-        this_str = (char*) malloc(25);
-        sprintf(this_str, "%g", tmp_float);
-      }
-      else if (sizeof(double) == size) {
-                /* if (H5Tequal(tid, H5T_NATIVE_DOUBLE)) */
-        memcpy(&tmp_double, ptr, sizeof(double));
-        this_str = (char*) malloc(25);
-        sprintf(this_str, "%g", tmp_double);
-      }
+            memcpy(&tmp_float, ptr, sizeof(float));
+            this_str = (char*) malloc(25);
+            sprintf(this_str, "%g", tmp_float);
+        }
+        else if (sizeof(double) == size) {
+            /* if (H5Tequal(tid, H5T_NATIVE_DOUBLE)) */
+            memcpy(&tmp_double, ptr, sizeof(double));
+            this_str = (char*) malloc(25);
+            sprintf(this_str, "%g", tmp_double);
+        }
 #if H5_SIZEOF_LONG_DOUBLE !=0
-            else if (sizeof(long double) == size) {
-                /* if (H5Tequal(tid, H5T_NATIVE_LDOUBLE)) */
-        memcpy(&tmp_ldouble, ptr, sizeof(long double));
-        this_str = (char*) malloc(27);
-        sprintf(this_str, "%Lf", tmp_ldouble);
-      }
+        else if (sizeof(long double) == size) {
+            /* if (H5Tequal(tid, H5T_NATIVE_LDOUBLE)) */
+            memcpy(&tmp_ldouble, ptr, sizeof(long double));
+            this_str = (char*) malloc(27);
+            sprintf(this_str, "%Lf", tmp_ldouble);
+        }
 #endif
-      break;
+        break;
     case H5T_STRING:
-      {
+    {
         char *tmp_str;
         size = 0;
 
         if (H5Tis_variable_str(tid)) {
-          tmp_str = *(char**) ptr;
-          if (tmp_str != NULL)
-            size = strlen(tmp_str);
+            tmp_str = *(char**) ptr;
+            if (tmp_str != NULL)
+                size = strlen(tmp_str);
         }
         else {
-          tmp_str = cptr;
+            tmp_str = cptr;
         }
 
         /* Check for NULL pointer for string */
         if (tmp_str == NULL) {
-          this_str = (char *) malloc(5);
-          strncpy(this_str, "NULL", 4);
+            this_str = (char *) malloc(5);
+            strncpy(this_str, "NULL", 4);
         }
         else {
-          if (size > 0) {
-            this_str = (char *) malloc(size+1);
-            strncpy(this_str, tmp_str, size);
-          }
+            if (size > 0) {
+                this_str = (char *) malloc(size+1);
+                strncpy(this_str, tmp_str, size);
+            }
         }
-      }
-      break;
+    }
+    break;
     case H5T_INTEGER:
         if (sizeof(char) == size) {
             if(H5T_SGN_NONE == nsign) {
@@ -253,87 +253,87 @@ int h5str_sprintf(h5str_t *str, hid_t container, hid_t tid, void *ptr, int expan
                 sprintf(this_str, "%d", tmp_int);
             }
         }
-      else if (sizeof(short) == size) {
-                if(H5T_SGN_NONE == nsign) {
-                    /* if (H5Tequal(tid, H5T_NATIVE_USHORT)) */
-                    memcpy(&tmp_ushort, ptr, sizeof(unsigned short));
-                    this_str = (char*) malloc(9);
-                    sprintf(this_str, "%u", tmp_ushort);
-                }
-                else {
-                    /* if (H5Tequal(tid, H5T_NATIVE_SHORT)) */
-                    memcpy(&tmp_short, ptr, sizeof(short));
-                    this_str = (char*) malloc(9);
-                    sprintf(this_str, "%d", tmp_short);
-                }
-      }
-      else if (sizeof(long) == size) {
-                if(H5T_SGN_NONE == nsign) {
-                    /* if (H5Tequal(tid, H5T_NATIVE_ULONG)) */
-                    memcpy(&tmp_ulong, ptr, sizeof(unsigned long));
-                    this_str = (char*) malloc(23);
-                    sprintf(this_str, "%lu", tmp_ulong);
-                }
-                else {
-                    /* if (H5Tequal(tid, H5T_NATIVE_LONG)) */
-                    memcpy(&tmp_long, ptr, sizeof(long));
-                    this_str = (char*) malloc(23);
-                    sprintf(this_str, "%ld", tmp_long);
-                }
-      }
-      else if (sizeof(long long) == size) {
-                if(H5T_SGN_NONE == nsign) {
-                    /* if (H5Tequal(tid, H5T_NATIVE_ULLONG)) */
-                    memcpy(&tmp_ullong, ptr, sizeof(unsigned long long));
-                    this_str = (char*) malloc(25);
-                    sprintf(this_str, fmt_ullong, tmp_ullong);
-                }
-                else {
-                    /* if (H5Tequal(tid, H5T_NATIVE_LLONG)) */
-                    memcpy(&tmp_llong, ptr, sizeof(long long));
-                    this_str = (char*) malloc(25);
-                    sprintf(this_str, fmt_llong, tmp_llong);
-                }
-      }
-      break;
+        else if (sizeof(short) == size) {
+            if(H5T_SGN_NONE == nsign) {
+                /* if (H5Tequal(tid, H5T_NATIVE_USHORT)) */
+                memcpy(&tmp_ushort, ptr, sizeof(unsigned short));
+                this_str = (char*) malloc(9);
+                sprintf(this_str, "%u", tmp_ushort);
+            }
+            else {
+                /* if (H5Tequal(tid, H5T_NATIVE_SHORT)) */
+                memcpy(&tmp_short, ptr, sizeof(short));
+                this_str = (char*) malloc(9);
+                sprintf(this_str, "%d", tmp_short);
+            }
+        }
+        else if (sizeof(long) == size) {
+            if(H5T_SGN_NONE == nsign) {
+                /* if (H5Tequal(tid, H5T_NATIVE_ULONG)) */
+                memcpy(&tmp_ulong, ptr, sizeof(unsigned long));
+                this_str = (char*) malloc(23);
+                sprintf(this_str, "%lu", tmp_ulong);
+            }
+            else {
+                /* if (H5Tequal(tid, H5T_NATIVE_LONG)) */
+                memcpy(&tmp_long, ptr, sizeof(long));
+                this_str = (char*) malloc(23);
+                sprintf(this_str, "%ld", tmp_long);
+            }
+        }
+        else if (sizeof(long long) == size) {
+            if(H5T_SGN_NONE == nsign) {
+                /* if (H5Tequal(tid, H5T_NATIVE_ULLONG)) */
+                memcpy(&tmp_ullong, ptr, sizeof(unsigned long long));
+                this_str = (char*) malloc(25);
+                sprintf(this_str, fmt_ullong, tmp_ullong);
+            }
+            else {
+                /* if (H5Tequal(tid, H5T_NATIVE_LLONG)) */
+                memcpy(&tmp_llong, ptr, sizeof(long long));
+                this_str = (char*) malloc(25);
+                sprintf(this_str, fmt_llong, tmp_llong);
+            }
+        }
+        break;
     case H5T_COMPOUND:
-      {
-                unsigned i;
+    {
+        unsigned i;
         n = H5Tget_nmembers(tid);
         h5str_append(str, " {");
 
         for (i = 0; i < n; i++) {
-          offset = H5Tget_member_offset(tid, i);
-          mtid = H5Tget_member_type(tid, i);
-          h5str_sprintf(str, container, mtid, cptr + offset, expand_data);
-          if (i < n - 1)
-            h5str_append(str, ", ");
-          H5Tclose(mtid);
+            offset = H5Tget_member_offset(tid, i);
+            mtid = H5Tget_member_type(tid, i);
+            h5str_sprintf(str, container, mtid, cptr + offset, expand_data);
+            if (i < n - 1)
+                h5str_append(str, ", ");
+            H5Tclose(mtid);
         }
         h5str_append(str, "} ");
-      }
-      break;
+    }
+    break;
     case H5T_ENUM:
-      {
+    {
         char enum_name[1024];
         if (H5Tenum_nameof(tid, ptr, enum_name, sizeof enum_name) >= 0) {
-          h5str_append(str, enum_name);
+            h5str_append(str, enum_name);
         }
         else {
-          size_t i;
-          nll = H5Tget_size(tid);
-          this_str = (char*) malloc(4 * (nll + 1));
+            size_t i;
+            nll = H5Tget_size(tid);
+            this_str = (char*) malloc(4 * (nll + 1));
 
-          if (1 == nll) {
-            sprintf(this_str, "0x%02x", ucptr[0]);
-          }
-          else {
-            for (i = 0; i < (int)nll; i++)
-              sprintf(this_str, "%s%02x", i ? ":" : "", ucptr[i]);
-          }
+            if (1 == nll) {
+                sprintf(this_str, "0x%02x", ucptr[0]);
+            }
+            else {
+                for (i = 0; i < (int)nll; i++)
+                    sprintf(this_str, "%s%02x", i ? ":" : "", ucptr[i]);
+            }
         }
-      }
-      break;
+    }
+    break;
     case H5T_REFERENCE:
         if (h5str_is_zero(ptr, size)) {
             h5str_append(str, "NULL");
@@ -346,8 +346,8 @@ int h5str_sprintf(h5str_t *str, hid_t container, hid_t tid, void *ptr, int expan
                  * show the type and the referenced object
                  */
                 char         ref_name[1024];
-                    hid_t        region_obj;
-                    hid_t        region;
+                hid_t        region_obj;
+                hid_t        region;
                 H5S_sel_type region_type;
 
                 /* get name of the dataset the region reference points to using H5Rget_name */
@@ -355,31 +355,31 @@ int h5str_sprintf(h5str_t *str, hid_t container, hid_t tid, void *ptr, int expan
                 if (region_obj >= 0) {
                     region = H5Rget_region(container, H5R_DATASET_REGION, ptr);
                     if (region >= 0) {
-                      if(expand_data) {
-                region_type = H5Sget_select_type(region);
-                if(region_type==H5S_SEL_POINTS) {
-                  h5str_dump_region_points_data(str, region, region_obj);
-                }
-                else {
-                  h5str_dump_region_blocks_data(str, region, region_obj);
-                }
-                      }
-                      else {
-                if(H5Rget_name(region_obj, H5R_DATASET_REGION, ptr, (char*)ref_name, 1024) >= 0) {
-                  h5str_append(str, ref_name);
-                }
+                        if(expand_data) {
+                            region_type = H5Sget_select_type(region);
+                            if(region_type==H5S_SEL_POINTS) {
+                                h5str_dump_region_points_data(str, region, region_obj);
+                            }
+                            else {
+                                h5str_dump_region_blocks_data(str, region, region_obj);
+                            }
+                        }
+                        else {
+                            if(H5Rget_name(region_obj, H5R_DATASET_REGION, ptr, (char*)ref_name, 1024) >= 0) {
+                                h5str_append(str, ref_name);
+                            }
 
-                region_type = H5Sget_select_type(region);
+                            region_type = H5Sget_select_type(region);
 
-                if(region_type==H5S_SEL_POINTS) {
-                  h5str_append(str, " REGION_TYPE POINT");
-                  h5str_dump_region_points(str, region, region_obj);
-                }
-                else {
-                  h5str_append(str, " REGION_TYPE BLOCK");
-                  h5str_dump_region_blocks(str, region, region_obj);
-                }
-                      }
+                            if(region_type==H5S_SEL_POINTS) {
+                                h5str_append(str, " REGION_TYPE POINT");
+                                h5str_dump_region_points(str, region, region_obj);
+                            }
+                            else {
+                                h5str_append(str, " REGION_TYPE BLOCK");
+                                h5str_dump_region_blocks(str, region, region_obj);
+                            }
+                        }
 
                         H5Sclose(region);
                     }
@@ -388,25 +388,25 @@ int h5str_sprintf(h5str_t *str, hid_t container, hid_t tid, void *ptr, int expan
             }
             else if (H5R_OBJ_REF_BUF_SIZE == size) {
                 /* if (H5Tequal(tid, H5T_STD_REF_OBJ)) */
-                    /*
-                     * Object references -- show the type and OID of the referenced
-                     * object.
-                     */
-                    H5O_info_t  oi;
-                    hid_t       obj;
+                /*
+                 * Object references -- show the type and OID of the referenced
+                 * object.
+                 */
+                H5O_info_t  oi;
+                hid_t       obj;
 
                 this_str = (char*) malloc(64);
-                    obj = H5Rdereference2(container, H5P_DEFAULT, H5R_OBJECT, ptr);
-                    H5Oget_info(obj, &oi);
+                obj = H5Rdereference2(container, H5P_DEFAULT, H5R_OBJECT, ptr);
+                H5Oget_info(obj, &oi);
 
-                    /* Print object data and close object */
-                    sprintf(this_str, "%u-%lu", (unsigned) oi.type, oi.addr);
-                    H5Oclose(obj);
+                /* Print object data and close object */
+                sprintf(this_str, "%u-%lu", (unsigned) oi.type, oi.addr);
+                H5Oclose(obj);
             }
-      }
-      break;
+        }
+        break;
     case H5T_ARRAY:
-      {
+    {
         int rank = 0;
         hsize_t i, dims[H5S_MAX_RANK], total_elmts;
         h5str_append(str, "[ ");
@@ -419,19 +419,19 @@ int h5str_sprintf(h5str_t *str, hid_t container, hid_t tid, void *ptr, int expan
 
         total_elmts = 1;
         for (i = 0; i < rank; i++)
-          total_elmts *= dims[i];
+            total_elmts *= dims[i];
 
         for (i = 0; i < total_elmts; i++) {
-          h5str_sprintf(str, container, mtid, cptr + i * size, expand_data);
-          if (i < total_elmts - 1)
-            h5str_append(str, ", ");
+            h5str_sprintf(str, container, mtid, cptr + i * size, expand_data);
+            if (i < total_elmts - 1)
+                h5str_append(str, ", ");
         }
         H5Tclose(mtid);
         h5str_append(str, "] ");
-      }
-      break;
+    }
+    break;
     case H5T_VLEN:
-      {
+    {
         unsigned int i;
         mtid = H5Tget_super(tid);
         size = H5Tget_size(mtid);
@@ -440,31 +440,31 @@ int h5str_sprintf(h5str_t *str, hid_t container, hid_t tid, void *ptr, int expan
 
         nll = vlptr->len;
         for (i = 0; i < (int)nll; i++) {
-          h5str_sprintf(str, container, mtid, ((char *) (vlptr->p)) + i * size, expand_data);
-          if (i < (int)nll - 1)
-            h5str_append(str, ", ");
+            h5str_sprintf(str, container, mtid, ((char *) (vlptr->p)) + i * size, expand_data);
+            if (i < (int)nll - 1)
+                h5str_append(str, ", ");
         }
         H5Tclose(mtid);
-      }
-      break;
+    }
+    break;
 
     default:
-      {
+    {
         /* All other types get printed as hexadecimal */
         size_t i;
         nll = H5Tget_size(tid);
         this_str = (char*) malloc(4 * (nll + 1));
 
         if (1 == nll) {
-          sprintf(this_str, "0x%02x", ucptr[0]);
+            sprintf(this_str, "0x%02x", ucptr[0]);
         }
         else {
-          for (i = 0; i < (int)nll; i++)
-            sprintf(this_str, "%s%02x", i ? ":" : "", ucptr[i]);
+            for (i = 0; i < (int)nll; i++)
+                sprintf(this_str, "%s%02x", i ? ":" : "", ucptr[i]);
         }
-      }
-            break;
-  } /* end switch */
+    }
+    break;
+    } /* end switch */
 
     if (this_str) {
         h5str_append(str, this_str);
@@ -485,6 +485,7 @@ int h5str_sprintf(h5str_t *str, hid_t container, hid_t tid, void *ptr, int expan
  *      The function returns FAIL if there was an error, otherwise SUCEED
  *-------------------------------------------------------------------------
  */
+static
 int h5str_print_region_data_blocks(hid_t region_id,
         h5str_t *str, int ndims, hid_t type_id, hssize_t nblocks, hsize_t *ptdata)
 {
@@ -498,7 +499,7 @@ int h5str_print_region_data_blocks(hid_t region_id,
     hsize_t      numindex;
     size_t       jndx;
     unsigned     indx;
-    int          type_size;
+    size_t       type_size;
     int          ret_value = SUCCEED;
     hid_t        mem_space = -1;
     hid_t        sid1 = -1;
@@ -508,12 +509,12 @@ int h5str_print_region_data_blocks(hid_t region_id,
     if((sid1 = H5Dget_space(region_id)) >= 0) {
 
         /* Allocate space for the dimension array */
-        if((dims1 = (hsize_t *) malloc(sizeof(hsize_t) * ndims)) != NULL) {
+        if((dims1 = (hsize_t *) malloc(sizeof(hsize_t) * (size_t)ndims)) != NULL) {
 
             /* find the dimensions of each data space from the block coordinates */
             numelem = 1;
             for (jndx = 0; jndx < ndims; jndx++) {
-                dims1[jndx] = ptdata[jndx + ndims] - ptdata[jndx] + 1;
+                dims1[jndx] = ptdata[jndx + (size_t)ndims] - ptdata[jndx] + 1;
                 numelem = dims1[jndx] * numelem;
             }
 
@@ -523,11 +524,11 @@ int h5str_print_region_data_blocks(hid_t region_id,
                     if((region_buf = malloc(type_size * (size_t)numelem)) != NULL) {
                         /* Select (x , x , ..., x ) x (y , y , ..., y ) hyperslab for reading memory dataset */
                         /*          1   2        n      1   2        n                                       */
-                        if((start = (hsize_t *) malloc(sizeof(hsize_t) * ndims)) != NULL) {
-                            if((count = (hsize_t *) malloc(sizeof(hsize_t) * ndims)) != NULL) {
+                        if((start = (hsize_t *) malloc(sizeof(hsize_t) * (size_t)ndims)) != NULL) {
+                            if((count = (hsize_t *) malloc(sizeof(hsize_t) * (size_t)ndims)) != NULL) {
                                 for (blkndx = 0; blkndx < nblocks; blkndx++) {
                                     for (indx = 0; indx < ndims; indx++) {
-                                        start[indx] = ptdata[indx + blkndx * ndims * 2];
+                                        start[indx] = ptdata[indx + blkndx * (hsize_t)ndims * 2];
                                         count[indx] = dims1[indx];
                                     }
 
@@ -605,7 +606,7 @@ int h5str_dump_region_blocks_data(h5str_t *str, hid_t region, hid_t region_id)
     if (nblocks > 0) {
         int i;
 
-        alloc_size = nblocks * ndims * 2 * sizeof(ptdata[0]);
+        alloc_size = (hsize_t)nblocks * (hsize_t)ndims * 2 * (hsize_t)sizeof(ptdata[0]);
         if (alloc_size == (hsize_t)((size_t) alloc_size)) {
             ptdata = (hsize_t *) malloc((size_t) alloc_size);
             H5Sget_select_hyper_blocklist(region, (hsize_t) 0,
@@ -635,6 +636,7 @@ int h5str_dump_region_blocks_data(h5str_t *str, hid_t region, hid_t region_id)
     return ret_value;
 }
 
+static
 int h5str_dump_region_blocks(h5str_t *str, hid_t region, hid_t region_id)
 {
     int        ret_value = 0;
@@ -657,7 +659,7 @@ int h5str_dump_region_blocks(h5str_t *str, hid_t region, hid_t region_id)
     if (nblocks > 0) {
         int i;
 
-        alloc_size = nblocks * ndims * 2 * sizeof(ptdata[0]);
+        alloc_size = (hsize_t)nblocks * (hsize_t)ndims * 2 * (hsize_t)sizeof(ptdata[0]);
         if (alloc_size == (hsize_t)((size_t) alloc_size)) {
             ptdata = (hsize_t *) malloc((size_t) alloc_size);
             H5Sget_select_hyper_blocklist(region, (hsize_t) 0,
@@ -705,15 +707,15 @@ int h5str_dump_region_blocks(h5str_t *str, hid_t region, hid_t region_id)
  *      The function returns FAIL on error, otherwise SUCCEED
  *-------------------------------------------------------------------------
  */
-int
-h5str_print_region_data_points(hid_t region_space, hid_t region_id,
+static
+int h5str_print_region_data_points(hid_t region_space, hid_t region_id,
         h5str_t *str, int ndims, hid_t type_id, hssize_t npoints, hsize_t *ptdata)
 {
     hsize_t        *dims1 = NULL;
     hsize_t         total_size[H5S_MAX_RANK];
     size_t          jndx;
     unsigned        indx;
-    int             type_size;
+    size_t          type_size;
     int             ret_value = SUCCEED;
     unsigned int    region_flags; /* buffer extent flags */
     hid_t           mem_space = -1;
@@ -721,9 +723,9 @@ h5str_print_region_data_points(hid_t region_space, hid_t region_id,
     char            tmp_str[256];
 
     /* Allocate space for the dimension array */
-    if((dims1 = (hsize_t *) malloc(sizeof(hsize_t) * ndims)) != NULL) {
+    if((dims1 = (hsize_t *) malloc(sizeof(hsize_t) * (size_t)ndims)) != NULL) {
 
-        dims1[0] = npoints;
+        dims1[0] = (hsize_t)npoints;
 
         /* Create dataspace for reading buffer */
         if((mem_space = H5Screate_simple(1, dims1, NULL)) >= 0) {
@@ -791,7 +793,7 @@ int h5str_dump_region_points_data(h5str_t *str, hid_t region, hid_t region_id)
     if (npoints > 0) {
         int i;
 
-        alloc_size = npoints * ndims * sizeof(ptdata[0]);
+        alloc_size = (hsize_t)npoints * (hsize_t)ndims * (hsize_t)sizeof(ptdata[0]);
         if (alloc_size == (hsize_t)((size_t) alloc_size)) {
             ptdata = (hsize_t *) malloc((size_t) alloc_size);
             H5Sget_select_elem_pointlist(region, (hsize_t) 0,
@@ -821,6 +823,7 @@ int h5str_dump_region_points_data(h5str_t *str, hid_t region, hid_t region_id)
     return ret_value;
 }
 
+static
 int h5str_dump_region_points(h5str_t *str, hid_t region, hid_t region_id)
 {
     int        ret_value = 0;
@@ -843,7 +846,7 @@ int h5str_dump_region_points(h5str_t *str, hid_t region, hid_t region_id)
     if (npoints > 0) {
         int i;
 
-        alloc_size = npoints * ndims * sizeof(ptdata[0]);
+        alloc_size = (hsize_t)npoints * (hsize_t)ndims * (hsize_t)sizeof(ptdata[0]);
         if (alloc_size == (hsize_t)((size_t) alloc_size)) {
             ptdata = (hsize_t *) malloc((size_t) alloc_size);
             H5Sget_select_elem_pointlist(region, (hsize_t) 0,
@@ -873,6 +876,7 @@ int h5str_dump_region_points(h5str_t *str, hid_t region, hid_t region_id)
     return ret_value;
 }
 
+static
 int h5str_is_zero(const void *_mem, size_t size) {
     const unsigned char *mem = (const unsigned char *) _mem;
 
@@ -895,8 +899,8 @@ int h5str_is_zero(const void *_mem, size_t size) {
  *
  *-------------------------------------------------------------------------
  */
-htri_t
-h5str_detect_vlen_str(hid_t tid)
+static
+htri_t h5str_detect_vlen_str(hid_t tid)
 {
     H5T_class_t tclass = H5T_NO_CLASS;
     htri_t ret = 0;
@@ -920,7 +924,7 @@ h5str_detect_vlen_str(hid_t tid)
         }
     }
     else if(tclass == H5T_COMPOUND) {
-        int i = 0;
+        unsigned i = 0;
         int n = H5Tget_nmembers(tid);
 
         if(n < 0) {
@@ -954,6 +958,7 @@ done:
  *         Failure:    FAIL
  *-------------------------------------------------------------------------
  */
+static
 hid_t h5str_get_native_type(hid_t type)
 {
     hid_t p_type;
@@ -978,6 +983,7 @@ hid_t h5str_get_native_type(hid_t type)
  *         Failure:    FAIL
  *-------------------------------------------------------------------------
  */
+static
 hid_t h5str_get_little_endian_type(hid_t tid)
 {
     hid_t       p_type=-1;
@@ -1047,6 +1053,7 @@ hid_t h5str_get_little_endian_type(hid_t tid)
  *         Failure:    FAIL
  *-------------------------------------------------------------------------
  */
+static
 hid_t h5str_get_big_endian_type(hid_t tid)
 {
     hid_t       p_type=-1;
@@ -1118,8 +1125,8 @@ hid_t h5str_get_big_endian_type(hid_t tid)
  *    Negative value: error occur
  *-------------------------------------------------------------------------
  */
-htri_t
-h5str_detect_vlen(hid_t tid)
+static
+htri_t h5str_detect_vlen(hid_t tid)
 {
     htri_t ret;
 
@@ -1146,6 +1153,7 @@ done:
  *         Failure:    FAIL
  *-------------------------------------------------------------------------
  */
+static
 int h5str_render_bin_output(FILE *stream, hid_t container, hid_t tid, void *_mem, hsize_t block_nelmts)
 {
     int                ret_value = 0;
@@ -1223,7 +1231,7 @@ int h5str_render_bin_output(FILE *stream, hid_t container, hid_t tid, void *_mem
                     unsigned nmembs;
                     size_t   offset;
 
-                    nmembs = H5Tget_nmembers(tid);
+                    nmembs = (unsigned)H5Tget_nmembers(tid);
 
                     for (block_index = 0; block_index < block_nelmts; block_index++) {
                         mem = ((unsigned char*)_mem) + block_index * size;
@@ -1358,6 +1366,7 @@ int h5str_render_bin_output(FILE *stream, hid_t container, hid_t tid, void *_mem
  *
  *-------------------------------------------------------------------------
  */
+static
 int render_bin_output_region_data_blocks(FILE *stream, hid_t region_id,
     hid_t container, int ndims, hid_t type_id, hssize_t nblocks, hsize_t *ptdata)
 {
@@ -1368,7 +1377,7 @@ int render_bin_output_region_data_blocks(FILE *stream, hid_t region_id,
     hsize_t      numindex;
     hsize_t      total_size[H5S_MAX_RANK];
     int          jndx;
-    int          type_size;
+    size_t       type_size;
     hid_t        mem_space = -1;
     void        *region_buf = NULL;
     int          blkndx;
@@ -1378,7 +1387,7 @@ int render_bin_output_region_data_blocks(FILE *stream, hid_t region_id,
     /* Get the dataspace of the dataset */
     if((sid1 = H5Dget_space(region_id)) >= 0) {
         /* Allocate space for the dimension array */
-        if((dims1 = (hsize_t *) malloc(sizeof(hsize_t) * ndims)) != NULL) {
+        if((dims1 = (hsize_t *)malloc(sizeof(hsize_t) * (size_t)ndims)) != NULL) {
             /* find the dimensions of each data space from the block coordinates */
             numelem = 1;
             for (jndx = 0; jndx < ndims; jndx++) {
@@ -1392,8 +1401,8 @@ int render_bin_output_region_data_blocks(FILE *stream, hid_t region_id,
                     if((region_buf = malloc(type_size * (size_t)numelem)) != NULL) {
                         /* Select (x , x , ..., x ) x (y , y , ..., y ) hyperslab for reading memory dataset */
                         /*          1   2        n      1   2        n                                       */
-                        if((start = (hsize_t *) malloc(sizeof(hsize_t) * ndims)) != NULL) {
-                            if((count = (hsize_t *) malloc(sizeof(hsize_t) * ndims)) != NULL) {
+                        if((start = (hsize_t *) malloc(sizeof(hsize_t) * (size_t)ndims)) != NULL) {
+                            if((count = (hsize_t *) malloc(sizeof(hsize_t) * (size_t)ndims)) != NULL) {
                                 for (blkndx = 0; blkndx < nblocks; blkndx++) {
                                     for (jndx = 0; jndx < ndims; jndx++) {
                                         start[jndx] = ptdata[jndx + blkndx * ndims * 2];
@@ -1467,6 +1476,7 @@ int render_bin_output_region_data_blocks(FILE *stream, hid_t region_id,
  *
  *-------------------------------------------------------------------------
  */
+static
 int render_bin_output_region_blocks(FILE *stream, hid_t region_space, hid_t region_id, hid_t container)
 {
     int          ret_value = SUCCEED;
@@ -1480,9 +1490,9 @@ int render_bin_output_region_blocks(FILE *stream, hid_t region_space, hid_t regi
     if((nblocks = H5Sget_select_hyper_nblocks(region_space)) > 0) {
         /* Print block information */
         if((ndims = H5Sget_simple_extent_ndims(region_space)) >= 0) {
-            alloc_size = nblocks * ndims * 2 * sizeof(ptdata[0]);
-            if((ptdata = (hsize_t*) malloc((size_t) alloc_size)) != NULL) {
-                if(H5Sget_select_hyper_blocklist(region_space, (hsize_t) 0, (hsize_t) nblocks, ptdata) >= 0) {
+            alloc_size = (hsize_t)nblocks * (hsize_t)ndims * 2 * (hsize_t)sizeof(ptdata[0]);
+            if((ptdata = (hsize_t*) malloc((size_t)alloc_size)) != NULL) {
+                if(H5Sget_select_hyper_blocklist(region_space, (hsize_t)0, (hsize_t)nblocks, ptdata) >= 0) {
                     if((dtype = H5Dget_type(region_id)) >= 0) {
                         if((type_id = H5Tget_native_type(dtype, H5T_DIR_DEFAULT)) >= 0) {
                             ret_value = render_bin_output_region_data_blocks(stream, region_id, container, ndims,
@@ -1528,12 +1538,13 @@ int render_bin_output_region_blocks(FILE *stream, hid_t region_space, hid_t regi
  *
  *-------------------------------------------------------------------------
  */
+static
 int render_bin_output_region_data_points(FILE *stream, hid_t region_space, hid_t region_id,
         hid_t container, int ndims, hid_t type_id, hssize_t npoints, hsize_t *ptdata)
 {
     hsize_t *dims1 = NULL;
     int      jndx;
-    int      type_size;
+    size_t   type_size;
     hid_t    mem_space = -1;
     void    *region_buf = NULL;
     int      ret_value = SUCCEED;
@@ -1541,12 +1552,12 @@ int render_bin_output_region_data_points(FILE *stream, hid_t region_space, hid_t
     if((type_size = H5Tget_size(type_id)) > 0) {
         if((region_buf = malloc(type_size * (size_t)npoints)) != NULL) {
             /* Allocate space for the dimension array */
-            if((dims1 = (hsize_t *) malloc(sizeof(hsize_t) * ndims)) != NULL) {
-                dims1[0] = npoints;
+            if((dims1 = (hsize_t *)malloc(sizeof(hsize_t) * (size_t)ndims)) != NULL) {
+                dims1[0] = (hsize_t)npoints;
                 if((mem_space = H5Screate_simple(1, dims1, NULL)) >= 0) {
                     if(H5Dread(region_id, type_id, mem_space, region_space, H5P_DEFAULT, region_buf) >= 0) {
                         if(H5Sget_simple_extent_dims(region_space, dims1, NULL) >= 0) {
-                            ret_value = h5str_render_bin_output(stream, container, type_id, (char*)region_buf, npoints);
+                            ret_value = h5str_render_bin_output(stream, container, type_id, (char*)region_buf, (hsize_t)npoints);
                         } /* end if(H5Sget_simple_extent_dims(region_space, dims1, NULL) >= 0) */
                         else
                             ret_value = -1;
@@ -1586,6 +1597,7 @@ int render_bin_output_region_data_points(FILE *stream, hid_t region_space, hid_t
  *
  *-------------------------------------------------------------------------
  */
+static
 int render_bin_output_region_points(FILE *stream, hid_t region_space, hid_t region_id, hid_t container)
 {
     int      ret_value = SUCCEED;
@@ -1599,9 +1611,9 @@ int render_bin_output_region_points(FILE *stream, hid_t region_space, hid_t regi
     if((npoints = H5Sget_select_elem_npoints(region_space)) > 0) {
         /* Allocate space for the dimension array */
         if((ndims = H5Sget_simple_extent_ndims(region_space)) >= 0) {
-            alloc_size = npoints * ndims * sizeof(ptdata[0]);
-            if(NULL != (ptdata = (hsize_t *)malloc((size_t) alloc_size))) {
-                if(H5Sget_select_elem_pointlist(region_space, (hsize_t) 0, (hsize_t) npoints, ptdata) >= 0) {
+            alloc_size = (hsize_t)npoints * (hsize_t)ndims * (hsize_t)sizeof(ptdata[0]);
+            if(NULL != (ptdata = (hsize_t *)malloc((size_t)alloc_size))) {
+                if(H5Sget_select_elem_pointlist(region_space, (hsize_t)0, (hsize_t)npoints, ptdata) >= 0) {
                     if((dtype = H5Dget_type(region_id)) >= 0) {
                         if((type_id = H5Tget_native_type(dtype, H5T_DIR_DEFAULT)) >= 0) {
                             ret_value = render_bin_output_region_data_points(stream, region_space, region_id,
@@ -1710,7 +1722,7 @@ int h5str_dump_simple_dset(FILE *stream, hid_t dset, int binary_order)
                     sm_nbytes = p_type_nbytes = H5Tget_size(p_type);
 
                     if (ndims > 0) {
-                        for (i = ndims; i > 0; --i) {
+                        for (i = (size_t)ndims; i > 0; --i) {
                             hsize_t size = H5TOOLS_BUFSIZE / sm_nbytes;
                             if ( size == 0) /* datum size > H5TOOLS_BUFSIZE */
                                 size = 1;
@@ -1766,7 +1778,7 @@ int h5str_dump_simple_dset(FILE *stream, hid_t dset, int binary_order)
                             if(ret_value < 0) break;
 
                             /* Calculate the next hyperslab offset */
-                            for (i = ndims, carry = 1; i > 0 && carry; --i) {
+                            for (i = (size_t)ndims, carry = 1; i > 0 && carry; --i) {
                                 hs_offset[i - 1] += hs_size[i - 1];
 
                                 if (hs_offset[i - 1] == total_size[i - 1])
@@ -1795,6 +1807,7 @@ int h5str_dump_simple_dset(FILE *stream, hid_t dset, int binary_order)
     return ret_value;
 }
 
+static
 int h5tools_dump_simple_data(FILE *stream, hid_t container, hid_t type, void *_mem, hsize_t nelmts)
 {
     int                ret_value = 0;

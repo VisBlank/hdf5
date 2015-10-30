@@ -1051,7 +1051,7 @@ herr_t H5AreadVL_num (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf)
 
     size = H5Tget_size(tid);
     memset((void *)&h5str, (int)0, (size_t)sizeof(h5str_t));
-    h5str_new(&h5str, 4*size);
+    h5str_new(&h5str, 4 * size);
 
     if (h5str.s == NULL) {
         H5Dvlen_reclaim(tid, sid, H5P_DEFAULT, rdata);

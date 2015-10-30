@@ -30,7 +30,6 @@ extern "C" {
 #include "hdf5.h"
 #include "h5jni.h"
 #include "h5tImp.h"
-//#include "h5util.h"
 
 /*
  * Class:     hdf_hdf5lib_H5
@@ -41,14 +40,14 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Topen2
   (JNIEnv *env, jclass clss, jlong loc_id, jstring name, jlong access_plist)
 {
     hid_t status;
-    char* tname;
+    const char *tname;
     jboolean isCopy;
 
     if (name == NULL) {
         h5nullArgument( env, "H5Topen2:  name is NULL");
         return -1;
     }
-    tname = (char *)ENVPTR->GetStringUTFChars(ENVPAR name,&isCopy);
+    tname = ENVPTR->GetStringUTFChars(ENVPAR name,&isCopy);
     if (tname == NULL) {
         h5JNIFatalError(env,  "H5Topen2:  name not pinned");
         return -1;
@@ -72,14 +71,14 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Tcommit1
   (JNIEnv *env, jclass clss, jlong loc_id, jstring name, jint type)
 {
     herr_t status;
-    char* tname;
+    const char *tname;
     jboolean isCopy;
 
     if (name == NULL) {
         h5nullArgument( env, "H5Tcommit:  name is NULL");
         return -1;
     }
-    tname = (char *)ENVPTR->GetStringUTFChars(ENVPAR name,&isCopy);
+    tname = ENVPTR->GetStringUTFChars(ENVPAR name,&isCopy);
     if (tname == NULL) {
         h5JNIFatalError(env,  "H5Tcommit:  name not pinned");
         return -1;
@@ -531,11 +530,11 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Tget_1fields
 
         status = H5Tget_fields((hid_t)type_id, &spos_t, &epos_t, &esize_t, &mpos_t, &msize_t);
 
-        *(&fieldsArray[0]) = spos_t;
-        *(&fieldsArray[1]) = epos_t;
-        *(&fieldsArray[2]) = esize_t;
-        *(&fieldsArray[3]) = mpos_t;
-        *(&fieldsArray[4]) = msize_t;
+        *(&fieldsArray[0]) = (jlong)spos_t;
+        *(&fieldsArray[1]) = (jlong)epos_t;
+        *(&fieldsArray[2]) = (jlong)esize_t;
+        *(&fieldsArray[3]) = (jlong)mpos_t;
+        *(&fieldsArray[4]) = (jlong)msize_t;
     }
 
     if (status < 0) {
@@ -766,7 +765,7 @@ JNIEXPORT jstring JNICALL Java_hdf_hdf5lib_H5_H5Tget_1member_1name
     char *name;
     jstring str;
 
-    name = H5Tget_member_name((hid_t)type_id, field_idx);
+    name = H5Tget_member_name((hid_t)type_id, (unsigned)field_idx);
 
     if (name == NULL) {
         return NULL;
@@ -792,7 +791,7 @@ JNIEXPORT jstring JNICALL Java_hdf_hdf5lib_H5_H5Tget_1member_1name
 JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Tget_1member_1index
   (JNIEnv *env, jclass clss, jlong type_id, jstring field_name)
 {
-    char *tname;
+    const char *tname;
     int index;
     jboolean isCopy;
 
@@ -800,7 +799,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Tget_1member_1index
         h5nullArgument( env, "H5Tget_member_index:  field_name is NULL");
         return -1;
     }
-    tname = (char *)ENVPTR->GetStringUTFChars(ENVPAR field_name,&isCopy);
+    tname = ENVPTR->GetStringUTFChars(ENVPAR field_name,&isCopy);
     if (tname == NULL) {
         h5JNIFatalError(env,  "H5Tget_member_index:  field_name not pinned");
         return -1;
@@ -826,7 +825,7 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Tget_1member_1type
   (JNIEnv *env, jclass clss, jlong type_id, jint field_idx)
 {
     hid_t retVal = -1;
-    retVal =  H5Tget_member_type((hid_t)type_id, field_idx);
+    retVal =  H5Tget_member_type((hid_t)type_id, (unsigned)field_idx);
     if (retVal < 0) {
         h5libraryError(env);
     }
@@ -842,7 +841,7 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5_H5Tget_1member_1offset
   (JNIEnv *env, jclass clss, jlong type_id, jint memno)
 {
     size_t retVal = 0;
-    retVal =  H5Tget_member_offset((hid_t)type_id, memno);
+    retVal =  H5Tget_member_offset((hid_t)type_id, (unsigned)memno);
     return (jlong)retVal;
 }
 
@@ -855,7 +854,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Tget_1member_1class
   (JNIEnv *env, jclass clss, jlong type_id, jint memno)
 {
     int retVal = 0;
-    retVal =  H5Tget_member_class((hid_t)type_id, memno);
+    retVal =  H5Tget_member_class((hid_t)type_id, (unsigned)memno);
     if (retVal < 0) {
         h5libraryError(env);
     }
@@ -871,7 +870,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Tinsert
   (JNIEnv *env, jclass clss, jlong type_id, jstring name, jlong offset, jlong field_id)
 {
     herr_t status;
-    char* tname;
+    const char *tname;
     jboolean isCopy;
     long off;
 
@@ -880,7 +879,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Tinsert
         h5nullArgument( env, "H5Tinsert:  name is NULL");
         return -1;
     }
-    tname =(char *)ENVPTR->GetStringUTFChars(ENVPAR name,&isCopy);
+    tname = ENVPTR->GetStringUTFChars(ENVPAR name,&isCopy);
     if (tname == NULL) {
         h5JNIFatalError(env,  "H5Tinsert:  name not pinned");
         return -1;
@@ -957,7 +956,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Tset_1tag
   (JNIEnv *env, jclass clss, jlong type, jstring tag)
 {
     herr_t status;
-    char *tagP;
+    const char *tagP;
     jboolean isCopy;
 
     if (tag == NULL) {
@@ -965,7 +964,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Tset_1tag
         return -1;
     }
 
-    tagP = (char *)ENVPTR->GetStringUTFChars(ENVPAR tag,&isCopy);
+    tagP = ENVPTR->GetStringUTFChars(ENVPAR tag,&isCopy);
     if (tagP == NULL) {
         h5JNIFatalError( env, "H5Tset_tag:  tag not pinned");
         return -1;
@@ -1053,7 +1052,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Tenum_1insert_1int
 {
     herr_t status;
     jint *intP;
-    char *nameP;
+    const char *nameP;
     jboolean isCopy;
 
     if (name == NULL) {
@@ -1061,13 +1060,13 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Tenum_1insert_1int
         return -1;
     }
 
-    nameP = (char *)ENVPTR->GetStringUTFChars(ENVPAR name, &isCopy);
+    nameP = ENVPTR->GetStringUTFChars(ENVPAR name, &isCopy);
     if (nameP == NULL) {
         h5JNIFatalError( env, "H5Tenum_insert:  name not pinned");
         return -1;
     }
 
-    if ( value == NULL ) {
+    if (value == NULL ) {
         ENVPTR->ReleaseStringUTFChars(ENVPAR name, nameP);
         h5nullArgument( env, "H5Tenum_insert:  value is NULL");
         return -1;
@@ -1104,7 +1103,7 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Tenum_1insert
 {
     herr_t status;
     jbyte *byteP;
-    char *nameP;
+    const char *nameP;
     jboolean isCopy;
 
     if (name == NULL) {
@@ -1112,13 +1111,13 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Tenum_1insert
         return;
     }
 
-    nameP = (char *)ENVPTR->GetStringUTFChars(ENVPAR name, &isCopy);
+    nameP = ENVPTR->GetStringUTFChars(ENVPAR name, &isCopy);
     if (nameP == NULL) {
         h5JNIFatalError( env, "H5Tenum_insert:  name not pinned");
         return;
     }
 
-    if ( value == NULL ) {
+    if (value == NULL ) {
         ENVPTR->ReleaseStringUTFChars(ENVPAR name, nameP);
         h5nullArgument( env, "H5Tenum_insert:  value is NULL");
         return;
@@ -1161,7 +1160,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Tenum_1nameof_1int
         return -1;
     }
 
-    nameP = (char *)malloc(sizeof(char)*size);
+    nameP = (char *)malloc(sizeof(char) * (size_t)size);
     if (nameP == NULL) {
         /* exception -- out of memory */
         h5outOfMemory( env, "H5Tenum_nameof:  malloc name size");
@@ -1272,7 +1271,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Tenum_1valueof_1int
 {
     herr_t status;
     jint *intP;
-    char *nameP;
+    const char *nameP;
     jboolean isCopy;
 
     if (name == NULL) {
@@ -1280,13 +1279,13 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Tenum_1valueof_1int
         return -1;
     }
 
-    nameP = (char *)ENVPTR->GetStringUTFChars(ENVPAR name, &isCopy);
+    nameP = ENVPTR->GetStringUTFChars(ENVPAR name, &isCopy);
     if (nameP == NULL) {
         h5JNIFatalError( env, "H5Tenum_valueof:  name not pinned");
         return -1;
     }
 
-    if ( value == NULL ) {
+    if (value == NULL ) {
         ENVPTR->ReleaseStringUTFChars(ENVPAR name, nameP);
         h5nullArgument( env, "H5Tenum_valueof:  value is NULL");
         return -1;
@@ -1322,7 +1321,7 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Tenum_1valueof
 {
     herr_t status;
     jbyte *byteP;
-    char *nameP;
+    const char *nameP;
     jboolean isCopy;
 
     if (name == NULL) {
@@ -1330,7 +1329,7 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Tenum_1valueof
         return;
     }
 
-    nameP = (char *)ENVPTR->GetStringUTFChars(ENVPAR name,&isCopy);
+    nameP = ENVPTR->GetStringUTFChars(ENVPAR name,&isCopy);
     if (nameP == NULL) {
         h5JNIFatalError( env, "H5Tenum_valueof:  name not pinned");
         return;
@@ -1384,7 +1383,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Tget_1member_1value_1int
         return -1;
     }
 
-    status = H5Tget_member_value((hid_t)type_id, (int)membno, intP);
+    status = H5Tget_member_value((hid_t)type_id, (unsigned)membno, intP);
 
     if (status < 0) {
         ENVPTR->ReleaseIntArrayElements(ENVPAR value,intP,JNI_ABORT);
@@ -1418,7 +1417,7 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Tget_1member_1value
         return;
     }
 
-    status = H5Tget_member_value((hid_t)type_id, (int)membno, byteP);
+    status = H5Tget_member_value((hid_t)type_id, (unsigned)membno, byteP);
 
     if (status < 0) {
         ENVPTR->ReleaseByteArrayElements(ENVPAR value,byteP,JNI_ABORT);
@@ -1478,12 +1477,12 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Tarray_1create
         }
     }
 
-    cdims = (hsize_t *)malloc(dlen * sizeof(hsize_t));
+    cdims = (hsize_t *)malloc((size_t)dlen * sizeof(hsize_t));
     for (i = 0; i < dlen; i++) {
         cdims[i] = (hsize_t)dimsP[i];
     }
 
-    status = H5Tarray_create2((hid_t)base_id, (int)rank, (const hsize_t *)cdims);
+    status = H5Tarray_create2((hid_t)base_id, (unsigned)rank, (const hsize_t *)cdims);
 
     ENVPTR->ReleaseIntArrayElements(ENVPAR dims,dimsP,JNI_ABORT);
     if (permP != NULL) {
@@ -1542,7 +1541,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Tget_1array_1dims
     }
 
     dlen = ENVPTR->GetArrayLength(ENVPAR dims);
-    cdims = (hsize_t *)malloc(dlen * sizeof(hsize_t));
+    cdims = (hsize_t *)malloc((size_t)dlen * sizeof(hsize_t));
 
     status = H5Tget_array_dims2((hid_t)type_id, (hsize_t *)cdims);
 
@@ -1636,14 +1635,14 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Tcommit
           jlong link_plist_id, jlong create_plist_id, jlong access_plist_id)
 {
     herr_t status;
-    char* tname;
+    const char *tname;
     jboolean isCopy;
 
     if (name == NULL) {
         h5nullArgument( env, "H5Tcommit2:  name is NULL");
         return;
     }
-    tname = (char *)ENVPTR->GetStringUTFChars(ENVPAR name,&isCopy);
+    tname = ENVPTR->GetStringUTFChars(ENVPAR name,&isCopy);
     if (tname == NULL) {
         h5JNIFatalError(env,  "H5Tcommit2:  name not pinned");
         return;
@@ -1694,12 +1693,12 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Tarray_1create2
         return -1;
     }
 
-    cdims = (hsize_t *)malloc(dlen * sizeof(hsize_t));
+    cdims = (hsize_t *)malloc((size_t)dlen * sizeof(hsize_t));
     for (i = 0; i < dlen; i++) {
         cdims[i] = (hsize_t)dimsP[i];
     }
 
-    status = H5Tarray_create2((hid_t)base_id, (int)rank, (const hsize_t *)cdims);
+    status = H5Tarray_create2((hid_t)base_id, (unsigned)rank, (const hsize_t *)cdims);
 
     ENVPTR->ReleaseLongArrayElements(ENVPAR dims,dimsP,JNI_ABORT);
 
@@ -1738,7 +1737,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Tget_1array_1dims2
     }
 
     dlen = ENVPTR->GetArrayLength(ENVPAR dims);
-    cdims = (hsize_t *)malloc(dlen * sizeof(hsize_t));
+    cdims = (hsize_t *)malloc((size_t)dlen * sizeof(hsize_t));
 
     status = H5Tget_array_dims2((hid_t)type_id, (hsize_t *)cdims);
 

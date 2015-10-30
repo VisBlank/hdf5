@@ -27,6 +27,7 @@ extern "C" {
 #include <jni.h>
 #include <stdlib.h>
 #include "h5jni.h"
+#include "h5zImp.h"
 
 /*
  * Class:     hdf_hdf5lib_H5
@@ -91,7 +92,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Zget_1filter_1info
         h5libraryError(env);
     }
 
-    return flags;
+    return (jint)flags;
 }
 
 

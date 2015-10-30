@@ -72,13 +72,13 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Screate_1simple(JNIEnv *env, jcl
         h5nullArgument(env, "H5Screate_simple:  dims is NULL");
         return -1;
     }
-    drank = (int) ENVPTR->GetArrayLength(ENVPAR dims);
+    drank = (int)ENVPTR->GetArrayLength(ENVPAR dims);
     if (drank != rank) {
         h5badArgument(env, "H5Screate_simple:  dims rank is invalid");
         return -1;
     }
     if (maxdims != NULL) {
-        mrank = (int) ENVPTR->GetArrayLength(ENVPAR maxdims);
+        mrank = (int)ENVPTR->GetArrayLength(ENVPAR maxdims);
         if (mrank != rank) {
             h5badArgument(env, "H5Screate_simple:  maxdims rank is invalid");
             return -1;
@@ -90,7 +90,7 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Screate_1simple(JNIEnv *env, jcl
         return -1;
     }
 
-    sa = lp = (hsize_t *) malloc((long)rank * sizeof(hsize_t));
+    sa = lp = (hsize_t *)malloc((size_t)rank * sizeof(hsize_t));
     if (sa == NULL) {
         ENVPTR->ReleaseLongArrayElements(ENVPAR dims, dimsP, JNI_ABORT);
         h5JNIFatalError(env, "H5Screate_simple:  dims not converted to hsize_t");
@@ -106,7 +106,7 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Screate_1simple(JNIEnv *env, jcl
 
     if (maxdims == NULL) {
         maxdimsP = NULL;
-        msa = (hsize_t *) maxdimsP;
+        msa = (hsize_t *)maxdimsP;
     }
     else {
         maxdimsP = ENVPTR->GetLongArrayElements(ENVPAR maxdims, &isCopy);
@@ -116,7 +116,7 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Screate_1simple(JNIEnv *env, jcl
             h5JNIFatalError(env, "H5Screate_simple:  maxdims not pinned");
             return -1;
         }
-        msa = lp = (hsize_t *) malloc(rank * sizeof(hsize_t));
+        msa = lp = (hsize_t *)malloc((size_t)rank * sizeof(hsize_t));
         if (msa == NULL) {
             ENVPTR->ReleaseLongArrayElements(ENVPAR dims, dimsP, JNI_ABORT);
             ENVPTR->ReleaseLongArrayElements(ENVPAR maxdims, maxdimsP, JNI_ABORT);
@@ -124,15 +124,15 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Screate_1simple(JNIEnv *env, jcl
             h5JNIFatalError(env, "H5Screate_simple:  dims not converted to hsize_t");
             return -1;
         }
-        jlp = (jlong *) maxdimsP;
+        jlp = (jlong *)maxdimsP;
         for (i = 0; i < mrank; i++) {
-            *lp = (hsize_t) *jlp;
+            *lp = (hsize_t)*jlp;
             lp++;
             jlp++;
         }
     }
 
-    status = H5Screate_simple(rank, (const hsize_t *) sa, (const hsize_t *) msa);
+    status = H5Screate_simple(rank, (const hsize_t *)sa, (const hsize_t *)msa);
 
     if (maxdimsP != NULL) {
         ENVPTR->ReleaseLongArrayElements(ENVPAR maxdims, maxdimsP, JNI_ABORT);
@@ -164,7 +164,7 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Scopy(JNIEnv *env, jclass clss, 
     if (retVal < 0)
         h5libraryError(env);
 
-    return (jlong) retVal;
+    return (jlong)retVal;
 }
 
 #ifdef notdef
@@ -201,7 +201,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Sselect_1elements
         h5JNIFatalError(env, "H5Sselect_elements:  coord not pinned");
         return -1;
     }
-    sa = (hssize_t *)malloc( (long)num_elems * 2 * sizeof(hssize_t));
+    sa = (hssize_t *)malloc( (size_t)num_elems * 2 * sizeof(hssize_t));
     if (sa == NULL) {
         ENVPTR->ReleaseLongArrayElements(ENVPAR env,coord,P,JNI_ABORT);
         h5JNIFatalError(env, "H5Sselect_elements:  coord array not converted to hssize_t");
@@ -230,15 +230,15 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Sselect_1elements
 JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Sselect_1elements(JNIEnv *env, jclass clss, jlong space_id, jint op,
         jint num_elemn, jbyteArray coord)
 {
-    int ii;
+    int      ii;
     hsize_t *lp = NULL;
     hsize_t *llp;
-    jlong *jlp;
-    herr_t status;
-    jbyte *P;
+    jlong   *jlp;
+    herr_t   status;
+    jbyte   *P;
     jboolean isCopy;
-    jsize size;
-    int nlongs;
+    jsize    size;
+    int      nlongs;
 
     if (coord == NULL) {
         h5nullArgument(env, "H5Sselect_elements:  coord is NULL");
@@ -250,9 +250,9 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Sselect_1elements(JNIEnv *env, jcla
         h5JNIFatalError(env, "H5Sselect_elements:  coord not pinned");
         return -1;
     }
-    size = (int) ENVPTR->GetArrayLength(ENVPAR coord);
-    nlongs = size / sizeof(jlong);
-    lp = (hsize_t *) malloc((long)nlongs * sizeof(hsize_t));
+    size = (int)ENVPTR->GetArrayLength(ENVPAR coord);
+    nlongs = (int)((size_t)size / sizeof(jlong));
+    lp = (hsize_t *)malloc((size_t)nlongs * sizeof(hsize_t));
     jlp = (jlong *) P;
     llp = lp;
     for (ii = 0; ii < nlongs; ii++) {
@@ -261,7 +261,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Sselect_1elements(JNIEnv *env, jcla
         jlp++;
     }
 
-    status = H5Sselect_elements(space_id, (H5S_seloper_t) op, num_elemn, (const hsize_t *) llp);
+    status = H5Sselect_elements(space_id, (H5S_seloper_t) op, (size_t)num_elemn, (const hsize_t *) llp);
 
     ENVPTR->ReleaseByteArrayElements(ENVPAR coord, P, JNI_ABORT);
 
@@ -425,8 +425,8 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Sget_1simple_1extent_1dims(JNIEnv *
             h5JNIFatalError(env, "H5Pget_simple_extent_dims:  dims not pinned");
             return -1;
         }
-        rank = (int) ENVPTR->GetArrayLength(ENVPAR dims);
-        sa = (hsize_t *) malloc((long)rank * sizeof(hsize_t));
+        rank = (int)ENVPTR->GetArrayLength(ENVPAR dims);
+        sa = (hsize_t *)malloc((size_t)rank * sizeof(hsize_t));
         if (sa == NULL) {
             ENVPTR->ReleaseLongArrayElements(ENVPAR dims, dimsP, JNI_ABORT);
             h5JNIFatalError(env, "H5Sget_simple_extent_dims:  dims not converted to hsize_t");
@@ -459,7 +459,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Sget_1simple_1extent_1dims(JNIEnv *
             h5JNIFatalError(env, "H5Sget_simple_extent_dims:  maxdims rank not same as dims");
             return -1;
         }
-        msa = (hsize_t *) malloc((long)rank * sizeof(hsize_t));
+        msa = (hsize_t *)malloc((size_t)rank * sizeof(hsize_t));
         if (msa == NULL) {
             if (dimsP != NULL) {
                 ENVPTR->ReleaseLongArrayElements(ENVPAR dims, dimsP, JNI_ABORT);
@@ -471,7 +471,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Sget_1simple_1extent_1dims(JNIEnv *
         }
     }
 
-    status = H5Sget_simple_extent_dims(space_id, (hsize_t *) sa, (hsize_t *) msa);
+    status = H5Sget_simple_extent_dims(space_id, (hsize_t *)sa, (hsize_t *)msa);
 
     if (status < 0) {
         if (dimsP != NULL) {
@@ -488,14 +488,14 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Sget_1simple_1extent_1dims(JNIEnv *
 
     if (dimsP != NULL) {
         for (i = 0; i < rank; i++) {
-            dimsP[i] = sa[i];
+            dimsP[i] = (jlong)sa[i];
         }
         free(sa);
         ENVPTR->ReleaseLongArrayElements(ENVPAR dims, dimsP, 0);
     }
     if (maxdimsP != NULL) {
         for (i = 0; i < rank; i++) {
-            maxdimsP[i] = msa[i];
+            maxdimsP[i] = (jlong)msa[i];
         }
         free(msa);
         ENVPTR->ReleaseLongArrayElements(ENVPAR maxdims, maxdimsP, 0);
@@ -559,7 +559,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Sset_1extent_1simple(JNIEnv *env, j
         h5JNIFatalError(env, "H5Pset_simple_extent:  dims not pinned");
         return -1;
     }
-    sa = lp = (hsize_t *) malloc((long)rank * sizeof(hsize_t));
+    sa = lp = (hsize_t *) malloc((size_t)rank * sizeof(hsize_t));
     if (sa == NULL) {
         ENVPTR->ReleaseLongArrayElements(ENVPAR dims, dimsP, JNI_ABORT);
         h5JNIFatalError(env, "H5Sset_simple_extent:  dims not converted to hsize_t");
@@ -582,7 +582,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Sset_1extent_1simple(JNIEnv *env, j
             h5JNIFatalError(env, "H5Pset_simple_extent:  maxdims not pinned");
             return -1;
         }
-        msa = lp = (hsize_t *) malloc((long)rank * sizeof(hsize_t));
+        msa = lp = (hsize_t *) malloc((size_t)rank * sizeof(hsize_t));
         if (msa == NULL) {
             ENVPTR->ReleaseLongArrayElements(ENVPAR dims, dimsP, JNI_ABORT);
             ENVPTR->ReleaseLongArrayElements(ENVPAR maxdims, maxdimsP, JNI_ABORT);
@@ -642,14 +642,14 @@ JNIEXPORT jboolean JNICALL Java_hdf_hdf5lib_H5_H5Sis_1simple(JNIEnv *env, jclass
 JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Soffset_1simple(JNIEnv *env, jclass clss, jlong space_id,
         jbyteArray offset)
 {
-    herr_t status;
-    jbyte *P = NULL;
-    jboolean isCopy;
+    herr_t    status;
+    jbyte    *P = NULL;
+    jboolean  isCopy;
     hssize_t *sa;
-    int rank;
-    int i;
+    size_t    rank;
+    size_t    i;
     hssize_t *lp;
-    jlong *jlp;
+    jlong    *jlp;
 
     if (offset != NULL) {
         P = ENVPTR->GetByteArrayElements(ENVPAR offset, &isCopy);
@@ -657,9 +657,9 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Soffset_1simple(JNIEnv *env, jclass
             h5JNIFatalError(env, "H5Soffset_simple:  offset not pinned");
             return -1;
         }
-        i = (int) ENVPTR->GetArrayLength(ENVPAR offset);
+        i = (size_t)ENVPTR->GetArrayLength(ENVPAR offset);
         rank = i / sizeof(jlong);
-        sa = lp = (hssize_t *) malloc((long)rank * sizeof(hssize_t));
+        sa = lp = (hssize_t *)malloc((size_t)rank * sizeof(hssize_t));
         if (sa == NULL) {
             ENVPTR->ReleaseByteArrayElements(ENVPAR offset, P, JNI_ABORT);
             h5JNIFatalError(env, "H5Soffset_simple:  offset not converted to hssize_t");
@@ -781,7 +781,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Sselect_1hyperslab(JNIEnv *env, jcl
         h5JNIFatalError(env, "H5Sselect_hyperslab:  start not pinned");
         return -1;
     }
-    strt = lp = (hsize_t *) malloc((long)rank * sizeof(hsize_t));
+    strt = lp = (hsize_t *) malloc((size_t)rank * sizeof(hsize_t));
     if (strt == NULL) {
         ENVPTR->ReleaseLongArrayElements(ENVPAR start, startP, JNI_ABORT);
         h5JNIFatalError(env, "H5Sselect_hyperslab:  start not converted to hsize_t");
@@ -802,7 +802,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Sselect_1hyperslab(JNIEnv *env, jcl
         h5JNIFatalError(env, "H5Sselect_hyperslab:  count not pinned");
         return -1;
     }
-    cnt = lp = (hsize_t *) malloc((long)rank * sizeof(hsize_t));
+    cnt = lp = (hsize_t *) malloc((size_t)rank * sizeof(hsize_t));
     if (cnt == NULL) {
         ENVPTR->ReleaseLongArrayElements(ENVPAR start, startP, JNI_ABORT);
         ENVPTR->ReleaseLongArrayElements(ENVPAR count, countP, JNI_ABORT);
@@ -831,7 +831,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Sselect_1hyperslab(JNIEnv *env, jcl
             h5badArgument(env, "H5Sselect_hyperslab:  stride not pinned");
             return -1;
         }
-        strd = lp = (hsize_t *) malloc((long)rank * sizeof(hsize_t));
+        strd = lp = (hsize_t *) malloc((size_t)rank * sizeof(hsize_t));
         if (strd == NULL) {
             ENVPTR->ReleaseLongArrayElements(ENVPAR count, countP, JNI_ABORT);
             ENVPTR->ReleaseLongArrayElements(ENVPAR start, startP, JNI_ABORT);
@@ -866,7 +866,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Sselect_1hyperslab(JNIEnv *env, jcl
             h5JNIFatalError(env, "H5Sselect_hyperslab:  block not pinned");
             return -1;
         }
-        blk = lp = (hsize_t *) malloc((long)rank * sizeof(hsize_t));
+        blk = lp = (hsize_t *) malloc((size_t)rank * sizeof(hsize_t));
         if (blk == NULL) {
             ENVPTR->ReleaseLongArrayElements(ENVPAR stride, strideP, JNI_ABORT);
             ENVPTR->ReleaseLongArrayElements(ENVPAR count, countP, JNI_ABORT);
@@ -974,11 +974,11 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Sget_1select_1hyper_1blocklist(JNIE
     hsize_t *ba;
     int i;
     int rank;
-    long st;
-    long nb;
+    hsize_t st;
+    hsize_t nb;
 
-    st = (long) startblock;
-    nb = (long) numblocks;
+    st = (hsize_t) startblock;
+    nb = (hsize_t) numblocks;
 
     if (buf == NULL) {
         h5nullArgument(env, "H5Sget_select_hyper_blocklist:  buf is NULL");
@@ -996,14 +996,14 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Sget_1select_1hyper_1blocklist(JNIE
         h5JNIFatalError(env, "H5Sget_select_hyper_blocklist:  buf not pinned");
         return -1;
     }
-    ba = (hsize_t *) malloc((long)nb * 2 * (long) rank * sizeof(hsize_t));
+    ba = (hsize_t *) malloc((size_t)nb * 2 * (size_t)rank * sizeof(hsize_t));
     if (ba == NULL) {
         ENVPTR->ReleaseLongArrayElements(ENVPAR buf, bufP, JNI_ABORT);
         h5JNIFatalError(env, "H5Screate-simple:  buffer not converted to hsize_t");
         return -1;
     }
 
-    status = H5Sget_select_hyper_blocklist((hid_t) spaceid, (hsize_t) st, (hsize_t) nb, (hsize_t *) ba);
+    status = H5Sget_select_hyper_blocklist((hid_t)spaceid, st, nb, (hsize_t *)ba);
 
     if (status < 0) {
         ENVPTR->ReleaseLongArrayElements(ENVPAR buf, bufP, JNI_ABORT);
@@ -1013,7 +1013,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Sget_1select_1hyper_1blocklist(JNIE
     }
 
     for (i = 0; i < (numblocks * 2 * rank); i++) {
-        bufP[i] = ba[i];
+        bufP[i] = (jlong)ba[i];
     }
     free(ba);
     ENVPTR->ReleaseLongArrayElements(ENVPAR buf, bufP, 0);
@@ -1052,14 +1052,14 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Sget_1select_1elem_1pointlist(JNIEn
         h5JNIFatalError(env, "H5Sget_select_elem_pointlist:  buf not pinned");
         return -1;
     }
-    ba = (hsize_t *) malloc(((long) numpoints * (long) rank) * sizeof(hsize_t));
+    ba = (hsize_t *)malloc(((size_t)numpoints * (size_t)rank) * sizeof(hsize_t));
     if (ba == NULL) {
         ENVPTR->ReleaseLongArrayElements(ENVPAR buf, bufP, JNI_ABORT);
         h5JNIFatalError(env, "H5Sget_select_elem_pointlist:  buf not converted to hsize_t");
         return -1;
     }
 
-    status = H5Sget_select_elem_pointlist((hid_t) spaceid, (hsize_t) startpoint, (hsize_t) numpoints, (hsize_t *) ba);
+    status = H5Sget_select_elem_pointlist((hid_t) spaceid, (hsize_t)startpoint, (hsize_t)numpoints, (hsize_t *)ba);
 
     if (status < 0) {
         free(ba);
@@ -1069,7 +1069,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Sget_1select_1elem_1pointlist(JNIEn
     }
 
     for (i = 0; i < (numpoints * rank); i++) {
-        bufP[i] = ba[i];
+        bufP[i] = (jlong)ba[i];
     }
     free(ba);
     ENVPTR->ReleaseLongArrayElements(ENVPAR buf, bufP, 0);
@@ -1109,7 +1109,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Sget_1select_1bounds(JNIEnv *env, j
         return -1;
     }
     rank = (int) ENVPTR->GetArrayLength(ENVPAR start);
-    strt = (hsize_t *) malloc((long)rank * sizeof(hsize_t));
+    strt = (hsize_t *)malloc((size_t)rank * sizeof(hsize_t));
     if (strt == NULL) {
         ENVPTR->ReleaseLongArrayElements(ENVPAR start, startP, JNI_ABORT);
         h5JNIFatalError(env, "H5Sget_select_bounds:  start not converted to hsize_t");
@@ -1123,7 +1123,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Sget_1select_1bounds(JNIEnv *env, j
         h5JNIFatalError(env, "H5Sget_select_bounds:  end not pinned");
         return -1;
     }
-    en = (hsize_t *) malloc((long)rank * sizeof(hsize_t));
+    en = (hsize_t *)malloc((size_t)rank * sizeof(hsize_t));
     if (en == NULL) {
         ENVPTR->ReleaseLongArrayElements(ENVPAR end, endP, JNI_ABORT);
         ENVPTR->ReleaseLongArrayElements(ENVPAR start, startP, JNI_ABORT);
@@ -1144,8 +1144,8 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Sget_1select_1bounds(JNIEnv *env, j
     }
 
     for (i = 0; i < rank; i++) {
-        startP[i] = strt[i];
-        endP[i] = en[i];
+        startP[i] = (jlong)strt[i];
+        endP[i] = (jlong)en[i];
     }
     ENVPTR->ReleaseLongArrayElements(ENVPAR start, startP, 0);
     ENVPTR->ReleaseLongArrayElements(ENVPAR end, endP, 0);
@@ -1198,8 +1198,8 @@ JNIEXPORT jbyteArray JNICALL Java_hdf_hdf5lib_H5_H5Sencode(JNIEnv *env, jclass c
         return NULL;
     }
 
-    returnedArray = ENVPTR->NewByteArray(ENVPAR buf_size);
-    ENVPTR->SetByteArrayRegion(ENVPAR returnedArray, 0, buf_size, (jbyte *) bufPtr);
+    returnedArray = ENVPTR->NewByteArray(ENVPAR (jsize)buf_size);
+    ENVPTR->SetByteArrayRegion(ENVPAR returnedArray, 0, (jsize)buf_size, (jbyte *) bufPtr);
 
     free(bufPtr);
 
