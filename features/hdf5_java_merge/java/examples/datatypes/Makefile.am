@@ -56,17 +56,17 @@ noinst_JAVA = \
     H5Ex_T_VLString.java
 
 
-$(jarfile): classTestAll.stamp
-	$(JAR) cf $(JARFLAGS) $@ -C $(JAVAROOT)/$(pkgpath) .
+$(jarfile): classnoinst.stamp
+	$(JAR) cf $(JARFLAGS) $@ -C $(JAVAROOT)/ $(pkgpath)
 
 check_SCRIPTS = runExample.sh
 TEST_SCRIPT = $(check_SCRIPTS)
 
-CLEANFILES = classTestAll.stamp $(jarfile) $(TESTPACKAGE)/*.class runExample.sh
+CLEANFILES = classnoinst.stamp $(jarfile) *.class runExample.sh
 
 clean:
 	rm -rf *.class
 	rm -f $(jarfile)
-	rm -f classTestAll.stamp
+	rm -f classnoinst.stamp
 
 include $(top_srcdir)/config/conclude.am

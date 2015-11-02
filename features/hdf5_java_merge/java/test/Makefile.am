@@ -67,13 +67,13 @@ noinst_JAVA = \
     TestH5Z.java \
     TestAll.java
 
-$(jarfile): classTestAll.stamp
-	$(JAR) cf $(JARFLAGS) $@ -C $(JAVAROOT)/$(pkgpath) .
+$(jarfile): classnoinst.stamp
+	$(JAR) cf $@ $(JARFLAGS) -C $(JAVAROOT)/ $(pkgpath)
 
 check_SCRIPTS = junit.sh
 TEST_SCRIPT = $(check_SCRIPTS)
 
-CLEANFILES = classTestAll.stamp $(jarfile) $(pkgpath)/*.class junit.sh
+CLEANFILES = classnoinst.stamp $(jarfile) *.class junit.sh
 
 #JAVA_JUNIT  = $(JAVA_SRCS)
 #noinst_JAVA = @JAVA_JUNIT@
@@ -89,6 +89,6 @@ AllJunitTests :
 clean:
 	rm -rf *.class
 	rm -f $(jarfile)
-	rm -f classTestAll.stamp
+	rm -f classnoinst.stamp
 
 include $(top_srcdir)/config/conclude.am
