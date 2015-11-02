@@ -57,7 +57,7 @@ noinst_JAVA = \
 
 
 $(jarfile): classTestAll.stamp
-	$(JAR) cf $(JARFLAGS) $@ $(JAVAROOT)/$(pkgpath)/*.class
+	$(JAR) cf $(JARFLAGS) $@ -C $(JAVAROOT)/$(pkgpath) .
 
 check_SCRIPTS = runExample.sh
 TEST_SCRIPT = $(check_SCRIPTS)

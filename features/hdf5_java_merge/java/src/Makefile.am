@@ -94,7 +94,7 @@ hdf5_java_DATA = $(jarfile)
 CLEANFILES = classhdf5_java.stamp $(jarfile) $(pkgpath)/callbacks/*.class $(pkgpath)/exceptions/*.class $(pkgpath)/structs/*.class $(pkgpath)/*.class
 
 clean:
-	rm -rf ${HDFPACKAGE}*.class
+	rm -rf ${pkgpath}/*.class
 	rm -f $(jarfile)
 	rm -f classhdf5_java.stamp
 
