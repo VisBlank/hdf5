@@ -25,12 +25,81 @@
 
 include $(top_srcdir)/config/commence.am
 
-## Only recurse into subdirectories if the Java (JNI) interface is enabled.
-if BUILD_JAVA_CONDITIONAL
-
 # Mark this directory as part of the JNI API
 JAVA_API=yes
 
-SUBDIRS=jni hdf
+SUBDIRS=jni
 
-endif
+JAVAROOT = .
+
+jarfile = jar$(PACKAGE_TARNAME)-$(PACKAGE_VERSION).jar
+hdf5_javadir = $(datadir)/java
+
+pkgpath = hdf/hdf5lib
+CLASSPATH_ENV=CLASSPATH=.:$(top_srcdir)/java/lib/slf4j-api-1.7.5.jar:$$CLASSPATH
+
+AM_JAVACFLAGS = $(H5_JAVACFLAGS) -deprecation
+
+hdf5_java_JAVA =  \
+	${pkgpath}/callbacks/Callbacks.java \
+	${pkgpath}/callbacks/H5L_iterate_cb.java \
+	${pkgpath}/callbacks/H5L_iterate_t.java \
+	${pkgpath}/callbacks/H5O_iterate_cb.java \
+	${pkgpath}/callbacks/H5O_iterate_t.java \
+	${pkgpath}/callbacks/H5D_iterate_cb.java \
+	${pkgpath}/callbacks/H5D_iterate_t.java \
+	${pkgpath}/exceptions/HDF5AtomException.java  \
+	${pkgpath}/exceptions/HDF5AttributeException.java  \
+	${pkgpath}/exceptions/HDF5BtreeException.java  \
+	${pkgpath}/exceptions/HDF5DataFiltersException.java  \
+	${pkgpath}/exceptions/HDF5DataStorageException.java  \
+	${pkgpath}/exceptions/HDF5DatasetInterfaceException.java  \
+	${pkgpath}/exceptions/HDF5DataspaceInterfaceException.java  \
+	${pkgpath}/exceptions/HDF5DatatypeInterfaceException.java  \
+	${pkgpath}/exceptions/HDF5Exception.java  \
+	${pkgpath}/exceptions/HDF5ExternalFileListException.java  \
+	${pkgpath}/exceptions/HDF5FileInterfaceException.java  \
+	${pkgpath}/exceptions/HDF5FunctionArgumentException.java  \
+	${pkgpath}/exceptions/HDF5FunctionEntryExitException.java  \
+	${pkgpath}/exceptions/HDF5HeapException.java  \
+	${pkgpath}/exceptions/HDF5InternalErrorException.java  \
+	${pkgpath}/exceptions/HDF5JavaException.java  \
+	${pkgpath}/exceptions/HDF5LibraryException.java  \
+	${pkgpath}/exceptions/HDF5LowLevelIOException.java  \
+	${pkgpath}/exceptions/HDF5MetaDataCacheException.java  \
+	${pkgpath}/exceptions/HDF5ObjectHeaderException.java  \
+	${pkgpath}/exceptions/HDF5PropertyListInterfaceException.java  \
+	${pkgpath}/exceptions/HDF5ReferenceException.java  \
+	${pkgpath}/exceptions/HDF5ResourceUnavailableException.java  \
+	${pkgpath}/exceptions/HDF5SymbolTableException.java \
+	${pkgpath}/structs/H5_ih_info_t.java \
+	${pkgpath}/structs/H5A_info_t.java \
+	${pkgpath}/structs/H5G_info_t.java \
+	${pkgpath}/structs/H5L_info_t.java \
+	${pkgpath}/structs/H5O_info_t.java \
+	${pkgpath}/structs/H5O_hdr_info_t.java \
+	${pkgpath}/structs/H5AC_cache_config_t.java \
+	${pkgpath}/H5.java  \
+	${pkgpath}/HDF5Constants.java  \
+	${pkgpath}/HDF5GroupInfo.java  \
+	${pkgpath}/HDFArray.java  \
+	${pkgpath}/HDFNativeData.java
+
+$(jarfile): classhdf5_java.stamp
+
+	$(JAR) cf $(JARFLAGS) $@ ./$(pkgpath)
+
+hdf5_java_DATA = $(jarfile)
+
+CLEANFILES = classhdf5_java.stamp $(jarfile) $(pkgpath)/callbacks/*.class $(pkgpath)/exceptions/*.class $(pkgpath)/structs/*.class $(pkgpath)/*.class
+
+clean:
+	rm -rf ${HDFPACKAGE}*.class
+	rm -f $(jarfile)
+	rm -f classhdf5_java.stamp
+
+
+# Clean examples when check-clean is invoked
+check-clean :: ;
+
+#include $(top_srcdir)/config/conclude.am

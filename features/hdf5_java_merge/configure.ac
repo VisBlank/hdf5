@@ -3198,7 +3198,6 @@ AC_CONFIG_FILES([src/libhdf5.settings
                  java/Makefile
                  java/src/Makefile
                  java/src/jni/Makefile
-                 java/src/hdf/Makefile
                  java/test/Makefile
                  java/test/junit.sh
                  java/examples/Makefile
