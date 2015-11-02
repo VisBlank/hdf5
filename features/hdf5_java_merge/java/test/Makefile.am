@@ -30,13 +30,12 @@ hdfjarfile = jar$(PACKAGE_TARNAME)-$(PACKAGE_VERSION).jar
 CLASSPATH_ENV=CLASSPATH=.:$(JAVAROOT):$(top_builddir)/java/src/$(hdfjarfile):$(top_srcdir)/java/lib/junit.jar:$(top_srcdir)/java/lib/hamcrest-core.jar:$(top_srcdir)/java/lib/slf4j-api-1.7.5.jar:$(top_srcdir)/java/lib/ext/slf4j-simple-1.7.5.jar:$$CLASSPATH
 
 jarfile = jar$(PACKAGE_TARNAME)test.jar
-TestAlldir = $(datadir)/java
 
 AM_JAVACFLAGS = $(H5_JAVACFLAGS) -deprecation
 
 TESTPACKAGE = 
 
-TestAll_JAVA = \
+noinst_JAVA = \
 	${TESTPACKAGE}TestH5.java \
     ${TESTPACKAGE}TestH5E.java \
     ${TESTPACKAGE}TestH5Edefault.java \
@@ -72,8 +71,6 @@ TestAll_JAVA = \
 
 $(jarfile): classTestAll.stamp
 	$(JAR) cf $(JARFLAGS) $@ $(JAVAROOT)/$(pkgpath)/*.class
-
-TestAll_DATA = $(jarfile)
 
 check_SCRIPTS = junit.sh
 TEST_SCRIPT = $(check_SCRIPTS)

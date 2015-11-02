@@ -33,7 +33,7 @@ SUBDIRS=jni
 JAVAROOT = .
 
 jarfile = jar$(PACKAGE_TARNAME)-$(PACKAGE_VERSION).jar
-hdf5_javadir = $(datadir)/java
+hdf5_javadir = $(libdir)
 
 pkgpath = hdf/hdf5lib
 CLASSPATH_ENV=CLASSPATH=.:$(top_srcdir)/java/lib/slf4j-api-1.7.5.jar:$$CLASSPATH

@@ -2461,7 +2461,6 @@
 ./java/src/jni/h5zImp.c
 ./java/src/jni/h5zImp.h
 
-./java/src/hdf/Makefile.am
 ./java/src/hdf/CMakeLists.txt
 ./java/src/hdf/hdf5lib/CMakeLists.txt
 

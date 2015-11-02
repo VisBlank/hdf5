@@ -30,13 +30,12 @@ hdfjarfile = jar$(PACKAGE_TARNAME)-$(PACKAGE_VERSION).jar
 CLASSPATH_ENV=CLASSPATH=.:$(JAVAROOT):$(top_builddir)/java/src/$(hdfjarfile):$(top_srcdir)/java/lib/slf4j-api-1.7.5.jar:$(top_srcdir)/java/lib/ext/slf4j-simple-1.7.5.jar:$$CLASSPATH
 
 jarfile = jar$(PACKAGE_TARNAME)datatypes.jar
-TestAlldir = $(datadir)/java
 
 AM_JAVACFLAGS = $(H5_JAVACFLAGS) -deprecation
 
 TESTPACKAGE = 
 
-TestAll_JAVA = \
+noinst_JAVA = \
     H5Ex_T_Array.java \
     H5Ex_T_ArrayAttribute.java \
     H5Ex_T_Bit.java \
@@ -59,8 +58,6 @@ TestAll_JAVA = \
 
 $(jarfile): classTestAll.stamp
 	$(JAR) cf $(JARFLAGS) $@ $(JAVAROOT)/$(pkgpath)/*.class
-
-TestAll_DATA = $(jarfile)
 
 check_SCRIPTS = runExample.sh
 TEST_SCRIPT = $(check_SCRIPTS)
