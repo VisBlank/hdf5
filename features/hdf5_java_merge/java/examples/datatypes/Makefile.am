@@ -55,9 +55,10 @@ noinst_JAVA = \
     H5Ex_T_StringAttribute.java \
     H5Ex_T_VLString.java
 
-
 $(jarfile): classnoinst.stamp
 	$(JAR) cf $(JARFLAGS) $@ -C $(JAVAROOT)/ $(pkgpath)
+
+noinst_DATA = $(jarfile)
 
 check_SCRIPTS = runExample.sh
 TEST_SCRIPT = $(check_SCRIPTS)

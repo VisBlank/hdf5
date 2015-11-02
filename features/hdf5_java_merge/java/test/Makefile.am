@@ -70,6 +70,8 @@ noinst_JAVA = \
 $(jarfile): classnoinst.stamp
 	$(JAR) cf $@ $(JARFLAGS) -C $(JAVAROOT)/ $(pkgpath)
 
+noinst_DATA = $(jarfile)
+
 check_SCRIPTS = junit.sh
 TEST_SCRIPT = $(check_SCRIPTS)
 
