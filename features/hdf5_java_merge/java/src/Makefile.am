@@ -30,7 +30,10 @@ JAVA_API=yes
 
 SUBDIRS=jni
 
-JAVAROOT = .
+JAVAROOT = .classes
+
+classes:
+	$(MKDIR_P) $(@D)/$(JAVAROOT)
 
 jarfile = jar$(PACKAGE_TARNAME)-$(PACKAGE_VERSION).jar
 hdf5_javadir = $(libdir)
@@ -85,16 +88,15 @@ hdf5_java_JAVA =  \
 	${pkgpath}/HDFArray.java  \
 	${pkgpath}/HDFNativeData.java
 
-$(jarfile): classhdf5_java.stamp
-
-	$(JAR) cf $(JARFLAGS) $@ ./$(pkgpath)
+$(jarfile): classhdf5_java.stamp classes
+	$(JAR) cvf $@ -C $(JAVAROOT)/ $(pkgpath)
 
 hdf5_java_DATA = $(jarfile)
 
-CLEANFILES = classhdf5_java.stamp $(jarfile) $(pkgpath)/callbacks/*.class $(pkgpath)/exceptions/*.class $(pkgpath)/structs/*.class $(pkgpath)/*.class
+CLEANFILES = classhdf5_java.stamp $(jarfile) $(JAVAROOT)/$(pkgpath)/callbacks/*.class $(JAVAROOT)/$(pkgpath)/exceptions/*.class $(JAVAROOT)/$(pkgpath)/structs/*.class $(JAVAROOT)/$(pkgpath)/*.class
 
 clean:
-	rm -rf ${pkgpath}/*.class
+	rm -rf $(JAVAROOT)
 	rm -f $(jarfile)
 	rm -f classhdf5_java.stamp
 

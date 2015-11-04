@@ -23,14 +23,16 @@ include $(top_srcdir)/config/commence.am
 # Mark this directory as part of the JNI API
 JAVA_API=yes
 
-JAVAROOT = ..
+JAVAROOT = .classes
+
+classes:
+	$(MKDIR_P) $(@D)/$(JAVAROOT)
 
 pkgpath = test
 hdfjarfile = jar$(PACKAGE_TARNAME)-$(PACKAGE_VERSION).jar
-CLASSPATH_ENV=CLASSPATH=.:$(JAVAROOT):$(top_builddir)/java/src/$(hdfjarfile):$(top_srcdir)/java/lib/junit.jar:$(top_srcdir)/java/lib/hamcrest-core.jar:$(top_srcdir)/java/lib/slf4j-api-1.7.5.jar:$(top_srcdir)/java/lib/ext/slf4j-simple-1.7.5.jar:$$CLASSPATH
-
 jarfile = jar$(PACKAGE_TARNAME)test.jar
 
+CLASSPATH_ENV=CLASSPATH=.:$(JAVAROOT):$(top_builddir)/java/src/$(hdfjarfile):$(top_srcdir)/java/lib/junit.jar:$(top_srcdir)/java/lib/hamcrest-core.jar:$(top_srcdir)/java/lib/slf4j-api-1.7.5.jar:$(top_srcdir)/java/lib/ext/slf4j-simple-1.7.5.jar:$$CLASSPATH
 AM_JAVACFLAGS = $(H5_JAVACFLAGS) -deprecation
 
 noinst_JAVA = \
@@ -67,15 +69,15 @@ noinst_JAVA = \
     TestH5Z.java \
     TestAll.java
 
-$(jarfile): classnoinst.stamp
-	$(JAR) cf $@ $(JARFLAGS) -C $(JAVAROOT)/ $(pkgpath)
+$(jarfile): classnoinst.stamp classes
+	$(JAR) cvf $@ -C $(JAVAROOT)/ $(pkgpath)
 
 noinst_DATA = $(jarfile)
 
 check_SCRIPTS = junit.sh
 TEST_SCRIPT = $(check_SCRIPTS)
 
-CLEANFILES = classnoinst.stamp $(jarfile) *.class junit.sh
+CLEANFILES = classnoinst.stamp $(jarfile) $(JAVAROOT)/$(pkgpath)/*.class junit.sh
 
 #JAVA_JUNIT  = $(JAVA_SRCS)
 #noinst_JAVA = @JAVA_JUNIT@
@@ -89,7 +91,7 @@ AllJunitTests :
 	chmod +x $@
 
 clean:
-	rm -rf *.class
+	rm -rf $(JAVAROOT)
 	rm -f $(jarfile)
 	rm -f classnoinst.stamp
 

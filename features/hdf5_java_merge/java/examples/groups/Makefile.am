@@ -23,7 +23,10 @@ include $(top_srcdir)/config/commence.am
 # Mark this directory as part of the JNI API
 JAVA_API=yes
 
-JAVAROOT = ../..
+JAVAROOT = .classes
+
+classes:
+	$(MKDIR_P) $(@D)/$(JAVAROOT)
 
 pkgpath = examples/groups
 hdfjarfile = jar$(PACKAGE_TARNAME)-$(PACKAGE_VERSION).jar
@@ -45,18 +48,18 @@ noinst_JAVA = \
     H5Ex_G_Visit.java
 
 
-$(jarfile): classnoinst.stamp
-	$(JAR) cf $(JARFLAGS) $@ -C $(JAVAROOT)/ $(pkgpath)
+$(jarfile): classnoinst.stamp classes
+	$(JAR) cvf $@ -C $(JAVAROOT)/ $(pkgpath)
 
 noinst_DATA = $(jarfile)
 
 check_SCRIPTS = runExample.sh
 TEST_SCRIPT = $(check_SCRIPTS)
 
-CLEANFILES = classnoinst.stamp $(jarfile) *.class runExample.sh
+CLEANFILES = classnoinst.stamp $(jarfile) $(JAVAROOT)/$(pkgpath)/*.class runExample.sh
 
 clean:
-	rm -rf *.class
+	rm -rf $(JAVAROOT)
 	rm -f $(jarfile)
 	rm -f classnoinst.stamp
 
