@@ -664,47 +664,6 @@ fi
 AC_LANG_POP(C++)
 
 
-## ----------------------------------------------------------------------
-## Check if they would like the Java native interface (JNI) compiled
-##
-
-AC_SUBST([H5_CLASSPATH]) H5_CLASSPATH=""
-AC_MSG_CHECKING([if Java JNI interface enabled])
-
-AC_ARG_ENABLE([java],
-              [AS_HELP_STRING([--enable-java],
-                              [Compile the Java JNI interface [default=no]])],
-              [HDF_JAVA=$enableval],
-              [HDF_JAVA=no])
-
-if test "X$HDF_JAVA" = "Xyes"; then
-  echo "yes"
-  if test "X$CLASSPATH" = "X"; then
-    H5_CLASSPATH=".:$srcdir/java/lib"
-  else
-    H5_CLASSPATH=".:$CLASSPATH:$srcdir/java/lib"
-  fi
-## Checks for programs.
-  AX_PROG_JAVAC
-  AX_PROG_JAVA
-  AX_PROG_JAR
-  ## Find the include directories needed for building JNI code
-  AX_JNI_INCLUDE_DIR()
-  for JNI_INCLUDE_DIR in $JNI_INCLUDE_DIRS
-  do
-    JNIFLAGS="$JNIFLAGS -I$JNI_INCLUDE_DIR"
-  done
-  ## Find junit for testing the JNI code
-  AX_CHECK_CLASSPATH()
-  CLASSPATH_ENV=$H5_CLASSPATH
-  AX_CHECK_JUNIT()
-  AX_CHECK_JAVA_HOME
-
-  AC_MSG_RESULT([yes])
-else
-  AC_MSG_RESULT([no])
-fi
-
 
 ## ----------------------------------------------------------------------
 ## Check if they would like the High Level library  compiled
@@ -828,6 +787,51 @@ case "`uname`" in
     CHECK_WARN="Shared libraries are not currently supported on CYGWIN."
     ;;
 esac
+
+## ----------------------------------------------------------------------
+## Check if they would like the Java native interface (JNI) compiled
+##
+
+AC_SUBST([H5_CLASSPATH]) H5_CLASSPATH=""
+AC_MSG_CHECKING([if Java JNI interface enabled])
+
+AC_ARG_ENABLE([java],
+              [AS_HELP_STRING([--enable-java],
+                              [Compile the Java JNI interface [default=no]])],
+              [HDF_JAVA=$enableval],
+              [HDF_JAVA=no])
+
+if test "X$HDF_JAVA" = "Xyes" && test "X${enable_shared}" != "Xno"; then
+  echo "yes"
+  if test "X$CLASSPATH" = "X"; then
+    H5_CLASSPATH=".:$srcdir/java/lib"
+  else
+    H5_CLASSPATH=".:$CLASSPATH:$srcdir/java/lib"
+  fi
+## Checks for programs.
+  AX_PROG_JAVAC
+  AX_PROG_JAVA
+  AX_PROG_JAR
+  ## Find the include directories needed for building JNI code
+  AX_JNI_INCLUDE_DIR()
+  for JNI_INCLUDE_DIR in $JNI_INCLUDE_DIRS
+  do
+    JNIFLAGS="$JNIFLAGS -I$JNI_INCLUDE_DIR"
+  done
+  ## Find junit for testing the JNI code
+  AX_CHECK_CLASSPATH()
+  CLASSPATH_ENV=$H5_CLASSPATH
+  AX_CHECK_JUNIT()
+  AX_CHECK_JAVA_HOME
+
+  AC_MSG_RESULT([yes])
+else
+  if test "X${enable_shared}" = "Xno"; then
+    AC_MSG_WARN([Java requires shared libraries to be built])
+  fi
+  HDF_JAVA="no"
+  AC_MSG_RESULT([no])
+fi
 
 ## ----------------------------------------------------------------------
 ## Fortran libraries are not currently supported on Mac. Disable them.
