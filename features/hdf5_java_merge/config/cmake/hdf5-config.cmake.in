@@ -42,6 +42,16 @@ if (${HDF5_PACKAGE_NAME}_ENABLE_PARALLEL)
   set (${HDF5_PACKAGE_NAME}_MPI_C_LIBRARIES    "@MPI_C_LIBRARIES@")
 endif ()
 
+if (${HDF5_PACKAGE_NAME}_BUILD_JAVA)
+  set (${HDF5_PACKAGE_NAME}_JAVA_INCLUDE_DIRS
+      @PACKAGE_CURRENT_BUILD_DIR@/lib/jarhdf5-@HDF5_VERSION_STRING@.jar
+      @PACKAGE_CURRENT_BUILD_DIR@/lib/slf4j-api-1.7.5.jar
+      @PACKAGE_CURRENT_BUILD_DIR@/lib/slf4j-nop-1.7.5.jar
+  )
+  set (${HDF5_PACKAGE_NAME}_JAVA_LIBRARY "@PACKAGE_CURRENT_BUILD_DIR@/lib")
+  set (${HDF5_PACKAGE_NAME}_JAVA_LIBRARIES "${${HDF5_PACKAGE_NAME}_JAVA_LIBRARY}")
+endif()
+
 #-----------------------------------------------------------------------------
 # Directories
 #-----------------------------------------------------------------------------
