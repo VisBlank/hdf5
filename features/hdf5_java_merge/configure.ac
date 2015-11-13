@@ -664,7 +664,6 @@ fi
 AC_LANG_POP(C++)
 
 
-
 ## ----------------------------------------------------------------------
 ## Check if they would like the High Level library  compiled
 ##
