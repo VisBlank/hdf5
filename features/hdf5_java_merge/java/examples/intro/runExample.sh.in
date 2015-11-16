@@ -167,7 +167,7 @@ TESTING() {
 
 # where Java is installed (requires jdk1.7.x)
 JAVAEXE=@JAVA@
-export JAVAEXE
+JAVAEXEFLAGS=@JAVAFLAGS@
 
 ###############################################################################
 #            DO NOT MODIFY BELOW THIS LINE
@@ -221,8 +221,8 @@ esac
 
 export LD_LIBRARY_PATH
 
-echo "$JAVAEXE -Xmx1024M -Dorg.slf4j.simpleLogger.defaultLog=trace -Djava.library.path=$BLDLIBDIR -cp $CLASSPATH examples.intro.H5_CreateDataset"
-($JAVAEXE -Xmx1024M -Dorg.slf4j.simpleLogger.defaultLog=trace -Djava.library.path=$BLDLIBDIR -cp $CLASSPATH examples.intro.H5_CreateDataset > H5_CreateDataset.out)
+echo "$JAVAEXE $JAVAEXEFLAGS -Xmx1024M -Dorg.slf4j.simpleLogger.defaultLog=trace -Djava.library.path=$BLDLIBDIR -cp $CLASSPATH examples.intro.H5_CreateDataset"
+($JAVAEXE $JAVAEXEFLAGS -Xmx1024M -Dorg.slf4j.simpleLogger.defaultLog=trace -Djava.library.path=$BLDLIBDIR -cp $CLASSPATH examples.intro.H5_CreateDataset > H5_CreateDataset.out)
 if diff H5_CreateDataset.out examples.intro.H5_CreateDataset.txt > /dev/null; then
     echo "  PASSED      intro.H5_CreateDataset"
 else
@@ -230,8 +230,8 @@ else
     nerrors="`expr $nerrors + 1`"
 fi
 
-echo "$JAVAEXE -Xmx1024M -Dorg.slf4j.simpleLogger.defaultLog=trace -Djava.library.path=$BLDLIBDIR -cp $CLASSPATH examples.intro.H5_CreateAttribute"
-($JAVAEXE -Xmx1024M -Dorg.slf4j.simpleLogger.defaultLog=trace -Djava.library.path=$BLDLIBDIR -cp $CLASSPATH examples.intro.H5_CreateAttribute > H5_CreateAttribute.out)
+echo "$JAVAEXE $JAVAEXEFLAGS -Xmx1024M -Dorg.slf4j.simpleLogger.defaultLog=trace -Djava.library.path=$BLDLIBDIR -cp $CLASSPATH examples.intro.H5_CreateAttribute"
+($JAVAEXE $JAVAEXEFLAGS -Xmx1024M -Dorg.slf4j.simpleLogger.defaultLog=trace -Djava.library.path=$BLDLIBDIR -cp $CLASSPATH examples.intro.H5_CreateAttribute > H5_CreateAttribute.out)
 if diff H5_CreateAttribute.out examples.intro.H5_CreateAttribute.txt > /dev/null; then
     echo "  PASSED      intro.H5_CreateAttribute"
 else
@@ -239,8 +239,8 @@ else
     nerrors="`expr $nerrors + 1`"
 fi
 
-echo "$JAVAEXE -Xmx1024M -Dorg.slf4j.simpleLogger.defaultLog=trace -Djava.library.path=$BLDLIBDIR -cp $CLASSPATH examples.intro.H5_CreateFile"
-($JAVAEXE -Xmx1024M -Dorg.slf4j.simpleLogger.defaultLog=trace -Djava.library.path=$BLDLIBDIR -cp $CLASSPATH examples.intro.H5_CreateFile > H5_CreateFile.out)
+echo "$JAVAEXE $JAVAEXEFLAGS -Xmx1024M -Dorg.slf4j.simpleLogger.defaultLog=trace -Djava.library.path=$BLDLIBDIR -cp $CLASSPATH examples.intro.H5_CreateFile"
+($JAVAEXE $JAVAEXEFLAGS -Xmx1024M -Dorg.slf4j.simpleLogger.defaultLog=trace -Djava.library.path=$BLDLIBDIR -cp $CLASSPATH examples.intro.H5_CreateFile > H5_CreateFile.out)
 if diff H5_CreateFile.out examples.intro.H5_CreateFile.txt > /dev/null; then
     echo "  PASSED      intro.H5_CreateFile"
 else
@@ -248,8 +248,8 @@ else
     nerrors="`expr $nerrors + 1`"
 fi
 
-echo "$JAVAEXE -Xmx1024M -Dorg.slf4j.simpleLogger.defaultLog=trace -Djava.library.path=$BLDLIBDIR -cp $CLASSPATH examples.intro.H5_CreateGroup"
-($JAVAEXE -Xmx1024M -Dorg.slf4j.simpleLogger.defaultLog=trace -Djava.library.path=$BLDLIBDIR -cp $CLASSPATH examples.intro.H5_CreateGroup > H5_CreateGroup.out)
+echo "$JAVAEXE $JAVAEXEFLAGS -Xmx1024M -Dorg.slf4j.simpleLogger.defaultLog=trace -Djava.library.path=$BLDLIBDIR -cp $CLASSPATH examples.intro.H5_CreateGroup"
+($JAVAEXE $JAVAEXEFLAGS -Xmx1024M -Dorg.slf4j.simpleLogger.defaultLog=trace -Djava.library.path=$BLDLIBDIR -cp $CLASSPATH examples.intro.H5_CreateGroup > H5_CreateGroup.out)
 if diff H5_CreateGroup.out examples.intro.H5_CreateGroup.txt > /dev/null; then
     echo "  PASSED      intro.H5_CreateGroup"
 else
@@ -257,8 +257,8 @@ else
     nerrors="`expr $nerrors + 1`"
 fi
 
-echo "$JAVAEXE -Xmx1024M -Dorg.slf4j.simpleLogger.defaultLog=trace -Djava.library.path=$BLDLIBDIR -cp $CLASSPATH examples.intro.H5_CreateGroupAbsoluteRelative"
-($JAVAEXE -Xmx1024M -Dorg.slf4j.simpleLogger.defaultLog=trace -Djava.library.path=$BLDLIBDIR -cp $CLASSPATH examples.intro.H5_CreateGroupAbsoluteRelative > H5_CreateGroupAbsoluteRelative.out)
+echo "$JAVAEXE $JAVAEXEFLAGS -Xmx1024M -Dorg.slf4j.simpleLogger.defaultLog=trace -Djava.library.path=$BLDLIBDIR -cp $CLASSPATH examples.intro.H5_CreateGroupAbsoluteRelative"
+($JAVAEXE $JAVAEXEFLAGS -Xmx1024M -Dorg.slf4j.simpleLogger.defaultLog=trace -Djava.library.path=$BLDLIBDIR -cp $CLASSPATH examples.intro.H5_CreateGroupAbsoluteRelative > H5_CreateGroupAbsoluteRelative.out)
 if diff H5_CreateGroupAbsoluteRelative.out examples.intro.H5_CreateGroupAbsoluteRelative.txt > /dev/null; then
     echo "  PASSED      intro.H5_CreateGroupAbsoluteRelative"
 else
@@ -266,8 +266,8 @@ else
     nerrors="`expr $nerrors + 1`"
 fi
 
-echo "$JAVAEXE -Xmx1024M -Dorg.slf4j.simpleLogger.defaultLog=trace -Djava.library.path=$BLDLIBDIR -cp $CLASSPATH examples.intro.H5_CreateGroupDataset"
-($JAVAEXE -Xmx1024M -Dorg.slf4j.simpleLogger.defaultLog=trace -Djava.library.path=$BLDLIBDIR -cp $CLASSPATH examples.intro.H5_CreateGroupDataset > H5_CreateGroupDataset.out)
+echo "$JAVAEXE $JAVAEXEFLAGS -Xmx1024M -Dorg.slf4j.simpleLogger.defaultLog=trace -Djava.library.path=$BLDLIBDIR -cp $CLASSPATH examples.intro.H5_CreateGroupDataset"
+($JAVAEXE $JAVAEXEFLAGS -Xmx1024M -Dorg.slf4j.simpleLogger.defaultLog=trace -Djava.library.path=$BLDLIBDIR -cp $CLASSPATH examples.intro.H5_CreateGroupDataset > H5_CreateGroupDataset.out)
 if diff H5_CreateGroupDataset.out examples.intro.H5_CreateGroupDataset.txt > /dev/null; then
     echo "  PASSED      intro.H5_CreateGroupDataset"
 else
@@ -275,8 +275,8 @@ else
     nerrors="`expr $nerrors + 1`"
 fi
 
-echo "$JAVAEXE -Xmx1024M -Dorg.slf4j.simpleLogger.defaultLog=trace -Djava.library.path=$BLDLIBDIR -cp $CLASSPATH examples.intro.H5_ReadWrite"
-($JAVAEXE -Xmx1024M -Dorg.slf4j.simpleLogger.defaultLog=trace -Djava.library.path=$BLDLIBDIR -cp $CLASSPATH examples.intro.H5_ReadWrite > H5_ReadWrite.out)
+echo "$JAVAEXE $JAVAEXEFLAGS -Xmx1024M -Dorg.slf4j.simpleLogger.defaultLog=trace -Djava.library.path=$BLDLIBDIR -cp $CLASSPATH examples.intro.H5_ReadWrite"
+($JAVAEXE $JAVAEXEFLAGS -Xmx1024M -Dorg.slf4j.simpleLogger.defaultLog=trace -Djava.library.path=$BLDLIBDIR -cp $CLASSPATH examples.intro.H5_ReadWrite > H5_ReadWrite.out)
 if diff H5_ReadWrite.out examples.intro.H5_ReadWrite.txt > /dev/null; then
     echo "  PASSED      intro.H5_ReadWrite"
 else

@@ -163,7 +163,7 @@ TESTING() {
 
 # where Java is installed (requires jdk1.7.x)
 JAVAEXE=@JAVA@
-export JAVAEXE
+JAVAEXEFLAGS=@JAVAFLAGS@
 
 ###############################################################################
 #            DO NOT MODIFY BELOW THIS LINE
@@ -217,8 +217,8 @@ esac
 
 export LD_LIBRARY_PATH
 
-echo "$JAVAEXE -Xmx1024M -Dorg.slf4j.simpleLogger.defaultLog=trace -Djava.library.path=$BLDLIBDIR -cp $CLASSPATH -ea org.junit.runner.JUnitCore test.TestAll"
-($JAVAEXE -Xmx1024M -Dorg.slf4j.simpleLogger.defaultLog=trace -Djava.library.path=$BLDLIBDIR -cp $CLASSPATH -ea org.junit.runner.JUnitCore test.TestAll)
+echo "$JAVAEXE $JAVAEXEFLAGS -Xmx1024M -Dorg.slf4j.simpleLogger.defaultLog=trace -Djava.library.path=$BLDLIBDIR -cp $CLASSPATH -ea org.junit.runner.JUnitCore test.TestAll"
+($JAVAEXE $JAVAEXEFLAGS -Xmx1024M -Dorg.slf4j.simpleLogger.defaultLog=trace -Djava.library.path=$BLDLIBDIR -cp $CLASSPATH -ea org.junit.runner.JUnitCore test.TestAll)
 
 # Clean up temporary files/directories
 CLEAN_LIBFILES_AND_BLDLIBDIR

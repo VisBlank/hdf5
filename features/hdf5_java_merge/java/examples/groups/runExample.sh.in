@@ -216,7 +216,7 @@ TESTING() {
 
 # where Java is installed (requires jdk1.7.x)
 JAVAEXE=@JAVA@
-export JAVAEXE
+JAVAEXEFLAGS=@JAVAFLAGS@
 
 ###############################################################################
 #            DO NOT MODIFY BELOW THIS LINE
@@ -271,8 +271,8 @@ esac
 
 export LD_LIBRARY_PATH
 
-echo "$JAVAEXE -Xmx1024M -Dorg.slf4j.simpleLogger.defaultLog=trace -Djava.library.path=$BLDLIBDIR -cp $CLASSPATH examples.groups.H5Ex_G_Create"
-($JAVAEXE -Xmx1024M -Dorg.slf4j.simpleLogger.defaultLog=trace -Djava.library.path=$BLDLIBDIR -cp $CLASSPATH examples.groups.H5Ex_G_Create > H5Ex_G_Create.out)
+echo "$JAVAEXE $JAVAEXEFLAGS -Xmx1024M -Dorg.slf4j.simpleLogger.defaultLog=trace -Djava.library.path=$BLDLIBDIR -cp $CLASSPATH examples.groups.H5Ex_G_Create"
+($JAVAEXE $JAVAEXEFLAGS -Xmx1024M -Dorg.slf4j.simpleLogger.defaultLog=trace -Djava.library.path=$BLDLIBDIR -cp $CLASSPATH examples.groups.H5Ex_G_Create > H5Ex_G_Create.out)
 if diff H5Ex_G_Create.out examples.groups.H5Ex_G_Create.txt > /dev/null; then
     echo "  PASSED      groups.H5Ex_G_Create"
 else
@@ -280,8 +280,8 @@ else
     nerrors="`expr $nerrors + 1`"
 fi
 
-echo "$JAVAEXE -Xmx1024M -Dorg.slf4j.simpleLogger.defaultLog=trace -Djava.library.path=$BLDLIBDIR -cp $CLASSPATH examples.groups.H5Ex_G_Iterate"
-($JAVAEXE -Xmx1024M -Dorg.slf4j.simpleLogger.defaultLog=trace -Djava.library.path=$BLDLIBDIR -cp $CLASSPATH examples.groups.H5Ex_G_Iterate > H5Ex_G_Iterate.out)
+echo "$JAVAEXE $JAVAEXEFLAGS -Xmx1024M -Dorg.slf4j.simpleLogger.defaultLog=trace -Djava.library.path=$BLDLIBDIR -cp $CLASSPATH examples.groups.H5Ex_G_Iterate"
+($JAVAEXE $JAVAEXEFLAGS -Xmx1024M -Dorg.slf4j.simpleLogger.defaultLog=trace -Djava.library.path=$BLDLIBDIR -cp $CLASSPATH examples.groups.H5Ex_G_Iterate > H5Ex_G_Iterate.out)
 if diff H5Ex_G_Iterate.out examples.groups.H5Ex_G_Iterate.txt > /dev/null; then
     echo "  PASSED      groups.H5Ex_G_Iterate"
 else
@@ -289,8 +289,8 @@ else
     nerrors="`expr $nerrors + 1`"
 fi
 
-echo "$JAVAEXE -Xmx1024M -Dorg.slf4j.simpleLogger.defaultLog=trace -Djava.library.path=$BLDLIBDIR -cp $CLASSPATH examples.groups.H5Ex_G_Compact"
-($JAVAEXE -Xmx1024M -Dorg.slf4j.simpleLogger.defaultLog=trace -Djava.library.path=$BLDLIBDIR -cp $CLASSPATH examples.groups.H5Ex_G_Compact > H5Ex_G_Compact.out)
+echo "$JAVAEXE $JAVAEXEFLAGS -Xmx1024M -Dorg.slf4j.simpleLogger.defaultLog=trace -Djava.library.path=$BLDLIBDIR -cp $CLASSPATH examples.groups.H5Ex_G_Compact"
+($JAVAEXE $JAVAEXEFLAGS -Xmx1024M -Dorg.slf4j.simpleLogger.defaultLog=trace -Djava.library.path=$BLDLIBDIR -cp $CLASSPATH examples.groups.H5Ex_G_Compact > H5Ex_G_Compact.out)
 if diff H5Ex_G_Compact.out examples.groups.H5Ex_G_Compact.txt > /dev/null; then
     echo "  PASSED      groups.H5Ex_G_Compact"
 else
@@ -298,8 +298,8 @@ else
     nerrors="`expr $nerrors + 1`"
 fi
 
-echo "$JAVAEXE -Xmx1024M -Dorg.slf4j.simpleLogger.defaultLog=trace -Djava.library.path=$BLDLIBDIR -cp $CLASSPATH examples.groups.H5Ex_G_Corder"
-($JAVAEXE -Xmx1024M -Dorg.slf4j.simpleLogger.defaultLog=trace -Djava.library.path=$BLDLIBDIR -cp $CLASSPATH examples.groups.H5Ex_G_Corder > H5Ex_G_Corder.out)
+echo "$JAVAEXE $JAVAEXEFLAGS -Xmx1024M -Dorg.slf4j.simpleLogger.defaultLog=trace -Djava.library.path=$BLDLIBDIR -cp $CLASSPATH examples.groups.H5Ex_G_Corder"
+($JAVAEXE $JAVAEXEFLAGS -Xmx1024M -Dorg.slf4j.simpleLogger.defaultLog=trace -Djava.library.path=$BLDLIBDIR -cp $CLASSPATH examples.groups.H5Ex_G_Corder > H5Ex_G_Corder.out)
 if diff H5Ex_G_Corder.out examples.groups.H5Ex_G_Corder.txt > /dev/null; then
     echo "  PASSED      groups.H5Ex_G_Corder"
 else
@@ -307,8 +307,8 @@ else
     nerrors="`expr $nerrors + 1`"
 fi
 
-echo "$JAVAEXE -Xmx1024M -Dorg.slf4j.simpleLogger.defaultLog=trace -Djava.library.path=$BLDLIBDIR -cp $CLASSPATH examples.groups.H5Ex_G_Intermediate"
-($JAVAEXE -Xmx1024M -Dorg.slf4j.simpleLogger.defaultLog=trace -Djava.library.path=$BLDLIBDIR -cp $CLASSPATH examples.groups.H5Ex_G_Intermediate > H5Ex_G_Intermediate.out)
+echo "$JAVAEXE $JAVAEXEFLAGS -Xmx1024M -Dorg.slf4j.simpleLogger.defaultLog=trace -Djava.library.path=$BLDLIBDIR -cp $CLASSPATH examples.groups.H5Ex_G_Intermediate"
+($JAVAEXE $JAVAEXEFLAGS -Xmx1024M -Dorg.slf4j.simpleLogger.defaultLog=trace -Djava.library.path=$BLDLIBDIR -cp $CLASSPATH examples.groups.H5Ex_G_Intermediate > H5Ex_G_Intermediate.out)
 if diff H5Ex_G_Intermediate.out examples.groups.H5Ex_G_Intermediate.txt > /dev/null; then
     echo "  PASSED      groups.H5Ex_G_Intermediate"
 else
@@ -316,8 +316,8 @@ else
     nerrors="`expr $nerrors + 1`"
 fi
 
-echo "$JAVAEXE -Xmx1024M -Dorg.slf4j.simpleLogger.defaultLog=trace -Djava.library.path=$BLDLIBDIR -cp $CLASSPATH examples.groups.H5Ex_G_Phase"
-($JAVAEXE -Xmx1024M -Dorg.slf4j.simpleLogger.defaultLog=trace -Djava.library.path=$BLDLIBDIR -cp $CLASSPATH examples.groups.H5Ex_G_Phase > H5Ex_G_Phase.out)
+echo "$JAVAEXE $JAVAEXEFLAGS -Xmx1024M -Dorg.slf4j.simpleLogger.defaultLog=trace -Djava.library.path=$BLDLIBDIR -cp $CLASSPATH examples.groups.H5Ex_G_Phase"
+($JAVAEXE $JAVAEXEFLAGS -Xmx1024M -Dorg.slf4j.simpleLogger.defaultLog=trace -Djava.library.path=$BLDLIBDIR -cp $CLASSPATH examples.groups.H5Ex_G_Phase > H5Ex_G_Phase.out)
 if diff H5Ex_G_Phase.out examples.groups.H5Ex_G_Phase.txt > /dev/null; then
     echo "  PASSED      groups.H5Ex_G_Phase"
 else
@@ -325,8 +325,8 @@ else
     nerrors="`expr $nerrors + 1`"
 fi
 
-echo "$JAVAEXE -Xmx1024M -Dorg.slf4j.simpleLogger.defaultLog=trace -Djava.library.path=$BLDLIBDIR -cp $CLASSPATH examples.groups.H5Ex_G_Visit"
-($JAVAEXE -Xmx1024M -Dorg.slf4j.simpleLogger.defaultLog=trace -Djava.library.path=$BLDLIBDIR -cp $CLASSPATH examples.groups.H5Ex_G_Visit > H5Ex_G_Visit.out)
+echo "$JAVAEXE $JAVAEXEFLAGS -Xmx1024M -Dorg.slf4j.simpleLogger.defaultLog=trace -Djava.library.path=$BLDLIBDIR -cp $CLASSPATH examples.groups.H5Ex_G_Visit"
+($JAVAEXE $JAVAEXEFLAGS -Xmx1024M -Dorg.slf4j.simpleLogger.defaultLog=trace -Djava.library.path=$BLDLIBDIR -cp $CLASSPATH examples.groups.H5Ex_G_Visit > H5Ex_G_Visit.out)
 if diff H5Ex_G_Visit.out examples.groups.H5Ex_G_Visit.txt > /dev/null; then
     echo "  PASSED      groups.H5Ex_G_Visit"
 else
