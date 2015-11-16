@@ -814,6 +814,8 @@ if test "X$HDF_JAVA" = "Xyes" && test "X${enable_shared}" != "Xno"; then
   fi
 ## Checks for programs.
   AX_JAVA_OPTIONS
+  H5_JAVACFLAGS=$JAVACFLAGS
+  H5_JAVAFLAGS=$JAVAFLAGS
   AX_PROG_JAVAC
   AX_PROG_JAVA
   AX_PROG_JAR

@@ -216,7 +216,7 @@ TESTING() {
 
 # where Java is installed (requires jdk1.7.x)
 JAVAEXE=@JAVA@
-JAVAEXEFLAGS=@JAVAFLAGS@
+JAVAEXEFLAGS=@H5_JAVAFLAGS@
 
 ###############################################################################
 #            DO NOT MODIFY BELOW THIS LINE
