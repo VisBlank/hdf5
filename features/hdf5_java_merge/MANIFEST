@@ -2684,6 +2684,7 @@
 
 # CMake-specific Files
 ./config/cmake/cacheinit.cmake
+./config/cmake/CMakeFindJavaCommon.cmake
 ./config/cmake/ConversionTests.c
 ./config/cmake/ConfigureChecks.cmake
 ./config/cmake/CPack.Info.plist.in
