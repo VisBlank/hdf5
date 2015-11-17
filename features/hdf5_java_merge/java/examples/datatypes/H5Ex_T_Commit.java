@@ -77,15 +77,11 @@ public class H5Ex_T_Commit {
     }
 
     // The supporting Sensor_Datatype class.
-    // Using Java Externalization will add a two-byte object header in
-    // the stream, which needs to be called out in the datatypes.
     private static class Sensor_Datatype {
         static int numberMembers = 4;
         static int[] memberDims = { 1, 1, 1, 1 };
 
         String[] memberNames = { "Serial number", "Location", "Temperature (F)", "Pressure (inHg)" };
-        //long[] memberMemTypes = { HDF5Constants.H5T_NATIVE_INT, HDF5Constants.H5T_C_S1, HDF5Constants.H5T_NATIVE_DOUBLE,
-        //        HDF5Constants.H5T_NATIVE_DOUBLE };
         long[] memberFileTypes = { HDF5Constants.H5T_STD_I32BE, HDF5Constants.H5T_C_S1, HDF5Constants.H5T_IEEE_F64BE,
                 HDF5Constants.H5T_IEEE_F64BE };
         static int[] memberStorage = { INTEGERSIZE, MAXSTRINGSIZE, DOUBLESIZE, DOUBLESIZE };
