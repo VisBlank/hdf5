@@ -25,8 +25,7 @@ include $(top_srcdir)/config/lt_vers.am
 JAVA_API=yes
 
 # Include src directory and JNI flags
-AM_CPPFLAGS+=-I$(top_srcdir)/src $(top_srcdir)/java/src/jni $(JNIFLAGS)
-AM_CFLAGS+=-I$(top_srcdir)/src $(top_srcdir)/java/src/jni $(JNIFLAGS)
+AM_CPPFLAGS+=-I$(top_srcdir)/src -I$(top_srcdir)/java/src/jni $(JNIFLAGS)
 
 # This is our main target
 lib_LTLIBRARIES=libhdf5_java.la
