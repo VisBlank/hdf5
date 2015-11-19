@@ -320,7 +320,7 @@ public class TestH5T {
         long       filetype_id = -1;
         String    opaque_name = null;
 
-        // Create a enumerate datatype
+        // Create a opaque datatype
         try {
             filetype_id = H5.H5Tcreate(HDF5Constants.H5T_OPAQUE, (long)4);
         }
@@ -403,7 +403,7 @@ public class TestH5T {
     public void testH5Tcompound_functions() {
         long       filetype_id =-1;
 
-        // Create a enumerate datatype
+        // Create a compound datatype
         try {
             filetype_id = H5.H5Tcreate(HDF5Constants.H5T_COMPOUND, (long)16);
         }

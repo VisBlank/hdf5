@@ -34,8 +34,10 @@ public class H5Ex_G_Phase {
     private static int MIN_DENSE = 3;
 
     enum H5G_storage {
-        H5G_STORAGE_TYPE_UNKNOWN(-1), H5G_STORAGE_TYPE_SYMBOL_TABLE(0), H5G_STORAGE_TYPE_COMPACT(1), H5G_STORAGE_TYPE_DENSE(
-                2);
+        H5G_STORAGE_TYPE_UNKNOWN(-1),
+        H5G_STORAGE_TYPE_SYMBOL_TABLE(0),
+        H5G_STORAGE_TYPE_COMPACT(1),
+        H5G_STORAGE_TYPE_DENSE(2);
 
         private static final Map<Integer, H5G_storage> lookup = new HashMap<Integer, H5G_storage>();
 

@@ -22,7 +22,8 @@ package examples.datatypes;
 import hdf.hdf5lib.H5;
 import hdf.hdf5lib.HDF5Constants;
 
-public class H5Ex_T_VLString {
+public class H5Ex_T_VLString
+{
     private static String FILENAME = "H5Ex_T_VLString.h5";
     private static String DATASETNAME = "DS1";
 
@@ -101,7 +102,6 @@ public class H5Ex_T_VLString {
 
         try {
             file_id = H5.H5Fopen(FILENAME, HDF5Constants.H5F_ACC_RDONLY, HDF5Constants.H5P_DEFAULT);
-            ;
         }
         catch (Exception e) {
             e.printStackTrace();

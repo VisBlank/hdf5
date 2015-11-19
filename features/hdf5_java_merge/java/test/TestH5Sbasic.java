@@ -42,7 +42,7 @@ public class TestH5Sbasic {
 
     @Test//(expected = HDF5LibraryException.class)
     public void testH5Sclose_invalid() throws Throwable {
-        int sid = H5.H5Sclose(-1);
+        long sid = H5.H5Sclose(-1);
         assertTrue(sid == 0);
     }
 

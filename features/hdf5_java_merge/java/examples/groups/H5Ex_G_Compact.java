@@ -34,8 +34,10 @@ public class H5Ex_G_Compact {
     private static final String GROUP = "G1";
 
     enum H5G_storage {
-        H5G_STORAGE_TYPE_UNKNOWN(-1), H5G_STORAGE_TYPE_SYMBOL_TABLE(0), H5G_STORAGE_TYPE_COMPACT(1), H5G_STORAGE_TYPE_DENSE(
-                2);
+        H5G_STORAGE_TYPE_UNKNOWN(-1),
+        H5G_STORAGE_TYPE_SYMBOL_TABLE(0),
+        H5G_STORAGE_TYPE_COMPACT(1),
+        H5G_STORAGE_TYPE_DENSE(2);
 
         private static final Map<Integer, H5G_storage> lookup = new HashMap<Integer, H5G_storage>();
 
@@ -68,17 +70,15 @@ public class H5Ex_G_Compact {
 
         // Create file 1. This file will use original format groups.
         try {
-            file_id = H5.H5Fcreate(FILE1, HDF5Constants.H5F_ACC_TRUNC, HDF5Constants.H5P_DEFAULT,
-                    HDF5Constants.H5P_DEFAULT);
+            file_id = H5.H5Fcreate (FILE1, HDF5Constants.H5F_ACC_TRUNC, HDF5Constants.H5P_DEFAULT, HDF5Constants.H5P_DEFAULT);
         }
         catch (Exception e) {
             e.printStackTrace();
         }
         // Create a group in the file1.
         try {
-            if (file_id >= 0)
-                group_id = H5.H5Gcreate(file_id, GROUP, HDF5Constants.H5P_DEFAULT, HDF5Constants.H5P_DEFAULT,
-                        HDF5Constants.H5P_DEFAULT);
+            if(file_id >= 0)
+                group_id = H5.H5Gcreate(file_id, GROUP, HDF5Constants.H5P_DEFAULT, HDF5Constants.H5P_DEFAULT, HDF5Constants.H5P_DEFAULT);
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -86,7 +86,7 @@ public class H5Ex_G_Compact {
 
         // Obtain the group info and print the group storage type.
         try {
-            if (group_id >= 0) {
+            if(group_id >= 0) {
                 ginfo = H5.H5Gget_info(group_id);
                 System.out.print("Group storage type for " + FILE1 + " is: ");
                 switch (H5G_storage.get(ginfo.storage_type)) {
@@ -178,9 +178,8 @@ public class H5Ex_G_Compact {
         }
         // Create group in file2.
         try {
-            if (file_id >= 0)
-                group_id = H5.H5Gcreate(file_id, GROUP, HDF5Constants.H5P_DEFAULT, HDF5Constants.H5P_DEFAULT,
-                        HDF5Constants.H5P_DEFAULT);
+            if(file_id >= 0)
+                group_id = H5.H5Gcreate(file_id, GROUP, HDF5Constants.H5P_DEFAULT, HDF5Constants.H5P_DEFAULT, HDF5Constants.H5P_DEFAULT);
         }
         catch (Exception e) {
             e.printStackTrace();

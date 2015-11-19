@@ -40,7 +40,7 @@ public class TestH5Dparams {
 
     @Test//(expected = HDF5LibraryException.class)
     public void testH5Dclose_invalid() throws Throwable {
-        int did = H5.H5Dclose(-1);
+        long did = H5.H5Dclose(-1);
         assertTrue(did == 0);
     }
 

@@ -119,8 +119,10 @@ public class H5Ex_T_CompoundAttribute {
 
         @Override
         public String toString() {
-            return String.format("Serial number   : " + serial_no + "%n" + "Location        : " + location + "%n"
-                    + "Temperature (F) : " + temperature + "%n" + "Pressure (inHg) : " + pressure + "%n");
+            return String.format("Serial number   : " + serial_no  + "%n" +
+                                 "Location        : " + location + "%n" +
+                                 "Temperature (F) : " + temperature + "%n" +
+                                 "Pressure (inHg) : " + pressure + "%n");
         }
     }
 
