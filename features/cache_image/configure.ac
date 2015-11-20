@@ -951,6 +951,7 @@ AC_CHECK_HEADERS([sys/socket.h sys/types.h])
 AC_CHECK_HEADERS([stddef.h setjmp.h features.h])
 AC_CHECK_HEADERS([dirent.h])
 AC_CHECK_HEADERS([stdint.h], [C9x=yes])
+AC_CHECK_HEADERS([stdbool.h])
 
 ## Darwin
 AC_CHECK_HEADERS([mach/mach_time.h])
@@ -1129,6 +1130,17 @@ cat >>confdefs.h <<\EOF
 EOF
 AC_CHECK_SIZEOF([off_t], [4])
 AC_CHECK_SIZEOF([off64_t], [8])
+
+if test "X$C9x" = "Xyes"; then
+  cat >>confdefs.h <<\EOF
+#ifdef HAVE_STDBOOL_H
+#include <stdbool.h> /* for bool definition */
+#else
+#define bool _Bool
+#endif
+EOF
+AC_CHECK_SIZEOF([bool], [1])
+fi
 
 ## Checkpoint the cache
 AC_CACHE_SAVE
@@ -3055,8 +3067,10 @@ AC_CONFIG_FILES([src/libhdf5.settings
                  tools/h5dump/Makefile
                  tools/h5dump/testh5dump.sh
                  tools/h5dump/testh5dumppbits.sh
+                 tools/h5dump/testh5dumpvds.sh
                  tools/h5dump/testh5dumpxml.sh
                  tools/h5ls/testh5ls.sh
+                 tools/h5ls/testh5lsvds.sh
                  tools/h5import/Makefile
                  tools/h5import/h5importtestutil.sh
                  tools/h5diff/Makefile
@@ -3075,6 +3089,7 @@ AC_CONFIG_FILES([src/libhdf5.settings
                  tools/misc/h5cc
                  tools/misc/testh5mkgrp.sh
                  tools/misc/testh5repart.sh
+                 tools/misc/vds/Makefile
                  tools/h5stat/testh5stat.sh
                  tools/h5stat/Makefile
                  tools/perform/Makefile

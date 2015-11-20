@@ -19,22 +19,18 @@
 # IMPORTANT OS X NOTE
 #
 # If you are using OS X, you will probably not have the autotools
-# installed, even if you have the Xcode command-line tools. The
-# bison version you have installed may also have a bug that makes
-# it unable to process our input files.
+# installed, even if you have the Xcode command-line tools.
 #
 # The easiest way to fix this is to install everything via Homebrew:
 #
 #   http://brew.sh/
 #
 # After you install the base packages, install autoconf, automake,
-# libtool, and flex/bison.
+# and libtool.
 #
 #   brew install autoconf
 #   brew install automake
 #   brew install libtool
-#   brew install flex
-#   brew install bison
 #
 # This only takes a few minutes. Note that libtool and libtoolize will
 # be glibtool and glibtoolize so as not to conflict with Apple's non-gnu
@@ -52,8 +48,6 @@
 #   HDF5_AUTOCONF
 #   HDF5_LIBTOOL
 #   HDF5_M4
-#   HDF5_FLEX
-#   HDF5_BISON
 #
 # Note that aclocal will attempt to include libtool's share/aclocal
 # directory.
@@ -94,10 +88,9 @@ while getopts "$optspec" optchar; do
         echo
         echo "      -h      Print this help message."
         echo
-        echo "      -p      Used by THG to ensure that particular versions"
-        echo "              of the autotools are used and hard-codes"
-        echo "              autotools paths to THG machines. Not for"
-        echo "              non-HDF-Group users!"
+        echo "      -p      Used by THG to use hard-codes autotools"
+        echo "              paths on THG machines. Not for non-HDF-Group"
+        echo "              users!"
         echo
         echo "      -v      Show more verbose output."
         echo
@@ -107,7 +100,7 @@ while getopts "$optspec" optchar; do
         exit 0
         ;;
     p)
-        echo "Setting production mode..."
+        echo "Setting THG production mode..."
         echo
         production=true
         ;;
@@ -128,92 +121,27 @@ if [ "$production" = true ] ; then
 
     # Production mode
     #
-    # Hard-code canonical HDF Group tool locations and ensure
-    # version numbers are correct.
-
-    # Production versions of the tools
-    AUTOCONF_VERSION="autoconf (GNU Autoconf) 2.69"
-    AUTOMAKE_VERSION="automake (GNU automake) 1.14.1"
-    AUTOHEADER_VERSION="autoheader (GNU Autoconf) 2.69"
-    ACLOCAL_VERSION="aclocal (GNU automake) 1.14.1"
-    LIBTOOL_VERSION="(GNU libtool) 2.4.2"
-    M4_VERSION="m4 (GNU M4) 1.4.17"
-    BISON_VERSION="bison (GNU Bison) 2.7"
-    FLEX_VERSION="flex 2.5.37"
+    # Hard-code canonical HDF Group tool locations.
 
     # If paths to tools are not specified, assume they are
-    # located in /mnt/hdf/packages and set paths accordingly.
+    # located in /usr/hdf/bin/AUTOTOOLS and set paths accordingly.
     if test -z ${HDF5_AUTOCONF}; then
-        HDF5_AUTOCONF=/mnt/hdf/packages/autoconf/autoconf-2.69/bin/autoconf
+        HDF5_AUTOCONF=/usr/hdf/bin/AUTOTOOLS/autoconf
     fi
     if test -z ${HDF5_AUTOMAKE}; then
-        HDF5_AUTOMAKE=/mnt/hdf/packages/automake/automake-1.14.1/bin/automake-1.14
+        HDF5_AUTOMAKE=/usr/hdf/bin/AUTOTOOLS/automake
     fi
     if test -z ${HDF5_AUTOHEADER}; then
-        HDF5_AUTOHEADER=/mnt/hdf/packages/autoconf/autoconf-2.69/bin/autoheader
+        HDF5_AUTOHEADER=/usr/hdf/bin/AUTOTOOLS/autoheader
     fi
     if test -z ${HDF5_ACLOCAL}; then
-        HDF5_ACLOCAL=/mnt/hdf/packages/automake/automake-1.14.1/bin/aclocal-1.14
+        HDF5_ACLOCAL=/usr/hdf/bin/AUTOTOOLS/aclocal
     fi
     if test -z ${HDF5_LIBTOOL}; then
-        HDF5_LIBTOOL=/mnt/hdf/packages/libtool/libtool-2.4.2/bin/libtool
+        HDF5_LIBTOOL=/usr/hdf/bin/AUTOTOOLS/libtool
     fi
     if test -z ${HDF5_M4}; then
-        HDF5_M4=/mnt/hdf/packages/m4/m4-1.4.17/bin/m4
-    fi
-    if test -z ${HDF5_BISON}; then
-        HDF5_BISON=/usr/hdf/bin/bison
-    fi
-    if test -z ${HDF5_FLEX}; then
-        HDF5_FLEX=/usr/hdf/bin/flex
-    fi
-
-    # Check version numbers of all autotools against the "correct" versions
-    AC_VERS=`${HDF5_AUTOCONF} --version 2>&1 | grep "^${AUTOCONF_VERSION}"`
-    if test -z "${AC_VERS}"; then
-        echo "${HDF5_AUTOCONF} version is not ${AUTOCONF_VERSION}"
-        ${HDF5_AUTOCONF} --version
-        exit 1
-    fi
-    AM_VERS=`${HDF5_AUTOMAKE} --version 2>&1 | grep "^${AUTOMAKE_VERSION}"`
-    if test -z "${AM_VERS}"; then
-       echo "${HDF5_AUTOMAKE} version is not ${AUTOMAKE_VERSION}"
-       ${HDF5_AUTOMAKE} --version
-       exit 1
-    fi
-    AH_VERS=`${HDF5_AUTOHEADER} --version 2>&1 | grep "^${AUTOHEADER_VERSION}"`
-    if test -z "${AH_VERS}"; then
-        echo "${HDF5_AUTOHEADER} version is not ${AUTOHEADER_VERSION}"
-        ${HDF5_AUTOHEADER} --version
-        exit 1
-    fi
-    AL_VERS=`${HDF5_ACLOCAL} --version 2>&1 | grep "^${ACLOCAL_VERSION}"`
-    if test -z "${AL_VERS}"; then
-        echo "${HDF5_ACLOCAL} version is not ${ACLOCAL_VERSION}"
-        ${HDF5_ACLOCAL} --version
-        exit 1
-    fi
-    LT_VERS=`${HDF5_LIBTOOL} --version 2>&1 | grep "${LIBTOOL_VERSION}"`
-    if test -z "${LT_VERS}"; then
-        echo "${HDF5_LIBTOOL} version is not ${LIBTOOL_VERSION}"
-        ${HDF5_LIBTOOL} --version
-        exit 1
-    fi
-    M4_VERS=`${HDF5_M4} --version 2>&1 | grep "${M4_VERSION}"`
-    if test -z "${M4_VERS}"; then
-        echo "${HDF5_M4} version is not ${M4_VERSION}"
-        ${HDF5_M4} --version
-        exit 1
-    fi
-    BI_VERS=`${HDF5_BISON} --version 2>&1 | grep "^${BISON_VERSION}"`
-    if test -z "${BI_VERS}"; then
-       echo "${HDF5_BISON} version is not ${BISON_VERSION}"
-       exit 1
-    fi
-    FL_VERS=`${HDF5_FLEX} --version 2>&1 | grep "^${FLEX_VERSION}"`
-    if test -z "${FL_VERS}"; then
-       echo "${HDF5_FLEX} version is not ${FLEX_VERSION}"
-       exit 1
+        HDF5_M4=/usr/hdf/bin/AUTOTOOLS/m4
     fi
 
 else
@@ -249,12 +177,6 @@ else
     if test -z ${HDF5_M4}; then
         HDF5_M4=$(which m4)
     fi
-    if test -z ${HDF5_BISON}; then
-        HDF5_BISON=$(which bison)
-    fi
-    if test -z ${HDF5_FLEX}; then
-        HDF5_FLEX=$(which flex)
-    fi
 
 fi # production
 
@@ -263,9 +185,7 @@ fi # production
 AUTOCONF_DIR=`dirname ${HDF5_AUTOCONF}`
 LIBTOOL_DIR=`dirname ${HDF5_LIBTOOL}`
 M4_DIR=`dirname ${HDF5_M4}`
-BISON_DIR=`dirname ${HDF5_BISON}`
-FLEX_DIR=`dirname ${HDF5_FLEX}`
-PATH=${AUTOCONF_DIR}:${LIBTOOL_DIR}:${M4_DIR}:${FLEX_DIR}:${BISON_DIR}:$PATH
+PATH=${AUTOCONF_DIR}:${LIBTOOL_DIR}:${M4_DIR}:$PATH
 
 # Make libtoolize match the specified libtool
 case "`uname`" in
@@ -374,93 +294,6 @@ bin/make_vers src/H5vers.txt || exit 1
 echo
 echo "Running overflow macro generation script:"
 bin/make_overflow src/H5overflow.txt || exit 1
-
-# Run flex and bison
-# automatically generates hl/src/H5LTanalyze.c and hl/src/H5LTparse.c
-# Note that, as of Xcode 6.1 (2015), the default bison version on OS X
-# is old enough to have the circular dependency bug. You'll have
-# to install a later version of bison. See the OS X note at the top
-# of this script.
-echo
-echo "Generating H5LT parser code (requires yacc/bison):"
-echo "Generate hl/src/H5LTparse.c from hl/src/H5LTparse.y"
-# HDF5_BISON is set via the environment or 'which bison', above
-if test -z ${HDF5_BISON}; then
-    echo
-    echo "*************************"
-    echo " ERROR - bison not found"
-    echo "*************************"
-    echo "bison is required to generate parser code in H5LT"
-    echo
-    exit 127
-fi
-cd hl/src
-if [ "$verbose" = true ] ; then
-    ${HDF5_BISON} --version
-fi
-${HDF5_BISON} -pH5LTyy -o H5LTparse.c -d H5LTparse.y
-
-echo
-echo "Generating H5LT lexer code (requires lex/flex):"
-echo "Generate hl/src/H5LTanalyze.c from hl/src/H5LTanalyze.l"
-# HDF5_FLEX is set via the environment or 'which flex', above
-if test -z ${HDF5_FLEX}; then
-    echo
-    echo "************************"
-    echo " ERROR - flex not found"
-    echo "************************"
-    echo "flex is required to generate lexer code in H5LT"
-    echo
-    exit 127
-fi
-if [ "$verbose" = true ] ; then
-    ${HDF5_FLEX} --version
-fi
-${HDF5_FLEX} --nounistd -PH5LTyy -o H5LTanalyze.c H5LTanalyze.l
-
-# fix H5LTparse.c to declare H5LTyyparse return type as an hid_t
-# instead of int.  Currently the generated function H5LTyyparse is
-# generated with a return value of type int, which is a mapping to the
-# flex yyparse function.  The return value in the HL library should be
-# an hid_t. 
-# I propose to not use flex to generate this function, but for now I am 
-# adding a perl command to find and replace this function declaration in
-# H5LTparse.c.
-perl -0777 -pi -e 's/int\nyyparse/hid_t\nyyparse/igs' H5LTparse.c
-perl -0777 -pi -e 's/int H5LTyyparse/hid_t H5LTyyparse/igs' H5LTparse.c
-
-# Add code that disables warnings in the flex/bison-generated code.
-#
-# Note that the GCC pragmas did not exist until gcc 4.2. Earlier versions
-# will simply ignore them, but we want to avoid those warnings.
-for f in H5LTparse.c H5LTanalyze.c
-do
-    echo '#if __GNUC__ >= 4 && __GNUC_MINOR__ >=2                           ' >> tmp.out
-    echo '#pragma GCC diagnostic ignored "-Wconversion"                     ' >> tmp.out
-    echo '#pragma GCC diagnostic ignored "-Wimplicit-function-declaration"  ' >> tmp.out
-    echo '#pragma GCC diagnostic ignored "-Wlarger-than="                   ' >> tmp.out
-    echo '#pragma GCC diagnostic ignored "-Wmissing-prototypes"             ' >> tmp.out
-    echo '#pragma GCC diagnostic ignored "-Wnested-externs"                 ' >> tmp.out
-    echo '#pragma GCC diagnostic ignored "-Wold-style-definition"           ' >> tmp.out
-    echo '#pragma GCC diagnostic ignored "-Wsign-compare"                   ' >> tmp.out
-    echo '#pragma GCC diagnostic ignored "-Wsign-conversion"                ' >> tmp.out
-    echo '#pragma GCC diagnostic ignored "-Wstrict-prototypes"              ' >> tmp.out
-    echo '#pragma GCC diagnostic ignored "-Wswitch-default"                 ' >> tmp.out
-    echo '#pragma GCC diagnostic ignored "-Wunused-function"                ' >> tmp.out
-    echo '#pragma GCC diagnostic ignored "-Wunused-macros"                  ' >> tmp.out
-    echo '#pragma GCC diagnostic ignored "-Wunused-parameter"               ' >> tmp.out
-    echo '#pragma GCC diagnostic ignored "-Wredundant-decls"                ' >> tmp.out
-    echo '#elif defined __SUNPRO_CC                                         ' >> tmp.out
-    echo '#pragma disable_warn                                              ' >> tmp.out
-    echo '#elif defined _MSC_VER                                            ' >> tmp.out
-    echo '#pragma warning(push, 1)                                          ' >> tmp.out
-    echo '#endif                                                            ' >> tmp.out
-
-    cat $f >> tmp.out
-    mv tmp.out $f
-done
-
-cd ../..
 
 echo
 exit 0
