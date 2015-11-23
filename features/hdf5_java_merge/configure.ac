@@ -834,7 +834,7 @@ if test "X$HDF_JAVA" = "Xyes" && test "X${enable_shared}" != "Xno"; then
   AC_MSG_RESULT([yes])
 else
   if test "X${enable_shared}" = "Xno"; then
-    AC_MSG_WARN([Java requires shared libraries to be built])
+    AC_MSG_ERROR([Java requires shared libraries to be built])
   fi
   HDF_JAVA="no"
   AC_MSG_RESULT([no])
@@ -1581,6 +1581,15 @@ if test "X${ALLOW_UNSUPPORTED}" != "Xyes"; then
   fi
 fi
 
+## The --enable-threadsafe flag is not compatible with --enable-java.
+## If the user tried to specify both flags, throw an error, unless
+## they also provided the --enable-unsupported flag.
+if test "X${ALLOW_UNSUPPORTED}" != "Xyes"; then
+  if test "X${HDF_JAVA}" = "Xyes" -a "X${enable_threadsafe}" = "Xyes"; then
+    AC_MSG_ERROR([--enable-java and --enable-threadsafe flags are incompatible. Use --enable-unsupported to override this error.])
+  fi
+fi
+
 ## --enable-threadsafe is also incompatible with --enable-fortran unless
 ## --enable-unsupported has been specified on the configure line.
 if test "X${ALLOW_UNSUPPORTED}" != "Xyes"; then
@@ -2152,6 +2161,15 @@ AC_ARG_ENABLE([parallel],
 if test "X${ALLOW_UNSUPPORTED}" != "Xyes"; then
   if test "X${HDF_CXX}" = "Xyes" -a "X${enable_parallel}" = "Xyes"; then
     AC_MSG_ERROR([--enable-cxx and --enable-parallel flags are incompatible. Use --enable-unsupported to override this error.])
+  fi
+fi
+
+## The --enable-parallel flag is not compatible with --enable-java.
+## If the user tried to specify both flags, throw an error, unless
+## they also provided the --enable-unsupported flag.
+if test "X${ALLOW_UNSUPPORTED}" != "Xyes"; then
+  if test "X${HDF_JAVA}" = "Xyes" -a "X${enable_parallel}" = "Xyes"; then
+    AC_MSG_ERROR([--enable-java and --enable-parallel flags are incompatible. Use --enable-unsupported to override this error.])
   fi
 fi
 
