@@ -528,10 +528,11 @@ public class H5 implements java.io.Serializable {
     public static long H5Acreate(long loc_id, String attr_name, long type_id, long space_id, long acpl_id, long aapl_id)
             throws HDF5LibraryException, NullPointerException {
         long id = _H5Acreate2(loc_id, attr_name, type_id, space_id, acpl_id, aapl_id);
-        if (id > 0)
+        if (id > 0) 
             log.trace("OPEN_IDS: H5A create ad {}", id);
             OPEN_IDS.add(id);
             log.trace("OPEN_IDS: {}", OPEN_IDS.size());
+        }
         return id;
     }
 
@@ -575,10 +576,11 @@ public class H5 implements java.io.Serializable {
     public static long H5Acreate_by_name(long loc_id, String obj_name, String attr_name, long type_id, long space_id,
             long acpl_id, long aapl_id, long lapl_id) throws HDF5LibraryException, NullPointerException {
         long id = _H5Acreate_by_name(loc_id, obj_name, attr_name, type_id, space_id, acpl_id, aapl_id, lapl_id);
-        if (id > 0)
+        if (id > 0) {
             log.trace("OPEN_IDS: H5Acreate_by_name add {}", id);
             OPEN_IDS.add(id);
             log.trace("OPEN_IDS: {}", OPEN_IDS.size());
+        }
         return id;
     }
 
@@ -827,10 +829,11 @@ public class H5 implements java.io.Serializable {
      **/
     public static long H5Aget_space(long attr_id) throws HDF5LibraryException {
         long id = _H5Aget_space(attr_id);
-        if (id > 0)
+        if (id > 0) {
             log.trace("OPEN_IDS: H5Aget_space add {}", id);
             OPEN_IDS.add(id);
             log.trace("OPEN_IDS: {}", OPEN_IDS.size());
+        }
         return id;
     }
 
@@ -862,10 +865,11 @@ public class H5 implements java.io.Serializable {
      **/
     public static long H5Aget_type(long attr_id) throws HDF5LibraryException {
         long id = _H5Aget_type(attr_id);
-        if (id > 0)
+        if (id > 0) {
             log.trace("OPEN_IDS: H5Aget_type add {}", id);
             OPEN_IDS.add(id);
             log.trace("OPEN_IDS: {}", OPEN_IDS.size());
+        }
         return id;
     }
 
@@ -892,10 +896,11 @@ public class H5 implements java.io.Serializable {
     public static long H5Aopen(long obj_id, String attr_name, long aapl_id) throws HDF5LibraryException,
     NullPointerException {
         long id = _H5Aopen(obj_id, attr_name, aapl_id);
-        if (id > 0)
+        if (id > 0) {
             log.trace("OPEN_IDS: H5Aopen add {}", id);
             OPEN_IDS.add(id);
             log.trace("OPEN_IDS: {}", OPEN_IDS.size());
+        }
         return id;
     }
 
@@ -931,10 +936,11 @@ public class H5 implements java.io.Serializable {
     public static long H5Aopen_by_idx(long loc_id, String obj_name, int idx_type, int order, long n, long aapl_id,
             long lapl_id) throws HDF5LibraryException, NullPointerException {
         long id = _H5Aopen_by_idx(loc_id, obj_name, idx_type, order, n, aapl_id, lapl_id);
-        if (id > 0)
+        if (id > 0) {
             log.trace("OPEN_IDS: H5Aopen_by_idx add {}", id);
             OPEN_IDS.add(id);
             log.trace("OPEN_IDS: {}", OPEN_IDS.size());
+        }
         return id;
     }
 
@@ -965,10 +971,11 @@ public class H5 implements java.io.Serializable {
     public static long H5Aopen_by_name(long loc_id, String obj_name, String attr_name, long aapl_id, long lapl_id)
             throws HDF5LibraryException, NullPointerException {
         long id = _H5Aopen_by_name(loc_id, obj_name, attr_name, aapl_id, lapl_id);
-        if (id > 0)
+        if (id > 0) {
             log.trace("OPEN_IDS: H5Aopen_by_name add {}", id);
             OPEN_IDS.add(id);
             log.trace("OPEN_IDS: {}", OPEN_IDS.size());
+        }
         return id;
     }
 
@@ -1209,10 +1216,11 @@ public class H5 implements java.io.Serializable {
     public static long H5Dcreate(long loc_id, String name, long type_id, long space_id, long lcpl_id, long dcpl_id,
             long dapl_id) throws HDF5LibraryException, NullPointerException {
         long id = _H5Dcreate2(loc_id, name, type_id, space_id, lcpl_id, dcpl_id, dapl_id);
-        if (id > 0)
+        if (id > 0) {
             log.trace("OPEN_IDS: H5Dcreate add {}", id);
             OPEN_IDS.add(id);
             log.trace("OPEN_IDS: {}", OPEN_IDS.size());
+        }
         return id;
     }
 
@@ -1247,10 +1255,11 @@ public class H5 implements java.io.Serializable {
     public static long H5Dcreate_anon(long loc_id, long type_id, long space_id, long dcpl_id, long dapl_id)
             throws HDF5LibraryException {
         long id = _H5Dcreate_anon(loc_id, type_id, space_id, dcpl_id, dapl_id);
-        if (id > 0)
+        if (id > 0) {
             log.trace("OPEN_IDS: H5Dcreate_anon add {}", id);
             OPEN_IDS.add(id);
             log.trace("OPEN_IDS: {}", OPEN_IDS.size());
+        }
         return id;
     }
 
@@ -1304,10 +1313,11 @@ public class H5 implements java.io.Serializable {
      **/
     public static long H5Dget_create_plist(long dataset_id) throws HDF5LibraryException {
         long id = _H5Dget_create_plist(dataset_id);
-        if (id > 0)
+        if (id > 0) {
             log.trace("OPEN_IDS: H5Dget_create_plist add {}", id);
             OPEN_IDS.add(id);
             log.trace("OPEN_IDS: {}", OPEN_IDS.size());
+        }
         return id;
     }
 
@@ -1339,10 +1349,11 @@ public class H5 implements java.io.Serializable {
      **/
     public static long H5Dget_space(long dataset_id) throws HDF5LibraryException {
         long id = _H5Dget_space(dataset_id);
-        if (id > 0)
+        if (id > 0) {
             log.trace("OPEN_IDS: H5Dget_space add {}", id);
             OPEN_IDS.add(id);
             log.trace("OPEN_IDS: {}", OPEN_IDS.size());
+        }
         return id;
     }
 
@@ -1406,17 +1417,18 @@ public class H5 implements java.io.Serializable {
      **/
     public static long H5Dget_type(long dataset_id) throws HDF5LibraryException {
         long id = _H5Dget_type(dataset_id);
-        if (id > 0)
+        if (id > 0) {
             log.trace("OPEN_IDS: H5Dget_type add {}", id);
             OPEN_IDS.add(id);
             log.trace("OPEN_IDS: {}", OPEN_IDS.size());
+        }
         return id;
     }
 
     private synchronized static native long _H5Dget_type(long dataset_id) throws HDF5LibraryException;
 
     public synchronized static native int H5Dgetdir_ext(String[] dir_name, int size) throws HDF5LibraryException,
-    NullPointerException;
+            NullPointerException;
 
     /**
      * H5Diterate iterates over all the data elements in the memory buffer buf, executing the callback function operator
@@ -1464,10 +1476,11 @@ public class H5 implements java.io.Serializable {
     public static long H5Dopen(long loc_id, String name, long dapl_id) throws HDF5LibraryException,
     NullPointerException {
         long id = _H5Dopen2(loc_id, name, dapl_id);
-        if (id > 0)
+        if (id > 0) {
             log.trace("OPEN_IDS: H5Dopen add {}", id);
             OPEN_IDS.add(id);
             log.trace("OPEN_IDS: {}", OPEN_IDS.size());
+        }
         return id;
     }
 
@@ -2363,10 +2376,11 @@ public class H5 implements java.io.Serializable {
     public static long H5Fcreate(String name, int flags, long create_id, long access_id) throws HDF5LibraryException,
     NullPointerException {
         long id = _H5Fcreate(name, flags, create_id, access_id);
-        if (id > 0)
+        if (id > 0) {
             log.trace("OPEN_IDS: H5Fcreate add {}", id);
             OPEN_IDS.add(id);
             log.trace("OPEN_IDS: {}", OPEN_IDS.size());
+        }
         return id;
     }
 
@@ -2415,10 +2429,11 @@ public class H5 implements java.io.Serializable {
      **/
     public static long H5Fget_access_plist(long file_id) throws HDF5LibraryException {
         long id = _H5Fget_access_plist(file_id);
-        if (id > 0)
+        if (id > 0) {
             log.trace("OPEN_IDS: H5Fget_access_plist add {}", id);
             OPEN_IDS.add(id);
             log.trace("OPEN_IDS: {}", OPEN_IDS.size());
+        }
         return id;
     }
 
@@ -2438,10 +2453,11 @@ public class H5 implements java.io.Serializable {
      **/
     public static long H5Fget_create_plist(long file_id) throws HDF5LibraryException {
         long id = _H5Fget_create_plist(file_id);
-        if (id > 0)
+        if (id > 0) {
             log.trace("OPEN_IDS: H5Fget_create_plist add {}", id);
             OPEN_IDS.add(id);
             log.trace("OPEN_IDS: {}", OPEN_IDS.size());
+        }
         return id;
     }
 
@@ -3172,10 +3188,11 @@ public class H5 implements java.io.Serializable {
     public static long H5Gopen(long loc_id, String name, long gapl_id) throws HDF5LibraryException,
     NullPointerException {
         long id = _H5Gopen2(loc_id, name, gapl_id);
-        if (id > 0)
+        if (id > 0) {
             log.trace("OPEN_IDS: H5Gopen add {}", id);
             OPEN_IDS.add(id);
             log.trace("OPEN_IDS: {}", OPEN_IDS.size());
+        }
         return id;
     }
 
