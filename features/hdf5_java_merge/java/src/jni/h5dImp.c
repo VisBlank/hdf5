@@ -1688,13 +1688,13 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Dread_1reg_1ref_1data (JNIEnv *env,
         if (region_obj >= 0) {
             region = H5Rget_region(did, H5R_DATASET_REGION, ref_data[i]);
             if (region >= 0) {
-        region_type = H5Sget_select_type(region);
-        if(region_type==H5S_SEL_POINTS) {
-          h5str_dump_region_points_data(&h5str, region, region_obj);
-        }
-        else {
-          h5str_dump_region_blocks_data(&h5str, region, region_obj);
-        }
+				region_type = H5Sget_select_type(region);
+				if(region_type==H5S_SEL_POINTS) {
+					h5str_dump_region_points_data(&h5str, region, region_obj);
+				}
+				else {
+					h5str_dump_region_blocks_data(&h5str, region, region_obj);
+				}
 
                 H5Sclose(region);
             }
