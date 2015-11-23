@@ -294,17 +294,23 @@
  */
 #ifdef __cplusplus
 #   define H5_ATTR_FORMAT(X,Y,Z)  /*void*/
-#   define H5_ATTR_UNUSED    /*void*/
-#   define H5_ATTR_NORETURN  /*void*/
+#   define H5_ATTR_UNUSED       /*void*/
+#   define H5_ATTR_NORETURN     /*void*/
+#   define H5_ATTR_CONST        /*void*/
+#   define H5_ATTR_PURE         /*void*/
 #else /* __cplusplus */
 #if defined(H5_HAVE_ATTRIBUTE) && !defined(__SUNPRO_C)
 #   define H5_ATTR_FORMAT(X,Y,Z)  __attribute__((format(X, Y, Z)))
-#   define H5_ATTR_UNUSED    __attribute__((unused))
-#   define H5_ATTR_NORETURN  __attribute__((noreturn))
+#   define H5_ATTR_UNUSED       __attribute__((unused))
+#   define H5_ATTR_NORETURN     __attribute__((noreturn))
+#   define H5_ATTR_CONST        __attribute__((const))
+#   define H5_ATTR_PURE         __attribute__((pure))
 #else
 #   define H5_ATTR_FORMAT(X,Y,Z)  /*void*/
-#   define H5_ATTR_UNUSED    /*void*/
-#   define H5_ATTR_NORETURN  /*void*/
+#   define H5_ATTR_UNUSED       /*void*/
+#   define H5_ATTR_NORETURN     /*void*/
+#   define H5_ATTR_CONST        /*void*/
+#   define H5_ATTR_PURE         /*void*/
 #endif
 #endif /* __cplusplus */
 
@@ -935,14 +941,6 @@ H5_DLL int HDfprintf (FILE *stream, const char *fmt, ...);
 #ifndef HDgets
     #define HDgets(S)    gets(S)
 #endif /* HDgets */
-#ifndef H5_HAVE_TM_GMTOFF
-#ifdef H5_HAVE_TIMEZONE
-    #ifndef HDgettimezone
-        #define HDgettimezone()   HDget_timezone()
-    #endif /* HDgettimezone */
-    H5_DLL long int HDget_timezone(void);
-#endif /* H5_HAVE_TIMEZONE */
-#endif /* H5_HAVE_TM_GMTOFF */
 #ifndef HDgettimeofday
     #define HDgettimeofday(S,P)  gettimeofday(S,P)
 #endif /* HDgettimeofday */
@@ -2348,18 +2346,21 @@ extern hbool_t H5_api_entered_g;    /* Has library already been entered through 
 #define FUNC_ENT_PUB(pkg, pkg_init)    H5_PUBLIC_ENTER(pkg, pkg_init)
 
 /* Macros for substituting a function prefix */
-#define FUNC_PREFIX_STATIC  static
+#define FUNC_PREFIX_STATIC      static
 #define FUNC_PREFIX_PKGINIT
 #define FUNC_PREFIX_PKG
 #define FUNC_PREFIX_PRIV
 #define FUNC_PREFIX_PUB
 
 /* Macros for declaring error variables */
+/* Function can detect errors and has a specific error return value */
 #define FUNC_ERR_VAR_ERR(ret_typ, err)                                        \
     hbool_t past_catch = FALSE;                                               \
     ret_typ fail_value = err;
+/* Function can detect errors but cannot return an error value (Cleanup only) */
 #define FUNC_ERR_VAR_ERRCATCH(ret_typ, err)                                   \
     hbool_t past_catch = FALSE;
+/* Function has no need to detect or clean up from errors */
 #define FUNC_ERR_VAR_NOERR(ret_typ, err)
 
 /* Use this macro when entering all functions */
@@ -2504,6 +2505,9 @@ H5_DLL uint32_t H5_checksum_crc(const void *data, size_t len);
 H5_DLL uint32_t H5_checksum_lookup3(const void *data, size_t len, uint32_t initval);
 H5_DLL uint32_t H5_checksum_metadata(const void *data, size_t len, uint32_t initval);
 H5_DLL uint32_t H5_hash_string(const char *str);
+
+/* Time related routines */
+H5_DLL time_t H5_make_time(struct tm *tm);
 
 /* Functions for building paths, etc. */
 H5_DLL herr_t   H5_build_extpath(const char *, char ** /*out*/ );
