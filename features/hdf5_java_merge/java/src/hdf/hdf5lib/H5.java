@@ -528,7 +528,7 @@ public class H5 implements java.io.Serializable {
     public static long H5Acreate(long loc_id, String attr_name, long type_id, long space_id, long acpl_id, long aapl_id)
             throws HDF5LibraryException, NullPointerException {
         long id = _H5Acreate2(loc_id, attr_name, type_id, space_id, acpl_id, aapl_id);
-        if (id > 0) 
+        if (id > 0) {
             log.trace("OPEN_IDS: H5A create ad {}", id);
             OPEN_IDS.add(id);
             log.trace("OPEN_IDS: {}", OPEN_IDS.size());
