@@ -42,15 +42,10 @@ public class H5Ex_T_ObjectReferenceAttribute {
 
     // Values for the status of space allocation
     enum H5G_obj {
-        H5G_UNKNOWN(HDF5Constants.H5G_UNKNOWN), /* Unknown object type */
-        H5G_GROUP(HDF5Constants.H5G_GROUP), /* Object is a group */
-        H5G_DATASET(HDF5Constants.H5G_DATASET), /* Object is a dataset */
-        H5G_TYPE(HDF5Constants.H5G_TYPE), /* Object is a named data type */
-        H5G_LINK(HDF5Constants.H5G_LINK), /* Object is a symbolic link */
-        H5G_UDLINK(HDF5Constants.H5G_UDLINK), /* Object is a user-defined link */
-        H5G_RESERVED_5(HDF5Constants.H5G_RESERVED_5), /* Reserved for future use */
-        H5G_RESERVED_6(HDF5Constants.H5G_RESERVED_6), /* Reserved for future use */
-        H5G_RESERVED_7(HDF5Constants.H5G_RESERVED_7); /* Reserved for future use */
+        H5G_UNKNOWN(HDF5Constants.H5O_TYPE_UNKNOWN), /* Unknown object type */
+        H5G_GROUP(HDF5Constants.H5O_TYPE_GROUP), /* Object is a group */
+        H5G_DATASET(HDF5Constants.H5O_TYPE_DATASET), /* Object is a dataset */
+        H5G_TYPE(HDF5Constants.H5O_TYPE_NAMED_DATATYPE); /* Object is a named data type */
         private static final Map<Integer, H5G_obj> lookup = new HashMap<Integer, H5G_obj>();
 
         static {
