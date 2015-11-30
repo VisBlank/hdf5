@@ -49,12 +49,12 @@ extern "C" {
 * minor error numbers.
 */
 typedef struct H5E_major_mesg_t {
-    H5E_major_t error_code;
+    hid_t error_code;
     const char  *str;
 } H5E_major_mesg_t;
 
 typedef struct H5E_minor_mesg_t {
-    H5E_minor_t error_code;
+    hid_t error_code;
     const char  *str;
 } H5E_minor_mesg_t;
 
@@ -547,7 +547,7 @@ jboolean buildException( JNIEnv *env, char *exception, jint HDFerr)
 static
 const char *defineHDF5LibraryException(hid_t maj_num)
 {
-    H5E_major_t err_num = (H5E_major_t) maj_num;
+    hid_t err_num = maj_num;
 
     if (H5E_ARGS == err_num)
         return "hdf/hdf5lib/exceptions/HDF5FunctionArgumentException";

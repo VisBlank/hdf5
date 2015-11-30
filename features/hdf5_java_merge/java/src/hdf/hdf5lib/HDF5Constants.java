@@ -192,7 +192,6 @@ public class HDF5Constants {
     public static final long H5E_WRITEERROR = H5E_WRITEERROR();
 
     public static final int H5F_ACC_CREAT = H5F_ACC_CREAT();
-    public static final int H5F_ACC_DEBUG = H5F_ACC_DEBUG();
     public static final int H5F_ACC_EXCL = H5F_ACC_EXCL();
     public static final int H5F_ACC_RDONLY = H5F_ACC_RDONLY();
     public static final int H5F_ACC_RDWR = H5F_ACC_RDWR();
@@ -264,26 +263,27 @@ public class HDF5Constants {
     public static final long H5FD_MEM_DEFAULT_LHEAP_SIZE = H5FD_MEM_DEFAULT_LHEAP_SIZE();
     public static final long H5FD_MEM_DEFAULT_OHDR_SIZE = H5FD_MEM_DEFAULT_OHDR_SIZE();
 
-    public static final int H5G_DATASET = H5G_DATASET();
-    public static final int H5G_GROUP = H5G_GROUP();
-    public static final int H5G_LINK = H5G_LINK();
-    public static final int H5G_UDLINK = H5G_UDLINK();
-    public static final int H5G_LINK_ERROR = H5G_LINK_ERROR();
-    public static final int H5G_LINK_HARD = H5G_LINK_HARD();
-    public static final int H5G_LINK_SOFT = H5G_LINK_SOFT();
-    public static final int H5G_NLIBTYPES = H5G_NLIBTYPES();
-    public static final int H5G_NTYPES = H5G_NTYPES();
-    public static final int H5G_NUSERTYPES = H5G_NUSERTYPES();
-    public static final int H5G_RESERVED_5 = H5G_RESERVED_5();
-    public static final int H5G_RESERVED_6 = H5G_RESERVED_6();
-    public static final int H5G_RESERVED_7 = H5G_RESERVED_7();
-    public static final int H5G_SAME_LOC = H5G_SAME_LOC();
+//    public static final int H5G_DATASET = H5G_DATASET();
+//    public static final int H5G_GROUP = H5G_GROUP();
+//    public static final int H5G_LINK = H5G_LINK();
+//    public static final int H5G_UDLINK = H5G_UDLINK();
+//    public static final int H5G_LINK_ERROR = H5G_LINK_ERROR();
+//    public static final int H5G_LINK_HARD = H5G_LINK_HARD();
+//    public static final int H5G_LINK_SOFT = H5G_LINK_SOFT();
+//    public static final int H5G_NLIBTYPES = H5G_NLIBTYPES();
+//    public static final int H5G_NTYPES = H5G_NTYPES();
+//    public static final int H5G_NUSERTYPES = H5G_NUSERTYPES();
+//    public static final int H5G_RESERVED_5 = H5G_RESERVED_5();
+//    public static final int H5G_RESERVED_6 = H5G_RESERVED_6();
+//    public static final int H5G_RESERVED_7 = H5G_RESERVED_7();
+//    public static final int H5G_SAME_LOC = H5G_SAME_LOC();
+//    public static final int H5G_TYPE = H5G_TYPE();
+//    public static final int H5G_UNKNOWN = H5G_UNKNOWN();
+
     public static final int H5G_STORAGE_TYPE_UNKNOWN = H5G_STORAGE_TYPE_UNKNOWN();
     public static final int H5G_STORAGE_TYPE_SYMBOL_TABLE = H5G_STORAGE_TYPE_SYMBOL_TABLE();
     public static final int H5G_STORAGE_TYPE_COMPACT = H5G_STORAGE_TYPE_COMPACT();
     public static final int H5G_STORAGE_TYPE_DENSE = H5G_STORAGE_TYPE_DENSE();
-    public static final int H5G_TYPE = H5G_TYPE();
-    public static final int H5G_UNKNOWN = H5G_UNKNOWN();
 
     public static final int H5I_ATTR = H5I_ATTR();
     public static final int H5I_BADID = H5I_BADID();
@@ -362,7 +362,6 @@ public class HDF5Constants {
     public static final int H5P_CRT_ORDER_TRACKED = H5P_CRT_ORDER_TRACKED();
     public static final int H5P_CRT_ORDER_INDEXED = H5P_CRT_ORDER_INDEXED();
     public static final long H5P_DEFAULT = H5P_DEFAULT();
-    public static final long H5P_NO_CLASS = H5P_NO_CLASS();
 
     public static final int H5R_BADTYPE = H5R_BADTYPE();
     public static final int H5R_DATASET_REGION = H5R_DATASET_REGION();
@@ -950,8 +949,6 @@ public class HDF5Constants {
 
     private static native final int H5F_ACC_CREAT();
 
-    private static native final int H5F_ACC_DEBUG();
-
     private static native final int H5F_ACC_EXCL();
 
     private static native final int H5F_ACC_RDONLY();
@@ -1279,8 +1276,6 @@ public class HDF5Constants {
     private static native final int H5P_CRT_ORDER_INDEXED();
 
     private static native final long H5P_DEFAULT();
-
-    private static native final long H5P_NO_CLASS();
 
     private static native final int H5R_BADTYPE();
 

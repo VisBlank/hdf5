@@ -774,7 +774,7 @@ public class H5 implements java.io.Serializable {
      * @exception NullPointerException
      *                - name is null.
      * @exception IllegalArgumentException
-     *                - bub_size <= 0.
+     *                - bub_size &lt;= 0.
      *
      * @return the length of the attribute's name if successful.
      **/
@@ -2152,7 +2152,7 @@ public class H5 implements java.io.Serializable {
      * @exception HDF5LibraryException
      *                - Error from the HDF-5 Library.
      *
-     * @deprecated As of HDF5 1.8, replaced by {@link #H5Eprint2(int, Object)}
+     * @deprecated As of HDF5 1.8, replaced by {@link #H5Eprint2(long, Object)}
      **/
     @Deprecated
     public synchronized static native void H5Eprint1(Object stream) throws HDF5LibraryException;
@@ -2352,8 +2352,6 @@ public class H5 implements java.io.Serializable {
      *            H5F_ACC_TRUNC Truncate file, if it already exists, erasing all data previously stored in the file.</LI>
      *            <LI>
      *            H5F_ACC_EXCL Fail if file already exists.</LI>
-     *            <LI>
-     *            H5F_ACC_DEBUG Print debug information.</LI>
      *            <LI>
      *            H5P_DEFAULT Apply default file access and creation properties.</LI>
      *            </UL>
@@ -3282,7 +3280,7 @@ public class H5 implements java.io.Serializable {
      * @exception HDF5LibraryException
      *                - Error from the HDF-5 Library.
      **/
-    public synchronized static native boolean H5Itype_exists(int type) throws HDF5LibraryException;
+    public synchronized static native boolean H5Itype_exists(int type_id) throws HDF5LibraryException;
 
     // htri_t H5Itype_exists(H5I_type_t type);
 
@@ -4291,7 +4289,7 @@ public class H5 implements java.io.Serializable {
     NullPointerException, IllegalArgumentException;
 
     /**
-     * H5Pset_alignment sets the alignment properties of a file access property list so that any file object >=
+     * H5Pset_alignment sets the alignment properties of a file access property list so that any file object &gt;=
      * THRESHOLD bytes will be aligned on an address which is a multiple of ALIGNMENT.
      *
      * @param plist
@@ -4535,7 +4533,7 @@ public class H5 implements java.io.Serializable {
      * @exception NullPointerException
      *                - dims array is null.
      * @exception IllegalArgumentException
-     *                - max_ndims <=0
+     *                - max_ndims &lt;=0
      **/
     public synchronized static native int H5Pget_chunk(long plist, int max_ndims, long[] dims)
             throws HDF5LibraryException, NullPointerException, IllegalArgumentException;
@@ -4557,7 +4555,7 @@ public class H5 implements java.io.Serializable {
      * @exception NullPointerException
      *                - dims array is null.
      * @exception IllegalArgumentException
-     *                - dims <=0
+     *                - dims &lt;=0
      **/
     public synchronized static native int H5Pset_chunk(long plist, int ndims, byte[] dim) throws HDF5LibraryException,
     NullPointerException, IllegalArgumentException;
@@ -4623,7 +4621,7 @@ public class H5 implements java.io.Serializable {
      *
      * @param plist
      *            IN: Identifier of property list to query.
-     * @return a property list class if successful. Otherwise returns H5P_NO_CLASS (-1).
+     * @return a property list class if successful. Otherwise returns H5P_ROOT (-1).
      *
      * @exception HDF5LibraryException
      *                - Error from the HDF-5 Library.
@@ -4730,7 +4728,7 @@ public class H5 implements java.io.Serializable {
      * @exception HDF5LibraryException
      *                - Error from the HDF-5 Library.
      * @exception IllegalArgumentException
-     *                - Size is <= 0.
+     *                - Size is &lt;= 0.
      *
      **/
     public synchronized static native long H5Pget_data_transform(long plist_id, String[] expression, long size)
@@ -4991,7 +4989,7 @@ public class H5 implements java.io.Serializable {
      * @exception NullPointerException
      *                - name or size is null.
      * @exception IllegalArgumentException
-     *                - name_size <= 0 .
+     *                - name_size &lt;= 0 .
      *
      **/
     public synchronized static native int H5Pget_external(long plist, int idx, long name_size, String[] name,
@@ -6101,7 +6099,7 @@ public class H5 implements java.io.Serializable {
      *      version_info[0] = boot  // boot block version number
      *      version_info[1] = freelist  // global freelist version
      *      version_info[2] = stab  // symbol tabl version number
-     *      version_info[3] = shhdr  // hared object header version
+     *      version_info[3] = shhdr  // shared object header version
      * </pre>
      * @return a non-negative value, with the values of version_info initialized, if successful
      *
