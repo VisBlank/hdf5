@@ -93,10 +93,13 @@ $(jarfile): classhdf5_java.stamp classes
 
 hdf5_java_DATA = $(jarfile)
 
+.PHONY: docs
+
 WINDOWTITLE = 'HDF5 Java'
 DOCTITLE = '<h1>HDF5 Java Wrapper</h1>'
 SRCDIR = '$(pkgpath)'
-docs: classhdf5_java.stamp classes
+
+docs:
 	$(JAVADOC) -sourcepath $(SRCDIR) -overview $(SRCDIR)\overview.html -d javadoc -use -splitIndex -windowtitle $(WINDOWTITLE) -doctitle $(DOCTITLE) -J-Xmx180m
 
 CLEANFILES = classhdf5_java.stamp $(jarfile) $(JAVAROOT)/$(pkgpath)/callbacks/*.class $(JAVAROOT)/$(pkgpath)/exceptions/*.class $(JAVAROOT)/$(pkgpath)/structs/*.class $(JAVAROOT)/$(pkgpath)/*.class
