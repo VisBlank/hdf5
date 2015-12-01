@@ -819,6 +819,7 @@ if test "X$HDF_JAVA" = "Xyes" && test "X${enable_shared}" != "Xno"; then
   AX_PROG_JAVAC
   AX_PROG_JAVA
   AX_PROG_JAR
+  AX_PROG_JAVADOC
   ## Find the include directories needed for building JNI code
   AX_JNI_INCLUDE_DIR()
   for JNI_INCLUDE_DIR in $JNI_INCLUDE_DIRS
@@ -3008,9 +3009,9 @@ esac
 AC_MSG_CHECKING([whether to have library information embedded in the executables])
 AC_ARG_ENABLE([embedded-libinfo],
     [AS_HELP_STRING([--enable-embedded-libinfo],
-  [Enable embedded library information [default=yes]])],
-  [enable_embedded_libinfo=$enableval],
-  [enable_embedded_libinfo=yes])
+	[Enable embedded library information [default=yes]])],
+	[enable_embedded_libinfo=$enableval],
+	[enable_embedded_libinfo=yes])
 
    if test "${enable_embedded_libinfo}" = "yes"; then
       AC_MSG_RESULT([yes])
