@@ -164,7 +164,7 @@ import hdf.hdf5lib.structs.H5O_info_t;
  * and the parameter <i>data</i> can be any multi-dimensional array of numbers, such as float[][], or int[][][], or
  * Double[][].
  * <p>
- * <a NAME="CONSTANTS"> <b>HDF-5 Constants</b>
+ * <a NAME="CONSTANTS"> <b>HDF-5 Constants</b></a>
  * <p>
  * The HDF-5 API defines a set of constants and enumerated values. Most of these values are available to Java programs
  * via the class <a href="./hdf.hdf5lib.HDF5Constants.html"> <b>HDF5Constants</b></a>. For example, the parameters for
@@ -203,10 +203,10 @@ import hdf.hdf5lib.structs.H5O_info_t;
  * <hr>
  *
  * @version HDF5 1.9 <BR>
- *          <b>See also: <a href ="./hdf.hdf5lib.HDFArray.html"> </b> hdf.hdf5lib.HDFArray</a><BR>
- *          <a href ="./hdf.hdf5lib.HDF5Constants.html"> </b> hdf.hdf5lib.HDF5Constants</a><BR>
- *          <a href ="./hdf.hdf5lib.HDF5CDataTypes.html"> </b> hdf.hdf5lib.HDF5CDataTypes</a><BR>
- *          <a href ="./hdf.hdf5lib.HDF5Exception.html"> hdf.hdf5lib.HDF5Exception<BR>
+ *          <b>See also: <a href ="./hdf.hdf5lib.HDFArray.html"> hdf.hdf5lib.HDFArray</a> </b><BR>
+ *          <a href ="./hdf.hdf5lib.HDF5Constants.html"> hdf.hdf5lib.HDF5Constants</a><BR>
+ *          <a href ="./hdf.hdf5lib.HDF5CDataTypes.html"> hdf.hdf5lib.HDF5CDataTypes</a><BR>
+ *          <a href ="./hdf.hdf5lib.HDF5Exception.html"> hdf.hdf5lib.HDF5Exception</a><BR>
  *          <a href="http://hdfgroup.org/HDF5/"> http://hdfgroup.org/HDF5"</a>
  **/
 public class H5 implements java.io.Serializable {
@@ -218,10 +218,10 @@ public class H5 implements java.io.Serializable {
     private final static org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(H5.class);
 
     /**
-     * The version number of the HDF5 library: <br />
-     * LIB_VERSION[0]: The major version of the library.<br />
-     * LIB_VERSION[1]: The minor version of the library.<br />
-     * LIB_VERSION[2]: The release number of the library.<br />
+     * The version number of the HDF5 library:
+     * LIB_VERSION[0]: The major version of the library.
+     * LIB_VERSION[1]: The minor version of the library.
+     * LIB_VERSION[2]: The release number of the library.
      *
      * Make sure to update the versions number when a different library is used.
      */
@@ -5574,7 +5574,7 @@ public class H5 implements java.io.Serializable {
      * @param gcpl_id
      *            IN: Group creation property list identifier
      * @param links
-     *            The max. no. of compact links & the min. no. of dense links, which are used for storing groups
+     *            The max. no. of compact links &amp; the min. no. of dense links, which are used for storing groups
      *
      *            <pre>
      *      links[0] =  The maximum number of links for compact storage
@@ -6724,8 +6724,8 @@ public class H5 implements java.io.Serializable {
      * dimensionality (rank) as the dataspace they are located within. The list of blocks is formatted as follows:
      *
      * <pre>
-     *    <"start" coordinate>, immediately followed by
-     *    <"opposite" corner coordinate>, followed by
+     *    &lt;"start" coordinate&gt;, immediately followed by
+     *    &lt;"opposite" corner coordinate&gt;, followed by
      *   the next "start" and "opposite" coordinates,
      *   etc.
      *   until all of the selected blocks have been listed.
@@ -7946,9 +7946,6 @@ public class H5 implements java.io.Serializable {
      *            IN: Field name of the field index to retrieve.
      *
      * @return if field is defined, the index; else negative.
-     *
-     * @exception HDF5LibraryException
-     *                - Error from the HDF-5 Library.
      **/
     public synchronized static native int H5Tget_member_index(long type_id, String field_name);
 
@@ -7961,9 +7958,6 @@ public class H5 implements java.io.Serializable {
      *            IN: Field index (0-based) of the field name to retrieve.
      *
      * @return a valid pointer to the name if successful; otherwise null.
-     *
-     * @exception HDF5LibraryException
-     *                - Error from the HDF-5 Library.
      **/
     public synchronized static native String H5Tget_member_name(long type_id, int field_idx);
 
