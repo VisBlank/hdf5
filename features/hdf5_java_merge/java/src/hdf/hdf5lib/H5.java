@@ -184,7 +184,7 @@ import hdf.hdf5lib.structs.H5O_info_t;
  * The Java application uses both types of constants the same way, the only difference is that the
  * <b><i>HDF5CDataTypes</i></b> may have different values on different platforms.
  * <p>
- * <a NAME="ERRORS"> <b>Error handling and Exceptions</b>
+ * <a NAME="ERRORS"> <b>Error handling and Exceptions</b></a>
  * <p>
  * The HDF5 error API (H5E) manages the behavior of the error stack in the HDF-5 library. This API is omitted from the
  * JHI5. Errors are converted into Java exceptions. This is totally different from the C interface, but is very natural
