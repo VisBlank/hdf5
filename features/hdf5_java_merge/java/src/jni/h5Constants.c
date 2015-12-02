@@ -201,6 +201,7 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_HDF5Constants_H5E_1WALK_1UPWARD(JNIEnv 
 JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_HDF5Constants_H5E_1WRITEERROR(JNIEnv *env, jclass cls) { return H5E_WRITEERROR; }
 
 /* Java does not have unsigned native types */
+#pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wsign-conversion"
 JNIEXPORT jint JNICALL Java_hdf_hdf5lib_HDF5Constants_H5F_1ACC_1CREAT(JNIEnv *env, jclass cls) { return H5F_ACC_CREAT; }
 JNIEXPORT jint JNICALL Java_hdf_hdf5lib_HDF5Constants_H5F_1ACC_1EXCL(JNIEnv *env, jclass cls) { return H5F_ACC_EXCL; }

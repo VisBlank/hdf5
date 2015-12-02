@@ -50,7 +50,7 @@ public class HDFArray {
      * <p>
      * The description is saved in private variables, and used to convert data.
      *
-     * @param bytes
+     * @param anArray
      *            The array object.
      *
      * @exception hdf.hdf5lib.exceptions.HDF5Exception
