@@ -83,7 +83,7 @@ public class HDFArray {
      * @return A one-D array of bytes, filled with zeroes. The bytes are
      *         sufficient to hold the data of the Array passed to the
      *         constructor.
-     * @exception hdf.hdf5lib.exception.HDF5JavaException
+     * @exception hdf.hdf5lib.exceptions.HDF5JavaException
      *                Allocation failed.
      */
 
@@ -110,7 +110,7 @@ public class HDFArray {
      *
      * @return A one-D array of bytes, constructed from the Array passed to the
      *         constructor.
-     * @exception hdf.hdf5lib.exception.HDF5JavaException
+     * @exception hdf.hdf5lib.exceptions.HDF5JavaException
      *                the object not an array or other internal error.
      */
     public byte[] byteify() throws HDF5JavaException {
@@ -374,7 +374,7 @@ public class HDFArray {
      *            The bytes to construct the Array.
      * @return An Array (possibly multidimensional) of primitive or number
      *         objects.
-     * @exception hdf.hdf5lib.exception.HDF5JavaException
+     * @exception hdf.hdf5lib.exceptions.HDF5JavaException
      *                the object not an array or other internal error.
      */
     public Object arrayify(byte[] bytes) throws HDF5JavaException {
