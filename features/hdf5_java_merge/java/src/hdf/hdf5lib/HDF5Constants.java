@@ -214,15 +214,15 @@ public class HDF5Constants {
     public static final int H5F_SCOPE_LOCAL = H5F_SCOPE_LOCAL();
     public static final int H5F_UNLIMITED = H5F_UNLIMITED();
 
-    public static final int H5FD_CORE = H5FD_CORE();
-    public static final int H5FD_DIRECT = H5FD_DIRECT();
-    public static final int H5FD_FAMILY = H5FD_FAMILY();
-    public static final int H5FD_LOG = H5FD_LOG();
-    public static final int H5FD_MPIO = H5FD_MPIO();
-    public static final int H5FD_MULTI = H5FD_MULTI();
-    public static final int H5FD_SEC2 = H5FD_SEC2();
-    public static final int H5FD_STDIO = H5FD_STDIO();
-    public static final int H5FD_WINDOWS = H5FD_WINDOWS();
+    public static final long H5FD_CORE = H5FD_CORE();
+    public static final long H5FD_DIRECT = H5FD_DIRECT();
+    public static final long H5FD_FAMILY = H5FD_FAMILY();
+    public static final long H5FD_LOG = H5FD_LOG();
+    public static final long H5FD_MPIO = H5FD_MPIO();
+    public static final long H5FD_MULTI = H5FD_MULTI();
+    public static final long H5FD_SEC2 = H5FD_SEC2();
+    public static final long H5FD_STDIO = H5FD_STDIO();
+    public static final long H5FD_WINDOWS = H5FD_WINDOWS();
     public static final int H5FD_LOG_LOC_READ = H5FD_LOG_LOC_READ();
     public static final int H5FD_LOG_LOC_WRITE = H5FD_LOG_LOC_WRITE();
     public static final int H5FD_LOG_LOC_SEEK = H5FD_LOG_LOC_SEEK();
@@ -993,23 +993,23 @@ public class HDF5Constants {
 
     private static native final int H5F_UNLIMITED();
 
-    private static native final int H5FD_CORE();
+    private static native final long H5FD_CORE();
 
-    private static native final int H5FD_DIRECT();
+    private static native final long H5FD_DIRECT();
 
-    private static native final int H5FD_FAMILY();
+    private static native final long H5FD_FAMILY();
 
-    private static native final int H5FD_LOG();
+    private static native final long H5FD_LOG();
 
-    private static native final int H5FD_MPIO();
+    private static native final long H5FD_MPIO();
 
-    private static native final int H5FD_MULTI();
+    private static native final long H5FD_MULTI();
 
-    private static native final int H5FD_SEC2();
+    private static native final long H5FD_SEC2();
 
-    private static native final int H5FD_STDIO();
+    private static native final long H5FD_STDIO();
 
-    private static native final int H5FD_WINDOWS();
+    private static native final long H5FD_WINDOWS();
 
     private static native final int H5FD_LOG_LOC_READ();
 
