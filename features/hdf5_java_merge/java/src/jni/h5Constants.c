@@ -200,12 +200,16 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_HDF5Constants_H5E_1WALK_1DOWNWARD(JNIEn
 JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_HDF5Constants_H5E_1WALK_1UPWARD(JNIEnv *env, jclass cls) { return H5E_WALK_UPWARD; }
 JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_HDF5Constants_H5E_1WRITEERROR(JNIEnv *env, jclass cls) { return H5E_WRITEERROR; }
 
+/* Java does not have unsigned native types */
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 JNIEXPORT jint JNICALL Java_hdf_hdf5lib_HDF5Constants_H5F_1ACC_1CREAT(JNIEnv *env, jclass cls) { return H5F_ACC_CREAT; }
 JNIEXPORT jint JNICALL Java_hdf_hdf5lib_HDF5Constants_H5F_1ACC_1EXCL(JNIEnv *env, jclass cls) { return H5F_ACC_EXCL; }
 JNIEXPORT jint JNICALL Java_hdf_hdf5lib_HDF5Constants_H5F_1ACC_1RDONLY(JNIEnv *env, jclass cls) { return H5F_ACC_RDONLY; }
 JNIEXPORT jint JNICALL Java_hdf_hdf5lib_HDF5Constants_H5F_1ACC_1RDWR(JNIEnv *env, jclass cls) { return H5F_ACC_RDWR; }
 JNIEXPORT jint JNICALL Java_hdf_hdf5lib_HDF5Constants_H5F_1ACC_1TRUNC(JNIEnv *env, jclass cls) { return H5F_ACC_TRUNC; }
 JNIEXPORT jint JNICALL Java_hdf_hdf5lib_HDF5Constants_H5F_1ACC_1DEFAULT(JNIEnv *env, jclass cls) { return H5F_ACC_DEFAULT; }
+#pragma GCC diagnostic pop
+
 JNIEXPORT jint JNICALL Java_hdf_hdf5lib_HDF5Constants_H5F_1CLOSE_1DEFAULT(JNIEnv *env, jclass cls) { return H5F_CLOSE_DEFAULT; }
 JNIEXPORT jint JNICALL Java_hdf_hdf5lib_HDF5Constants_H5F_1CLOSE_1SEMI(JNIEnv *env, jclass cls) { return H5F_CLOSE_SEMI; }
 JNIEXPORT jint JNICALL Java_hdf_hdf5lib_HDF5Constants_H5F_1CLOSE_1STRONG(JNIEnv *env, jclass cls) { return H5F_CLOSE_STRONG; }
