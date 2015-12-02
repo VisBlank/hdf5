@@ -26,6 +26,8 @@ extern "C" {
 #include <jni.h>
 #include "hdf5.h"
 
+#pragma GCC diagnostic ignored "-Wmissing-prototypes"
+
 JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_HDF5Constants_H5_1QUARTER_1HADDR_1MAX(JNIEnv *env, jclass cls) { return (hsize_t)HADDR_MAX/4; }
 
 JNIEXPORT jint JNICALL Java_hdf_hdf5lib_HDF5Constants_H5_1SZIP_1ALLOW_1K13_1OPTION_1MASK(JNIEnv *env, jclass cls) { return H5_SZIP_ALLOW_K13_OPTION_MASK; }
@@ -683,6 +685,8 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_HDF5Constants_H5Z_1SZIP_1PARM_1PPS(JNIEn
 JNIEXPORT jint JNICALL Java_hdf_hdf5lib_HDF5Constants_H5Z_1NBIT_1USER_1NPARMS(JNIEnv *env, jclass cls) { return H5Z_NBIT_USER_NPARMS; }
 JNIEXPORT jint JNICALL Java_hdf_hdf5lib_HDF5Constants_H5Z_1SCALEOFFSET_1USER_1NPARMS(JNIEnv *env, jclass cls) { return H5Z_SCALEOFFSET_USER_NPARMS; }
 JNIEXPORT jint JNICALL Java_hdf_hdf5lib_HDF5Constants_H5Z_1FILTER_1ALL(JNIEnv *env, jclass cls) { return H5Z_FILTER_ALL; }
+
+#pragma GCC diagnostic pop
 
 #ifdef __cplusplus
 }
