@@ -20,7 +20,6 @@ package hdf.hdf5lib.exceptions;
  * The class HDF5Exception returns errors from the Java HDF5 Interface.
  * <p>
  * Two sub-classes of HDF5Exception are defined:
- * <p>
  * <ol>
  * <li>
  * HDF5LibraryException -- errors raised the HDF5 library code

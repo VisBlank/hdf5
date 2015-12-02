@@ -27,7 +27,7 @@ import hdf.hdf5lib.HDF5Constants;
  * minor error code from the HDF-5 Library.
  * <p>
  * For major and minor error codes, see <b>H5Epublic.h</b> in the HDF-5 library.
- * <p>
+ *
  */
 
 @SuppressWarnings("serial")
@@ -350,6 +350,8 @@ public class HDF5LibraryException extends HDF5Exception {
      * Prints this <code>HDF5LibraryException</code> the HDF-5 Library error
      * stack, and and the Java stack trace to the specified print stream.
      *
+     * @param f
+     *            the file print stream.
      */
     public void printStackTrace(java.io.File f) {
         if ((f == null) || !f.exists() || f.isDirectory() || !f.canWrite()) {

@@ -44,11 +44,14 @@ public class HDFArray {
     /**
      * The input must be a Java Array (possibly multidimensional) of primitive
      * numbers or sub-classes of Number.
-     * <P>
+     * <p>
      * The input is analysed to determine the number of dimensions and size of
      * each dimension, as well as the type of the elements.
-     * <P>
+     * <p>
      * The description is saved in private variables, and used to convert data.
+     *
+     * @param bytes
+     *            The array object.
      *
      * @exception hdf.hdf5lib.exceptions.HDF5Exception
      *                object is not an array.

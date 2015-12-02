@@ -138,6 +138,8 @@ public class HDF5GroupInfo {
 
     /**
      * Returns the object id.
+     *
+     * @return the object id
      */
     public long getOID() {
         return objno[0];

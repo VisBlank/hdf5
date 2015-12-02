@@ -434,6 +434,9 @@ public class HDFNativeData {
      *            Input object of the desired output class. Must be a sub-class
      *            of Number.
      * @return A Object of the type of obj.
+     *
+     * @exception HDF5Exception
+     *                - Error unsupported type.
      */
     public synchronized static Object byteToNumber(byte[] barray, Object obj)
             throws HDF5Exception {
