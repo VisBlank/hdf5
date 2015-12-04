@@ -4817,7 +4817,7 @@ public class H5 implements java.io.Serializable {
      * @exception HDF5LibraryException
      *                - Error from the HDF-5 Library.
      */
-    public synchronized static native int H5Pget_driver(long plid) throws HDF5LibraryException;
+    public synchronized static native long H5Pget_driver(long plid) throws HDF5LibraryException;
 
     public synchronized static native int H5Pget_edc_check(long plist) throws HDF5LibraryException,
     NullPointerException;
