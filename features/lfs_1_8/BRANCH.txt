@@ -1,0 +1,10 @@
+HDF5 large file support (LFS) update branch
+
+Created by Dana Robinson in December 2015. I am the only person
+working on this branch.
+
+This branch is for updating the scheme we use to handle large file
+support on POSIX systems, primarily Linux.
+
+This branch tracks the branches/hdf5_1_8 branch. It will be deleted
+when the LFS changes are merged into the 1.8 branch and the trunk.
