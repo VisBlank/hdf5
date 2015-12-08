@@ -913,6 +913,70 @@ public class TestH5A {
                 try {H5.H5Tclose(atype_id);} catch (Exception ex) {}
         }
     }
+
+    @Test
+    public void testH5Aget_create_plist() {
+        String attr_name = "DATASET1";
+        int char_encoding = 0;
+        long plist_id = -1;
+        long attribute_id = -1;
+
+        try {
+            plist_id = H5.H5Pcreate(HDF5Constants.H5P_ATTRIBUTE_CREATE);
+            assertTrue(plist_id > 0);
+        }
+        catch (Throwable err) {
+            err.printStackTrace();
+            fail("testH5Aget_name " + err);
+        }
+        try {
+            // Get the character encoding and ensure that it is the default (ASCII)
+            try {
+                char_encoding = H5.H5Pget_char_encoding(plist_id);
+            }
+            catch (Throwable err) {
+                err.printStackTrace();
+                fail("H5Pget_char_encoding: " + err);
+            }
+            assertTrue("testH5Aget_create_plist: get_char_encoding", char_encoding == HDF5Constants.H5T_CSET_ASCII);
+
+            // Create an attribute for the dataset using the property list
+            try {
+                attribute_id = H5.H5Acreate(H5fid, attr_name, type_id, space_id, plist_id, HDF5Constants.H5P_DEFAULT);
+                assertTrue("testH5Acreate2", attribute_id >= 0);
+            }
+            catch (Throwable err) {
+                err.printStackTrace();
+                fail("H5.H5Acreate2: " + err);
+            }
+
+            /* Close the property list, and get the attribute's property list */
+            H5.H5Pclose(plist_id);
+            plist_id = H5.H5Aget_create_plist(attribute_id);
+            assertTrue(plist_id > 0);
+
+            /* Get the character encoding and ensure that it is the default (ASCII) */
+            try {
+                char_encoding = H5.H5Pget_char_encoding(plist_id);
+            }
+            catch (Throwable err) {
+                err.printStackTrace();
+                fail("H5Pget_char_encoding: " + err);
+            }
+            assertTrue("testH5Aget_create_plist: get_char_encoding", char_encoding == HDF5Constants.H5T_CSET_ASCII);
+        }
+        catch (Throwable err) {
+            err.printStackTrace();
+            fail("testH5Aget_create_plist " + err);
+        }
+        finally {
+            if (plist_id > 0)
+                try {H5.H5Pclose(plist_id);} catch (Exception ex) {}
+            if (attribute_id > 0)
+                try {H5.H5Aclose(attribute_id);} catch (Exception ex) {}
+        }
+    }
+
 }
 
 

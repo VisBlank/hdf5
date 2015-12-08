@@ -263,6 +263,14 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Adelete_1by_1idx
 JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Aopen_1by_1name
   (JNIEnv *, jclass, jlong, jstring, jstring, jlong, jlong);
 
+/*
+ * Class:     hdf_hdf5lib_H5
+ * Method:    H5Aget_create_plist
+ * Signature: (J)J
+ */
+JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Aget_1create_1plist
+  (JNIEnv *, jclass, jlong);
+
 #ifdef __cplusplus
 }
 #endif

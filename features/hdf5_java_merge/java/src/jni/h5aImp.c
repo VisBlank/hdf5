@@ -1943,6 +1943,23 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Aopen_1by_1name
 
 }
 
+/*
+ * Class:     hdf_hdf5lib_H5
+ * Method:    H5Aget_create_plist
+ * Signature: (J)J
+ */
+JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Aget_1create_1plist
+  (JNIEnv *env, jclass clss, jlong attr_id)
+{
+    hid_t retVal = -1;
+    retVal =  H5Aget_create_plist((hid_t)attr_id);
+    if (retVal < 0) {
+        /* throw exception */
+        h5libraryError(env);
+    }
+    return (jlong)retVal;
+}
+
 #ifdef __cplusplus
 }
 #endif

@@ -79,6 +79,14 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5garbage_1collect
 JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5set_1free_1list_1limits
   (JNIEnv *, jclass, jint, jint, jint, jint, jint, jint );
 
+/*
+ * Class:     hdf_hdf5lib_H5
+ * Method:    H5is_library_threadsafe
+ * Signature: ()Z
+ */
+JNIEXPORT jboolean JNICALL Java_hdf_hdf5lib_H5_H5is_1library_1threadsafe
+  (JNIEnv *, jclass);
+
 #ifdef __cplusplus
 }
 #endif

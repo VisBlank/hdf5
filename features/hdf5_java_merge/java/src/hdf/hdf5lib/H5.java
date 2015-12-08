@@ -465,6 +465,19 @@ public class H5 implements java.io.Serializable {
     public synchronized static native void H5export_dataset(String file_export_name, String file_name,
             String object_path, int binary_order) throws HDF5LibraryException;
 
+    /**
+     * H5is_library_threadsafe Checks to see if the library was built with thread-safety enabled.
+     *
+     * @return true if hdf5 library implements threadsafe
+     *
+     **/
+    private synchronized static native boolean H5is_library_threadsafe();
+
+    // /////// unimplemented ////////
+    // H5_DLL herr_t H5free_memory(void *mem);
+    // H5_DLL void *H5allocate_memory(size_t size, hbool_t clear);
+    // H5_DLL void *H5resize_memory(void *mem, size_t size);
+
     // ////////////////////////////////////////////////////////////
     // //
     // H5A: HDF5 1.8 Attribute Interface API Functions //
@@ -1146,6 +1159,29 @@ public class H5 implements java.io.Serializable {
 
     public synchronized static native int H5AwriteVL(long attr_id, long mem_type_id, String[] buf)
             throws HDF5LibraryException, NullPointerException;
+
+    /**
+     * H5Aget_create_plist retrieves a copy of the attribute creation property list identifier.
+     *
+     * @param attr_id
+     *            IN: Identifier of an attribute.
+     *
+     * @return identifier for the attribute’s creation property list if successful
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     **/
+    public static long H5Aget_create_plist(long attr_id) throws HDF5LibraryException {
+        long id = _H5Aget_create_plist(attr_id);
+        if (id > 0) {
+            log.trace("OPEN_IDS: H5Aget_create_plist add {}", id);
+            OPEN_IDS.add(id);
+            log.trace("OPEN_IDS: {}", OPEN_IDS.size());
+        }
+        return id;
+    }
+
+    private synchronized static native long _H5Aget_create_plist(long attr_id) throws HDF5LibraryException;
 
     // /////// unimplemented ////////
     // herr_t H5Aiterate2(hid_t loc_id, H5_index_t idx_type, H5_iter_order_t order, hsize_t *idx, H5A_operator2_t op,

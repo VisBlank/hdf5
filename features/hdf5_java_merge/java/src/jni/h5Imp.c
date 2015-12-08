@@ -213,6 +213,20 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5set_1free_1list_1limits
     return retVal;
 }
 
+/*
+ * Class:     hdf_hdf5lib_H5
+ * Method:    H5is_library_threadsafe
+ * Signature: ()Z
+ */
+JNIEXPORT jboolean JNICALL Java_hdf_hdf5lib_H5_H5is_1library_1threadsafe
+  (JNIEnv *env, jclass clss)
+{
+    hbool_t is_ts = false;
+    H5is_library_threadsafe(&is_ts);
+    return is_ts;
+}
+
+
 
 #ifdef __cplusplus
 }
