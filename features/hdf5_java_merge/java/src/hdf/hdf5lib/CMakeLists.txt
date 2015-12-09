@@ -15,6 +15,8 @@ SET_GLOBAL_VARIABLE (HDF5_JAVA_SOURCE_PACKAGES
 )
 
 set (HDF5_JAVA_HDF_HDF5_CALLBACKS_SRCS
+    callbacks/H5A_iterate_cb.java
+    callbacks/H5A_iterate_t.java
     callbacks/H5D_iterate_cb.java
     callbacks/H5D_iterate_t.java
     callbacks/H5L_iterate_cb.java

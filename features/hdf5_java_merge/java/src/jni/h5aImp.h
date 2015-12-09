@@ -22,6 +22,9 @@
 extern "C" {
 #endif
 
+extern JavaVM *jvm;
+extern jobject visit_callback;
+
 /*
  * Class:     hdf_hdf5lib_H5
  * Method:    H5Acreate
@@ -270,6 +273,23 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Aopen_1by_1name
  */
 JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Aget_1create_1plist
   (JNIEnv *, jclass, jlong);
+
+/*
+ * Class:     hdf_hdf5lib_H5
+ * Method:    H5Aiterate
+ * Signature: (JIIJLjava/lang/Object;Ljava/lang/Object;)I
+ */
+JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Aiterate
+  (JNIEnv*, jclass, jlong, jint, jint, jlong, jobject, jobject);
+
+/*
+ * Class:     hdf_hdf5lib_H5
+ * Method:    H5Aiterate_by_name
+ * Signature: (JLjava/lang/String;IIJLjava/lang/Object;Ljava/lang/Object;J)I
+ */
+JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Aiterate_1by_1name
+  (JNIEnv*, jclass, jlong, jstring, jint, jint, jlong, jobject, jobject, jlong);
+
 
 #ifdef __cplusplus
 }

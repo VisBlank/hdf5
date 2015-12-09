@@ -63,6 +63,8 @@ $(jarfile): classnoinst.stamp classes
 
 noinst_DATA = $(jarfile)
 
+.PHONY: classes
+
 check_SCRIPTS = runExample.sh
 TEST_SCRIPT = $(check_SCRIPTS)
 

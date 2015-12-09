@@ -45,6 +45,8 @@ AM_JAVACFLAGS = $(H5_JAVACFLAGS) -deprecation
 
 hdf5_java_JAVA =  \
 	${pkgpath}/callbacks/Callbacks.java \
+	${pkgpath}/callbacks/H5A_iterate_cb.java \
+	${pkgpath}/callbacks/H5A_iterate_t.java \
 	${pkgpath}/callbacks/H5L_iterate_cb.java \
 	${pkgpath}/callbacks/H5L_iterate_t.java \
 	${pkgpath}/callbacks/H5O_iterate_cb.java \
@@ -93,7 +95,7 @@ $(jarfile): classhdf5_java.stamp classes docs
 
 hdf5_java_DATA = $(jarfile)
 
-.PHONY: docs
+.PHONY: docs classes
 
 WINDOWTITLE = 'HDF5 Java'
 DOCTITLE = '<h1>HDF5 Java Wrapper</h1>'

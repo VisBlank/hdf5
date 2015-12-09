@@ -31,6 +31,23 @@ extern "C" {
 #include "h5jni.h"
 #include "h5aImp.h"
 
+#ifdef __cplusplus
+#define CBENVPTR (cbenv)
+#define CBENVPAR
+#define JVMPTR (jvm)
+#define JVMPAR
+#define JVMPAR2
+#else
+#define CBENVPTR (*cbenv)
+#define CBENVPAR cbenv,
+#define JVMPTR (*jvm)
+#define JVMPAR jvm
+#define JVMPAR2 jvm,
+#endif
+
+static herr_t H5A_iterate_cb(hid_t g_id, const char *name, const H5A_info_t *info, void *op_data);
+
+
 #ifdef H5_HAVE_WIN32_API
   #define strtoll(S,R,N)     _strtoi64(S,R,N)
   #define strtoull(S,R,N)    _strtoui64(S,R,N)
@@ -1958,6 +1975,145 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Aget_1create_1plist
         h5libraryError(env);
     }
     return (jlong)retVal;
+}
+
+static
+herr_t H5A_iterate_cb(hid_t g_id, const char *name, const H5A_info_t *info, void *op_data) {
+    JNIEnv    *cbenv;
+    jint       status;
+    jclass     cls;
+    jmethodID  mid;
+    jstring    str;
+    jmethodID  constructor;
+    jvalue     args[4];
+    jobject    cb_info_t = NULL;
+
+    if(JVMPTR->AttachCurrentThread(JVMPAR2 (void**)&cbenv, NULL) != 0) {
+        /* printf("JNI H5A_iterate_cb error: AttachCurrentThread failed\n"); */
+        JVMPTR->DetachCurrentThread(JVMPAR);
+        return -1;
+    }
+    cls = CBENVPTR->GetObjectClass(CBENVPAR visit_callback);
+    if (cls == 0) {
+        /* printf("JNI H5A_iterate_cb error: GetObjectClass failed\n"); */
+       JVMPTR->DetachCurrentThread(JVMPAR);
+       return -1;
+    }
+    mid = CBENVPTR->GetMethodID(CBENVPAR cls, "callback", "(JLjava/lang/String;Lhdf/hdf5lib/structs/H5A_info_t;Lhdf/hdf5lib/callbacks/H5A_iterate_t;)I");
+    if (mid == 0) {
+        /* printf("JNI H5A_iterate_cb error: GetMethodID failed\n"); */
+        JVMPTR->DetachCurrentThread(JVMPAR);
+        return -1;
+    }
+    str = CBENVPTR->NewStringUTF(CBENVPAR name);
+
+    // get a reference to your class if you don't have it already
+    cls = CBENVPTR->FindClass(CBENVPAR "hdf/hdf5lib/structs/H5A_info_t");
+    if (cls == 0) {
+        /* printf("JNI H5A_iterate_cb error: GetObjectClass info failed\n"); */
+       JVMPTR->DetachCurrentThread(JVMPAR);
+       return -1;
+    }
+    // get a reference to the constructor; the name is <init>
+    constructor = CBENVPTR->GetMethodID(CBENVPAR cls, "<init>", "(ZJIJ)V");
+    if (constructor == 0) {
+        /* printf("JNI H5A_iterate_cb error: GetMethodID constructor failed\n"); */
+        JVMPTR->DetachCurrentThread(JVMPAR);
+        return -1;
+    }
+    args[0].z = info->corder_valid;
+    args[1].j = info->corder;
+    args[2].i = info->cset;
+    args[3].j = (jlong)info->data_size;
+    cb_info_t = CBENVPTR->NewObjectA(CBENVPAR cls, constructor, args);
+
+    status = CBENVPTR->CallIntMethod(CBENVPAR visit_callback, mid, g_id, str, cb_info_t, op_data);
+
+    JVMPTR->DetachCurrentThread(JVMPAR);
+    return status;
+}
+
+/*
+ * Class:     hdf_hdf5lib_H5
+ * Method:    H5Aiterate
+ * Signature: (JIIJLjava/lang/Object;Ljava/lang/Object;)I
+ */
+JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Aiterate
+  (JNIEnv *env, jclass clss, jlong grp_id, jint idx_type, jint order,
+          jlong idx, jobject callback_op, jobject op_data)
+{
+    hsize_t       start_idx = (hsize_t)idx;
+    herr_t        status = -1;
+
+    ENVPTR->GetJavaVM(ENVPAR &jvm);
+    visit_callback = callback_op;
+
+    if (op_data == NULL) {
+        h5nullArgument(env,  "H5Aiterate:  op_data is NULL");
+        return -1;
+    }
+    if (callback_op == NULL) {
+        h5nullArgument(env,  "H5Aiterate:  callback_op is NULL");
+        return -1;
+    }
+
+    status = H5Aiterate((hid_t)grp_id, (H5_index_t)idx_type, (H5_iter_order_t)order, (hsize_t*)&start_idx, (H5A_operator2_t)H5A_iterate_cb, (void*)op_data);
+
+    if (status < 0) {
+       h5libraryError(env);
+       return status;
+    }
+
+    return status;
+}
+
+/*
+ * Class:     hdf_hdf5lib_H5
+ * Method:    H5Aiterate_by_name
+ * Signature: (JLjava/lang/String;IIJLjava/lang/Object;Ljava/lang/Object;J)I
+ */
+JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Aiterate_1by_1name
+  (JNIEnv *env, jclass clss, jlong grp_id, jstring name, jint idx_type, jint order,
+          jlong idx, jobject callback_op, jobject op_data, jlong access_id)
+{
+    jboolean      isCopy;
+    const char   *lName;
+    hsize_t       start_idx = (hsize_t)idx;
+    herr_t        status = -1;
+
+    ENVPTR->GetJavaVM(ENVPAR &jvm);
+    visit_callback = callback_op;
+
+    if (name == NULL) {
+        h5nullArgument(env, "H5Aiterate_by_name:  name is NULL");
+        return -1;
+    }
+
+    lName = ENVPTR->GetStringUTFChars(ENVPAR name, &isCopy);
+    if (lName == NULL) {
+        h5JNIFatalError(env, "H5Aiterate_by_name:  name not pinned");
+        return -1;
+    }
+
+    if (op_data == NULL) {
+        h5nullArgument(env,  "H5Aiterate_by_name:  op_data is NULL");
+        return -1;
+    }
+    if (callback_op == NULL) {
+        h5nullArgument(env,  "H5Literate_by_name:  callback_op is NULL");
+        return -1;
+    }
+
+    status = H5Aiterate_by_name((hid_t)grp_id, lName, (H5_index_t)idx_type, (H5_iter_order_t)order, (hsize_t*)&start_idx, (H5A_operator2_t)H5A_iterate_cb, (void*)op_data, (hid_t)access_id);
+
+    ENVPTR->ReleaseStringUTFChars(ENVPAR name, lName);
+
+    if (status < 0) {
+       h5libraryError(env);
+       return status;
+    }
+
+    return status;
 }
 
 #ifdef __cplusplus

@@ -20,6 +20,8 @@ import java.io.File;
 import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.LinkedHashSet;
+import hdf.hdf5lib.callbacks.H5A_iterate_cb;
+import hdf.hdf5lib.callbacks.H5A_iterate_t;
 import hdf.hdf5lib.callbacks.H5D_iterate_cb;
 import hdf.hdf5lib.callbacks.H5D_iterate_t;
 import hdf.hdf5lib.callbacks.H5L_iterate_cb;
@@ -1183,11 +1185,85 @@ public class H5 implements java.io.Serializable {
 
     private synchronized static native long _H5Aget_create_plist(long attr_id) throws HDF5LibraryException;
 
-    // /////// unimplemented ////////
-    // herr_t H5Aiterate2(hid_t loc_id, H5_index_t idx_type, H5_iter_order_t order, hsize_t *idx, H5A_operator2_t op,
-    // void *op_data);
-    // herr_t H5Aiterate_by_name(hid_t loc_id, const char *obj_name, H5_index_t idx_type,
-    // H5_iter_order_t order, hsize_t *idx, H5A_operator2_t op, void *op_data, hid_t lapd_id);
+    /**
+     * H5Aiterate2 iterates over the attributes attached to a dataset, named datatype, or group, as
+     * specified by obj_id. For each attribute, user-provided data, op_data, with additional information
+     * as defined below, is passed to a user-defined function, op, which operates on that attribute.
+     *
+     * @param loc_id
+     *            IN: Identifier for object to which attributes are attached; may be group, dataset, or named datatype.
+     * @param idx_type
+     *            IN: The type of index specified by idx_type can be one of the following:
+     *                      H5_INDEX_NAME             An alpha-numeric index by attribute name.
+     *                      H5_INDEX_CRT_ORDER        An index by creation order.
+     * @param order
+     *            IN: The order in which the index is to be traversed, as specified by order, can be one of the following:
+     *                      H5_ITER_INC     Iteration is from beginning to end, i.e., a top-down iteration
+     *                                      incrementing the index position at each step.
+     *                      H5_ITER_DEC     Iteration starts at the end of the index, i.e., a bottom-up iteration
+     *                                      decrementing the index position at each step.
+     *                      H5_ITER_NATIVE  HDF5 iterates in the fastest-available order. No information is provided
+     *                                      as to the order, but HDF5 ensures that each element in the index will be
+     *                                      visited if the iteration completes successfully.
+     * @param idx
+     *            IN/OUT: Initial and returned offset within index.
+     * @param op
+     *            IN: Callback function to operate on each value.
+     * @param op_data
+     *            IN/OUT: Pointer to any user-efined data for use by operator function.
+     *
+     * @return returns the return value of the first operator that returns a positive value, or zero if all members were
+     *         processed with no operator returning non-zero.
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     * @exception NullPointerException
+     *                - buf is null.
+     **/
+     public synchronized static native int H5Aiterate(long loc_id, int idx_type, int order, long idx,
+                 H5A_iterate_cb op, H5A_iterate_t op_data) throws HDF5LibraryException, NullPointerException;
+
+    /**
+     * H5Aiterate_by_name iterates over the attributes attached to the dataset or group specified with loc_id
+     * and obj_name. For each attribute, user-provided data, op_data, with additional information as defined
+     * below, is passed to a user-defined function, op, which operates on that attribute.
+     *
+     * @param loc_id
+     *            IN: Identifier for object to which attributes are attached; may be group, dataset, or named datatype.
+     * @param obj_name
+     *            IN: Name of object, relative to location.
+     * @param idx_type
+     *            IN: The type of index specified by idx_type can be one of the following:
+     *                      H5_INDEX_NAME             An alpha-numeric index by attribute name.
+     *                      H5_INDEX_CRT_ORDER        An index by creation order.
+     * @param order
+     *            IN: The order in which the index is to be traversed, as specified by order, can be one of the following:
+     *                      H5_ITER_INC     Iteration is from beginning to end, i.e., a top-down iteration
+     *                                      incrementing the index position at each step.
+     *                      H5_ITER_DEC     Iteration starts at the end of the index, i.e., a bottom-up iteration
+     *                                      decrementing the index position at each step.
+     *                      H5_ITER_NATIVE  HDF5 iterates in the fastest-available order. No information is provided
+     *                                      as to the order, but HDF5 ensures that each element in the index will be
+     *                                      visited if the iteration completes successfully.
+     * @param idx
+     *            IN/OUT: Initial and returned offset within index.
+     * @param op
+     *            IN: Callback function to operate on each value.
+     * @param op_data
+     *            IN/OUT: Pointer to any user-efined data for use by operator function.
+     * @param lapl_id
+     *            IN: Link access property list
+     *
+     * @return returns the return value of the first operator that returns a positive value, or zero if all members were
+     *         processed with no operator returning non-zero.
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     * @exception NullPointerException
+     *                - buf is null.
+     **/
+     public synchronized static native int H5Aiterate_by_name(long loc_id, String obj_name, int idx_type,
+                        int order, long idx, H5A_iterate_cb op, H5A_iterate_t op_data, long lapl_id) throws HDF5LibraryException, NullPointerException;
 
     // ////////////////////////////////////////////////////////////
     // //
@@ -2027,8 +2103,9 @@ public class H5 implements java.io.Serializable {
             long file_space_id, long xfer_plist_id, String[] buf) throws HDF5LibraryException, NullPointerException;
 
     // /////// unimplemented ////////
+    // H5_DLL herr_t H5Ddebug(hid_t dset_id);
     // herr_t H5Dgather(hid_t src_space_id, const void *src_buf, hid_t type_id,
-    // size_t dst_buf_size, void *dst_buf, H5D_gather_func_t op, void *op_data);
+    //                  size_t dst_buf_size, void *dst_buf, H5D_gather_func_t op, void *op_data);
     // herr_t H5Dscatter(H5D_scatter_func_t op, void *op_data, hid_t type_id, hid_t dst_space_id, void *dst_buf);
 
     // ////////////////////////////////////////////////////////////
@@ -2290,38 +2367,38 @@ public class H5 implements java.io.Serializable {
     // /////// unimplemented ////////
     // public interface H5E_auto2_t extends Callback
     // {
-    // int callback(int estack, Pointer client_data);
+    //         int callback(int estack, Pointer client_data);
     // }
 
     // int H5Eget_auto(long estack_id, H5E_auto2_t func, PointerByReference client_data);
     // {
-    // return H5Eget_auto2(estack_id, func, client_data);
+    //         return H5Eget_auto2(estack_id, func, client_data);
     // }
     // int H5Eget_auto2(long estack_id, H5E_auto2_t func, PointerByReference client_data);
 
     // int H5Eset_auto(long estack_id, H5E_auto2_t func, Pointer client_data);
     // {
-    // return H5Eset_auto2(estack_id, func, client_data);
+    //         return H5Eset_auto2(estack_id, func, client_data);
     // }
     // int H5Eset_auto2(long estack_id, H5E_auto2_t func, Pointer client_data);
 
     // public static int H5Epush(long err_stack, String file, String func, int line,
-    // long cls_id, long maj_id, long min_id, String msg, ...)
+    //             long cls_id, long maj_id, long min_id, String msg, ...)
     // {
-    // H5Epush2(err_stack, file, func, line, cls_id, maj_id, min_id, msg, ...);
+    //         H5Epush2(err_stack, file, func, line, cls_id, maj_id, min_id, msg, ...);
     // }
     // public synchronized static native int H5Epush2(long err_stack, String file, String func, int line,
-    // long cls_id, long maj_id, long min_id, String msg, ...);
+    //             long cls_id, long maj_id, long min_id, String msg, ...);
 
     // //Error stack traversal callback function pointers
     // public interface H5E_walk2_t extends Callback
     // {
-    // int callback(int n, H5E_error2_t err_desc, Pointer client_data);
+    //         int callback(int n, H5E_error2_t err_desc, Pointer client_data);
     // }
 
     // int H5Ewalk(long err_stack, H5E_direction_t direction, H5E_walk2_t func, Pointer client_data)
     // {
-    // return H5Ewalk2(err_stack, direction, func, client_data);
+    //         return H5Ewalk2(err_stack, direction, func, client_data);
     // }
     // int H5Ewalk2(long err_stack, H5E_direction_t direction, H5E_walk2_t func, Pointer client_data);
 

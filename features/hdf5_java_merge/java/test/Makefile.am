@@ -74,6 +74,8 @@ $(jarfile): classnoinst.stamp classes
 
 noinst_DATA = $(jarfile)
 
+.PHONY: classes
+
 check_SCRIPTS = junit.sh
 TEST_SCRIPT = $(check_SCRIPTS)
 

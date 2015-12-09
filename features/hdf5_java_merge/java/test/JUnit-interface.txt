@@ -516,6 +516,7 @@ JUnit version 4.11
 .testH5Acreate_by_name
 .testH5Aget_name_by_idx
 .testH5Aget_storage_size
+.testH5Aiterate
 .testH5Aopen_by_idx
 .testH5Aopen_invalidname
 .testH5Aopen
@@ -534,6 +535,7 @@ JUnit version 4.11
 .testH5Arename_by_name
 .testH5Acreate2_invalidobject
 .testH5Acreate2
+.testH5Aiterate_by_name
 .testH5Adelete_by_idx_null
 .testH5Adelete_by_idx_invalidobject
 .testH5Awrite_readVL
@@ -602,7 +604,7 @@ JUnit version 4.11
 
 Time:  XXXX
 
-OK (600 tests)
+OK (602 tests)
 
 HDF5-DIAG: Error detected in HDF5 (version (number)) thread (IDs):
   #000: (file name) line (number) in H5Fopen(): not file access property list

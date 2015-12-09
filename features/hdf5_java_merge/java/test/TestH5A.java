@@ -21,10 +21,14 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.util.ArrayList;
+
 import java.io.File;
 
 import hdf.hdf5lib.H5;
 import hdf.hdf5lib.HDF5Constants;
+import hdf.hdf5lib.callbacks.H5A_iterate_cb;
+import hdf.hdf5lib.callbacks.H5A_iterate_t;
 import hdf.hdf5lib.exceptions.HDF5Exception;
 import hdf.hdf5lib.exceptions.HDF5LibraryException;
 import hdf.hdf5lib.structs.H5A_info_t;
@@ -974,6 +978,139 @@ public class TestH5A {
                 try {H5.H5Pclose(plist_id);} catch (Exception ex) {}
             if (attribute_id > 0)
                 try {H5.H5Aclose(attribute_id);} catch (Exception ex) {}
+        }
+    }
+
+    @Test
+    public void testH5Aiterate() {
+        long attr1_id = -1;
+        long attr2_id = -1;
+        long attr3_id = -1;
+        long attr4_id = -1;
+
+        class idata {
+            public String attr_name = null;
+            idata(String name) {
+                this.attr_name = name;
+            }
+        }
+        class H5A_iter_data implements H5A_iterate_t {
+            public ArrayList<idata> iterdata = new ArrayList<idata>();
+        }
+        H5A_iterate_t iter_data = new H5A_iter_data();
+        class H5A_iter_callback implements H5A_iterate_cb {
+            public int callback(long group, String name, H5A_info_t info, H5A_iterate_t op_data) {
+                idata id = new idata(name);
+                ((H5A_iter_data)op_data).iterdata.add(id);
+                return 0;
+            }
+        }
+        try {
+            attr1_id = H5.H5Acreate_by_name(H5fid, ".", "attribute1",
+                    type_id, space_id, HDF5Constants.H5P_DEFAULT,
+                    HDF5Constants.H5P_DEFAULT, lapl_id);
+            attr2_id = H5.H5Acreate_by_name(H5fid, ".", "attribute2",
+                    type_id, space_id, HDF5Constants.H5P_DEFAULT,
+                    HDF5Constants.H5P_DEFAULT, lapl_id);
+            attr3_id = H5.H5Acreate_by_name(H5fid, ".", "attribute3",
+                    type_id, space_id, HDF5Constants.H5P_DEFAULT,
+                    HDF5Constants.H5P_DEFAULT, lapl_id);
+            attr4_id = H5.H5Acreate_by_name(H5fid, ".", "attribute4",
+                    type_id, space_id, HDF5Constants.H5P_DEFAULT,
+                    HDF5Constants.H5P_DEFAULT, lapl_id);
+            H5A_iterate_cb iter_cb = new H5A_iter_callback();
+            try {
+                H5.H5Aiterate(H5fid, HDF5Constants.H5_INDEX_CRT_ORDER, HDF5Constants.H5_ITER_INC, 0L, iter_cb, iter_data);
+            }
+            catch (Throwable err) {
+                err.printStackTrace();
+                fail("H5.H5Aiterate: " + err);
+            }
+            assertFalse("H5Aiterate ",((H5A_iter_data)iter_data).iterdata.isEmpty());
+            assertTrue("H5Aiterate "+((H5A_iter_data)iter_data).iterdata.size(),((H5A_iter_data)iter_data).iterdata.size()==4);
+            assertTrue("H5Aiterate "+(((H5A_iter_data)iter_data).iterdata.get(0)).attr_name,(((H5A_iter_data)iter_data).iterdata.get(0)).attr_name.compareToIgnoreCase("attribute1")==0);
+            assertTrue("H5Aiterate "+(((H5A_iter_data)iter_data).iterdata.get(1)).attr_name,(((H5A_iter_data)iter_data).iterdata.get(1)).attr_name.compareToIgnoreCase("attribute2")==0);
+            assertTrue("H5Aiterate "+((idata)((H5A_iter_data)iter_data).iterdata.get(2)).attr_name,(((H5A_iter_data)iter_data).iterdata.get(2)).attr_name.compareToIgnoreCase("attribute3")==0);
+            assertTrue("H5Aiterate "+((idata)((H5A_iter_data)iter_data).iterdata.get(3)).attr_name,((idata)((H5A_iter_data)iter_data).iterdata.get(3)).attr_name.compareToIgnoreCase("attribute4")==0);
+        }
+        catch (Throwable err) {
+            err.printStackTrace();
+            fail("testH5Aiterate: " + err);
+        }
+        finally {
+            if (attr1_id > 0)
+                try {H5.H5Aclose(attr1_id);} catch (Exception ex) {}
+            if (attr2_id > 0)
+                try {H5.H5Aclose(attr2_id);} catch (Exception ex) {}
+            if (attr3_id > 0)
+                try {H5.H5Aclose(attr3_id);} catch (Exception ex) {}
+            if (attr4_id > 0)
+                try {H5.H5Aclose(attr4_id);} catch (Exception ex) {}
+        }
+    }
+
+    @Test
+    public void testH5Aiterate_by_name() {
+        long attr1_id = -1;
+        long attr2_id = -1;
+        long attr3_id = -1;
+        long attr4_id = -1;
+
+        class idata {
+            public String attr_name = null;
+            idata(String name) {
+                this.attr_name = name;
+            }
+        }
+        class H5A_iter_data implements H5A_iterate_t {
+            public ArrayList<idata> iterdata = new ArrayList<idata>();
+        }
+        H5A_iterate_t iter_data = new H5A_iter_data();
+        class H5A_iter_callback implements H5A_iterate_cb {
+            public int callback(long group, String name, H5A_info_t info, H5A_iterate_t op_data) {
+                idata id = new idata(name);
+                ((H5A_iter_data)op_data).iterdata.add(id);
+                return 0;
+            }
+        }
+        try {
+            attr1_id = H5.H5Acreate_by_name(H5fid, ".", "attribute4",
+                    type_id, space_id, HDF5Constants.H5P_DEFAULT,
+                    HDF5Constants.H5P_DEFAULT, lapl_id);
+            attr2_id = H5.H5Acreate_by_name(H5fid, ".", "attribute3",
+                    type_id, space_id, HDF5Constants.H5P_DEFAULT,
+                    HDF5Constants.H5P_DEFAULT, lapl_id);
+            attr3_id = H5.H5Acreate_by_name(H5fid, ".", "attribute2",
+                    type_id, space_id, HDF5Constants.H5P_DEFAULT,
+                    HDF5Constants.H5P_DEFAULT, lapl_id);
+            attr4_id = H5.H5Acreate_by_name(H5fid, ".", "attribute1",
+                    type_id, space_id, HDF5Constants.H5P_DEFAULT,
+                    HDF5Constants.H5P_DEFAULT, lapl_id);
+            H5A_iterate_cb iter_cb = new H5A_iter_callback();
+            try {
+                H5.H5Aiterate_by_name(H5fid, ".", HDF5Constants.H5_INDEX_NAME, HDF5Constants.H5_ITER_INC, 0L, iter_cb, iter_data, HDF5Constants.H5P_DEFAULT);
+            }
+            catch (Throwable err) {
+                err.printStackTrace();
+                fail("H5.H5Aiterate_by_name: " + err);
+            }
+            assertFalse("H5Aiterate_by_name ",((H5A_iter_data)iter_data).iterdata.isEmpty());
+            assertTrue("H5Aiterate_by_name "+((H5A_iter_data)iter_data).iterdata.size(),((H5A_iter_data)iter_data).iterdata.size()==4);
+            assertTrue("H5Aiterate_by_name "+((idata)((H5A_iter_data)iter_data).iterdata.get(1)).attr_name,((idata)((H5A_iter_data)iter_data).iterdata.get(1)).attr_name.compareToIgnoreCase("attribute2")==0);
+        }
+        catch (Throwable err) {
+            err.printStackTrace();
+            fail("testH5Aiterate: " + err);
+        }
+        finally {
+            if (attr1_id > 0)
+                try {H5.H5Aclose(attr1_id);} catch (Exception ex) {}
+            if (attr2_id > 0)
+                try {H5.H5Aclose(attr2_id);} catch (Exception ex) {}
+            if (attr3_id > 0)
+                try {H5.H5Aclose(attr3_id);} catch (Exception ex) {}
+            if (attr4_id > 0)
+                try {H5.H5Aclose(attr4_id);} catch (Exception ex) {}
         }
     }
 
