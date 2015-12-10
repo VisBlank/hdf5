@@ -2057,7 +2057,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Aiterate
         return -1;
     }
 
-    status = H5Aiterate((hid_t)grp_id, (H5_index_t)idx_type, (H5_iter_order_t)order, (hsize_t*)&start_idx, (H5A_operator2_t)H5A_iterate_cb, (void*)op_data);
+    status = H5Aiterate2((hid_t)grp_id, (H5_index_t)idx_type, (H5_iter_order_t)order, (hsize_t*)&start_idx, (H5A_operator2_t)H5A_iterate_cb, (void*)op_data);
 
     if (status < 0) {
        h5libraryError(env);
