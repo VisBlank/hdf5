@@ -306,4 +306,15 @@ public class TestH5Fbasic {
         assertNotNull(fname);
         assertEquals(fname, H5_FILE);
     }
+
+    @Test
+    public void testH5Fclear_elink_file_cache() {
+
+        try {
+            H5.H5Fclear_elink_file_cache(H5fid);
+        }
+        catch (Throwable err) {
+            fail("H5.H5Freset_mdc_hit_rate_stats: " + err);
+        }
+    }
 }

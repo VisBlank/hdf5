@@ -422,6 +422,16 @@ public class TestH5Edefault {
     }
 
     @Test(expected = IllegalArgumentException.class)
+    public void testH5Epush_invalid_stkid() throws Throwable {
+        H5.H5Epush(-1, "Invalid", "Invalid", 0, -1, -1, -1, "Invalid message");
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testH5Epush_null_name() throws Throwable {
+        H5.H5Epush(HDF5Constants.H5E_DEFAULT, null, "Invalid", 0, HDF5Constants.H5E_DEFAULT, HDF5Constants.H5E_DEFAULT, HDF5Constants.H5E_DEFAULT, "Invalid message");
+    }
+
+    @Test(expected = IllegalArgumentException.class)
     public void testH5EprintInt_invalid_classid() throws Throwable {
         H5.H5Eprint2(-1, null);
     }

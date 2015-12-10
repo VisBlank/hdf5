@@ -2468,12 +2468,16 @@
 ./java/src/hdf/hdf5lib/CMakeLists.txt
 
 ./java/src/hdf/hdf5lib/callbacks/Callbacks.java
+./java/src/hdf/hdf5lib/callbacks/H5A_iterate_cb.java
+./java/src/hdf/hdf5lib/callbacks/H5A_iterate_t.java
+./java/src/hdf/hdf5lib/callbacks/H5D_iterate_cb.java
+./java/src/hdf/hdf5lib/callbacks/H5D_iterate_t.java
+./java/src/hdf/hdf5lib/callbacks/H5E_walk_cb.java
+./java/src/hdf/hdf5lib/callbacks/H5E_walk_t.java
 ./java/src/hdf/hdf5lib/callbacks/H5L_iterate_cb.java
 ./java/src/hdf/hdf5lib/callbacks/H5L_iterate_t.java
 ./java/src/hdf/hdf5lib/callbacks/H5O_iterate_cb.java
 ./java/src/hdf/hdf5lib/callbacks/H5O_iterate_t.java
-./java/src/hdf/hdf5lib/callbacks/H5D_iterate_cb.java
-./java/src/hdf/hdf5lib/callbacks/H5D_iterate_t.java
 
 ./java/src/hdf/hdf5lib/exceptions/HDF5AtomException.java
 ./java/src/hdf/hdf5lib/exceptions/HDF5AttributeException.java
@@ -2502,11 +2506,13 @@
 
 ./java/src/hdf/hdf5lib/structs/H5_ih_info_t.java
 ./java/src/hdf/hdf5lib/structs/H5A_info_t.java
+./java/src/hdf/hdf5lib/structs/H5AC_cache_config_t.java
+./java/src/hdf/hdf5lib/structs/H5E_error2_t.java
+./java/src/hdf/hdf5lib/structs/H5F_info2_t.java
 ./java/src/hdf/hdf5lib/structs/H5G_info_t.java
 ./java/src/hdf/hdf5lib/structs/H5L_info_t.java
-./java/src/hdf/hdf5lib/structs/H5O_info_t.java
 ./java/src/hdf/hdf5lib/structs/H5O_hdr_info_t.java
-./java/src/hdf/hdf5lib/structs/H5AC_cache_config_t.java
+./java/src/hdf/hdf5lib/structs/H5O_info_t.java
 
 ./java/src/hdf/hdf5lib/H5.java
 ./java/src/hdf/hdf5lib/HDF5Constants.java

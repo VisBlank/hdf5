@@ -20,9 +20,15 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+
+import java.util.ArrayList;
+
 import hdf.hdf5lib.H5;
 import hdf.hdf5lib.HDF5Constants;
 import hdf.hdf5lib.exceptions.HDF5LibraryException;
+import hdf.hdf5lib.callbacks.H5E_walk_cb;
+import hdf.hdf5lib.callbacks.H5E_walk_t;
+import hdf.hdf5lib.structs.H5E_error2_t;
 
 import org.junit.After;
 import org.junit.Before;
@@ -307,6 +313,76 @@ public class TestH5E {
     }
 
     @Test
+    public void testH5Epush() {
+        String      err_func = "testH5Epush";
+        String      err_msg = "Error message";
+        long        estack_id = -1;
+        long        maj_err_id = -1;
+        long        min_err_id = -1;
+        long        num_msg = -1;
+
+        try {
+            try {
+                maj_err_id = H5.H5Ecreate_msg(hdf_java_classid, HDF5Constants.H5E_MAJOR, "Error in Test");
+                assertFalse("testH5Epush: H5.H5Ecreate_msg_major: " + maj_err_id, maj_err_id < 0);
+            }
+            catch (Throwable err) {
+                err.printStackTrace();
+                fail("testH5Epush: H5.H5Ecreate_msg_major: " + err);
+            }
+            try {
+                min_err_id = H5.H5Ecreate_msg(hdf_java_classid, HDF5Constants.H5E_MINOR, "Error in Test Function");
+                assertFalse("H5.H5Ecreate_msg_minor: " + min_err_id, min_err_id < 0);
+            }
+            catch (Throwable err) {
+                err.printStackTrace();
+                fail("testH5Epush: H5.H5Ecreate_msg_minor: " + err);
+            }
+
+            try {
+                estack_id = H5.H5Ecreate_stack();
+            }
+            catch (Throwable err) {
+                err.printStackTrace();
+                fail("testH5Epush: H5.H5Ecreate_stack: " + err);
+            }
+            assertFalse("testH5Epush: H5.H5Ecreate_stack: " + estack_id, estack_id < 0);
+
+            try {
+                num_msg = H5.H5Eget_num(estack_id);
+                assertTrue("testH5Epush #:" + num_msg, num_msg == 0);
+            }
+            catch (Throwable err) {
+                err.printStackTrace();
+                fail("testH5Epush: H5.H5Eget_num: " + err);
+            }
+
+            H5.H5Epush(estack_id, "TestH5E.java", err_func, 354, hdf_java_classid, maj_err_id, min_err_id, err_msg);
+
+            try {
+                num_msg = H5.H5Eget_num(estack_id);
+                assertTrue("testH5Epush #:" + num_msg, num_msg == 1);
+            }
+            catch (Throwable err) {
+                err.printStackTrace();
+                fail("testH5Epush: H5.H5Eget_num: " + err);
+            }
+        }
+        catch (Throwable err) {
+            err.printStackTrace();
+            fail("testH5Epush: " + err);
+        }
+        finally {
+            if (estack_id >= 0)
+                try {H5.H5Eclose_stack(estack_id);} catch (Exception ex) {}
+            if (maj_err_id >= 0)
+                try {H5.H5Eclose_msg(maj_err_id);} catch (Exception ex) {}
+            if (min_err_id >= 0)
+                try {H5.H5Eclose_msg(min_err_id);} catch (Exception ex) {}
+        }
+    } /* end test_create() */
+
+    @Test
     public void testH5EprintInt() {
         assertFalse(current_stackid < 0);
         try {
@@ -401,14 +477,77 @@ public class TestH5E {
         assertTrue("H5.H5Eget_num_with_msg #:" + num_msg, num_msg > 0);
     }
 
-    @Ignore("API1.6")
-    public void testH5Eprint() {
-        fail("Not yet implemented");
-    }
+    @Test
+    public void testH5Ewalk() {
+        class wdata {
+            public String err_desc = null;
+            public String func_name = null;
+            public int line = -1;
+            wdata(String desc, String func, int lineno) {
+                this.err_desc = new String(desc);
+                this.func_name = new String(func);
+                this.line = lineno;
+            }
+        }
+        class H5E_walk_data implements H5E_walk_t {
+            public ArrayList<wdata> walkdata = new ArrayList<wdata>();
+        }
+        H5E_walk_t walk_data = new H5E_walk_data();
+        class H5E_walk_callback implements H5E_walk_cb {
+            public int callback(long nidx, H5E_error2_t info, H5E_walk_t op_data) {
+                wdata wd = new wdata(info.desc, info.func_name, info.line);
+                ((H5E_walk_data)op_data).walkdata.add(wd);
+                return 0;
+            }
+        }
+        H5E_walk_cb walk_cb = new H5E_walk_callback();
+        long num_msg = -1;
 
-    @Ignore("API1.6")
-    public void testH5Eclear() {
-        fail("Not yet implemented");
+        try {
+            H5.H5Eset_current_stack(current_stackid);
+        }
+        catch (Throwable err) {
+            err.printStackTrace();
+            fail("testH5Ewalk:H5Eset_current_stack " + err);
+        }
+        try {
+            H5.H5Fopen("test", 0, 1);
+        }
+        catch (Throwable err) {
+        }
+
+        // save current stack contents
+        try {
+            current_stackid = H5.H5Eget_current_stack();
+        }
+        catch (HDF5LibraryException err) {
+            err.printStackTrace();
+            fail("H5.H5Epop: " + err);
+        }
+
+        try {
+            num_msg = H5.H5Eget_num(current_stackid);
+        }
+        catch (Throwable err) {
+            err.printStackTrace();
+            fail("testH5Ewalk:H5Eget_num " + err);
+        }
+        assertTrue("testH5Ewalk #:" + num_msg, num_msg == 2);
+
+        try {
+            H5.H5Ewalk2(current_stackid, HDF5Constants.H5E_WALK_UPWARD, walk_cb, walk_data);
+        }
+        catch (Throwable err) {
+            err.printStackTrace();
+            fail("testH5Ewalk:H5Ewalk2 " + err);
+        }
+        assertFalse("testH5Ewalk:H5Ewalk2 ",((H5E_walk_data)walk_data).walkdata.isEmpty());
+        assertTrue("testH5Ewalk:H5Ewalk2 "+((H5E_walk_data)walk_data).walkdata.size(),((H5E_walk_data)walk_data).walkdata.size()==2);
+        assertTrue("testH5Ewalk:H5Ewalk2 "+((wdata)((H5E_walk_data)walk_data).walkdata.get(0)).line,((wdata)((H5E_walk_data)walk_data).walkdata.get(0)).line==3739);
+        assertTrue("testH5Ewalk:H5Ewalk2 "+((wdata)((H5E_walk_data)walk_data).walkdata.get(1)).line,((wdata)((H5E_walk_data)walk_data).walkdata.get(1)).line==572);
+        assertTrue("testH5Ewalk:H5Ewalk2 "+((wdata)((H5E_walk_data)walk_data).walkdata.get(1)).func_name,((wdata)((H5E_walk_data)walk_data).walkdata.get(1)).func_name.compareToIgnoreCase("H5Fopen")==0);
+        assertTrue("testH5Ewalk:H5Ewalk2 "+((wdata)((H5E_walk_data)walk_data).walkdata.get(0)).err_desc,((wdata)((H5E_walk_data)walk_data).walkdata.get(0)).err_desc.compareToIgnoreCase("not a property list")==0);
+        assertTrue("testH5Ewalk:H5Ewalk2 "+((wdata)((H5E_walk_data)walk_data).walkdata.get(1)).err_desc,((wdata)((H5E_walk_data)walk_data).walkdata.get(1)).err_desc.compareToIgnoreCase("not file access property list")==0);
     }
 
 }

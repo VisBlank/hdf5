@@ -19,8 +19,10 @@ JUnit version 4.11
 .testH5Eget_num
 .testH5Eclear
 .testH5Eprint
+.testH5Epush_null_name
 .testH5Eget_num_with_msg
 .testH5Eclear2_with_msg
+.testH5Epush_invalid_stkid
 .testH5Eget_current_stack
 .testH5Ecreate_stack
 .testH5Eget_msg_invalid_msgid
@@ -44,6 +46,8 @@ JUnit version 4.11
 .testH5Eget_msg_minor
 .testH5Eget_msg
 .testH5Eget_num
+.testH5Epush
+.testH5Ewalk
 .testH5Eget_class_name
 .testH5Eget_num_with_msg
 .testH5Eclear2
@@ -57,6 +61,7 @@ JUnit version 4.11
 .testH5Epop
 .testH5Fcreate_null
 .testH5Fflush_local
+.testH5Fget_info
 .testH5Fmount_null
 .testH5Fcreate
 .testH5Fflush_global
@@ -76,6 +81,7 @@ JUnit version 4.11
 .testH5Freset_mdc_hit_rate_stats
 .testH5Fget_name
 .testH5Fcreate
+.testH5Fclear_elink_file_cache
 .testH5Fclose_twice
 .testH5Freopen
 .testH5Fopen_read_only
@@ -604,7 +610,7 @@ JUnit version 4.11
 
 Time:  XXXX
 
-OK (602 tests)
+OK (608 tests)
 
 HDF5-DIAG: Error detected in HDF5 (version (number)) thread (IDs):
   #000: (file name) line (number) in H5Fopen(): not file access property list

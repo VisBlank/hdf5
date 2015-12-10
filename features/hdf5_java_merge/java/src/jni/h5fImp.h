@@ -200,6 +200,21 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Freset_1mdc_1hit_1rate_1stats
 
 /*
  * Class:     hdf_hdf5lib_H5
+ * Method:    H5Fget_info
+ * Signature: (J)Lhdf/hdf5lib/structs/H5F_info2_t;
+ */
+JNIEXPORT jobject JNICALL Java_hdf_hdf5lib_H5_H5Fget_1info
+  (JNIEnv*, jclass, jlong);
+
+/*
+ * Class:     hdf_hdf5lib_H5
+ * Method:    H5Fclear_elink_file_cache
+ * Signature: (J)V
+ */
+JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Fclear_1elink_1file_1cache
+  (JNIEnv *, jclass, jlong);
+/*
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5export_dataset
  * Signature: (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;I)V
  */

@@ -15,6 +15,7 @@
 
 package test;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -23,6 +24,7 @@ import java.io.File;
 
 import hdf.hdf5lib.H5;
 import hdf.hdf5lib.HDF5Constants;
+import hdf.hdf5lib.structs.H5F_info2_t;
 
 import org.junit.After;
 import org.junit.Before;
@@ -177,6 +179,37 @@ public class TestH5Fparams {
             H5.H5Fclose(fid);
         }
         catch (Exception ex) {
+        }
+    }
+
+    @Test
+    public void testH5Fget_info() {
+        long fid = -1;
+
+        try {
+            try {
+                fid = H5.H5Fcreate("test.h5", HDF5Constants.H5F_ACC_TRUNC,
+                        HDF5Constants.H5P_DEFAULT, HDF5Constants.H5P_DEFAULT);
+            }
+            catch (Throwable err) {
+                fail("H5.H5Fopen: " + err);
+            }
+
+            try {
+                H5F_info2_t finfo = H5.H5Fget_info(fid);
+                assertEquals(finfo.super_version, 0);
+                assertEquals(finfo.free_version, 0);
+                assertEquals(finfo.sohm_version, 0);
+            }
+            catch (Throwable err) {
+                fail("H5.H5Fget_info: " + err);
+            }
+        }
+        catch (Exception e) {
+           e.printStackTrace();
+        }
+        finally {
+            try {H5.H5Fclose(fid);} catch (Exception ex) {}
         }
     }
 }

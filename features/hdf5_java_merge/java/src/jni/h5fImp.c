@@ -628,6 +628,61 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Fget_1mdc_1size
 
     return (jint)cur_num_entries;
 }
+/*
+ * Class:     hdf_hdf5lib_H5
+ * Method:    H5Fget_info
+ * Signature: (J)Lhdf/hdf5lib/structs/H5F_info2_t;
+ */
+JNIEXPORT jobject JNICALL Java_hdf_hdf5lib_H5_H5Fget_1info
+  (JNIEnv *env, jclass clss, jlong obj_id)
+{
+    herr_t      status;
+    H5F_info_t  finfo;
+    jclass      cls;
+    jmethodID   constructor;
+    jvalue      args[9];
+    jobject     ihinfobuf;
+    jobject     ret_info_t = NULL;
+
+    status = H5Fget_info2((hid_t)obj_id, (H5F_info2_t *)&finfo);
+
+    if (status < 0) {
+       h5libraryError(env);
+       return NULL;
+    }
+
+    // get a reference to the H5_ih_info_t class
+    cls = ENVPTR->FindClass(ENVPAR "hdf/hdf5lib/structs/H5_ih_info_t");
+    if (cls == 0) {
+       h5JNIFatalError( env, "JNI error: GetObjectClass H5_ih_info_t failed\n");
+       return NULL;
+    }
+    // get a reference to the constructor; the name is <init>
+    constructor = ENVPTR->GetMethodID(ENVPAR cls, "<init>", "(JJ)V");
+    if (constructor == 0) {
+        h5JNIFatalError( env, "JNI error: GetMethodID H5_ih_info_t failed\n");
+       return NULL;
+    }
+    args[0].j = (jlong)finfo.sohm.msgs_info.index_size;
+    args[1].j = (jlong)finfo.sohm.msgs_info.heap_size;
+    ihinfobuf = ENVPTR->NewObjectA(ENVPAR cls, constructor, args);
+
+    // get a reference to your class if you don't have it already
+    cls = ENVPTR->FindClass(ENVPAR "hdf/hdf5lib/structs/H5F_info2_t");
+    // get a reference to the constructor; the name is <init>
+    constructor = ENVPTR->GetMethodID(ENVPAR cls, "<init>", "(IJJIJJIJLhdf/hdf5lib/structs/H5_ih_info_t;)V");
+    args[0].i = (jint)finfo.super.version;
+    args[1].j = (jlong)finfo.super.super_size;
+    args[2].j = (jlong)finfo.super.super_ext_size;
+    args[3].i = (jint)finfo.free.version;
+    args[4].j = (jlong)finfo.free.meta_size;
+    args[5].j = (jlong)finfo.free.tot_space;
+    args[6].j = (jint)finfo.sohm.version;
+    args[7].j = (jlong)finfo.sohm.hdr_size;
+    args[8].l = ihinfobuf;
+    ret_info_t = ENVPTR->NewObjectA(ENVPAR cls, constructor, args);
+    return ret_info_t;
+}
 
 /*
  * Class:     hdf_hdf5lib_H5
@@ -640,6 +695,23 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Freset_1mdc_1hit_1rate_1stats
     herr_t ret_val = -1;
 
     ret_val = H5Freset_mdc_hit_rate_stats((hid_t)file_id);
+
+    if (ret_val < 0) {
+        h5libraryError(env);
+    }
+}
+
+/*
+ * Class:     hdf_hdf5lib_H5
+ * Method:    H5Fclear_elink_file_cache
+ * Signature: (J)V
+ */
+JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Fclear_1elink_1file_1cache
+  (JNIEnv *env, jclass cls, jlong file_id)
+{
+    herr_t ret_val = -1;
+
+    ret_val = H5Fclear_elink_file_cache((hid_t)file_id);
 
     if (ret_val < 0) {
         h5libraryError(env);
