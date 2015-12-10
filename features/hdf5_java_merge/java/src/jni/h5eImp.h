@@ -22,6 +22,9 @@
 extern "C" {
 #endif
 
+extern JavaVM *jvm;
+extern jobject visit_callback;
+
 /*
  * Class:     hdf_hdf5lib_H5
  * Method:    H5Eauto_is_v2
@@ -128,6 +131,14 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Epop
 
 /*
  * Class:     hdf_hdf5lib_H5
+ * Method:    H5Epush2
+ * Signature: (JLjava/lang/String;Ljava/lang/String;IJJJLjava/lang/String;)V
+ */
+JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Epush2
+  (JNIEnv *, jclass, jlong, jstring, jstring, jint, jlong, jlong, jlong, jstring);
+
+/*
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5Eclear2
  * Signature: (J)V
  */
@@ -149,6 +160,14 @@ JNIEXPORT jstring JNICALL Java_hdf_hdf5lib_H5_H5Eget_1msg
  */
 JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5_H5Eget_1num
   (JNIEnv *, jclass, jlong);
+
+/*
+ * Class:     hdf_hdf5lib_H5
+ * Method:    H5Ewalk2
+ * Signature: (JJLjava/lang/Object;Ljava/lang/Object;)V
+ */
+JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Ewalk2
+  (JNIEnv *, jclass, jlong, jlong, jobject, jobject);
 
 #ifdef __cplusplus
 }

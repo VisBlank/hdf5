@@ -47,12 +47,14 @@ hdf5_java_JAVA =  \
 	${pkgpath}/callbacks/Callbacks.java \
 	${pkgpath}/callbacks/H5A_iterate_cb.java \
 	${pkgpath}/callbacks/H5A_iterate_t.java \
+	${pkgpath}/callbacks/H5D_iterate_cb.java \
+	${pkgpath}/callbacks/H5D_iterate_t.java \
+	${pkgpath}/callbacks/H5E_walk_cb.java \
+	${pkgpath}/callbacks/H5E_walk_t.java \
 	${pkgpath}/callbacks/H5L_iterate_cb.java \
 	${pkgpath}/callbacks/H5L_iterate_t.java \
 	${pkgpath}/callbacks/H5O_iterate_cb.java \
 	${pkgpath}/callbacks/H5O_iterate_t.java \
-	${pkgpath}/callbacks/H5D_iterate_cb.java \
-	${pkgpath}/callbacks/H5D_iterate_t.java \
 	${pkgpath}/exceptions/HDF5AtomException.java  \
 	${pkgpath}/exceptions/HDF5AttributeException.java  \
 	${pkgpath}/exceptions/HDF5BtreeException.java  \
@@ -79,6 +81,7 @@ hdf5_java_JAVA =  \
 	${pkgpath}/exceptions/HDF5SymbolTableException.java \
 	${pkgpath}/structs/H5_ih_info_t.java \
 	${pkgpath}/structs/H5A_info_t.java \
+	${pkgpath}/structs/H5E_error2_t.java \
 	${pkgpath}/structs/H5G_info_t.java \
 	${pkgpath}/structs/H5L_info_t.java \
 	${pkgpath}/structs/H5O_info_t.java \

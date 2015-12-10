@@ -24,6 +24,8 @@ import hdf.hdf5lib.callbacks.H5A_iterate_cb;
 import hdf.hdf5lib.callbacks.H5A_iterate_t;
 import hdf.hdf5lib.callbacks.H5D_iterate_cb;
 import hdf.hdf5lib.callbacks.H5D_iterate_t;
+import hdf.hdf5lib.callbacks.H5E_walk_cb;
+import hdf.hdf5lib.callbacks.H5E_walk_t;
 import hdf.hdf5lib.callbacks.H5L_iterate_cb;
 import hdf.hdf5lib.callbacks.H5L_iterate_t;
 import hdf.hdf5lib.callbacks.H5O_iterate_cb;
@@ -33,6 +35,7 @@ import hdf.hdf5lib.exceptions.HDF5JavaException;
 import hdf.hdf5lib.exceptions.HDF5LibraryException;
 import hdf.hdf5lib.structs.H5AC_cache_config_t;
 import hdf.hdf5lib.structs.H5A_info_t;
+import hdf.hdf5lib.structs.H5E_error2_t;
 import hdf.hdf5lib.structs.H5G_info_t;
 import hdf.hdf5lib.structs.H5L_info_t;
 import hdf.hdf5lib.structs.H5O_info_t;
@@ -2233,8 +2236,8 @@ public class H5 implements java.io.Serializable {
      * @exception HDF5LibraryException
      *                - Error from the HDF-5 Library.
      **/
-    public synchronized static native String H5Eget_class_name(long class_id) throws HDF5LibraryException,
-    NullPointerException;
+    public synchronized static native String H5Eget_class_name(long class_id)
+            throws HDF5LibraryException, NullPointerException;
 
     // long H5Eget_class_name(int class_id, String name, IntegerType size);
 
@@ -2332,6 +2335,40 @@ public class H5 implements java.io.Serializable {
      **/
     public synchronized static native void H5Epop(long stack_id, long count) throws HDF5LibraryException;
 
+
+    /**
+     * H5Epush2 pushes a new error record onto the error stack specified by estack_id.
+     *
+     * @param stack_id
+     *            IN: Error stack identifier.
+     * @param file
+     *            IN: Name of the file in which the error was detected.
+     * @param func
+     *            IN: Name of the function in which the error was detected.
+     * @param line
+     *            IN: Line number within the file at which the error was detected.
+     * @param cls_id
+     *            IN: Error class identifier.
+     * @param maj_id
+     *            IN: Major error identifier.
+     * @param min_id
+     *            IN: Minor error identifier.
+     * @param msg
+     *            IN: Error description string.
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     * @exception NullPointerException
+     *                - file, func, or msg is null.
+      **/
+    public static void H5Epush(long stack_id, String file, String func, int line,
+                long cls_id, long maj_id, long min_id, String msg) throws HDF5LibraryException, NullPointerException
+    {
+             H5Epush2(stack_id, file, func, line, cls_id, maj_id, min_id, msg);
+    }
+    public synchronized static native void H5Epush2(long stack_id, String file, String func, int line,
+                long cls_id, long maj_id, long min_id, String msg) throws HDF5LibraryException, NullPointerException;
+
     /**
      * H5Eregister_class registers a client library or application program to the HDF5 error API so that the client
      * library or application program can report errors together with HDF5 library.
@@ -2364,6 +2401,31 @@ public class H5 implements java.io.Serializable {
      **/
     public synchronized static native void H5Eunregister_class(long class_id) throws HDF5LibraryException;
 
+    /**
+     * H5Ewalk walks the error stack specified by estack_id for the current thread and calls the
+     * function specified in func for each error along the way.
+     *
+     * @param stack_id
+     *            IN: Error stack identifier.
+     * @param direction
+     *            IN: Direction in which the error stack is to be walked.
+     * @param func
+     *            IN: Function to be called for each error encountered.
+     * @param client_data
+     *            IN: Data to be passed with func.
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     * @exception NullPointerException
+     *                - func is null.
+     **/
+    public static void H5Ewalk(long stack_id, long direction, H5E_walk_cb func, H5E_walk_t client_data) throws HDF5LibraryException, NullPointerException
+    {
+            H5Ewalk2(stack_id, direction, func, client_data);
+    }
+    public synchronized static native void H5Ewalk2(long stack_id, long direction, H5E_walk_cb func, H5E_walk_t client_data)
+            throws HDF5LibraryException, NullPointerException;
+
     // /////// unimplemented ////////
     // public interface H5E_auto2_t extends Callback
     // {
@@ -2382,25 +2444,13 @@ public class H5 implements java.io.Serializable {
     // }
     // int H5Eset_auto2(long estack_id, H5E_auto2_t func, Pointer client_data);
 
-    // public static int H5Epush(long err_stack, String file, String func, int line,
+    // public static void H5Epush(long err_stack, String file, String func, int line,
     //             long cls_id, long maj_id, long min_id, String msg, ...)
     // {
     //         H5Epush2(err_stack, file, func, line, cls_id, maj_id, min_id, msg, ...);
     // }
-    // public synchronized static native int H5Epush2(long err_stack, String file, String func, int line,
+    // public synchronized static native void H5Epush2(long err_stack, String file, String func, int line,
     //             long cls_id, long maj_id, long min_id, String msg, ...);
-
-    // //Error stack traversal callback function pointers
-    // public interface H5E_walk2_t extends Callback
-    // {
-    //         int callback(int n, H5E_error2_t err_desc, Pointer client_data);
-    // }
-
-    // int H5Ewalk(long err_stack, H5E_direction_t direction, H5E_walk2_t func, Pointer client_data)
-    // {
-    //         return H5Ewalk2(err_stack, direction, func, client_data);
-    // }
-    // int H5Ewalk2(long err_stack, H5E_direction_t direction, H5E_walk2_t func, Pointer client_data);
 
     // ////////////////////////////////////////////////////////////
     // //

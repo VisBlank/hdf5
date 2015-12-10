@@ -19,6 +19,8 @@ set (HDF5_JAVA_HDF_HDF5_CALLBACKS_SRCS
     callbacks/H5A_iterate_t.java
     callbacks/H5D_iterate_cb.java
     callbacks/H5D_iterate_t.java
+    callbacks/H5E_walk_cb.java
+    callbacks/H5E_walk_t.java
     callbacks/H5L_iterate_cb.java
     callbacks/H5L_iterate_t.java
     callbacks/H5O_iterate_cb.java
@@ -57,6 +59,7 @@ set (HDF5_JAVA_HDF_HDF5_STRUCTS_SRCS
     structs/H5_ih_info_t.java
     structs/H5A_info_t.java
     structs/H5AC_cache_config_t.java
+    structs/H5E_error2_t.java
     structs/H5G_info_t.java
     structs/H5L_info_t.java
     structs/H5O_hdr_info_t.java

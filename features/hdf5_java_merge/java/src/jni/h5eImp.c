@@ -41,6 +41,22 @@ extern "C" {
 #include "h5jni.h"
 #include "h5eImp.h"
 
+#ifdef __cplusplus
+#define CBENVPTR (cbenv)
+#define CBENVPAR
+#define JVMPTR (jvm)
+#define JVMPAR
+#define JVMPAR2
+#else
+#define CBENVPTR (*cbenv)
+#define CBENVPAR cbenv,
+#define JVMPTR (*jvm)
+#define JVMPAR jvm
+#define JVMPAR2 jvm,
+#endif
+
+static herr_t H5E_walk_cb(long nindx, const H5E_error2_t *info, void *op_data);
+
     /*
      * Class:     hdf_hdf5lib_H5
      * Method:    H5Eauto_is_v2
@@ -377,6 +393,81 @@ extern "C" {
 
     /*
      * Class:     hdf_hdf5lib_H5
+     * Method:    H5Epush2
+     * Signature: (JLjava/lang/String;Ljava/lang/String;IJJJLjava/lang/String;)V
+     */
+    JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Epush2
+      (JNIEnv *env, jclass cls, jlong stk_id, jstring filename, jstring funcname, jint linenumber, jlong class_id,
+          jlong major_id, jlong minor_id, jstring err_desc)
+    {
+        herr_t ret_val = -1;
+        const char* fName;
+        const char* fncName;
+        const char* errMsg;
+        jboolean isCopy;
+
+        if (stk_id < 0) {
+            h5badArgument(env, "H5Epush: invalid argument");
+            return;
+        }
+        if (class_id < 0) {
+            h5badArgument(env, "H5Epush: invalid class_id argument");
+            return;
+        }
+        if (major_id < 0) {
+            h5badArgument(env, "H5Epush: invalid major_id argument");
+            return;
+        }
+        if (minor_id < 0) {
+            h5badArgument(env, "H5Epush: invalid minor_id argument");
+            return;
+        }
+
+        if (filename == NULL) {
+            h5nullArgument( env,"H5Epush:  filename is NULL");
+            return;
+        }
+        fName = ENVPTR->GetStringUTFChars(ENVPAR filename,&isCopy);
+        if (fName == NULL) {
+            h5JNIFatalError( env,"H5Epush: filename is not pinned");
+            return;
+        }
+
+        if (funcname == NULL) {
+            h5nullArgument( env,"H5Epush:  funcname is NULL");
+            return;
+        }
+        fncName = ENVPTR->GetStringUTFChars(ENVPAR funcname,&isCopy);
+        if (fncName == NULL) {
+            h5JNIFatalError( env,"H5Epush: funcname is not pinned");
+            return;
+        }
+
+        if (err_desc == NULL) {
+            h5nullArgument( env,"H5Epush:  err_desc is NULL");
+            return;
+        }
+        errMsg = ENVPTR->GetStringUTFChars(ENVPAR err_desc,&isCopy);
+        if (errMsg == NULL) {
+            h5JNIFatalError( env,"H5Epush: err_desc is not pinned");
+            return;
+        }
+
+        ret_val = H5Epush2((hid_t)stk_id, fName, fncName, (unsigned)linenumber, (hid_t)class_id,
+            (hid_t)major_id, (hid_t)minor_id, errMsg);
+
+        ENVPTR->ReleaseStringUTFChars(ENVPAR err_desc, errMsg);
+        ENVPTR->ReleaseStringUTFChars(ENVPAR funcname, fncName);
+        ENVPTR->ReleaseStringUTFChars(ENVPAR filename, fName);
+
+        if (ret_val < 0) {
+            h5libraryError(env);
+            return;
+        }
+    }
+
+    /*
+     * Class:     hdf_hdf5lib_H5
      * Method:    H5Eclear2
      * Signature: (J)V
      */
@@ -480,6 +571,96 @@ extern "C" {
             return -1;
         }
         return ret_val;
+    }
+
+    static
+    herr_t H5E_walk_cb(long nindx, const H5E_error2_t *info, void *op_data) {
+        JNIEnv    *cbenv;
+        jint       status;
+        jclass     cls;
+        jmethodID  mid;
+        jstring    str;
+        jmethodID  constructor;
+        jvalue     args[7];
+        jobject    cb_info_t = NULL;
+
+        if(JVMPTR->AttachCurrentThread(JVMPAR2 (void**)&cbenv, NULL) != 0) {
+            /* printf("JNI H5A_iterate_cb error: AttachCurrentThread failed\n"); */
+            JVMPTR->DetachCurrentThread(JVMPAR);
+            return -1;
+        }
+        cls = CBENVPTR->GetObjectClass(CBENVPAR visit_callback);
+        if (cls == 0) {
+            /* printf("JNI H5A_iterate_cb error: GetObjectClass failed\n"); */
+           JVMPTR->DetachCurrentThread(JVMPAR);
+           return -1;
+        }
+        mid = CBENVPTR->GetMethodID(CBENVPAR cls, "callback", "(JLhdf/hdf5lib/structs/H5E_error2_t;Lhdf/hdf5lib/callbacks/H5E_walk_t;)I");
+        if (mid == 0) {
+            /* printf("JNI H5E_walk_cb error: GetMethodID failed\n"); */
+            JVMPTR->DetachCurrentThread(JVMPAR);
+            return -1;
+        }
+        // get a reference to your class if you don't have it already
+        cls = CBENVPTR->FindClass(CBENVPAR "hdf/hdf5lib/structs/H5E_error2_t");
+        if (cls == 0) {
+            /* printf("JNI H5E_walk_cb error: GetObjectClass info failed\n"); */
+           JVMPTR->DetachCurrentThread(JVMPAR);
+           return -1;
+        }
+        // get a reference to the constructor; the name is <init>
+        constructor = CBENVPTR->GetMethodID(CBENVPAR cls, "<init>", "(JJJILjava/lang/String;Ljava/lang/String;Ljava/lang/String;)V");
+        if (constructor == 0) {
+            /* printf("JNI H5E_walk_cb error: GetMethodID constructor failed\n"); */
+            JVMPTR->DetachCurrentThread(JVMPAR);
+            return -1;
+        }
+
+        args[0].j = info->cls_id;
+        args[1].j = info->maj_num;
+        args[2].j = info->min_num;
+        args[3].i = (jint)info->line;
+        str = CBENVPTR->NewStringUTF(CBENVPAR info->func_name);
+        args[4].l = str;
+        str = CBENVPTR->NewStringUTF(CBENVPAR info->file_name);
+        args[5].l = str;
+        str = CBENVPTR->NewStringUTF(CBENVPAR info->desc);
+        args[6].l = str;
+        cb_info_t = CBENVPTR->NewObjectA(CBENVPAR cls, constructor, args);
+
+        status = CBENVPTR->CallIntMethod(CBENVPAR visit_callback, mid, nindx, cb_info_t, op_data);
+
+        JVMPTR->DetachCurrentThread(JVMPAR);
+        return status;
+    }
+
+    /*
+     * Class:     hdf_hdf5lib_H5
+     * Method:    H5Ewalk2
+     * Signature: (JJLjava/lang/Object;Ljava/lang/Object;)V
+     */
+    JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Ewalk2
+      (JNIEnv *env, jclass cls, jlong stk_id, jlong direction, jobject callback_op, jobject op_data)
+    {
+      herr_t ret_val = -1;
+
+        ENVPTR->GetJavaVM(ENVPAR &jvm);
+        visit_callback = callback_op;
+
+        if (op_data == NULL) {
+            h5nullArgument(env, "H5Ewalk2:  op_data is NULL");
+            return;
+        }
+        if (callback_op == NULL) {
+            h5nullArgument(env, "H5Ewalk2:  callback_op is NULL");
+            return;
+        }
+
+        ret_val = H5Ewalk2(stk_id, (H5E_direction_t)direction, (H5E_walk2_t)H5E_walk_cb, (void*)op_data);
+        if (ret_val < 0) {
+            h5libraryError(env);
+            return;
+        }
     }
 
 #ifdef __cplusplus
