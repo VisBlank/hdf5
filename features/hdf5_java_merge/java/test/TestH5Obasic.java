@@ -358,4 +358,17 @@ public class TestH5Obasic {
         assertTrue("H5Ovisit_by_name "+(((H5O_iter_data)iter_data).iterdata.get(1)).link_name,(((H5O_iter_data)iter_data).iterdata.get(1)).link_name.compareToIgnoreCase("DS2")==0);
     }
 
+    @Test
+    public void testH5Oexists_by_name() {
+        boolean name_exists = false;
+        try {
+            name_exists = H5.H5Oexists_by_name(H5fid, "G1", HDF5Constants.H5P_DEFAULT);
+        }
+        catch (Throwable err) {
+            err.printStackTrace();
+            fail("H5.H5Oexists_by_name: " + err);
+        }
+        assertTrue("H5Oexists_by_name ", name_exists);
+        //TODO get dangling link result
+    }
 }

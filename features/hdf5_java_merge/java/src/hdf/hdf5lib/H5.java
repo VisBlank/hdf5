@@ -4310,6 +4310,27 @@ public class H5 implements java.io.Serializable {
     public synchronized static native int H5Ovisit_by_name(long loc_id, String obj_name, int idx_type, int order,
             H5O_iterate_cb op, H5O_iterate_t op_data, long lapl_id) throws HDF5LibraryException, NullPointerException;
 
+
+    /**
+     * H5Oexists_by_name is used by an application to check that an existing link resolves to an object.
+     * Primarily, it is designed to check for dangling soft, external, or user-defined links.
+     *
+     * @param loc_id
+     *            IN: File or group identifier
+     * @param obj_name
+     *            IN: Relative path to the object
+     * @param lapl_id
+     *            IN: Link access property list identifier
+     *
+     * @return Returns TRUE or FALSE if successful
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     * @exception NullPointerException
+     *                - name is null.
+     **/
+    public synchronized static native boolean H5Oexists_by_name(long loc_id, String obj_name, long lapl_id) throws HDF5LibraryException, NullPointerException;
+
     // /////// unimplemented ////////
 
     // /**

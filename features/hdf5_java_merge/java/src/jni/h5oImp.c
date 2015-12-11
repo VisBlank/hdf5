@@ -884,6 +884,46 @@ static herr_t H5O_iterate_cb(hid_t g_id, const char *name, const H5O_info_t *inf
         return (jstring)str;
     }
 
+    /*
+     * Class:     hdf_hdf5lib_H5
+     * Method:    H5Oexists_by_name
+     * Signature: (JLjava/lang/String;;J)Z
+     */
+    JNIEXPORT jboolean JNICALL Java_hdf_hdf5lib_H5_H5Oexists_1by_1name
+      (JNIEnv *env, jclass clss, jlong loc_id, jstring name, jlong access_id)
+    {
+        htri_t bval;
+        const char *oName;
+        jstring  str;
+        jboolean isCopy;
+
+        if (name == NULL) {
+            h5nullArgument( env, "H5Oexists_by_name:  name is NULL");
+            return NULL;
+        }
+        oName = ENVPTR->GetStringUTFChars(ENVPAR name, &isCopy);
+        if (oName == NULL) {
+            h5JNIFatalError( env, "H5Oexists_by_name:  name not pinned");
+            return NULL;
+        }
+
+        bval = H5Oexists_by_name((hid_t)loc_id, oName, (hid_t)access_id);
+
+        ENVPTR->ReleaseStringUTFChars(ENVPAR name, oName);
+
+        if (bval > 0) {
+            return JNI_TRUE;
+        }
+        else if (bval == 0) {
+            return JNI_FALSE;
+        }
+        else {
+            /* raise exception -- return value is irrelevant */
+            h5libraryError(env);
+            return JNI_FALSE;
+        }
+    }
+
 
 #ifdef __cplusplus
 }

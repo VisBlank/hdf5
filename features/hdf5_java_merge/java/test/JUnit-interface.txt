@@ -568,6 +568,7 @@ JUnit version 4.11
 .testH5Oset_comment_invalid
 .testH5Oopen_invalid
 .testH5Ovisit_null
+.testH5Oexists_by_name
 .testH5Oget_info_by_idx_n0
 .testH5Oget_info_by_idx_n3
 .testH5Oget_info_by_name_not_exist_name
@@ -610,7 +611,7 @@ JUnit version 4.11
 
 Time:  XXXX
 
-OK (608 tests)
+OK (609 tests)
 
 HDF5-DIAG: Error detected in HDF5 (version (number)) thread (IDs):
   #000: (file name) line (number) in H5Fopen(): not file access property list

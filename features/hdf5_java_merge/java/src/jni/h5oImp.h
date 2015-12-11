@@ -129,6 +129,14 @@ extern "C" {
     JNIEXPORT jstring JNICALL Java_hdf_hdf5lib_H5_H5Oget_1comment_1by_1name
       (JNIEnv*, jclass, jlong, jstring, jlong);
 
+    /*
+     * Class:     hdf_hdf5lib_H5
+     * Method:    H5Oexists_by_name
+     * Signature: (JLjava/lang/String;;J)Z
+     */
+    JNIEXPORT jboolean JNICALL Java_hdf_hdf5lib_H5_H5Oexists_1by_1name
+      (JNIEnv*, jclass, jlong, jstring, jlong);
+
 #ifdef __cplusplus
 }
 #endif
