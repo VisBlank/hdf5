@@ -1172,7 +1172,7 @@ public class H5 implements java.io.Serializable {
      * @param attr_id
      *            IN: Identifier of an attribute.
      *
-     * @return identifier for the attribute’s creation property list if successful
+     * @return identifier for the attribute's creation property list if successful
      *
      * @exception HDF5LibraryException
      *                - Error from the HDF-5 Library.
@@ -2917,7 +2917,7 @@ public class H5 implements java.io.Serializable {
     public synchronized static native H5F_info2_t H5Fget_info(long obj_id) throws HDF5LibraryException;
 
     /**
-     * H5Fclear_elink_file_cache evicts all the cached child files in the specified file’s external file
+     * H5Fclear_elink_file_cache evicts all the cached child files in the specified file's external file
      * cache, causing them to be closed if there is nothing else holding them open.
      *
      * @param file_id
