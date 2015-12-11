@@ -81,6 +81,22 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Iget_1type_1ref
 
 /*
  * Class:     hdf_hdf5lib_H5
+ * Method:    H5Idec_type_ref
+ * Signature: (I)I
+ */
+JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Idec_1type_1ref
+  (JNIEnv*, jclass, jint);
+
+/*
+ * Class:     hdf_hdf5lib_H5
+ * Method:    H5Iinc_type_ref
+ * Signature: (I)I
+ */
+JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Iinc_1type_1ref
+  (JNIEnv*, jclass, jint);
+
+/*
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5Inmembers
  * Signature: (I)I
  */
@@ -101,6 +117,22 @@ JNIEXPORT jboolean JNICALL Java_hdf_hdf5lib_H5_H5Iis_1valid
  * Signature: (I)Z
  */
 JNIEXPORT jboolean JNICALL Java_hdf_hdf5lib_H5_H5Itype_1xists
+  (JNIEnv*, jclass, jint);
+
+/*
+ * Class:     hdf_hdf5lib_H5
+ * Method:    H5Iclear_type
+ * Signature: (IZ)V
+ */
+JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Iclear_1type
+  (JNIEnv*, jclass, jint, jboolean);
+
+/*
+ * Class:     hdf_hdf5lib_H5
+ * Method:    H5Idestroy_type
+ * Signature: (I)V
+ */
+JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Idestroy_1type
   (JNIEnv*, jclass, jint);
 
 #ifdef __cplusplus

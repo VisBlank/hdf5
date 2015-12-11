@@ -45,13 +45,6 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Iget_1type
     return (jint)retVal;
 }
 
-
-/**********************************************************************
- *                                                                    *
- *          New functions release 1.6.2 versus release 1.6.1          *
- *                                                                    *
- **********************************************************************/
-
 /*
  * Class:     hdf_hdf5lib_H5
  * Method:    H5Iget_name
@@ -140,14 +133,6 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Idec_1ref
     return (jint)retVal;
 }
 
-
-
-/**********************************************************************
- *                                                                    *
- *          New functions release 1.6.3 versus release 1.6.2          *
- *                                                                    *
- **********************************************************************/
-
 /*
  * Class:     hdf_hdf5lib_H5
  * Method:    H5Iget_file_id
@@ -167,12 +152,6 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5_H5Iget_1file_1id
 
     return (jlong) file_id;
 }
-
-/**********************************************************************
- *                                                                    *
- *          New functions release 1.8.0                               *
- *                                                                    *
- **********************************************************************/
 
 /*
  * Class:     hdf_hdf5lib_H5
@@ -197,6 +176,48 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Iget_1type_1ref
 
 /*
  * Class:     hdf_hdf5lib_H5
+ * Method:    H5Idec_type_ref
+ * Signature: (I)I
+ */
+JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Idec_1type_1ref
+  (JNIEnv *env, jclass clss, jint type)
+{
+  int retVal;
+
+  retVal = H5Idec_type_ref((H5I_type_t)type);
+
+
+  if (retVal <0){
+    h5libraryError(env);
+  }
+
+  return (jint)retVal;
+
+}
+
+/*
+ * Class:     hdf_hdf5lib_H5
+ * Method:    H5Iinc_type_ref
+ * Signature: (I)I
+ */
+JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Iinc_1type_1ref
+  (JNIEnv *env, jclass clss, jint type)
+{
+  int retVal;
+
+  retVal = H5Iinc_type_ref((H5I_type_t)type);
+
+
+  if (retVal <0){
+    h5libraryError(env);
+  }
+
+  return (jint)retVal;
+
+}
+
+/*
+ * Class:     hdf_hdf5lib_H5
  * Method:    H5Inmembers
  * Signature: (I)I
  */
@@ -208,9 +229,9 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Inmembers
 
    retVal = H5Inmembers((H5I_type_t)type, &num_members);
 
-   if (retVal <0){
-    h5libraryError(env);
-  }
+   if (retVal < 0){
+     h5libraryError(env);
+   }
 
    return (jint)num_members;
 
@@ -261,6 +282,40 @@ JNIEXPORT jboolean JNICALL Java_hdf_hdf5lib_H5_H5Itype_1xists
         h5libraryError(env);
         return JNI_FALSE;
     }
+}
+
+/*
+ * Class:     hdf_hdf5lib_H5
+ * Method:    H5Iclear_type
+ * Signature: (IZ)V
+ */
+JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Iclear_1type
+  (JNIEnv *env, jclass clss, jint type, jboolean force)
+{
+     herr_t retVal;
+
+     retVal = H5Iclear_type((H5I_type_t)type, (hbool_t)force);
+
+     if (retVal < 0){
+       h5libraryError(env);
+     }
+}
+
+/*
+ * Class:     hdf_hdf5lib_H5
+ * Method:    H5Idestroy_type
+ * Signature: (I)V
+ */
+JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Idestroy_1type
+  (JNIEnv *env, jclass clss, jint type)
+{
+     herr_t retVal;
+
+     retVal = H5Idestroy_type((H5I_type_t)type);
+
+     if (retVal < 0){
+       h5libraryError(env);
+     }
 }
 
 #ifdef __cplusplus

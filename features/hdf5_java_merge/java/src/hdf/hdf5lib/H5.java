@@ -3449,6 +3449,35 @@ public class H5 implements java.io.Serializable {
     public synchronized static native int H5Iget_type_ref(long type_id) throws HDF5LibraryException;
 
     /**
+     * H5Idec_type_ref decrements the reference count on an identifier type. The reference count is used by the
+     * library to indicate when an identifier type can be destroyed. If the reference count reaches zero,
+     * this function will destroy it.
+     *
+     * @param type_id
+     *            IN: The identifier of the type whose reference count is to be decremented
+     *
+     * @return The current reference count on success, negative on failure.
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     **/
+    public synchronized static native int H5Idec_type_ref(long type_id) throws HDF5LibraryException;
+
+    /**
+     * H5Iinc_type_ref increments the reference count on an ID type. The reference count is used by the library
+     * to indicate when an ID type can be destroyed.
+     *
+     * @param type_id
+     *            IN: The identifier of the type whose reference count is to be incremented
+     *
+     * @return The current reference count on success, negative on failure.
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     **/
+    public synchronized static native int H5Iinc_type_ref(long type_id) throws HDF5LibraryException;
+
+    /**
      * H5Inmembers returns the number of identifiers of the identifier type specified in type.
      *
      * @param type_id
@@ -3474,8 +3503,6 @@ public class H5 implements java.io.Serializable {
      **/
     public synchronized static native boolean H5Iis_valid(long obj_id) throws HDF5LibraryException;
 
-    // htri_t H5Iis_valid(hid_t id);
-
     /**
      * H5Itype_exists indicates if the identifier type specified in type exists.
      *
@@ -3489,16 +3516,33 @@ public class H5 implements java.io.Serializable {
      **/
     public synchronized static native boolean H5Itype_exists(int type_id) throws HDF5LibraryException;
 
-    // htri_t H5Itype_exists(H5I_type_t type);
+
+    /**
+     * H5Iclear_type deletes all identifiers of the type identified by the argument type.
+     *
+     * @param type_id
+     *            IN: Identifier of identifier type which is to be cleared of identifiers
+     * @param force
+     *            IN: Whether or not to force deletion of all identifiers
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     **/
+    public synchronized static native void H5Iclear_type(int type_id, boolean force) throws HDF5LibraryException;
+
+    /**
+     * H5Idestroy_type deletes an entire identifier type. All identifiers of this type are destroyed
+     * and no new identifiers of this type can be registered.
+     *
+     * @param type_id
+     *            IN: Identifier of identifier type which is to be destroyed
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     **/
+    public synchronized static native void H5Idestroy_type(int type_id) throws HDF5LibraryException;
 
     // /////// unimplemented ////////
-    // herr_t H5Iclear_type(H5I_type_t type, hbool_t force);
-
-    // int H5Idec_type_ref(H5I_type_t type);
-
-    // herr_t H5Idestroy_type(H5I_type_t type);
-
-    // int H5Iinc_type_ref(H5I_type_t type);
 
     // void *H5Iobject_verify(hid_t id, H5I_type_t id_type);
 
