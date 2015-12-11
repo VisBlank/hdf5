@@ -3555,18 +3555,6 @@ public class H5 implements java.io.Serializable {
     // void *H5Isearch(H5I_type_t type, H5I_search_func_t func, void *key);
 
     // //////////////////////////////////////////////////////////////////
-    // //
-    // New APIs for HDF5Index //
-    // October 10, 2005 //
-    // //////////////////////////////////////////////////////////////////
-
-    public synchronized static native int H5INcreate(String grp_name, long grp_loc_id, long property_list,
-            long data_loc_id, String data_loc_name, String field_name, long max_mem_size);
-
-    public synchronized static native int H5INquery(long dset_id, String keys[], Object ubounds, Object lbounds,
-            int nkeys);
-
-    // //////////////////////////////////////////////////////////////////
     // H5L: Link Interface Functions //
     // //////////////////////////////////////////////////////////////////
 
