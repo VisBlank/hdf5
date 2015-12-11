@@ -57,6 +57,7 @@ get_target_property (${HDF5_JAVA_TEST_LIB_TARGET}_JAR_FILE ${HDF5_JAVA_TEST_LIB_
 #get_target_property (${HDF5_JAVA_TEST_LIB_TARGET}_CLASSPATH ${HDF5_JAVA_TEST_LIB_TARGET} CLASSDIR)
 
 add_dependencies (${HDF5_JAVA_TEST_LIB_TARGET} ${HDF5_JAVA_HDF5_LIB_TARGET})
+set_target_properties (${HDF5_JAVA_TEST_LIB_TARGET} PROPERTIES FOLDER test/java)
 
 set (HDF_JAVA_TEST_FILES
       h5ex_g_iterate.hdf

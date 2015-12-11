@@ -55,7 +55,7 @@ extern "C" {
 #define JVMPAR2 jvm,
 #endif
 
-static herr_t H5E_walk_cb(long nindx, const H5E_error2_t *info, void *op_data);
+static herr_t H5E_walk_cb(int nindx, const H5E_error2_t *info, void *op_data);
 
     /*
      * Class:     hdf_hdf5lib_H5
@@ -574,12 +574,12 @@ static herr_t H5E_walk_cb(long nindx, const H5E_error2_t *info, void *op_data);
     }
 
     static
-    herr_t H5E_walk_cb(long nindx, const H5E_error2_t *info, void *op_data) {
+    herr_t H5E_walk_cb(int nindx, const H5E_error2_t *info, void *op_data) {
         JNIEnv    *cbenv;
         jint       status;
         jclass     cls;
         jmethodID  mid;
-        jstring    str;
+        jstring    str1, str2, str3;
         jmethodID  constructor;
         jvalue     args[7];
         jobject    cb_info_t = NULL;
@@ -595,7 +595,7 @@ static herr_t H5E_walk_cb(long nindx, const H5E_error2_t *info, void *op_data);
            JVMPTR->DetachCurrentThread(JVMPAR);
            return -1;
         }
-        mid = CBENVPTR->GetMethodID(CBENVPAR cls, "callback", "(JLhdf/hdf5lib/structs/H5E_error2_t;Lhdf/hdf5lib/callbacks/H5E_walk_t;)I");
+        mid = CBENVPTR->GetMethodID(CBENVPAR cls, "callback", "(ILhdf/hdf5lib/structs/H5E_error2_t;Lhdf/hdf5lib/callbacks/H5E_walk_t;)I");
         if (mid == 0) {
             /* printf("JNI H5E_walk_cb error: GetMethodID failed\n"); */
             JVMPTR->DetachCurrentThread(JVMPAR);
@@ -620,12 +620,12 @@ static herr_t H5E_walk_cb(long nindx, const H5E_error2_t *info, void *op_data);
         args[1].j = info->maj_num;
         args[2].j = info->min_num;
         args[3].i = (jint)info->line;
-        str = CBENVPTR->NewStringUTF(CBENVPAR info->func_name);
-        args[4].l = str;
-        str = CBENVPTR->NewStringUTF(CBENVPAR info->file_name);
-        args[5].l = str;
-        str = CBENVPTR->NewStringUTF(CBENVPAR info->desc);
-        args[6].l = str;
+        str1 = CBENVPTR->NewStringUTF(CBENVPAR info->func_name);
+        args[4].l = str1;
+        str2 = CBENVPTR->NewStringUTF(CBENVPAR info->file_name);
+        args[5].l = str2;
+        str3 = CBENVPTR->NewStringUTF(CBENVPAR info->desc);
+        args[6].l = str3;
         cb_info_t = CBENVPTR->NewObjectA(CBENVPAR cls, constructor, args);
 
         status = CBENVPTR->CallIntMethod(CBENVPAR visit_callback, mid, nindx, cb_info_t, op_data);

@@ -494,7 +494,7 @@ public class TestH5E {
         }
         H5E_walk_t walk_data = new H5E_walk_data();
         class H5E_walk_callback implements H5E_walk_cb {
-            public int callback(long nidx, H5E_error2_t info, H5E_walk_t op_data) {
+            public int callback(int nidx, H5E_error2_t info, H5E_walk_t op_data) {
                 wdata wd = new wdata(info.desc, info.func_name, info.line);
                 ((H5E_walk_data)op_data).walkdata.add(wd);
                 return 0;

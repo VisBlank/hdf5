@@ -19,5 +19,5 @@ import hdf.hdf5lib.structs.H5E_error2_t;
 
 //Information class for link callback(for H5Ewalk)
 public interface H5E_walk_cb extends Callbacks {
-    int callback(long nidx, H5E_error2_t info, H5E_walk_t op_data);
+    int callback(int nidx, H5E_error2_t info, H5E_walk_t op_data);
 }
