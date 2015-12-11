@@ -161,6 +161,22 @@ extern "C" {
     JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Literate_1by_1name
       (JNIEnv*, jclass, jlong, jstring, jint, jint, jlong, jobject, jobject, jlong);
 
+    /*
+     * Class:     hdf_hdf5lib_H5
+     * Method:    H5Lis_registered
+     * Signature: (I)I
+     */
+    JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Lis_1registered
+      (JNIEnv*, jclass, jint);
+
+    /*
+     * Class:     hdf_hdf5lib_H5
+     * Method:    H5Lunregister
+     * Signature: (I)V
+     */
+    JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Lunregister
+      (JNIEnv*, jclass, jint);
+
 #ifdef __cplusplus
 }
 #endif

@@ -3972,17 +3972,42 @@ public class H5 implements java.io.Serializable {
     public synchronized static native int H5Lvisit_by_name(long loc_id, String group_name, int idx_type, int order,
             H5L_iterate_cb op, H5L_iterate_t op_data, long lapl_id) throws HDF5LibraryException, NullPointerException;
 
+
+    /**
+     * H5Lis_registered tests whether a user-defined link class is currently registered,
+     * either by the HDF5 Library or by the user through the use of H5Lregister.
+     *
+     * @param link_cls_id
+     *            IN: User-defined link class identifier
+     *
+     * @return Returns a positive value if the link class has been registered and zero if it is unregistered.
+     *         Otherwise returns a negative value; this may mean that the identifier is not a valid user-defined class identifier.
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     **/
+    public synchronized static native int H5Lis_registered(int link_cls_id) throws HDF5LibraryException;
+
+    /**
+     * H5Lunregister unregisters a class of user-defined links, preventing them from being traversed, queried, moved, etc.
+     *
+     * @param link_cls_id
+     *            IN: User-defined link class identifier
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     **/
+    public synchronized static native void H5Lunregister(int link_cls_id) throws HDF5LibraryException;
+
     // /////// unimplemented ////////
     // herr_t H5Lcreate_ud(hid_t link_loc_id, const char *link_name,
-    // H5L_type_t link_type, const void *udata, size_t udata_size, hid_t lcpl_id,
-    // hid_t lapl_id);
-
-    // htri_t H5Lis_registered(H5L_type_t id);
+    //         H5L_type_t link_type, const void *udata, size_t udata_size, hid_t lcpl_id,
+    //         hid_t lapl_id);
 
     // herr_t H5Lregister(const H5L_class_t *cls);
 
     // herr_t H5Lunpack_elink_val(const void *ext_linkval/*in*/, size_t link_size,
-    // unsigned *flags, const char **filename/*out*/, const char **obj_path /*out*/);
+    //         unsigned *flags, const char **filename/*out*/, const char **obj_path /*out*/);
 
     // herr_t H5Lunregister(H5L_type_t id);
 

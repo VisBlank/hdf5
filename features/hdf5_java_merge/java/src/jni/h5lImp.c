@@ -1031,6 +1031,43 @@ static herr_t H5L_iterate_cb(hid_t g_id, const char *name, const H5L_info_t *inf
         return status;
     }
 
+    /*
+     * Class:     hdf_hdf5lib_H5
+     * Method:    H5Lis_registered
+     * Signature: (I)I
+     */
+    JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Lis_1registered
+      (JNIEnv *env, jclass clss, jint link_cls_id)
+    {
+      htri_t ret_val = -1;
+
+        ret_val = H5Lis_registered((H5L_type_t)link_cls_id);
+
+        if (ret_val < 0) {
+           h5libraryError(env);
+           return ret_val;
+        }
+        return (int)ret_val;
+    }
+
+    /*
+     * Class:     hdf_hdf5lib_H5
+     * Method:    H5Lunregister
+     * Signature: (I)V
+     */
+    JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Lunregister
+      (JNIEnv *env, jclass clss, jint link_cls_id)
+    {
+        herr_t  status = -1;
+
+        status = H5Lunregister((H5L_type_t)link_cls_id);
+
+        if (status < 0) {
+           h5libraryError(env);
+           return;
+        }
+    }
+
 
 #ifdef __cplusplus
 }
