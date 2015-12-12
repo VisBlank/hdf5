@@ -340,8 +340,6 @@ main(void)
 
 #ifdef TEST_LFS_WORKS
 /* Return 0 when LFS is available and 1 otherwise.  */
-#define _LARGEFILE_SOURCE
-#define _LARGEFILE64_SOURCE
 #define _LARGE_FILES
 #define _FILE_OFFSET_BITS 64
 #include <sys/types.h>
