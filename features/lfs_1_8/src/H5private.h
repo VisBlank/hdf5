@@ -565,6 +565,15 @@ typedef struct {
 /* so that the following definitions are platform free. */
 #include "H5win32defs.h"  /* For Windows-specific definitions */
 
+/* Technically, off_t should probably be inside an ifdef since it was
+ * historically lacking on older systems but it's now ubiquitous and
+ * both the Autotools and CMake will fail if it's not present.
+ */
+typedef struct stat         h5_stat_t;
+typedef off_t               h5_stat_size_t;
+#define HDoff_t             off_t
+#define H5_SIZEOF_H5_STAT_SIZE_T H5_SIZEOF_OFF_T
+
 #ifndef HDabort
     #define HDabort()    abort()
 #endif /* HDabort */
@@ -800,6 +809,7 @@ H5_DLL int HDfprintf (FILE *stream, const char *fmt, ...);
 #endif /* HDfrexpl */
 /* fscanf() variable arguments */
 #ifndef HDfseek
+    /* The Autotools and CMake guarantee fseeko exists */
     #define HDfseek(F,O,W)  fseeko(F,O,W)
 #endif /* HDfseek */
 #ifndef HDfsetpos
@@ -814,13 +824,8 @@ H5_DLL int HDfprintf (FILE *stream, const char *fmt, ...);
 #ifndef HDstat
     #define HDstat(S,B)    stat(S,B)
 #endif /* HDstat */
-
-typedef struct stat         h5_stat_t;
-typedef off_t               h5_stat_size_t;
-#define HDoff_t             off_t
-#define H5_SIZEOF_H5_STAT_SIZE_T H5_SIZEOF_OFF_T
-
 #ifndef HDftell
+    /* The Autotools and CMake guarantee ftello exists */
     #define HDftell(F)    ftello(F)
 #endif /* HDftell */
 #ifndef HDftruncate

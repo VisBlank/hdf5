@@ -890,7 +890,22 @@ fi
 ## correctly. This macro is defined in acsite.m4 and overrides
 ## the version provided by Autoconf (as of v2.65). The custom
 ## macro additionally adds the appropriate defines to AM_CPPFLAGS 
-## so that later configure checks have them visible. 
+## so that later configure checks have them visible.
+##
+## Note that this needs to go in AM_CPPFLAGS since the public API
+## uses off_t.
+
+## Check for ftello/fseeko/off_t and define _LARGEFILE_SOURCE if
+## necessary. This needs to be done before calling AC_SYS_LARGEFILE
+## (in the macros below). This functionality is required to build
+## HDF5 so we error if the functions and types can't be found.
+##
+## Note that this will produce an H5_HAVE_FSEEKO that we do not use
+## in the library.
+AC_FUNC_FSEEKO
+if test "x$HAVE_FSEEKO" = "xno"; then
+    AC_MSG_ERROR([HDF5 requires fseeko/ftello/off_t])
+fi
 
 ## Check for _FILE_OFFSET_BITS
 _AC_SYS_LARGEFILE_MACRO_VALUE([_FILE_OFFSET_BITS], [64],
