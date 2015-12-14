@@ -160,6 +160,7 @@ JUnit version 4.11
 .testH5Sextent_equal
 .testH5Sget_simple_extent_dims
 .testH5Sget_simple_extent_type
+.testH5Shyper_regular
 .testH5Sget_select_bounds
 .testH5Sget_select_elem_pointlist_invalid
 .testH5Sget_simple_extent_npoints
@@ -615,7 +616,7 @@ JUnit version 4.11
 
 Time:  XXXX
 
-OK (613 tests)
+OK (614 tests)
 
 HDF5-DIAG: Error detected in HDF5 (version (number)) thread (IDs):
   #000: (file name) line (number) in H5Fopen(): not file access property list

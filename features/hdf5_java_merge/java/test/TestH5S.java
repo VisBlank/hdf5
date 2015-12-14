@@ -551,4 +551,40 @@ public class TestH5S {
         }
     }
 
+    @Test
+    public void testH5Shyper_regular() {
+        long start[] = {1,0};
+        long stride[] = {1,1};
+        long count[] = {2,3};
+        long block[] = {1,1};
+        long q_start[] = new long[2];
+        long q_stride[] = new long[2];
+        long q_count[] = new long[2];
+        long q_block[] = new long[2];
+        boolean is_regular = false;
+
+        try {
+            // Set "regular" hyperslab selection
+            H5.H5Sselect_hyperslab(H5sid, HDF5Constants.H5S_SELECT_SET, start, stride, count, block);
+
+            // Query if 'hyperslab' selection is regular hyperslab (should be TRUE)
+            is_regular = H5.H5Sis_regular_hyperslab(H5sid);
+            assertTrue("H5.H5Sis_regular_hyperslab", is_regular);
+
+            // Retrieve the hyperslab parameters
+            H5.H5Sget_regular_hyperslab(H5sid, q_start, q_stride, q_count, q_block);
+
+            /* Verify the hyperslab parameters */
+            for(int u = 0; u < H5rank; u++) {
+                assertTrue("H5Sget_regular_hyperslab, start", start[u] == q_start[u]);
+                assertTrue("H5Sget_regular_hyperslab, stride", stride[u] == q_stride[u]);
+                assertTrue("H5Sget_regular_hyperslab, count", count[u] == q_count[u]);
+                assertTrue("H5Sget_regular_hyperslab, block", block[u] == q_block[u]);
+            } /* end for */
+        }
+        catch (Throwable err) {
+            err.printStackTrace();
+            fail("testH5Sget_select_valid: " + err);
+        }
+    }
 }

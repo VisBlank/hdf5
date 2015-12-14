@@ -264,6 +264,22 @@ JNIEXPORT jbyteArray JNICALL Java_hdf_hdf5lib_H5_H5Sencode
 JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5_H5Sdecode
   (JNIEnv *, jclass, jbyteArray);
 
+/*
+ * Class:     hdf_hdf5lib_H5
+ * Method:    H5Sis_regular_hyperslab
+ * Signature: (J)Z
+ */
+JNIEXPORT jboolean JNICALL Java_hdf_hdf5lib_H5_H5Sis_1regular_1hyperslab
+  (JNIEnv *, jclass, jlong);
+
+/*
+ * Class:     hdf_hdf5lib_H5
+ * Method:    H5Sget_regular_hyperslab
+ * Signature: (J[J[J[J[J)V
+ */
+JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Sget_1regular_1hyperslab(
+        JNIEnv *, jclass, jlong, jlongArray, jlongArray, jlongArray, jlongArray);
+
 #ifdef __cplusplus
 }
 #endif

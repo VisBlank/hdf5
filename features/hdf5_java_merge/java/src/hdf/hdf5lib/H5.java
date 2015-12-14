@@ -7324,39 +7324,6 @@ public class H5 implements java.io.Serializable {
         return retVal;
     }
 
-    // /**
-    // * H5Sselect_hyperslab selects a hyperslab region to add to
-    // * the current selected region for the dataspace specified
-    // * by space_id. The start, stride, count, and block arrays
-    // * must be the same size as the rank of the dataspace.
-    // *
-    // * @param space_id IN: Identifier of dataspace selection to modify
-    // * @param op IN: Operation to perform on current selection.
-    // * @param start IN: Offset of start of hyperslab
-    // * @param count IN: Number of blocks included in hyperslab.
-    // * @param stride IN: Hyperslab stride.
-    // * @param block IN: Size of block in hyperslab.
-    // *
-    // * @return none
-    // *
-    // * @exception HDF5LibraryException - Error from the HDF-5 Library.
-    // * @exception NullPointerException - an input array is null.
-    // * @exception IllegalArgumentException - an input array is invalid.
-    // **/
-    // public synchronized static native void H5Sselect_hyperslab(long space_id, H5S_SELECT_OPER op,
-    // long start[], long _stride[], long count[], long _block[])
-    // throws HDF5LibraryException, NullPointerException, IllegalArgumentException;
-    // public synchronized static native int H5Scombine_hyperslab(long space_id, H5S_SELECT_OPER op,
-    // const long start[], const long _stride[],
-    // const long count[], const long _block[])
-    // throws HDF5LibraryException, NullPointerException;
-    // public synchronized static native int H5Sselect_select(long space1_id, H5S_SELECT_OPER op,
-    // long space2_id)
-    // throws HDF5LibraryException, NullPointerException;
-    // public synchronized static native int H5Scombine_select(long space1_id, H5S_SELECT_OPER op,
-    // long space2_id)
-    // throws HDF5LibraryException, NullPointerException;
-
     /**
      * H5Sselect_hyperslab selects a hyperslab region to add to the current selected region for the dataspace specified
      * by space_id. The start, stride, count, and block arrays must be the same size as the rank of the dataspace.
@@ -7380,7 +7347,7 @@ public class H5 implements java.io.Serializable {
      *                - Error from the HDF-5 Library.
      * @exception NullPointerException
      *                - an input array is null.
-     * @exception NullPointerException
+     * @exception IllegalArgumentException
      *                - an input array is invalid.
      **/
     public synchronized static int H5Sselect_hyperslab(long space_id, int op, byte[] start, byte[] stride,
@@ -7467,6 +7434,48 @@ public class H5 implements java.io.Serializable {
 
         return H5Sset_extent_simple(space_id, rank, lacs, lamaxs);
     }
+
+    /**
+     * H5Sget_regular_hyperslab determines if a hyperslab selection is regular for the dataspace specified
+     * by space_id. The start, stride, count, and block arrays must be the same size as the rank of the dataspace.
+     *
+     * @param space_id
+     *            IN: Identifier of dataspace selection to modify
+     * @param start
+     *           OUT: Offset of start of hyperslab
+     * @param stride
+     *           OUT: Hyperslab stride.
+     * @param count
+     *           OUT: Number of blocks included in hyperslab.
+     * @param block
+     *           OUT: Size of block in hyperslab.
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     * @exception NullPointerException
+     *                - an output array is null.
+     * @exception IllegalArgumentException
+     *                - an output array is invalid.
+     **/
+     public synchronized static native void H5Sget_regular_hyperslab(long space_id, long[] start, long[] stride, long[] count, long[] block) throws HDF5LibraryException, NullPointerException, IllegalArgumentException;
+
+    /**
+     * H5Sis_regular_hyperslab retrieves a regular hyperslab selection for the dataspace specified
+     * by space_id.
+     *
+     * @param space_id
+     *            IN: Identifier of dataspace selection to query
+     *
+     * @return a TRUE/FALSE for hyperslab selection if successful
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     **/
+     public synchronized static native boolean H5Sis_regular_hyperslab(long space_id) throws HDF5LibraryException;
+
+    // /////// unimplemented ////////
+
+
 
     // ////////////////////////////////////////////////////////////
     // //
