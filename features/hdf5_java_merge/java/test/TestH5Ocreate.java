@@ -506,4 +506,57 @@ public class TestH5Ocreate {
         assertTrue("H5Oget_comment_by_name: ", obj_comment==null);
     }
 
+    @Test
+    public void testH5Oinc_dec_count() {
+        long oid = -1;
+        H5O_info_t obj_info = null;
+        try {
+            try {
+                oid = H5.H5Oopen(H5fid, "G1", HDF5Constants.H5P_DEFAULT);
+                obj_info = H5.H5Oget_info(oid);
+                assertFalse("testH5Oinc_dec_count: H5Oget_info ",obj_info==null);
+                assertTrue("testH5Oinc_dec_count: H5Oget_info reference count",obj_info.rc==1);
+            }
+            catch (Throwable err) {
+                err.printStackTrace();
+                fail("testH5Oinc_dec_count: H5.H5Oget_info: " + err);
+            }
+            try {
+                H5.H5Oincr_refcount(oid);
+            }
+            catch (Throwable err) {
+                err.printStackTrace();
+                fail("testH5Oinc_dec_count: H5.H5Oincr_refcount: " + err);
+            }
+            try {
+                obj_info = H5.H5Oget_info(oid);
+                assertFalse("testH5Oinc_dec_count: H5Oget_info ",obj_info==null);
+                assertTrue("testH5Oinc_dec_count: H5Oget_info reference count",obj_info.rc==2);
+            }
+            catch (Throwable err) {
+                err.printStackTrace();
+                fail("testH5Oinc_dec_count: H5.H5Oget_info: " + err);
+            }
+            try {
+                H5.H5Odecr_refcount(oid);
+            }
+            catch (Throwable err) {
+                err.printStackTrace();
+                fail("testH5Oinc_dec_count: H5.H5Odecr_refcount: " + err);
+            }
+            try {
+                obj_info = H5.H5Oget_info(oid);
+                assertFalse("testH5Oinc_dec_count: H5Oget_info ",obj_info==null);
+                assertTrue("testH5Oinc_dec_count: H5Oget_info reference count",obj_info.rc==1);
+            }
+            catch (Throwable err) {
+                err.printStackTrace();
+                fail("testH5Oinc_dec_count: H5.H5Oget_info: " + err);
+            }
+        }
+        finally {
+            try{H5.H5Oclose(oid);} catch (Exception ex) {}
+        }
+    }
+
 }

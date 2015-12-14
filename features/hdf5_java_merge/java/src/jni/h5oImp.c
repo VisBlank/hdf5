@@ -887,7 +887,7 @@ static herr_t H5O_iterate_cb(hid_t g_id, const char *name, const H5O_info_t *inf
     /*
      * Class:     hdf_hdf5lib_H5
      * Method:    H5Oexists_by_name
-     * Signature: (JLjava/lang/String;;J)Z
+     * Signature: (JLjava/lang/String;J)Z
      */
     JNIEXPORT jboolean JNICALL Java_hdf_hdf5lib_H5_H5Oexists_1by_1name
       (JNIEnv *env, jclass clss, jlong loc_id, jstring name, jlong access_id)
@@ -923,6 +923,87 @@ static herr_t H5O_iterate_cb(hid_t g_id, const char *name, const H5O_info_t *inf
             return JNI_FALSE;
         }
     }
+
+    /*
+     * Class:     hdf_hdf5lib_H5
+     * Method:    H5Odecr_refcount
+     * Signature: (J)V
+     */
+    JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Odecr_1refcount
+    (JNIEnv *env, jclass clss, jlong object_id)
+    {
+      herr_t retVal =  H5Odecr_refcount((hid_t)object_id) ;
+
+      if (retVal < 0) {
+          h5libraryError(env);
+      }
+    }
+
+    /*
+     * Class:     hdf_hdf5lib_H5
+     * Method:    H5Oincr_refcount
+     * Signature: (J)V
+     */
+    JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Oincr_1refcount
+    (JNIEnv *env, jclass clss, jlong object_id)
+    {
+      herr_t retVal =  H5Oincr_refcount((hid_t)object_id) ;
+
+      if (retVal < 0) {
+          h5libraryError(env);
+      }
+    }
+
+    /*
+     * Class:     hdf_hdf5lib_H5
+     * Method:    _H5Oopen_by_addr
+     * Signature: (JJ)J;
+     */
+    JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Oopen_1by_1addr
+      (JNIEnv *env, jclass clss, jlong loc_id, jlong addr)
+    {
+        hid_t    status;
+
+        status = H5Oopen_by_addr((hid_t)loc_id, (haddr_t)addr );
+
+        if (status < 0) {
+            h5libraryError(env);
+        }
+        return (jlong)status;
+    }
+
+    /*
+     * Class:     hdf_hdf5lib_H5
+     * Method:    _H5Oopen_by_idx
+     * Signature: (JLjava/lang/String;IIJJ)J;
+     */
+    JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Oopen_1by_1idx
+      (JNIEnv *env, jclass clss, jlong loc_id, jstring name, jint index_field, jint order, jlong link_n, jlong lapl_id)
+    {
+        hid_t    status;
+        const char *oName;
+        jboolean isCopy;
+
+        if (name == NULL) {
+            h5nullArgument( env, "H5Oopen:  name is NULL");
+            return -1;
+        }
+
+        oName = ENVPTR->GetStringUTFChars(ENVPAR name,&isCopy);
+
+        if (oName == NULL) {
+            h5JNIFatalError( env, "H5Oopen:  object name not pinned");
+            return -1;
+        }
+
+        status = H5Oopen_by_idx((hid_t)loc_id, oName, (H5_index_t)index_field, (H5_iter_order_t)order, (hsize_t)link_n, (hid_t)lapl_id );
+
+        ENVPTR->ReleaseStringUTFChars(ENVPAR name, oName);
+        if (status < 0) {
+            h5libraryError(env);
+        }
+        return (jlong)status;
+    };
 
 
 #ifdef __cplusplus

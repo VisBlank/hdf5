@@ -576,11 +576,14 @@ JUnit version 4.11
 .testH5Oget_info_by_idx_name_not_exist_name
 .testH5Oget_info_datatype
 .testH5Oget_info_by_idx_not_exist_name
+.testH5Oopen_by_idx_n0
+.testH5Oopen_by_idx_n3
 .testH5Oopen_not_exists
 .testH5Ovisit
 .testH5Oget_info_by_idx_not_exist_create
 .testH5Oget_info_by_name_hardlink
 .testH5Oget_info_by_name_group
+.testH5Oopen_by_addr
 .testH5Oget_info_by_name_not_exists
 .testH5Oget_info_by_name_dataset
 .testH5Oget_info_group
@@ -600,6 +603,7 @@ JUnit version 4.11
 .testH5Ocomment_by_name
 .testH5Oget_info_by_idx_n1_create
 .testH5Ocomment
+.testH5Oinc_dec_count
 .testH5Ocomment_by_name_clear
 .testH5Ovisit_create
 .testH5Ocopy_dst_link_exists
@@ -611,7 +615,7 @@ JUnit version 4.11
 
 Time:  XXXX
 
-OK (609 tests)
+OK (613 tests)
 
 HDF5-DIAG: Error detected in HDF5 (version (number)) thread (IDs):
   #000: (file name) line (number) in H5Fopen(): not file access property list

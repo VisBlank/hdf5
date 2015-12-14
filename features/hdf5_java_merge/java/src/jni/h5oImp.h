@@ -132,10 +132,42 @@ extern "C" {
     /*
      * Class:     hdf_hdf5lib_H5
      * Method:    H5Oexists_by_name
-     * Signature: (JLjava/lang/String;;J)Z
+     * Signature: (JLjava/lang/String;J)Z
      */
     JNIEXPORT jboolean JNICALL Java_hdf_hdf5lib_H5_H5Oexists_1by_1name
       (JNIEnv*, jclass, jlong, jstring, jlong);
+
+    /*
+     * Class:     hdf_hdf5lib_H5
+     * Method:    H5Odecr_refcount
+     * Signature: (J)V
+     */
+    JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Odecr_1refcount
+      (JNIEnv*, jclass, jlong);
+
+    /*
+     * Class:     hdf_hdf5lib_H5
+     * Method:    H5Oincr_refcount
+     * Signature: (J)V
+     */
+    JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Oincr_1refcount
+      (JNIEnv*, jclass, jlong);
+
+    /*
+     * Class:     hdf_hdf5lib_H5
+     * Method:    _H5Oopen_by_addr
+     * Signature: (JJ)J;
+     */
+    JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Oopen_1by_1addr
+      (JNIEnv*, jclass, jlong, jlong);
+
+    /*
+     * Class:     hdf_hdf5lib_H5
+     * Method:    _H5Oopen_by_idx
+     * Signature: (JLjava/lang/String;IIJJ)J;
+     */
+    JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Oopen_1by_1idx
+      (JNIEnv*, jclass, jlong, jstring, jint, jint, jlong, jlong);
 
 #ifdef __cplusplus
 }

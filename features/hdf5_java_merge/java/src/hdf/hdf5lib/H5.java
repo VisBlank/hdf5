@@ -4242,8 +4242,7 @@ public class H5 implements java.io.Serializable {
      * @exception NullPointerException
      *                - name is null.
      **/
-    public static long H5Oopen(long loc_id, String name, long lapl_id) throws HDF5LibraryException,
-    NullPointerException {
+    public static long H5Oopen(long loc_id, String name, long lapl_id) throws HDF5LibraryException, NullPointerException {
         long id = _H5Oopen(loc_id, name, lapl_id);
         if (id > 0) {
             log.trace("OPEN_IDS: H5Oopen add {}", id);
@@ -4331,63 +4330,77 @@ public class H5 implements java.io.Serializable {
      **/
     public synchronized static native boolean H5Oexists_by_name(long loc_id, String obj_name, long lapl_id) throws HDF5LibraryException, NullPointerException;
 
+    /**
+     * H5Odecr_refcount decrements the hard link reference count for an object.
+     *
+     * @param object_id IN: Object identifier
+     *
+     * @exception HDF5LibraryException - Error from the HDF-5 Library.
+     **/
+    public synchronized static native void H5Odecr_refcount(long object_id) throws HDF5LibraryException;
+
+    /**
+     * H5Oincr_refcount increments the hard link reference count for an object.
+     *
+     * @param object_id IN: Object identifier
+     *
+     * @exception HDF5LibraryException - Error from the HDF-5 Library.
+     **/
+     public synchronized static native void H5Oincr_refcount(long object_id) throws HDF5LibraryException;
+
+    /**
+     * H5Oopen_by_addr opens a group, dataset, or named datatype using its address within an HDF5 file.
+     *
+     * @param loc_id IN: File or group identifier
+     * @param addr IN: Object's address in the file
+     *
+     * @return an object identifier for the opened object
+     *
+     * @exception HDF5LibraryException - Error from the HDF-5 Library.
+     **/
+    public static long H5Oopen_by_addr(long loc_id, long addr) throws HDF5LibraryException {
+        long id = _H5Oopen_by_addr(loc_id, addr);
+        if (id > 0) {
+            log.trace("OPEN_IDS: H5Oopen_by_addr add {}", id);
+            OPEN_IDS.add(id);
+            log.trace("OPEN_IDS: {}", OPEN_IDS.size());
+        }
+        return id;
+    }
+
+    private synchronized static native long _H5Oopen_by_addr(long loc_id, long addr)
+            throws HDF5LibraryException, NullPointerException;
+
+    /**
+     * H5Oopen_by_idx opens the nth object in the group specified.
+     *
+     * @param loc_id IN: File or group identifier
+     * @param group_name IN: Name of group, relative to loc_id, in which object is located
+     * @param idx_type IN: Type of index by which objects are ordered
+     * @param order IN: Order of iteration within index
+     * @param n IN: Object to open
+     * @param lapl_id IN: Access property list identifier for the link pointing to the object
+     *
+     * @return an object identifier for the opened object
+     *
+     * @exception HDF5LibraryException - Error from the HDF-5 Library.
+     * @exception NullPointerException - group_name is null.
+     **/
+    public static long H5Oopen_by_idx(long loc_id, String group_name,
+            int idx_type, int order, long n, long lapl_id) throws HDF5LibraryException, NullPointerException {
+        long id = _H5Oopen_by_idx(loc_id, group_name, idx_type, order, n, lapl_id);
+        if (id > 0) {
+            log.trace("OPEN_IDS: H5Oopen_by_idx add {}", id);
+            OPEN_IDS.add(id);
+            log.trace("OPEN_IDS: {}", OPEN_IDS.size());
+        }
+        return id;
+    }
+
+    public synchronized static native long _H5Oopen_by_idx(long loc_id, String group_name,
+            int idx_type, int order, long n, long lapl_id) throws HDF5LibraryException, NullPointerException;
+
     // /////// unimplemented ////////
-
-    // /**
-    // * H5Odecr_refcount decrements the hard link reference count for an object.
-    // *
-    // * @param object_id IN: Object identifier
-    // *
-    // * @return none
-    // *
-    // * @exception HDF5LibraryException - Error from the HDF-5 Library.
-    // **/
-    // public synchronized static native void H5Odecr_refcount(long object_id)
-    // throws HDF5LibraryException;
-
-    // /**
-    // * H5Oincr_refcount increments the hard link reference count for an object.
-    // *
-    // * @param object_id IN: Object identifier
-    // *
-    // * @return none
-    // *
-    // * @exception HDF5LibraryException - Error from the HDF-5 Library.
-    // **/
-    // public synchronized static native void H5Oincr_refcount(long object_id)
-    // throws HDF5LibraryException;
-
-    // /**
-    // * H5Oopen_by_addr opens a group, dataset, or named datatype using its address within an HDF5 file.
-    // *
-    // * @param loc_id IN: File or group identifier
-    // * @param addr IN: Object's address in the file
-    // *
-    // * @return an object identifier for the opened object
-    // *
-    // * @exception HDF5LibraryException - Error from the HDF-5 Library.
-    // **/
-    // public synchronized static native long H5Oopen_by_addr(long loc_id, long addr)
-    // throws HDF5LibraryException;
-
-    // /**
-    // * H5Oopen_by_idx opens the nth object in the group specified.
-    // *
-    // * @param loc_id IN: File or group identifier
-    // * @param group_name IN: Name of group, relative to loc_id, in which object is located
-    // * @param idx_type IN: Type of index by which objects are ordered
-    // * @param order IN: Order of iteration within index
-    // * @param n IN: Object to open
-    // * @param lapl_id IN: Access property list identifier for the link pointing to the object
-    // *
-    // * @return an object identifier for the opened object
-    // *
-    // * @exception HDF5LibraryException - Error from the HDF-5 Library.
-    // * @exception NullPointerException - group_name is null.
-    // **/
-    // public synchronized static native int H5Oopen_by_idx(long loc_id, String group_name,
-    // H5_INDEX idx_type, H5_ITER order, long n, long lapl_id)
-    // throws HDF5LibraryException, NullPointerException;
 
     // ////////////////////////////////////////////////////////////
     // //
