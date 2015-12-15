@@ -13,28 +13,32 @@
  * access to either file, you may request a copy from help@hdfgroup.org.     *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-package test;
+#include <jni.h>
+/* Header for class hdf_hdf5lib_H5_H5PL */
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
+#ifndef _Included_hdf_hdf5lib_H5_H5PL
+#define _Included_hdf_hdf5lib_H5_H5PL
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-@RunWith(Suite.class)
-@Suite.SuiteClasses( { TestH5.class,
-        TestH5Eregister.class,
-        TestH5Edefault.class,
-        TestH5E.class,
-        TestH5Fparams.class, TestH5Fbasic.class, TestH5F.class,
-        TestH5Gbasic.class, TestH5G.class, TestH5Giterate.class,
-        TestH5Sbasic.class, TestH5S.class,
-        TestH5Tparams.class, TestH5Tbasic.class, TestH5T.class,
-        TestH5Dparams.class, TestH5D.class, TestH5Dplist.class,
-        TestH5Lparams.class, TestH5Lbasic.class, TestH5Lcreate.class,
-        TestH5R.class,
-        TestH5P.class, TestH5PData.class, TestH5Pfapl.class,
-        TestH5A.class,
-        TestH5Oparams.class, TestH5Obasic.class, TestH5Ocopy.class, TestH5Ocreate.class,
-        TestH5PL.class, TestH5Z.class
-})
+/*
+ * Class:     hdf_hdf5lib_H5
+ * Method:    H5PLset_loading_state
+ * Signature: (I)V
+ */
+JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5PLset_1loading_1state
+  (JNIEnv *, jclass, jint);
 
-public class TestAll {
+/*
+ * Class:     hdf_hdf5lib_H5
+ * Method:    H5PLget_loading_state
+ * Signature: (V)I
+ */
+JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5PLget_1loading_1state
+  (JNIEnv *, jclass);
+
+#ifdef __cplusplus
 }
+#endif
+#endif

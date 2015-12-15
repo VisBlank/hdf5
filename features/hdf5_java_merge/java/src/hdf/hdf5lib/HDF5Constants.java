@@ -363,6 +363,11 @@ public class HDF5Constants {
     public static final int H5P_CRT_ORDER_INDEXED = H5P_CRT_ORDER_INDEXED();
     public static final long H5P_DEFAULT = H5P_DEFAULT();
 
+    public static final int H5PL_TYPE_ERROR = H5PL_TYPE_ERROR();
+    public static final int H5PL_TYPE_FILTER = H5PL_TYPE_FILTER();
+    public static final int H5PL_FILTER_PLUGIN = H5PL_FILTER_PLUGIN();
+    public static final int H5PL_ALL_PLUGIN = H5PL_ALL_PLUGIN();
+
     public static final int H5R_BADTYPE = H5R_BADTYPE();
     public static final int H5R_DATASET_REGION = H5R_DATASET_REGION();
     public static final int H5R_MAXTYPE = H5R_MAXTYPE();
@@ -1276,6 +1281,14 @@ public class HDF5Constants {
     private static native final int H5P_CRT_ORDER_INDEXED();
 
     private static native final long H5P_DEFAULT();
+
+    private static native final int H5PL_TYPE_ERROR();
+
+    private static native final int H5PL_TYPE_FILTER();
+
+    private static native final int H5PL_FILTER_PLUGIN();
+
+    private static native final int H5PL_ALL_PLUGIN();
 
     private static native final int H5R_BADTYPE();
 

@@ -13,28 +13,59 @@
  * access to either file, you may request a copy from help@hdfgroup.org.     *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-package test;
+/*
+ *  For details of the HDF libraries, see the HDF Documentation at:
+ *    http://hdfdfgroup.org/HDF5/doc/
+ *
+ */
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-@RunWith(Suite.class)
-@Suite.SuiteClasses( { TestH5.class,
-        TestH5Eregister.class,
-        TestH5Edefault.class,
-        TestH5E.class,
-        TestH5Fparams.class, TestH5Fbasic.class, TestH5F.class,
-        TestH5Gbasic.class, TestH5G.class, TestH5Giterate.class,
-        TestH5Sbasic.class, TestH5S.class,
-        TestH5Tparams.class, TestH5Tbasic.class, TestH5T.class,
-        TestH5Dparams.class, TestH5D.class, TestH5Dplist.class,
-        TestH5Lparams.class, TestH5Lbasic.class, TestH5Lcreate.class,
-        TestH5R.class,
-        TestH5P.class, TestH5PData.class, TestH5Pfapl.class,
-        TestH5A.class,
-        TestH5Oparams.class, TestH5Obasic.class, TestH5Ocopy.class, TestH5Ocreate.class,
-        TestH5PL.class, TestH5Z.class
-})
+#include "hdf5.h"
+#include <jni.h>
+#include <stdlib.h>
+#include "h5jni.h"
+#include "h5plImp.h"
 
-public class TestAll {
+/*
+ * Class:     hdf_hdf5lib_H5
+ * Method:    H5PLset_loading_state
+ * Signature: (I)V
+ */
+JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5PLset_1loading_1state
+  (JNIEnv *env, jclass clss, jint plugin_flags)
+{
+    herr_t retValue;
+
+    retValue = H5PLset_loading_state((unsigned int)plugin_flags);
+
+    if (retValue < 0) {
+        h5libraryError(env);
+    }
 }
+
+/*
+ * Class:     hdf_hdf5lib_H5
+ * Method:    H5PLget_loading_state
+ * Signature: (V)I
+ */
+JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5PLget_1loading_1state
+  (JNIEnv *env, jclass clss)
+{
+    herr_t retValue;
+    unsigned int plugin_type = 0;
+
+    retValue = H5PLget_loading_state(&plugin_type);
+
+    if (retValue < 0) {
+        h5libraryError(env);
+    }
+
+    return (jint)plugin_type;
+}
+
+#ifdef __cplusplus
+}
+#endif

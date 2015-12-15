@@ -1281,29 +1281,29 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Sget_1regular_1hyperslab(JNIEnv *en
 
     if (start == NULL) {
         h5nullArgument(env, "H5Sget_regular_hyperslab:  start is NULL");
-        return -1;
+        return;
     }
     if (count == NULL) {
         h5nullArgument(env, "H5Sget_regular_hyperslab:  count is NULL");
-        return -1;
+        return;
     }
 
     rank = (int) ENVPTR->GetArrayLength(ENVPAR start);
     if (rank != ENVPTR->GetArrayLength(ENVPAR count)) {
         h5badArgument(env, "H5Sget_regular_hyperslab:  count and start have different rank!");
-        return -1;
+        return;
     }
 
     startP = ENVPTR->GetLongArrayElements(ENVPAR start, &isCopy);
     if (startP == NULL) {
         h5JNIFatalError(env, "H5Sget_regular_hyperslab:  start not pinned");
-        return -1;
+        return;
     }
     strt = (hsize_t *) malloc((size_t)rank * sizeof(hsize_t));
     if (strt == NULL) {
         ENVPTR->ReleaseLongArrayElements(ENVPAR start, startP, JNI_ABORT);
         h5JNIFatalError(env, "H5Sget_regular_hyperslab:  start not converted to hsize_t");
-        return -1;
+        return;
     }
 
     countP = ENVPTR->GetLongArrayElements(ENVPAR count, &isCopy);
@@ -1311,7 +1311,7 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Sget_1regular_1hyperslab(JNIEnv *en
         ENVPTR->ReleaseLongArrayElements(ENVPAR start, startP, JNI_ABORT);
         free(strt);
         h5JNIFatalError(env, "H5Sget_regular_hyperslab:  count not pinned");
-        return -1;
+        return;
     }
     cnt = (hsize_t *) malloc((size_t)rank * sizeof(hsize_t));
     if (cnt == NULL) {
@@ -1319,7 +1319,7 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Sget_1regular_1hyperslab(JNIEnv *en
         ENVPTR->ReleaseLongArrayElements(ENVPAR count, countP, JNI_ABORT);
         free(strt);
         h5JNIFatalError(env, "H5Sget_regular_hyperslab:  count not converted to hsize_t");
-        return -1;
+        return;
     }
 
     strideP = ENVPTR->GetLongArrayElements(ENVPAR stride, &isCopy);
@@ -1329,7 +1329,7 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Sget_1regular_1hyperslab(JNIEnv *en
         free(cnt);
         free(strt);
         h5badArgument(env, "H5Sget_regular_hyperslab:  stride not pinned");
-        return -1;
+        return;
     }
     strd = (hsize_t *) malloc((size_t)rank * sizeof(hsize_t));
     if (strd == NULL) {
@@ -1339,7 +1339,7 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Sget_1regular_1hyperslab(JNIEnv *en
         free(cnt);
         free(strt);
         h5JNIFatalError(env, "H5Sget_regular_hyperslab:  stride not converted to hsize_t");
-        return -1;
+        return;
     }
 
     blockP = ENVPTR->GetLongArrayElements(ENVPAR block, &isCopy);
@@ -1351,7 +1351,7 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Sget_1regular_1hyperslab(JNIEnv *en
         free(strt);
         free(strd);
         h5JNIFatalError(env, "H5Sget_regular_hyperslab:  block not pinned");
-        return -1;
+        return;
     }
     blk = (hsize_t *) malloc((size_t)rank * sizeof(hsize_t));
     if (blk == NULL) {
@@ -1363,7 +1363,7 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Sget_1regular_1hyperslab(JNIEnv *en
         free(strt);
         free(strd);
         h5JNIFatalError(env, "H5Sget_regular_hyperslab:  block not converted to hsize_t");
-        return -1;
+        return;
     }
 
     status = H5Sget_regular_hyperslab(space_id, (hsize_t *) strt, (hsize_t *) strd, (hsize_t *) cnt, (hsize_t *) blk);

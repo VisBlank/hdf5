@@ -6675,6 +6675,51 @@ public class H5 implements java.io.Serializable {
 
     // ////////////////////////////////////////////////////////////
     // //
+    // H5PL: HDF5 1.8 Plugin API Functions //
+    // //
+    // ////////////////////////////////////////////////////////////
+    /**
+     * H5PLset_loading_state uses one argument to enable or disable individual plugins.
+     *        The plugin_flags parameter is an encoded integer in which each bit controls a specific
+     *        plugin or class of plugins.
+     *        A plugin bit set to 0 (zero) prevents the use of the dynamic plugin corresponding
+     *        to that bit position. A plugin bit set to 1 (one) allows the use of that dynamic plugin.
+     *        All dynamic plugins can be enabled by setting plugin_flags to a negative value.
+     *        A value of 0 (zero) will disable all dynamic plugins.
+     *
+     *        H5PLset_loading_state inspects the HDF5_PLUGIN_PRELOAD environment variable every
+     *        time it is called. If the environment variable is set to the special :: string,
+     *        all dynamic plugins will be disabled.
+     *
+     * @param plugin_flags
+     *            IN: The list of dynamic plugin types to enable or disable.
+     *                A plugin bit set to 0 (zero) prevents use of that dynamic plugin.
+     *                A plugin bit set to 1 (one) enables use of that dynamic plugin.
+     *                Setting plugin_flags to a negative value enables all dynamic plugins.
+     *                Setting plugin_flags to 0 (zero) disables all dynamic plugins.
+     *
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     **/
+    public synchronized static native void H5PLset_loading_state(int plugin_flags) throws HDF5LibraryException;
+
+    /**
+     * H5PLget_loading_state retrieves the state of the dynamic plugins flag, plugin_flags..
+     *
+     * @return the list of dynamic plugin types that are enabled or disabled.
+     *             A plugin bit set to 0 (zero) indicates that that dynamic plugin is disabled.
+     *             A plugin bit set to 1 (one) indicates that that dynamic plugin is enabled.
+     *             If the value of plugin_flags is negative, all dynamic plugins are enabled.
+     *             If the value of plugin_flags is 0 (zero), all dynamic plugins are disabled.
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     **/
+    public synchronized static native int H5PLget_loading_state() throws HDF5LibraryException;
+
+    // ////////////////////////////////////////////////////////////
+    // //
     // H5R: HDF5 1.8 Reference API Functions //
     // //
     // ////////////////////////////////////////////////////////////
