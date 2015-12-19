@@ -200,9 +200,10 @@ am_libh5test_la_OBJECTS = h5test.lo testframe.lo cache_common.lo \
 libh5test_la_OBJECTS = $(am_libh5test_la_OBJECTS)
 @HAVE_SHARED_CONDITIONAL_FALSE@am_libh5test_la_rpath =
 @HAVE_SHARED_CONDITIONAL_TRUE@am_libh5test_la_rpath =
-am__EXEEXT_1 = testhdf5$(EXEEXT) lheap$(EXEEXT) ohdr$(EXEEXT) \
-	stab$(EXEEXT) gheap$(EXEEXT) cache$(EXEEXT) cache_api$(EXEEXT) \
-	cache_tagging$(EXEEXT) pool$(EXEEXT) accum$(EXEEXT) \
+am__EXEEXT_1 = testhdf5$(EXEEXT) cache$(EXEEXT) cache_api$(EXEEXT) \
+	cache_tagging$(EXEEXT) lheap$(EXEEXT) ohdr$(EXEEXT) \
+	stab$(EXEEXT) gheap$(EXEEXT) farray$(EXEEXT) earray$(EXEEXT) \
+	btree2$(EXEEXT) fheap$(EXEEXT) pool$(EXEEXT) accum$(EXEEXT) \
 	hyperslab$(EXEEXT) istore$(EXEEXT) bittests$(EXEEXT) \
 	dt_arith$(EXEEXT) dtypes$(EXEEXT) dsets$(EXEEXT) \
 	cmpd_dset$(EXEEXT) filter_fail$(EXEEXT) extend$(EXEEXT) \
@@ -214,8 +215,7 @@ am__EXEEXT_1 = testhdf5$(EXEEXT) lheap$(EXEEXT) ohdr$(EXEEXT) \
 	enc_dec_plist_cross_platform$(EXEEXT) getname$(EXEEXT) \
 	vfd$(EXEEXT) ntypes$(EXEEXT) dangle$(EXEEXT) \
 	dtransform$(EXEEXT) reserved$(EXEEXT) cross_read$(EXEEXT) \
-	freespace$(EXEEXT) mf$(EXEEXT) vds$(EXEEXT) farray$(EXEEXT) \
-	earray$(EXEEXT) btree2$(EXEEXT) fheap$(EXEEXT) \
+	freespace$(EXEEXT) mf$(EXEEXT) vds$(EXEEXT) \
 	file_image$(EXEEXT) unregister$(EXEEXT) cache_logging$(EXEEXT) \
 	cork$(EXEEXT) swmr$(EXEEXT)
 @HAVE_SHARED_CONDITIONAL_TRUE@am__EXEEXT_2 = plugin$(EXEEXT)
@@ -1259,9 +1259,10 @@ CHECK_CLEANFILES = *.chkexe *.chklog *.clog *.clog2 accum.h5 \
 	new_family_v16_000[0-3][0-9].h5 multi_file-[rs].h5 core_file \
 	plugin.h5 new_move_[ab].h5 ntypes.h5 dangle.h5 error_test.h5 \
 	err_compat.h5 dtransform.h5 test_filters.h5 get_file_name.h5 \
-	tstint[1-2].h5 unlink_chunked.h5 btree2.h5 objcopy_src.h5 \
-	objcopy_dst.h5 objcopy_ext.dat trefer1.h5 trefer2.h5 \
-	app_ref.h5 farray.h5 earray.h5 efc[0-5].h5 log_vfd_out.log \
+	tstint[1-2].h5 unlink_chunked.h5 btree2.h5 btree2_tmp.h5 \
+	objcopy_src.h5 objcopy_dst.h5 objcopy_ext.dat trefer1.h5 \
+	trefer2.h5 app_ref.h5 farray.h5 farray_tmp.h5 earray.h5 \
+	earray_tmp.h5 efc[0-5].h5 log_vfd_out.log \
 	new_multi_file_v16-r.h5 new_multi_file_v16-s.h5 \
 	split_get_file_image_test-m.h5 split_get_file_image_test-r.h5 \
 	file_image_core_test.h5.copy unregister_filter_1.h5 \
@@ -1303,17 +1304,14 @@ check_SCRIPTS = $(TEST_SCRIPT)
 # executed, generally most specific tests to least specific tests.
 # As an exception, long-running tests should occur earlier in the list.
 # This gives them more time to run when tests are executing in parallel.
-# These tests (fheap, btree2) are under development and are not used by
-# the library yet. Move them to the end so that their failure do not block
-# other current library code tests.
-TEST_PROG = testhdf5 lheap ohdr stab gheap cache cache_api cache_tagging \
+TEST_PROG = testhdf5 cache cache_api cache_tagging lheap ohdr stab gheap \
+           farray earray btree2 fheap \
            pool accum hyperslab istore bittests dt_arith \
            dtypes dsets cmpd_dset filter_fail extend external efc objcopy links unlink \
            twriteorder big mtime fillval mount flush1 flush2 app_ref enum \
            set_extent ttsafe enc_dec_plist enc_dec_plist_cross_platform\
            getname vfd ntypes dangle dtransform reserved cross_read \
-           freespace mf vds farray earray btree2 fheap file_image unregister \
-           cache_logging cork swmr
+           freespace mf vds file_image unregister cache_logging cork swmr
 
 
 # These programs generate test files for the tests.  They don't need to be
@@ -2282,6 +2280,27 @@ testhdf5.log: testhdf5$(EXEEXT)
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
+cache.log: cache$(EXEEXT)
+	@p='cache$(EXEEXT)'; \
+	b='cache'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+cache_api.log: cache_api$(EXEEXT)
+	@p='cache_api$(EXEEXT)'; \
+	b='cache_api'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+cache_tagging.log: cache_tagging$(EXEEXT)
+	@p='cache_tagging$(EXEEXT)'; \
+	b='cache_tagging'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
 lheap.log: lheap$(EXEEXT)
 	@p='lheap$(EXEEXT)'; \
 	b='lheap'; \
@@ -2310,23 +2329,30 @@ gheap.log: gheap$(EXEEXT)
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
-cache.log: cache$(EXEEXT)
-	@p='cache$(EXEEXT)'; \
-	b='cache'; \
+farray.log: farray$(EXEEXT)
+	@p='farray$(EXEEXT)'; \
+	b='farray'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
-cache_api.log: cache_api$(EXEEXT)
-	@p='cache_api$(EXEEXT)'; \
-	b='cache_api'; \
+earray.log: earray$(EXEEXT)
+	@p='earray$(EXEEXT)'; \
+	b='earray'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
-cache_tagging.log: cache_tagging$(EXEEXT)
-	@p='cache_tagging$(EXEEXT)'; \
-	b='cache_tagging'; \
+btree2.log: btree2$(EXEEXT)
+	@p='btree2$(EXEEXT)'; \
+	b='btree2'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+fheap.log: fheap$(EXEEXT)
+	@p='fheap$(EXEEXT)'; \
+	b='fheap'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
@@ -2600,34 +2626,6 @@ mf.log: mf$(EXEEXT)
 vds.log: vds$(EXEEXT)
 	@p='vds$(EXEEXT)'; \
 	b='vds'; \
-	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
-	--log-file $$b.log --trs-file $$b.trs \
-	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
-	"$$tst" $(AM_TESTS_FD_REDIRECT)
-farray.log: farray$(EXEEXT)
-	@p='farray$(EXEEXT)'; \
-	b='farray'; \
-	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
-	--log-file $$b.log --trs-file $$b.trs \
-	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
-	"$$tst" $(AM_TESTS_FD_REDIRECT)
-earray.log: earray$(EXEEXT)
-	@p='earray$(EXEEXT)'; \
-	b='earray'; \
-	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
-	--log-file $$b.log --trs-file $$b.trs \
-	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
-	"$$tst" $(AM_TESTS_FD_REDIRECT)
-btree2.log: btree2$(EXEEXT)
-	@p='btree2$(EXEEXT)'; \
-	b='btree2'; \
-	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
-	--log-file $$b.log --trs-file $$b.trs \
-	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
-	"$$tst" $(AM_TESTS_FD_REDIRECT)
-fheap.log: fheap$(EXEEXT)
-	@p='fheap$(EXEEXT)'; \
-	b='fheap'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
