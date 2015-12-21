@@ -109,7 +109,6 @@ case "$cc_vendor-$cc_version" in
         ;;
     esac
     PROD_CPPFLAGS=
-    PROD_JAVACFLAGS=
 
     # Debug
     case "$cc_vendor-$cc_version" in
@@ -122,7 +121,6 @@ case "$cc_vendor-$cc_version" in
     esac
     #DEBUG_CFLAGS="$DEBUG_CFLAGS -fsanitize=undefined"
     DEBUG_CPPFLAGS=
-    DEBUG_JAVACFLAGS="-g"
 
     # Try out the new "stack protector" feature introduced in gcc 4.1
     # (We should also think about adding some of the other memory protection options)
@@ -131,7 +129,6 @@ case "$cc_vendor-$cc_version" in
     # Profile
     PROFILE_CFLAGS="-Og -g -pg"
     PROFILE_CPPFLAGS=
-    PROFILE_JAVACFLAGS=
 
     # Flags are set
     cc_flags_set=yes

@@ -68,8 +68,6 @@ typedef struct H5E_num_t {
 /********************/
 /* Local Prototypes */
 /********************/
-static hid_t getMajorErrorNumber(void);
-static hid_t getMinorErrorNumber(void);
 static int getErrorNumbers(hid_t stk_id, H5E_num_t*);
 static const char *defineHDF5LibraryException(hid_t maj_num);
 
@@ -132,23 +130,9 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_exceptions_HDF5LibraryException_printSta
  * Signature: ()J
  *
  *  Extract the HDF-5 major error number from the HDF-5 error stack.
- *
- *  Note:  This relies on undocumented, 'private' code in the HDF-5
- *  library.  Later releases will have a public interface for this
- *  purpose.
  */
 JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_exceptions_HDF5LibraryException_getMajorErrorNumber
   (JNIEnv *env, jobject obj)
-{
-    H5E_num_t err_nums;
-
-    H5Ewalk2(H5E_DEFAULT, H5E_WALK_DOWNWARD, walk_error_callback, &err_nums);
-
-    return (jlong) err_nums.maj_num;
-}
-
-static
-hid_t getMajorErrorNumber(void)
 {
     H5E_num_t err_nums;
     err_nums.maj_num = 0;
@@ -165,19 +149,9 @@ hid_t getMajorErrorNumber(void)
  * Signature: ()J
  *
  *  Extract the HDF-5 minor error number from the HDF-5 error stack.
- *
- *  Note:  This relies on undocumented, 'private' code in the HDF-5
- *  library.  Later releases will have a public interface for this
- *  purpose.
  */
 JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_exceptions_HDF5LibraryException_getMinorErrorNumber
   (JNIEnv *env, jobject obj)
-{
-    return (jlong) getMinorErrorNumber();
-}
-
-static
-hid_t getMinorErrorNumber(void)
 {
     H5E_num_t err_nums;
     err_nums.maj_num = 0;
@@ -207,7 +181,7 @@ int getErrorNumbers(hid_t stk_id, H5E_num_t *err_nums)
  *  and the Java native method immediately raises the
  *  exception.
  */
-jboolean h5outOfMemory( JNIEnv *env, const char *functName)
+jboolean h5outOfMemory(JNIEnv *env, const char *functName)
 {
     jmethodID jm;
     jclass jc;
@@ -248,7 +222,7 @@ jboolean h5outOfMemory( JNIEnv *env, const char *functName)
  *  and the Java native method immediately raises the
  *  exception.
  */
-jboolean h5JNIFatalError( JNIEnv *env, const char *functName)
+jboolean h5JNIFatalError(JNIEnv *env, const char *functName)
 {
     jmethodID jm;
     jclass jc;
@@ -287,7 +261,7 @@ jboolean h5JNIFatalError( JNIEnv *env, const char *functName)
  *  and the Java native method immediately raises the
  *  exception.
  */
-jboolean h5nullArgument( JNIEnv *env, const char *functName)
+jboolean h5nullArgument(JNIEnv *env, const char *functName)
 {
     jmethodID jm;
     jclass jc;
@@ -327,7 +301,7 @@ jboolean h5nullArgument( JNIEnv *env, const char *functName)
  *  and the Java native method immediately raises the
  *  exception.
  */
-jboolean h5badArgument( JNIEnv *env, const char *functName)
+jboolean h5badArgument(JNIEnv *env, const char *functName)
 {
     jmethodID jm;
     jclass jc;
@@ -366,7 +340,7 @@ jboolean h5badArgument( JNIEnv *env, const char *functName)
  *  and the Java native method immediately raises the
  *  exception.
  */
-jboolean h5unimplemented( JNIEnv *env, const char *functName)
+jboolean h5unimplemented(JNIEnv *env, const char *functName)
 {
     jmethodID jm;
     jclass jc;
@@ -408,7 +382,7 @@ jboolean h5unimplemented( JNIEnv *env, const char *functName)
  *  and the Java native method immediately raises the
  *  exception.
  */
-jboolean h5libraryError( JNIEnv *env )
+jboolean h5libraryError(JNIEnv *env )
 {
     jmethodID jm;
     jclass    jc;
@@ -476,7 +450,7 @@ jboolean h5libraryError( JNIEnv *env )
  *  and the Java native method immediately raises the
  *  exception.
  */
-jboolean h5raiseException( JNIEnv *env, const char *exception, const char *message)
+jboolean h5raiseException(JNIEnv *env, const char *exception, const char *message)
 {
     jmethodID jm;
     jclass jc;
@@ -508,7 +482,7 @@ jboolean h5raiseException( JNIEnv *env, const char *exception, const char *messa
 }
 
 /*
-jboolean buildException( JNIEnv *env, char *exception, jint HDFerr)
+jboolean buildException(JNIEnv *env, char *exception, jint HDFerr)
 {
     jmethodID jm;
     jclass jc;

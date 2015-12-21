@@ -63,14 +63,11 @@ if test "XL" = "$cc_vendor"; then
     H5_CFLAGS="-qlanglvl=stdc99 -qflag=w:w $H5_CFLAGS"
     DEBUG_CFLAGS="-g -qfullpath"
     DEBUG_CPPFLAGS=
-    DEBUG_JAVACFLAGS="-g"
     # -O causes test/dtypes to fail badly. Turn it off for now.
     PROD_CFLAGS=""
     PROD_CPPFLAGS=
-    PROD_JAVACFLAGS=
     PROFILE_CFLAGS="-g -qfullpath -pg"
     PROFILE_CPPFLAGS=
-    PROFILE_JAVACFLAGS=
     # Flags are set
     cc_flags_set=yes
 fi

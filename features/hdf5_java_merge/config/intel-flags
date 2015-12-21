@@ -71,20 +71,17 @@ if test "X-icc" = "X-$cc_vendor"; then
     H5_CFLAGS="${H5_CFLAGS:--std=c99 $arch}"
 
     # Production is set to default; see settings for specific version further down
-    PROD_CFLAGS="-O"
+    PROD_CFLAGS="-O" 
     PROD_CPPFLAGS=
-    PROD_JAVACFLAGS=
 
     # Debug
     DEBUG_CFLAGS="-Wcheck -Wall -g -O0"
     DEBUG_CPPFLAGS=
-    DEBUG_JAVACFLAGS="-g"
 
     # Profile
     # Use this for profiling with gprof
     PROFILE_CFLAGS="-g -p"
     PROFILE_CPPFLAGS=
-    PROFILE_JAVACFLAGS=
 
     # Flags are set
     cc_flags_set=yes

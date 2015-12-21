@@ -54,10 +54,6 @@
 ./m4/ax_try_compile_java.m4
 ./m4/ax_try_run_java.m4
 
-#untested
-./m4/m4_ax_check_szip.m4
-./m4/m4_ax_check_zlib.m4
-
 ./bin/COPYING
 ./bin/bbrelease         _DO_NOT_DISTRIBUTE_
 ./bin/buildhdf5

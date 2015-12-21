@@ -894,7 +894,6 @@ static herr_t H5O_iterate_cb(hid_t g_id, const char *name, const H5O_info_t *inf
     {
         htri_t bval;
         const char *oName;
-        jstring  str;
         jboolean isCopy;
 
         if (name == NULL) {
@@ -1003,7 +1002,7 @@ static herr_t H5O_iterate_cb(hid_t g_id, const char *name, const H5O_info_t *inf
             h5libraryError(env);
         }
         return (jlong)status;
-    };
+    }
 
 
 #ifdef __cplusplus
