@@ -667,6 +667,7 @@ H5_VERSION
 DIRECT_VFD_CONDITIONAL_FALSE
 DIRECT_VFD_CONDITIONAL_TRUE
 ADD_PARALLEL_FILES
+MEMORYALLOCSANITYCHECK
 USINGMEMCHECKER
 CLEARFILEBUF
 INSTRUMENT_LIBRARY
@@ -914,6 +915,7 @@ enable_trace
 enable_instrument
 enable_clear_file_buffers
 enable_using_memchecker
+enable_memory_alloc_sanity_check
 enable_parallel
 with_mpe
 enable_direct_vfd
@@ -1607,7 +1609,16 @@ Optional Features:
                           bounds checking tool will be used on the HDF5
                           library. Enabling this causes the library to be more
                           picky about it's memory operations and also disables
-                          the library's free space manager code. Default=no.
+                          the library's free space manager code. This option
+                          is orthogonal to the
+                          --enable-memory-alloc-sanity-check option.
+                          Default=no.
+  --enable-memory-alloc-sanity-check
+                          Enable this option to turn on internal memory
+                          allocation sanity checking. This could cause more
+                          memory use and somewhat slower allocation. This
+                          option is orthogonal to the
+                          --enable-using-memchecker option. Default=no.
   --enable-parallel       Search for MPI-IO and MPI support files
   --enable-direct-vfd     Build the direct I/O virtual file driver (VFD). This
                           is based on the POSIX (sec2) VFD and requires the
@@ -28115,6 +28126,35 @@ $as_echo "#define USING_MEMCHECKER 1" >>confdefs.h
     ;;
   *)
       USINGMEMCHECKER=no
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+    ;;
+esac
+
+## ----------------------------------------------------------------------
+## Check if they would like to enable the internal memory allocation sanity
+##     checking code.
+##
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether internal memory allocation sanity checking is used" >&5
+$as_echo_n "checking whether internal memory allocation sanity checking is used... " >&6; }
+# Check whether --enable-memory-alloc-sanity-check was given.
+if test "${enable_memory_alloc_sanity_check+set}" = set; then :
+  enableval=$enable_memory_alloc_sanity_check; MEMORYALLOCSANITYCHECK=$enableval
+fi
+
+
+case "X-$MEMORYALLOCSANITYCHECK" in
+  X-yes)
+      MEMORYALLOCSANITYCHECK=yes
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+
+$as_echo "#define MEMORY_ALLOC_SANITY_CHECK 1" >>confdefs.h
+
+    ;;
+  *)
+      MEMORYALLOCSANITYCHECK=no
       { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
     ;;
