@@ -68,7 +68,6 @@ typedef struct H5E_num_t {
 /********************/
 /* Local Prototypes */
 /********************/
-static int getErrorNumbers(hid_t stk_id, H5E_num_t*);
 static const char *defineHDF5LibraryException(hid_t maj_num);
 
 /* get the major and minor error numbers on the top of the error stack */
@@ -160,14 +159,6 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_exceptions_HDF5LibraryException_getMino
     H5Ewalk2(H5E_DEFAULT, H5E_WALK_DOWNWARD, walk_error_callback, &err_nums);
 
     return err_nums.min_num;
-}
-
-static
-int getErrorNumbers(hid_t stk_id, H5E_num_t *err_nums)
-{
-    err_nums->maj_num = 0;
-    err_nums->min_num = 0;
-    return H5Ewalk2(stk_id, H5E_WALK_DOWNWARD, walk_error_callback, err_nums);
 }
 
 /*
@@ -402,7 +393,9 @@ jboolean h5libraryError(JNIEnv *env )
 
     /* Save current stack contents for future use */
     stk_id = H5Eget_current_stack(); /* This will clear current stack  */
-    getErrorNumbers(stk_id, &exceptionNumbers);
+    exceptionNumbers->maj_num = 0;
+    exceptionNumbers->min_num = 0;
+    H5Ewalk2(stk_id, H5E_WALK_DOWNWARD, walk_error_callback, exceptionNumbers);
     maj_num = exceptionNumbers.maj_num;
     min_num = exceptionNumbers.min_num;
 
