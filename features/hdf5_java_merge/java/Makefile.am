@@ -34,3 +34,5 @@ JAVA_API=yes
 SUBDIRS=src test examples
 
 endif
+
+include $(top_srcdir)/config/conclude.am
