@@ -393,8 +393,8 @@ jboolean h5libraryError(JNIEnv *env )
 
     /* Save current stack contents for future use */
     stk_id = H5Eget_current_stack(); /* This will clear current stack  */
-    exceptionNumbers->maj_num = 0;
-    exceptionNumbers->min_num = 0;
+    exceptionNumbers.maj_num = 0;
+    exceptionNumbers.min_num = 0;
     H5Ewalk2(stk_id, H5E_WALK_DOWNWARD, walk_error_callback, exceptionNumbers);
     maj_num = exceptionNumbers.maj_num;
     min_num = exceptionNumbers.min_num;
