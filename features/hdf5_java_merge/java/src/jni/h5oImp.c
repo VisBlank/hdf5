@@ -155,13 +155,11 @@ static herr_t H5O_iterate_cb(hid_t g_id, const char *name, const H5O_info_t *inf
     {
         herr_t      status;
         H5O_info_t  infobuf;
-        jclass      cls;
-        jmethodID   constructor;
         jvalue      args[12];
         jobject     hdrinfobuf;
         jobject     ihinfobuf1;
         jobject     ihinfobuf2;
-        jobject     ret_info_t = NULL;
+        jobject     ret_obj = NULL;
 
         status = H5Oget_info((hid_t)loc_id, (H5O_info_t*)&infobuf);
 
@@ -170,18 +168,6 @@ static herr_t H5O_iterate_cb(hid_t g_id, const char *name, const H5O_info_t *inf
            return NULL;
         }
 
-        // get a reference to the H5_hdr_info_t class
-        cls = ENVPTR->FindClass(ENVPAR "hdf/hdf5lib/structs/H5O_hdr_info_t");
-        if (cls == 0) {
-           h5JNIFatalError( env, "JNI error: GetObjectClass H5O_hdr_info_t failed\n");
-           return NULL;
-        }
-        // get a reference to the constructor; the name is <init>
-        constructor = ENVPTR->GetMethodID(ENVPAR cls, "<init>", "(IIIIJJJJJJ)V");
-        if (constructor == 0) {
-            h5JNIFatalError( env, "JNI error: GetMethodID H5O_hdr_info_t failed\n");
-           return NULL;
-        }
         args[0].i = (jint)infobuf.hdr.version;
         args[1].i = (jint)infobuf.hdr.nmesgs;
         args[2].i = (jint)infobuf.hdr.nchunks;
@@ -192,39 +178,18 @@ static herr_t H5O_iterate_cb(hid_t g_id, const char *name, const H5O_info_t *inf
         args[7].j = (jlong)infobuf.hdr.space.free;
         args[8].j = (jlong)infobuf.hdr.mesg.present;
         args[9].j = (jlong)infobuf.hdr.mesg.shared;
-        hdrinfobuf = ENVPTR->NewObjectA(ENVPAR cls, constructor, args);
+        CALL_CONSTRUCTOR("hdf/hdf5lib/structs/H5O_hdr_info_t", "(IIIIJJJJJJ)V", args);
+        hdrinfobuf = ret_obj;
 
-        // get a reference to the H5_ih_info_t class
-        cls = ENVPTR->FindClass(ENVPAR "hdf/hdf5lib/structs/H5_ih_info_t");
-        if (cls == 0) {
-           h5JNIFatalError( env, "JNI error: GetObjectClass H5_ih_info_t failed\n");
-           return NULL;
-        }
-        // get a reference to the constructor; the name is <init>
-        constructor = ENVPTR->GetMethodID(ENVPAR cls, "<init>", "(JJ)V");
-        if (constructor == 0) {
-            h5JNIFatalError( env, "JNI error: GetMethodID H5_ih_info_t failed\n");
-           return NULL;
-        }
         args[0].j = (jlong)infobuf.meta_size.obj.index_size;
         args[1].j = (jlong)infobuf.meta_size.obj.heap_size;
-        ihinfobuf1 = ENVPTR->NewObjectA(ENVPAR cls, constructor, args);
+        CALL_CONSTRUCTOR("hdf/hdf5lib/structs/H5_ih_info_t", "(JJ)V", args);
+        ihinfobuf1 = ret_obj;
         args[0].j = (jlong)infobuf.meta_size.attr.index_size;
         args[1].j = (jlong)infobuf.meta_size.attr.heap_size;
-        ihinfobuf2 = ENVPTR->NewObjectA(ENVPAR cls, constructor, args);
+        CALL_CONSTRUCTOR("hdf/hdf5lib/structs/H5_ih_info_t", "(JJ)V", args);
+        ihinfobuf2 = ret_obj;
 
-        // get a reference to the H5O_info_t class
-        cls = ENVPTR->FindClass(ENVPAR "hdf/hdf5lib/structs/H5O_info_t");
-        if (cls == 0) {
-           h5JNIFatalError( env, "JNI error: GetObjectClass H5O_info_t failed\n");
-           return NULL;
-        }
-        // get a reference to the constructor; the name is <init>
-        constructor = ENVPTR->GetMethodID(ENVPAR cls, "<init>", "(JJIIJJJJJLhdf/hdf5lib/structs/H5O_hdr_info_t;Lhdf/hdf5lib/structs/H5_ih_info_t;Lhdf/hdf5lib/structs/H5_ih_info_t;)V");
-        if (constructor == 0) {
-            h5JNIFatalError( env, "JNI error: GetMethodID H5O_info_t failed\n");
-           return NULL;
-        }
         args[0].j = (jlong)infobuf.fileno;
         args[1].j = (jlong)infobuf.addr;
         args[2].i = infobuf.type;
@@ -237,9 +202,9 @@ static herr_t H5O_iterate_cb(hid_t g_id, const char *name, const H5O_info_t *inf
         args[9].l = hdrinfobuf;
         args[10].l = ihinfobuf1;
         args[11].l = ihinfobuf2;
-        ret_info_t = ENVPTR->NewObjectA(ENVPAR cls, constructor, args);
+        CALL_CONSTRUCTOR("hdf/hdf5lib/structs/H5O_info_t", "(JJIIJJJJJLhdf/hdf5lib/structs/H5O_hdr_info_t;Lhdf/hdf5lib/structs/H5_ih_info_t;Lhdf/hdf5lib/structs/H5_ih_info_t;)V", args);
 
-        return ret_info_t;
+        return ret_obj;
     }
 
     /*
@@ -254,13 +219,11 @@ static herr_t H5O_iterate_cb(hid_t g_id, const char *name, const H5O_info_t *inf
         herr_t      status;
         H5O_info_t  infobuf;
         jboolean    isCopy;
-        jclass      cls;
-        jmethodID   constructor;
         jvalue      args[12];
         jobject     hdrinfobuf;
         jobject     ihinfobuf1;
         jobject     ihinfobuf2;
-        jobject     ret_info_t = NULL;
+        jobject     ret_obj = NULL;
 
         if (name == NULL) {
             h5nullArgument(env, "H5Oget_info_by_name:  name is NULL");
@@ -282,18 +245,6 @@ static herr_t H5O_iterate_cb(hid_t g_id, const char *name, const H5O_info_t *inf
            return NULL;
         }
 
-        // get a reference to the H5_hdr_info_t class
-        cls = ENVPTR->FindClass(ENVPAR "hdf/hdf5lib/structs/H5O_hdr_info_t");
-        if (cls == 0) {
-           h5JNIFatalError( env, "JNI error: GetObjectClass H5O_hdr_info_t failed\n");
-           return NULL;
-        }
-        // get a reference to the constructor; the name is <init>
-        constructor = ENVPTR->GetMethodID(ENVPAR cls, "<init>", "(IIIIJJJJJJ)V");
-        if (constructor == 0) {
-            h5JNIFatalError( env, "JNI error: GetMethodID H5O_hdr_info_t failed\n");
-           return NULL;
-        }
         args[0].i = (jint)infobuf.hdr.version;
         args[1].i = (jint)infobuf.hdr.nmesgs;
         args[2].i = (jint)infobuf.hdr.nchunks;
@@ -304,39 +255,18 @@ static herr_t H5O_iterate_cb(hid_t g_id, const char *name, const H5O_info_t *inf
         args[7].j = (jlong)infobuf.hdr.space.free;
         args[8].j = (jlong)infobuf.hdr.mesg.present;
         args[9].j = (jlong)infobuf.hdr.mesg.shared;
-        hdrinfobuf = ENVPTR->NewObjectA(ENVPAR cls, constructor, args);
+        CALL_CONSTRUCTOR("hdf/hdf5lib/structs/H5O_hdr_info_t", "(IIIIJJJJJJ)V", args);
+        hdrinfobuf = ret_obj;
 
-        // get a reference to the H5_ih_info_t class
-        cls = ENVPTR->FindClass(ENVPAR "hdf/hdf5lib/structs/H5_ih_info_t");
-        if (cls == 0) {
-           h5JNIFatalError( env, "JNI error: GetObjectClass H5_ih_info_t failed\n");
-           return NULL;
-        }
-        // get a reference to the constructor; the name is <init>
-        constructor = ENVPTR->GetMethodID(ENVPAR cls, "<init>", "(JJ)V");
-        if (constructor == 0) {
-            h5JNIFatalError( env, "JNI error: GetMethodID H5_ih_info_t failed\n");
-           return NULL;
-        }
         args[0].j = (jlong)infobuf.meta_size.obj.index_size;
         args[1].j = (jlong)infobuf.meta_size.obj.heap_size;
-        ihinfobuf1 = ENVPTR->NewObjectA(ENVPAR cls, constructor, args);
+        CALL_CONSTRUCTOR("hdf/hdf5lib/structs/H5_ih_info_t", "(JJ)V", args);
+        ihinfobuf1 = ret_obj;
         args[0].j = (jlong)infobuf.meta_size.attr.index_size;
         args[1].j = (jlong)infobuf.meta_size.attr.heap_size;
-        ihinfobuf2 = ENVPTR->NewObjectA(ENVPAR cls, constructor, args);
+        CALL_CONSTRUCTOR("hdf/hdf5lib/structs/H5_ih_info_t", "(JJ)V", args);
+        ihinfobuf2 = ret_obj;
 
-        // get a reference to the H5O_info_t class
-        cls = ENVPTR->FindClass(ENVPAR "hdf/hdf5lib/structs/H5O_info_t");
-        if (cls == 0) {
-           h5JNIFatalError( env, "JNI error: GetObjectClass H5O_info_t failed\n");
-           return NULL;
-        }
-        // get a reference to the constructor; the name is <init>
-        constructor = ENVPTR->GetMethodID(ENVPAR cls, "<init>", "(JJIIJJJJJLhdf/hdf5lib/structs/H5O_hdr_info_t;Lhdf/hdf5lib/structs/H5_ih_info_t;Lhdf/hdf5lib/structs/H5_ih_info_t;)V");
-        if (constructor == 0) {
-            h5JNIFatalError( env, "JNI error: GetMethodID H5O_info_t failed\n");
-           return NULL;
-        }
         args[0].j = (jlong)infobuf.fileno;
         args[1].j = (jlong)infobuf.addr;
         args[2].i = infobuf.type;
@@ -349,9 +279,9 @@ static herr_t H5O_iterate_cb(hid_t g_id, const char *name, const H5O_info_t *inf
         args[9].l = hdrinfobuf;
         args[10].l = ihinfobuf1;
         args[11].l = ihinfobuf2;
-        ret_info_t = ENVPTR->NewObjectA(ENVPAR cls, constructor, args);
+        CALL_CONSTRUCTOR("hdf/hdf5lib/structs/H5O_info_t", "(JJIIJJJJJLhdf/hdf5lib/structs/H5O_hdr_info_t;Lhdf/hdf5lib/structs/H5_ih_info_t;Lhdf/hdf5lib/structs/H5_ih_info_t;)V", args);
 
-        return ret_info_t;
+        return ret_obj;
     }
 
     /*
@@ -366,13 +296,11 @@ static herr_t H5O_iterate_cb(hid_t g_id, const char *name, const H5O_info_t *inf
         herr_t      status;
         H5O_info_t  infobuf;
         jboolean    isCopy;
-        jclass      cls;
-        jmethodID   constructor;
         jvalue      args[12];
         jobject     hdrinfobuf;
         jobject     ihinfobuf1;
         jobject     ihinfobuf2;
-        jobject     ret_info_t = NULL;
+        jobject     ret_obj = NULL;
 
         if (name == NULL) {
             h5nullArgument(env, "H5Oget_info_by_idx:  name is NULL");
@@ -394,18 +322,6 @@ static herr_t H5O_iterate_cb(hid_t g_id, const char *name, const H5O_info_t *inf
            return NULL;
         }
 
-        // get a reference to the H5_hdr_info_t class
-        cls = ENVPTR->FindClass(ENVPAR "hdf/hdf5lib/structs/H5O_hdr_info_t");
-        if (cls == 0) {
-           h5JNIFatalError( env, "JNI error: GetObjectClass H5O_hdr_info_t failed\n");
-           return NULL;
-        }
-        // get a reference to the constructor; the name is <init>
-        constructor = ENVPTR->GetMethodID(ENVPAR cls, "<init>", "(IIIIJJJJJJ)V");
-        if (constructor == 0) {
-            h5JNIFatalError( env, "JNI error: GetMethodID H5O_hdr_info_t failed\n");
-           return NULL;
-        }
         args[0].i = (jint)infobuf.hdr.version;
         args[1].i = (jint)infobuf.hdr.nmesgs;
         args[2].i = (jint)infobuf.hdr.nchunks;
@@ -416,39 +332,18 @@ static herr_t H5O_iterate_cb(hid_t g_id, const char *name, const H5O_info_t *inf
         args[7].j = (jlong)infobuf.hdr.space.free;
         args[8].j = (jlong)infobuf.hdr.mesg.present;
         args[9].j = (jlong)infobuf.hdr.mesg.shared;
-        hdrinfobuf = ENVPTR->NewObjectA(ENVPAR cls, constructor, args);
+        CALL_CONSTRUCTOR("hdf/hdf5lib/structs/H5O_hdr_info_t", "(IIIIJJJJJJ)V", args);
+        hdrinfobuf = ret_obj;
 
-        // get a reference to the H5_ih_info_t class
-        cls = ENVPTR->FindClass(ENVPAR "hdf/hdf5lib/structs/H5_ih_info_t");
-        if (cls == 0) {
-           h5JNIFatalError( env, "JNI error: GetObjectClass H5_ih_info_t failed\n");
-           return NULL;
-        }
-        // get a reference to the constructor; the name is <init>
-        constructor = ENVPTR->GetMethodID(ENVPAR cls, "<init>", "(JJ)V");
-        if (constructor == 0) {
-            h5JNIFatalError( env, "JNI error: GetMethodID H5_ih_info_t failed\n");
-           return NULL;
-        }
         args[0].j = (jlong)infobuf.meta_size.obj.index_size;
         args[1].j = (jlong)infobuf.meta_size.obj.heap_size;
-        ihinfobuf1 = ENVPTR->NewObjectA(ENVPAR cls, constructor, args);
+        CALL_CONSTRUCTOR("hdf/hdf5lib/structs/H5_ih_info_t", "(JJ)V", args);
+        ihinfobuf1 = ret_obj;
         args[0].j = (jlong)infobuf.meta_size.attr.index_size;
         args[1].j = (jlong)infobuf.meta_size.attr.heap_size;
-        ihinfobuf2 = ENVPTR->NewObjectA(ENVPAR cls, constructor, args);
+        CALL_CONSTRUCTOR("hdf/hdf5lib/structs/H5_ih_info_t", "(JJ)V", args);
+        ihinfobuf2 = ret_obj;
 
-        // get a reference to the H5O_info_t class
-        cls = ENVPTR->FindClass(ENVPAR "hdf/hdf5lib/structs/H5O_info_t");
-        if (cls == 0) {
-           h5JNIFatalError( env, "JNI error: GetObjectClass H5O_info_t failed\n");
-           return NULL;
-        }
-        // get a reference to the constructor; the name is <init>
-        constructor = ENVPTR->GetMethodID(ENVPAR cls, "<init>", "(JJIIJJJJJLhdf/hdf5lib/structs/H5O_hdr_info_t;Lhdf/hdf5lib/structs/H5_ih_info_t;Lhdf/hdf5lib/structs/H5_ih_info_t;)V");
-        if (constructor == 0) {
-            h5JNIFatalError( env, "JNI error: GetMethodID H5O_info_t failed\n");
-           return NULL;
-        }
         args[0].j = (jlong)infobuf.fileno;
         args[1].j = (jlong)infobuf.addr;
         args[2].i = infobuf.type;
@@ -461,9 +356,9 @@ static herr_t H5O_iterate_cb(hid_t g_id, const char *name, const H5O_info_t *inf
         args[9].l = hdrinfobuf;
         args[10].l = ihinfobuf1;
         args[11].l = ihinfobuf2;
-        ret_info_t = ENVPTR->NewObjectA(ENVPAR cls, constructor, args);
+        CALL_CONSTRUCTOR("hdf/hdf5lib/structs/H5O_info_t", "(JJIIJJJJJLhdf/hdf5lib/structs/H5O_hdr_info_t;Lhdf/hdf5lib/structs/H5_ih_info_t;Lhdf/hdf5lib/structs/H5_ih_info_t;)V", args);
 
-        return ret_info_t;
+        return ret_obj;
     }
 
     /*
@@ -534,6 +429,16 @@ static herr_t H5O_iterate_cb(hid_t g_id, const char *name, const H5O_info_t *inf
         }
         str = CBENVPTR->NewStringUTF(CBENVPAR name);
 
+        args[0].i = (jint)info->hdr.version;
+        args[1].i = (jint)info->hdr.nmesgs;
+        args[2].i = (jint)info->hdr.nchunks;
+        args[3].i = (jint)info->hdr.flags;
+        args[4].j = (jlong)info->hdr.space.total;
+        args[5].j = (jlong)info->hdr.space.meta;
+        args[6].j = (jlong)info->hdr.space.mesg;
+        args[7].j = (jlong)info->hdr.space.free;
+        args[8].j = (jlong)info->hdr.mesg.present;
+        args[9].j = (jlong)info->hdr.mesg.shared;
         // get a reference to the H5_hdr_info_t class
         cls = CBENVPTR->FindClass(CBENVPAR "hdf/hdf5lib/structs/H5O_hdr_info_t");
         if (cls == 0) {
@@ -546,18 +451,10 @@ static herr_t H5O_iterate_cb(hid_t g_id, const char *name, const H5O_info_t *inf
             JVMPTR->DetachCurrentThread(JVMPAR);
            return -1;
         }
-        args[0].i = (jint)info->hdr.version;
-        args[1].i = (jint)info->hdr.nmesgs;
-        args[2].i = (jint)info->hdr.nchunks;
-        args[3].i = (jint)info->hdr.flags;
-        args[4].j = (jlong)info->hdr.space.total;
-        args[5].j = (jlong)info->hdr.space.meta;
-        args[6].j = (jlong)info->hdr.space.mesg;
-        args[7].j = (jlong)info->hdr.space.free;
-        args[8].j = (jlong)info->hdr.mesg.present;
-        args[9].j = (jlong)info->hdr.mesg.shared;
         hdrinfobuf = CBENVPTR->NewObjectA(CBENVPAR cls, constructor, args);
 
+        args[0].j = (jlong)info->meta_size.obj.index_size;
+        args[1].j = (jlong)info->meta_size.obj.heap_size;
         // get a reference to the H5_ih_info_t class
         cls = CBENVPTR->FindClass(CBENVPAR "hdf/hdf5lib/structs/H5_ih_info_t");
         if (cls == 0) {
@@ -570,25 +467,11 @@ static herr_t H5O_iterate_cb(hid_t g_id, const char *name, const H5O_info_t *inf
             JVMPTR->DetachCurrentThread(JVMPAR);
            return -1;
         }
-        args[0].j = (jlong)info->meta_size.obj.index_size;
-        args[1].j = (jlong)info->meta_size.obj.heap_size;
         ihinfobuf1 = CBENVPTR->NewObjectA(CBENVPAR cls, constructor, args);
         args[0].j = (jlong)info->meta_size.attr.index_size;
         args[1].j = (jlong)info->meta_size.attr.heap_size;
         ihinfobuf2 = CBENVPTR->NewObjectA(CBENVPAR cls, constructor, args);
 
-        // get a reference to the H5O_info_t class
-        cls = CBENVPTR->FindClass(CBENVPAR "hdf/hdf5lib/structs/H5O_info_t");
-        if (cls == 0) {
-            JVMPTR->DetachCurrentThread(JVMPAR);
-           return -1;
-        }
-        // get a reference to the constructor; the name is <init>
-        constructor = CBENVPTR->GetMethodID(CBENVPAR cls, "<init>", "(JJIIJJJJJLhdf/hdf5lib/structs/H5O_hdr_info_t;Lhdf/hdf5lib/structs/H5_ih_info_t;Lhdf/hdf5lib/structs/H5_ih_info_t;)V");
-        if (constructor == 0) {
-            JVMPTR->DetachCurrentThread(JVMPAR);
-           return -1;
-        }
         args[0].j = (jlong)info->fileno;
         args[1].j = (jlong)info->addr;
         args[2].i = info->type;
@@ -601,6 +484,18 @@ static herr_t H5O_iterate_cb(hid_t g_id, const char *name, const H5O_info_t *inf
         args[9].l = hdrinfobuf;
         args[10].l = ihinfobuf1;
         args[11].l = ihinfobuf2;
+        // get a reference to the H5O_info_t class
+        cls = CBENVPTR->FindClass(CBENVPAR "hdf/hdf5lib/structs/H5O_info_t");
+        if (cls == 0) {
+            JVMPTR->DetachCurrentThread(JVMPAR);
+           return -1;
+        }
+        // get a reference to the constructor; the name is <init>
+        constructor = CBENVPTR->GetMethodID(CBENVPAR cls, "<init>", "(JJIIJJJJJLhdf/hdf5lib/structs/H5O_hdr_info_t;Lhdf/hdf5lib/structs/H5_ih_info_t;Lhdf/hdf5lib/structs/H5_ih_info_t;)V");
+        if (constructor == 0) {
+            JVMPTR->DetachCurrentThread(JVMPAR);
+           return -1;
+        }
         cb_info_t = CBENVPTR->NewObjectA(CBENVPAR cls, constructor, args);
 
         status = CBENVPTR->CallIntMethod(CBENVPAR visit_callback, mid, g_id, str, cb_info_t, op_data);
@@ -898,12 +793,12 @@ static herr_t H5O_iterate_cb(hid_t g_id, const char *name, const H5O_info_t *inf
 
         if (name == NULL) {
             h5nullArgument( env, "H5Oexists_by_name:  name is NULL");
-            return NULL;
+            return JNI_FALSE;
         }
         oName = ENVPTR->GetStringUTFChars(ENVPAR name, &isCopy);
         if (oName == NULL) {
             h5JNIFatalError( env, "H5Oexists_by_name:  name not pinned");
-            return NULL;
+            return JNI_FALSE;
         }
 
         bval = H5Oexists_by_name((hid_t)loc_id, oName, (hid_t)access_id);

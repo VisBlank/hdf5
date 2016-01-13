@@ -601,6 +601,17 @@ static herr_t H5E_walk_cb(int nindx, const H5E_error2_t *info, void *op_data);
             JVMPTR->DetachCurrentThread(JVMPAR);
             return -1;
         }
+
+        args[0].j = info->cls_id;
+        args[1].j = info->maj_num;
+        args[2].j = info->min_num;
+        args[3].i = (jint)info->line;
+        str1 = CBENVPTR->NewStringUTF(CBENVPAR info->func_name);
+        args[4].l = str1;
+        str2 = CBENVPTR->NewStringUTF(CBENVPAR info->file_name);
+        args[5].l = str2;
+        str3 = CBENVPTR->NewStringUTF(CBENVPAR info->desc);
+        args[6].l = str3;
         // get a reference to your class if you don't have it already
         cls = CBENVPTR->FindClass(CBENVPAR "hdf/hdf5lib/structs/H5E_error2_t");
         if (cls == 0) {
@@ -615,17 +626,6 @@ static herr_t H5E_walk_cb(int nindx, const H5E_error2_t *info, void *op_data);
             JVMPTR->DetachCurrentThread(JVMPAR);
             return -1;
         }
-
-        args[0].j = info->cls_id;
-        args[1].j = info->maj_num;
-        args[2].j = info->min_num;
-        args[3].i = (jint)info->line;
-        str1 = CBENVPTR->NewStringUTF(CBENVPAR info->func_name);
-        args[4].l = str1;
-        str2 = CBENVPTR->NewStringUTF(CBENVPAR info->file_name);
-        args[5].l = str2;
-        str3 = CBENVPTR->NewStringUTF(CBENVPAR info->desc);
-        args[6].l = str3;
         cb_info_t = CBENVPTR->NewObjectA(CBENVPAR cls, constructor, args);
 
         status = CBENVPTR->CallIntMethod(CBENVPAR visit_callback, mid, nindx, cb_info_t, op_data);

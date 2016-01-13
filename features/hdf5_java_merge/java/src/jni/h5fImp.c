@@ -638,11 +638,9 @@ JNIEXPORT jobject JNICALL Java_hdf_hdf5lib_H5_H5Fget_1info
 {
     herr_t      status;
     H5F_info_t  finfo;
-    jclass      cls;
-    jmethodID   constructor;
     jvalue      args[9];
     jobject     ihinfobuf;
-    jobject     ret_info_t = NULL;
+    jobject     ret_obj = NULL;
 
     status = H5Fget_info2((hid_t)obj_id, (H5F_info2_t *)&finfo);
 
@@ -651,26 +649,11 @@ JNIEXPORT jobject JNICALL Java_hdf_hdf5lib_H5_H5Fget_1info
        return NULL;
     }
 
-    // get a reference to the H5_ih_info_t class
-    cls = ENVPTR->FindClass(ENVPAR "hdf/hdf5lib/structs/H5_ih_info_t");
-    if (cls == 0) {
-       h5JNIFatalError( env, "JNI error: GetObjectClass H5_ih_info_t failed\n");
-       return NULL;
-    }
-    // get a reference to the constructor; the name is <init>
-    constructor = ENVPTR->GetMethodID(ENVPAR cls, "<init>", "(JJ)V");
-    if (constructor == 0) {
-        h5JNIFatalError( env, "JNI error: GetMethodID H5_ih_info_t failed\n");
-       return NULL;
-    }
     args[0].j = (jlong)finfo.sohm.msgs_info.index_size;
     args[1].j = (jlong)finfo.sohm.msgs_info.heap_size;
-    ihinfobuf = ENVPTR->NewObjectA(ENVPAR cls, constructor, args);
+    CALL_CONSTRUCTOR("hdf/hdf5lib/structs/H5_ih_info_t", "(JJ)V", args);
+    ihinfobuf = ret_obj;
 
-    // get a reference to your class if you don't have it already
-    cls = ENVPTR->FindClass(ENVPAR "hdf/hdf5lib/structs/H5F_info2_t");
-    // get a reference to the constructor; the name is <init>
-    constructor = ENVPTR->GetMethodID(ENVPAR cls, "<init>", "(IJJIJJIJLhdf/hdf5lib/structs/H5_ih_info_t;)V");
     args[0].i = (jint)finfo.super.version;
     args[1].j = (jlong)finfo.super.super_size;
     args[2].j = (jlong)finfo.super.super_ext_size;
@@ -680,8 +663,8 @@ JNIEXPORT jobject JNICALL Java_hdf_hdf5lib_H5_H5Fget_1info
     args[6].j = (jint)finfo.sohm.version;
     args[7].j = (jlong)finfo.sohm.hdr_size;
     args[8].l = ihinfobuf;
-    ret_info_t = ENVPTR->NewObjectA(ENVPAR cls, constructor, args);
-    return ret_info_t;
+    CALL_CONSTRUCTOR("hdf/hdf5lib/structs/H5F_info2_t", "(IJJIJJIJLhdf/hdf5lib/structs/H5_ih_info_t;)V", args);
+    return ret_obj;
 }
 
 /*

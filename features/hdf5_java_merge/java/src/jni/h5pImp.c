@@ -1205,7 +1205,7 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5_H5Pget_1buffer_1size
         h5libraryError(env);
         return -1;
     }
-    return size;
+    return (jlong)size;
 }
 
 /*
@@ -4332,11 +4332,9 @@ JNIEXPORT jobject JNICALL Java_hdf_hdf5lib_H5_H5Pget_1mdc_1config
 {
     herr_t     status = -1;
     H5AC_cache_config_t cacheinfo;
-    jclass     cls;
-    jmethodID  constructor;
     jvalue     args[30];
     jstring    j_str = NULL;
-    jobject    ret_info_t = NULL;
+    jobject    ret_obj = NULL;
 
     memset(&cacheinfo, 0, sizeof(H5AC_cache_config_t));
     cacheinfo.version = H5AC__CURR_CACHE_CONFIG_VERSION;
@@ -4347,10 +4345,6 @@ JNIEXPORT jobject JNICALL Java_hdf_hdf5lib_H5_H5Pget_1mdc_1config
        return NULL;
     }
 
-    // get a reference to your class if you don't have it already
-    cls = ENVPTR->FindClass(ENVPAR "hdf/hdf5lib/structs/H5AC_cache_config_t");
-    // get a reference to the constructor; the name is <init>
-    constructor = ENVPTR->GetMethodID(ENVPAR cls, "<init>", "(IZZZLjava/lang/String;ZZJDJJJIDDZJIDDIDDZJIZDJI)V");
     args[0].i = cacheinfo.version;
     args[1].z = cacheinfo.rpt_fcn_enabled;
     args[2].z = cacheinfo.open_trace_file;
@@ -4386,8 +4380,8 @@ JNIEXPORT jobject JNICALL Java_hdf_hdf5lib_H5_H5Pget_1mdc_1config
 #if (H5_VERS_RELEASE >= 6)
     args[29].i = cacheinfo.metadata_write_strategy;
 #endif
-    ret_info_t = ENVPTR->NewObjectA(ENVPAR cls, constructor, args);
-    return ret_info_t;
+    CALL_CONSTRUCTOR("hdf/hdf5lib/structs/H5AC_cache_config_t", "(IZZZLjava/lang/String;ZZJDJJJIDDZJIDDIDDZJIZDJI)V", args);
+    return ret_obj;
 }
 
 /*

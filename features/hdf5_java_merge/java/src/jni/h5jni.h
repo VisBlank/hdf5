@@ -35,6 +35,24 @@
 #define ENVONLY env
 #endif
 
+/* Macros for class access */
+
+#define CALL_CONSTRUCTOR(classname,classsig,args) {                              \
+    jclass     cls;                                                              \
+    jmethodID  constructor;                                                      \
+    cls = ENVPTR->FindClass(ENVPAR classname);                                   \
+    if (cls == 0) {                                                              \
+       h5JNIFatalError(env, "JNI error: GetObjectClass\n");                      \
+       ret_obj = NULL;                                                           \
+    }                                                                            \
+    constructor = ENVPTR->GetMethodID(ENVPAR cls, "<init>", classsig);           \
+    if (constructor == 0) {                                                      \
+        h5JNIFatalError(env, "JNI error: GetMethodID failed\n");                 \
+       ret_obj = NULL;                                                           \
+    }                                                                            \
+    ret_obj = ENVPTR->NewObjectA(ENVPAR cls, constructor, args);                 \
+}
+
 #ifdef __cplusplus
 extern "C" {
 #endif

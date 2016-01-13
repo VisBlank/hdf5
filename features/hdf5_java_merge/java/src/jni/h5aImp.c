@@ -1666,10 +1666,8 @@ JNIEXPORT jobject JNICALL Java_hdf_hdf5lib_H5_H5Aget_1info
 {
     herr_t     status;
     H5A_info_t ainfo;
-    jclass     cls;
-    jmethodID  constructor;
     jvalue     args[4];
-    jobject    ret_info_t = NULL;
+    jobject    ret_obj = NULL;
 
     status = H5Aget_info((hid_t)attr_id, (H5A_info_t*)&ainfo);
 
@@ -1678,16 +1676,12 @@ JNIEXPORT jobject JNICALL Java_hdf_hdf5lib_H5_H5Aget_1info
        return NULL;
     }
 
-    // get a reference to your class if you don't have it already
-    cls = ENVPTR->FindClass(ENVPAR "hdf/hdf5lib/structs/H5A_info_t");
-    // get a reference to the constructor; the name is <init>
-    constructor = ENVPTR->GetMethodID(ENVPAR cls, "<init>", "(ZJIJ)V");
     args[0].z = ainfo.corder_valid;
     args[1].j = ainfo.corder;
     args[2].i = ainfo.cset;
     args[3].j = (jlong)ainfo.data_size;
-    ret_info_t = ENVPTR->NewObjectA(ENVPAR cls, constructor, args);
-    return ret_info_t;
+    CALL_CONSTRUCTOR("hdf/hdf5lib/structs/H5A_info_t", "(ZJIJ)V", args);
+    return ret_obj;
 
 }
 
@@ -1704,10 +1698,8 @@ JNIEXPORT jobject JNICALL Java_hdf_hdf5lib_H5_H5Aget_1info_1by_1idx
     herr_t     status;
     H5A_info_t ainfo;
     jboolean   isCopy;
-    jclass     cls;
-    jmethodID  constructor;
     jvalue     args[4];
-    jobject    ret_info_t = NULL;
+    jobject    ret_obj = NULL;
 
     if (obj_name == NULL) {
         h5nullArgument( env, "H5Aget_info_by_idx: obj_name is NULL");
@@ -1730,16 +1722,12 @@ JNIEXPORT jobject JNICALL Java_hdf_hdf5lib_H5_H5Aget_1info_1by_1idx
        return NULL;
     }
 
-    // get a reference to your class if you don't have it already
-    cls = ENVPTR->FindClass(ENVPAR "hdf/hdf5lib/structs/H5A_info_t");
-    // get a reference to the constructor; the name is <init>
-    constructor = ENVPTR->GetMethodID(ENVPAR cls, "<init>", "(ZJIJ)V");
     args[0].z = ainfo.corder_valid;
     args[1].j = ainfo.corder;
     args[2].i = ainfo.cset;
     args[3].j = (jlong)ainfo.data_size;
-    ret_info_t = ENVPTR->NewObjectA(ENVPAR cls, constructor, args);
-    return ret_info_t;
+    CALL_CONSTRUCTOR("hdf/hdf5lib/structs/H5A_info_t", "(ZJIJ)V", args);
+    return ret_obj;
 }
 
 /*
@@ -1755,10 +1743,8 @@ JNIEXPORT jobject JNICALL Java_hdf_hdf5lib_H5_H5Aget_1info_1by_1name
     herr_t     status;
     H5A_info_t ainfo;
     jboolean   isCopy;
-    jclass     cls;
-    jmethodID  constructor;
     jvalue     args[4];
-    jobject    ret_info_t = NULL;
+    jobject    ret_obj = NULL;
 
     if (obj_name == NULL) {
         h5nullArgument( env, "H5Aget_info_by_name: obj_name is NULL");
@@ -1790,16 +1776,12 @@ JNIEXPORT jobject JNICALL Java_hdf_hdf5lib_H5_H5Aget_1info_1by_1name
        return NULL;
     }
 
-    // get a reference to your class if you don't have it already
-    cls = ENVPTR->FindClass(ENVPAR "hdf/hdf5lib/structs/H5A_info_t");
-    // get a reference to the constructor; the name is <init>
-    constructor = ENVPTR->GetMethodID(ENVPAR cls, "<init>", "(ZJIJ)V");
     args[0].z = ainfo.corder_valid;
     args[1].j = ainfo.corder;
     args[2].i = ainfo.cset;
     args[3].j = (jlong)ainfo.data_size;
-    ret_info_t = ENVPTR->NewObjectA(ENVPAR cls, constructor, args);
-    return ret_info_t;
+    CALL_CONSTRUCTOR("hdf/hdf5lib/structs/H5A_info_t", "(ZJIJ)V", args);
+    return ret_obj;
 }
 
 /*
@@ -2007,6 +1989,10 @@ herr_t H5A_iterate_cb(hid_t g_id, const char *name, const H5A_info_t *info, void
     }
     str = CBENVPTR->NewStringUTF(CBENVPAR name);
 
+    args[0].z = info->corder_valid;
+    args[1].j = info->corder;
+    args[2].i = info->cset;
+    args[3].j = (jlong)info->data_size;
     // get a reference to your class if you don't have it already
     cls = CBENVPTR->FindClass(CBENVPAR "hdf/hdf5lib/structs/H5A_info_t");
     if (cls == 0) {
@@ -2021,10 +2007,6 @@ herr_t H5A_iterate_cb(hid_t g_id, const char *name, const H5A_info_t *info, void
         JVMPTR->DetachCurrentThread(JVMPAR);
         return -1;
     }
-    args[0].z = info->corder_valid;
-    args[1].j = info->corder;
-    args[2].i = info->cset;
-    args[3].j = (jlong)info->data_size;
     cb_info_t = CBENVPTR->NewObjectA(CBENVPAR cls, constructor, args);
 
     status = CBENVPTR->CallIntMethod(CBENVPAR visit_callback, mid, g_id, str, cb_info_t, op_data);

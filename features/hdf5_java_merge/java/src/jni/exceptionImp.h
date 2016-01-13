@@ -22,7 +22,26 @@
 extern "C" {
 #endif
 
-
+#define THROWEXCEPTION(className,args) {                                    \
+    jclass     jc;                                                          \
+    jmethodID  jm;                                                          \
+    jobject   ex;                                                           \
+    jc = ENVPTR->FindClass(ENVPAR className);                               \
+    if (jc == NULL) {                                                       \
+        return JNI_FALSE;                                                   \
+    }                                                                       \
+    jm = ENVPTR->GetMethodID(ENVPAR jc, "<init>", "(Ljava/lang/String;)V"); \
+    if (jm == NULL) {                                                       \
+        return JNI_FALSE;                                                   \
+    }                                                                       \
+    ex = ENVPTR->NewObjectA (ENVPAR jc, jm, (jvalue *)args );               \
+    rval = ENVPTR->Throw(ENVPAR (jthrowable ) ex );                         \
+    if (rval < 0) {                                                         \
+        printf("FATAL ERROR:  %s: Throw failed\n", className);              \
+        return JNI_FALSE;                                                   \
+    }                                                                       \
+    return JNI_TRUE;                                                        \
+}
 /*
  * Class:     hdf_hdf5lib_exceptions_HDF5Library
  * Method:    H5error_off

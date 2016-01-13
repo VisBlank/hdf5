@@ -168,34 +168,16 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_exceptions_HDF5LibraryException_getMino
 static
 jboolean H5JNIErrorClass(JNIEnv *env, const char *message, const char *className)
 {
-    jmethodID jm;
-    jclass jc;
     char * args[2];
-    jobject ex;
     jstring str;
     int rval;
 
-    jc = ENVPTR->FindClass(ENVPAR className);
-    if (jc == NULL) {
-        return JNI_FALSE;
-    }
-    jm = ENVPTR->GetMethodID(ENVPAR jc, "<init>", "(Ljava/lang/String;)V");
-    if (jm == NULL) {
-        return JNI_FALSE;
-    }
 
     str = ENVPTR->NewStringUTF(ENVPAR message);
     args[0] = (char *)str;
     args[1] = 0;
 
-    ex = ENVPTR->NewObjectA (ENVPAR jc, jm, (jvalue *)args );
-    rval = ENVPTR->Throw(ENVPAR (jthrowable ) ex );
-    if (rval < 0) {
-        printf("FATAL ERROR:  %s: Throw failed\n", className);
-        return JNI_FALSE;
-    }
-
-    return JNI_TRUE;
+    THROWEXCEPTION(className, args)
 }
 
 /*
@@ -288,11 +270,8 @@ jboolean h5raiseException(JNIEnv *env, const char *exception, const char *messag
  */
 jboolean h5libraryError(JNIEnv *env )
 {
-    jmethodID jm;
-    jclass    jc;
     char     *args[2];
     const char     *exception;
-    jobject   ex;
     char     *msg_str;
     int       rval;
     int       num_errs = 0;
@@ -313,14 +292,6 @@ jboolean h5libraryError(JNIEnv *env )
     min_num = exceptionNumbers.min_num;
 
     exception = defineHDF5LibraryException(maj_num);
-    jc = ENVPTR->FindClass(ENVPAR exception);
-    if (jc == NULL) {
-        return JNI_FALSE;
-    }
-    jm = ENVPTR->GetMethodID(ENVPAR jc, "<init>", "(Ljava/lang/String;)V");
-    if (jm == NULL) {
-        return JNI_FALSE;
-    }
     /* get the length of the name */
     msg_size = H5Eget_msg(min_num, NULL, NULL, 0);
     if(msg_size > 0) {
@@ -338,14 +309,7 @@ jboolean h5libraryError(JNIEnv *env )
 
     args[0] = (char *)str;
     args[1] = 0;
-    ex = ENVPTR->NewObjectA (ENVPAR jc, jm, (jvalue *)args );
-    rval = ENVPTR->Throw(ENVPAR (jthrowable) ex );
-    if (rval < 0) {
-        printf("FATAL ERROR:  h5libraryError: Throw failed\n");
-        return JNI_FALSE;
-    }
-
-    return JNI_TRUE;
+    THROWEXCEPTION(exception, args);
 }
 
 

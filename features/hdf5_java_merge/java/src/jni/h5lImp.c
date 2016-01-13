@@ -379,10 +379,8 @@ static herr_t H5L_iterate_cb(hid_t g_id, const char *name, const H5L_info_t *inf
         herr_t     status;
         H5L_info_t infobuf;
         jboolean   isCopy;
-        jclass     cls;
-        jmethodID  constructor;
         jvalue     args[5];
-        jobject    ret_info_t = NULL;
+        jobject    ret_obj = NULL;
 
         if (name == NULL) {
             h5nullArgument(env, "H5Lget_info:  name is NULL");
@@ -404,18 +402,6 @@ static herr_t H5L_iterate_cb(hid_t g_id, const char *name, const H5L_info_t *inf
            return NULL;
         }
 
-        // get a reference to your class if you don't have it already
-        cls = ENVPTR->FindClass(ENVPAR "hdf/hdf5lib/structs/H5L_info_t");
-        if (cls == 0) {
-           h5JNIFatalError( env, "JNI error: GetObjectClass failed\n");
-           return NULL;
-        }
-        // get a reference to the constructor; the name is <init>
-        constructor = ENVPTR->GetMethodID(ENVPAR cls, "<init>", "(IZJIJ)V");
-        if (constructor == 0) {
-            h5JNIFatalError( env, "JNI error: GetMethodID failed\n");
-           return NULL;
-        }
         args[0].i = infobuf.type;
         args[1].z = infobuf.corder_valid;
         args[2].j = infobuf.corder;
@@ -424,8 +410,8 @@ static herr_t H5L_iterate_cb(hid_t g_id, const char *name, const H5L_info_t *inf
             args[4].j = (jlong)infobuf.u.address;
         else
             args[4].j = (jlong)infobuf.u.val_size;
-        ret_info_t = ENVPTR->NewObjectA(ENVPAR cls, constructor, args);
-        return ret_info_t;
+        CALL_CONSTRUCTOR("hdf/hdf5lib/structs/H5L_info_t", "(IZJIJ)V", args);
+        return ret_obj;
     }
 
     /*
@@ -440,10 +426,8 @@ static herr_t H5L_iterate_cb(hid_t g_id, const char *name, const H5L_info_t *inf
         herr_t     status;
         H5L_info_t infobuf;
         jboolean   isCopy;
-        jclass     cls;
-        jmethodID  constructor;
         jvalue     args[5];
-        jobject    ret_info_t = NULL;
+        jobject    ret_obj = NULL;
 
         if (name == NULL) {
             h5nullArgument(env, "H5Lget_info_by_idx:  name is NULL");
@@ -465,18 +449,6 @@ static herr_t H5L_iterate_cb(hid_t g_id, const char *name, const H5L_info_t *inf
            return NULL;
         }
 
-        // get a reference to your class if you don't have it already
-        cls = ENVPTR->FindClass(ENVPAR "hdf/hdf5lib/structs/H5L_info_t");
-        if (cls == 0) {
-            h5JNIFatalError(env, "JNI error: GetObjectClass failed\n");
-           return NULL;
-        }
-        // get a reference to the constructor; the name is <init>
-        constructor = ENVPTR->GetMethodID(ENVPAR cls, "<init>", "(IZJIJ)V");
-        if (constructor == 0) {
-            h5JNIFatalError(env, "JNI error: GetMethodID failed\n");
-           return NULL;
-        }
         args[0].i = infobuf.type;
         args[1].z = infobuf.corder_valid;
         args[2].j = infobuf.corder;
@@ -485,8 +457,8 @@ static herr_t H5L_iterate_cb(hid_t g_id, const char *name, const H5L_info_t *inf
             args[4].j = (jlong)infobuf.u.address;
         else
             args[4].j = (jlong)infobuf.u.val_size;
-        ret_info_t = ENVPTR->NewObjectA(ENVPAR cls, constructor, args);
-        return ret_info_t;
+        CALL_CONSTRUCTOR("hdf/hdf5lib/structs/H5L_info_t", "(IZJIJ)V", args);
+        return ret_obj;
     }
 
     /*
@@ -837,6 +809,14 @@ static herr_t H5L_iterate_cb(hid_t g_id, const char *name, const H5L_info_t *inf
         }
         str = CBENVPTR->NewStringUTF(CBENVPAR name);
 
+        args[0].i = info->type;
+        args[1].z = info->corder_valid;
+        args[2].j = info->corder;
+        args[3].i = info->cset;
+        if(info->type==0)
+            args[4].j = (jlong)info->u.address;
+        else
+            args[4].j = (jlong)info->u.val_size;
         // get a reference to your class if you don't have it already
         cls = CBENVPTR->FindClass(CBENVPAR "hdf/hdf5lib/structs/H5L_info_t");
         if (cls == 0) {
@@ -851,14 +831,6 @@ static herr_t H5L_iterate_cb(hid_t g_id, const char *name, const H5L_info_t *inf
             JVMPTR->DetachCurrentThread(JVMPAR);
             return -1;
         }
-        args[0].i = info->type;
-        args[1].z = info->corder_valid;
-        args[2].j = info->corder;
-        args[3].i = info->cset;
-        if(info->type==0)
-            args[4].j = (jlong)info->u.address;
-        else
-            args[4].j = (jlong)info->u.val_size;
         cb_info_t = CBENVPTR->NewObjectA(CBENVPAR cls, constructor, args);
 
         status = CBENVPTR->CallIntMethod(CBENVPAR visit_callback, mid, g_id, str, cb_info_t, op_data);
