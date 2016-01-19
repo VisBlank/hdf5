@@ -620,17 +620,23 @@ Time:  XXXX
 OK (615 tests)
 
 HDF5-DIAG: Error detected in HDF5 (version (number)) thread (IDs):
-  #000: (file name) line (number) in H5Fopen(): not file access property list
-    major: Invalid arguments to routine
+  #000: (file name) line (number) in H5Fopen(): can't set access and transfer property lists
+    major: File accessibilty
+    minor: Can't set value
+  #001: (file name) line (number) in H5P_verify_apl_and_dxpl(): not the required access property list
+    major: Property lists
     minor: Inappropriate type
-  #001: (file name) line (number) in H5P_isa_class(): not a property list
+  #002: (file name) line (number) in H5P_isa_class(): not a property list
     major: Invalid arguments to routine
     minor: Inappropriate type
 HDF5-DIAG: Error detected in HDF5 (version (number)) thread (IDs):
-  #000: (file name) line (number) in H5Fopen(): not file access property list
-    major: Invalid arguments to routine
+  #000: (file name) line (number) in H5Fopen(): can't set access and transfer property lists
+    major: File accessibilty
+    minor: Can't set value
+  #001: (file name) line (number) in H5P_verify_apl_and_dxpl(): not the required access property list
+    major: Property lists
     minor: Inappropriate type
-  #001: (file name) line (number) in H5P_isa_class(): not a property list
+  #002: (file name) line (number) in H5P_isa_class(): not a property list
     major: Invalid arguments to routine
     minor: Inappropriate type
 [main] INFO hdf.hdf5lib.H5 - HDF5 library: hdf5_java

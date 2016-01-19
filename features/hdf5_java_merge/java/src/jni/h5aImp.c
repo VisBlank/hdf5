@@ -54,12 +54,12 @@ static herr_t H5A_iterate_cb(hid_t g_id, const char *name, const H5A_info_t *inf
   #define strtof(S,R)    atof(S)
 #endif /* H5_HAVE_WIN32_API */
 
-static herr_t H5AreadVL_str (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf);
-static herr_t H5AreadVL_num (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf);
+static herr_t H5AreadVL_str  (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf);
+static herr_t H5AreadVL_num  (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf);
 static herr_t H5AreadVL_comp (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf);
 
-static herr_t H5AwriteVL_str (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf);
-static herr_t H5AwriteVL_num (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf);
+static herr_t H5AwriteVL_str  (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf);
+static herr_t H5AwriteVL_num  (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf);
 static herr_t H5AwriteVL_comp (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf);
 
 /*
@@ -71,26 +71,15 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Acreate
   (JNIEnv *env, jclass clss, jlong loc_id, jstring name, jlong type_id,
           jlong space_id, jlong create_plist)
 {
-    hid_t status;
-    const char* aName;
-    jboolean isCopy;
+    hid_t       status;
+    const char *aName;
 
-    if (name == NULL) {
-        h5nullArgument( env, "H5Acreate:  name is NULL");
-        return -1;
-    }
-
-    aName = ENVPTR->GetStringUTFChars(ENVPAR name, &isCopy);
-
-    if (aName == NULL) {
-        h5JNIFatalError( env, "H5Acreate: aName is not pinned");
-        return -1;
-    }
+    PIN_JAVA_STRING(name, aName, -1);
 
     status = H5Acreate2((hid_t)loc_id, aName, (hid_t)type_id,
-        (hid_t)space_id, (hid_t)create_plist, (hid_t)H5P_DEFAULT );
+        (hid_t)space_id, (hid_t)create_plist, (hid_t)H5P_DEFAULT);
 
-    ENVPTR->ReleaseStringUTFChars(ENVPAR name,aName);
+    ENVPTR->ReleaseStringUTFChars(ENVPAR name, aName);
 
     if (status < 0) {
         h5libraryError(env);
@@ -106,21 +95,10 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Acreate
 JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Aopen_1name
   (JNIEnv *env, jclass clss, jlong loc_id, jstring name)
 {
-    hid_t status;
-    const char* aName;
-    jboolean isCopy;
+    hid_t       status;
+    const char *aName;
 
-    if (name == NULL) {
-        h5nullArgument( env,"H5Aopen_name:  name is NULL");
-        return -1;
-    }
-
-    aName = ENVPTR->GetStringUTFChars(ENVPAR name,&isCopy);
-
-    if (aName == NULL) {
-        h5JNIFatalError( env,"H5Aopen_name: name is not pinned");
-        return -1;
-    }
+    PIN_JAVA_STRING(name, aName, -1);
 
     status = H5Aopen_name((hid_t)loc_id, aName);
 
@@ -141,7 +119,7 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Aopen_1idx
   (JNIEnv *env, jclass clss, jlong loc_id, jint idx)
 {
     hid_t retVal = -1;
-    retVal =  H5Aopen_idx((hid_t)loc_id, (unsigned int) idx );
+    retVal =  H5Aopen_idx((hid_t)loc_id, (unsigned int) idx);
     if (retVal < 0) {
         h5libraryError(env);
     }
@@ -156,8 +134,8 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Aopen_1idx
 JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Awrite
   (JNIEnv *env, jclass clss, jlong attr_id, jlong mem_type_id, jbyteArray buf)
 {
-    herr_t status;
-    jbyte *byteP;
+    herr_t   status;
+    jbyte   *byteP;
     jboolean isCopy;
 
     if (buf == NULL) {
@@ -165,15 +143,15 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Awrite
         return -1;
     }
 
-    byteP = ENVPTR->GetByteArrayElements(ENVPAR buf,&isCopy);
+    byteP = ENVPTR->GetByteArrayElements(ENVPAR buf, &isCopy);
 
     if (byteP == NULL) {
-        h5JNIFatalError( env,"H5Awrite: buf is not pinned");
+        h5JNIFatalError(env,"H5Awrite: buf is not pinned");
         return -1;
     }
     status = H5Awrite((hid_t)attr_id, (hid_t)mem_type_id, byteP);
 
-    ENVPTR->ReleaseByteArrayElements(ENVPAR buf, byteP,JNI_ABORT);
+    ENVPTR->ReleaseByteArrayElements(ENVPAR buf, byteP, JNI_ABORT);
 
     if (status < 0) {
         h5libraryError(env);
@@ -248,7 +226,7 @@ herr_t H5AwriteVL_num (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf)
     }
     n = ENVPTR->GetArrayLength(ENVPAR (jarray)buf);
 
-    wdata = (hvl_t *)calloc((size_t)(n+1), sizeof(hvl_t));
+    wdata = (hvl_t *)HDcalloc((size_t)(n+1), sizeof(hvl_t));
     if (!wdata) {
         h5JNIFatalError(env, "H5AwriteVL_str:  cannot allocate buffer");
         return -1;
@@ -260,31 +238,31 @@ herr_t H5AwriteVL_num (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf)
         if (obj != 0) {
             jsize length = ENVPTR->GetStringUTFLength(ENVPAR obj);
             const char *utf8 = ENVPTR->GetStringUTFChars(ENVPAR obj, 0);
-            temp = malloc((size_t)length+1);
-            strncpy(temp, utf8, (size_t)length);
+            temp = HDmalloc((size_t)length+1);
+            HDstrncpy(temp, utf8, (size_t)length);
             temp[length] = '\0';
-            token = strtok(temp, ",");
+            token = HDstrtok(temp, ",");
             m = 1;
             while (1) {
-                token = strtok (NULL, ",");
+                token = HDstrtok (NULL, ",");
                 if (token == NULL)
                     break;
                 m++;
             }
-            wdata[i].p = malloc((size_t)m * size);
+            wdata[i].p = HDmalloc((size_t)m * size);
             wdata[i].len = (size_t)m;
 
-            strncpy(temp, utf8, (size_t)length);
+            HDstrncpy(temp, utf8, (size_t)length);
             temp[length] = '\0';
             switch (tclass) {
                 case H5T_FLOAT:
                     if (sizeof(float) == size) {
                         m = 0;
-                        tmp_float = strtof(strtok(temp, ","), NULL);
+                        tmp_float = strtof(HDstrtok(temp, ","), NULL);
                         ((float *)wdata[i].p)[m++] = tmp_float;
 
                         while (1) {
-                            token = strtok (NULL, ",");
+                            token = HDstrtok (NULL, ",");
                             if (token == NULL)
                                 break;
                             if (token[0] == ' ')
@@ -295,27 +273,27 @@ herr_t H5AwriteVL_num (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf)
                     }
                     else if (sizeof(double) == size) {
                         m = 0;
-                        tmp_double = strtod(strtok(temp, ","), NULL);
+                        tmp_double = HDstrtod(HDstrtok(temp, ","), NULL);
                         ((double *)wdata[i].p)[m++] = tmp_double;
 
                         while (1) {
-                            token = strtok (NULL, ",");
+                            token = HDstrtok (NULL, ",");
                             if (token == NULL)
                                 break;
                             if (token[0] == ' ')
                                 token++;
-                            tmp_double = strtod(token, NULL);
+                            tmp_double = HDstrtod(token, NULL);
                             ((double *)wdata[i].p)[m++] = tmp_double;
                         }
                     }
 #if H5_SIZEOF_LONG_DOUBLE !=0
                     else if (sizeof(long double) == size) {
                         m = 0;
-                        tmp_ldouble = strtold(strtok(temp, ","), NULL);
+                        tmp_ldouble = strtold(HDstrtok(temp, ","), NULL);
                         ((long double *)wdata[i].p)[m++] = tmp_ldouble;
 
                         while (1) {
-                            token = strtok (NULL, ",");
+                            token = HDstrtok (NULL, ",");
                             if (token == NULL)
                                 break;
                             if (token[0] == ' ')
@@ -330,31 +308,31 @@ herr_t H5AwriteVL_num (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf)
                     if (sizeof(char) == size) {
                         if(H5T_SGN_NONE == nsign) {
                             m = 0;
-                            tmp_uchar = (unsigned char)strtoul(strtok(temp, ","), NULL, 10);
+                            tmp_uchar = (unsigned char)HDstrtoul(HDstrtok(temp, ","), NULL, 10);
                             ((unsigned char *)wdata[i].p)[m++] = tmp_uchar;
 
                             while (1) {
-                                token = strtok (NULL, ",");
+                                token = HDstrtok (NULL, ",");
                                 if (token == NULL)
                                     break;
                                 if (token[0] == ' ')
                                     token++;
-                                tmp_uchar = (unsigned char)strtoul(token, NULL, 10);
+                                tmp_uchar = (unsigned char)HDstrtoul(token, NULL, 10);
                                 ((unsigned char *)wdata[i].p)[m++] = tmp_uchar;
                             }
                         }
                         else {
                             m = 0;
-                            tmp_char = (char)strtoul(strtok(temp, ","), NULL, 10);
+                            tmp_char = (char)HDstrtoul(HDstrtok(temp, ","), NULL, 10);
                             ((char *)wdata[i].p)[m++] = tmp_char;
 
                             while (1) {
-                                token = strtok (NULL, ",");
+                                token = HDstrtok (NULL, ",");
                                 if (token == NULL)
                                     break;
                                 if (token[0] == ' ')
                                     token++;
-                                tmp_char = (char)strtoul(token, NULL, 10);
+                                tmp_char = (char)HDstrtoul(token, NULL, 10);
                                 ((char *)wdata[i].p)[m++] = tmp_char;
                             }
                         }
@@ -362,31 +340,31 @@ herr_t H5AwriteVL_num (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf)
                     else if (sizeof(int) == size) {
                         if(H5T_SGN_NONE == nsign) {
                             m = 0;
-                            tmp_uint = (unsigned int)strtoul(strtok(temp, ","), NULL, 10);
+                            tmp_uint = (unsigned int)HDstrtoul(HDstrtok(temp, ","), NULL, 10);
                             ((unsigned int *)wdata[i].p)[m++] = tmp_uint;
 
                             while (1) {
-                                token = strtok (NULL, ",");
+                                token = HDstrtok (NULL, ",");
                                 if (token == NULL)
                                     break;
                                 if (token[0] == ' ')
                                     token++;
-                                tmp_uint = (unsigned int)strtoul(token, NULL, 10);
+                                tmp_uint = (unsigned int)HDstrtoul(token, NULL, 10);
                                 ((unsigned int *)wdata[i].p)[m++] = tmp_uint;
                             }
                         }
                         else {
                             m = 0;
-                            tmp_int = (int)strtoul(strtok(temp, ","), NULL, 10);
+                            tmp_int = (int)HDstrtoul(HDstrtok(temp, ","), NULL, 10);
                             ((int *)wdata[i].p)[m++] = tmp_int;
 
                             while (1) {
-                                token = strtok (NULL, ",");
+                                token = HDstrtok (NULL, ",");
                                 if (token == NULL)
                                     break;
                                 if (token[0] == ' ')
                                     token++;
-                                tmp_int = (int)strtoul(token, NULL, 10);
+                                tmp_int = (int)HDstrtoul(token, NULL, 10);
                                 ((int *)wdata[i].p)[m++] = tmp_int;
                             }
                         }
@@ -394,31 +372,31 @@ herr_t H5AwriteVL_num (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf)
                     else if (sizeof(short) == size) {
                         if(H5T_SGN_NONE == nsign) {
                             m = 0;
-                            tmp_ushort = (unsigned short)strtoul(strtok(temp, ","), NULL, 10);
+                            tmp_ushort = (unsigned short)HDstrtoul(HDstrtok(temp, ","), NULL, 10);
                             ((unsigned short *)wdata[i].p)[m++] = tmp_ushort;
 
                             while (1) {
-                                token = strtok (NULL, ",");
+                                token = HDstrtok (NULL, ",");
                                 if (token == NULL)
                                     break;
                                 if (token[0] == ' ')
                                     token++;
-                                tmp_ushort = (unsigned short)strtoul(token, NULL, 10);
+                                tmp_ushort = (unsigned short)HDstrtoul(token, NULL, 10);
                                 ((unsigned short *)wdata[i].p)[m++] = tmp_ushort;
                             }
                         }
                         else {
                             m = 0;
-                            tmp_short = (short)strtoul(strtok(temp, ","), NULL, 10);
+                            tmp_short = (short)HDstrtoul(HDstrtok(temp, ","), NULL, 10);
                             ((short *)wdata[i].p)[m++] = tmp_short;
 
                             while (1) {
-                                token = strtok (NULL, ",");
+                                token = HDstrtok (NULL, ",");
                                 if (token == NULL)
                                     break;
                                 if (token[0] == ' ')
                                     token++;
-                                tmp_short = (short)strtoul(token, NULL, 10);
+                                tmp_short = (short)HDstrtoul(token, NULL, 10);
                                 ((short *)wdata[i].p)[m++] = tmp_short;
                             }
                         }
@@ -426,31 +404,31 @@ herr_t H5AwriteVL_num (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf)
                     else if (sizeof(long) == size) {
                         if(H5T_SGN_NONE == nsign) {
                             m = 0;
-                            tmp_ulong = strtoul(strtok(temp, ","), NULL, 10);
+                            tmp_ulong = HDstrtoul(HDstrtok(temp, ","), NULL, 10);
                             ((unsigned long *)wdata[i].p)[m++] = tmp_ulong;
 
                             while (1) {
-                                token = strtok (NULL, ",");
+                                token = HDstrtok (NULL, ",");
                                 if (token == NULL)
                                     break;
                                 if (token[0] == ' ')
                                     token++;
-                                tmp_ulong = strtoul(token, NULL, 10);
+                                tmp_ulong = HDstrtoul(token, NULL, 10);
                                 ((unsigned long *)wdata[i].p)[m++] = tmp_ulong;
                             }
                         }
                         else {
                             m = 0;
-                            tmp_long = strtol(strtok(temp, ","), NULL, 10);
+                            tmp_long = HDstrtol(HDstrtok(temp, ","), NULL, 10);
                             ((long *)wdata[i].p)[m++] = tmp_long;
 
                             while (1) {
-                                token = strtok (NULL, ",");
+                                token = HDstrtok (NULL, ",");
                                 if (token == NULL)
                                     break;
                                 if (token[0] == ' ')
                                     token++;
-                                tmp_long = strtol(token, NULL, 10);
+                                tmp_long = HDstrtol(token, NULL, 10);
                                 ((long *)wdata[i].p)[m++] = tmp_long;
                             }
                         }
@@ -458,31 +436,31 @@ herr_t H5AwriteVL_num (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf)
                     else if (sizeof(long long) == size) {
                         if(H5T_SGN_NONE == nsign) {
                             m = 0;
-                            tmp_ullong = strtoull(strtok(temp, ","), NULL, 10);
+                            tmp_ullong = HDstrtoull(HDstrtok(temp, ","), NULL, 10);
                             ((unsigned long long *)wdata[i].p)[m++] = tmp_ullong;
 
                             while (1) {
-                                token = strtok (NULL, ",");
+                                token = HDstrtok (NULL, ",");
                                 if (token == NULL)
                                     break;
                                 if (token[0] == ' ')
                                     token++;
-                                tmp_ullong = strtoull(token, NULL, 10);
+                                tmp_ullong = HDstrtoull(token, NULL, 10);
                                 ((unsigned long long *)wdata[i].p)[m++] = tmp_ullong;
                             }
                         }
                         else {
                             m = 0;
-                            tmp_llong = strtoll(strtok(temp, ","), NULL, 10);
+                            tmp_llong = HDstrtoll(HDstrtok(temp, ","), NULL, 10);
                             ((long long *)wdata[i].p)[m++] = tmp_llong;
 
                             while (1) {
-                                token = strtok (NULL, ",");
+                                token = HDstrtok (NULL, ",");
                                 if (token == NULL)
                                     break;
                                 if (token[0] == ' ')
                                     token++;
-                                tmp_llong = strtoll(token, NULL, 10);
+                                tmp_llong = HDstrtoll(token, NULL, 10);
                                 ((long long *)wdata[i].p)[m++] = tmp_llong;
                             }
                        }
@@ -514,11 +492,11 @@ herr_t H5AwriteVL_num (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf)
                         case H5T_FLOAT:
                             if (sizeof(float) == size) {
                                 m = 0;
-                                tmp_float = strtof(strtok(temp, ","), NULL);
+                                tmp_float = strtof(HDstrtok(temp, ","), NULL);
                                 ((float *)wdata[i].p)[m++] = tmp_float;
 
                                 while (1) {
-                                    token = strtok (NULL, ",");
+                                    token = HDstrtok (NULL, ",");
                                     if (token == NULL)
                                         break;
                                     if (token[0] == ' ')
@@ -529,27 +507,27 @@ herr_t H5AwriteVL_num (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf)
                             }
                             else if (sizeof(double) == size) {
                                 m = 0;
-                                tmp_double = strtod(strtok(temp, ","), NULL);
+                                tmp_double = HDstrtod(HDstrtok(temp, ","), NULL);
                                 ((double *)wdata[i].p)[m++] = tmp_double;
 
                                 while (1) {
-                                    token = strtok (NULL, ",");
+                                    token = HDstrtok (NULL, ",");
                                     if (token == NULL)
                                         break;
                                     if (token[0] == ' ')
                                         token++;
-                                    tmp_double = strtod(token, NULL);
+                                    tmp_double = HDstrtod(token, NULL);
                                     ((double *)wdata[i].p)[m++] = tmp_double;
                                 }
                             }
         #if H5_SIZEOF_LONG_DOUBLE !=0
                             else if (sizeof(long double) == size) {
                                 m = 0;
-                                tmp_ldouble = strtold(strtok(temp, ","), NULL);
+                                tmp_ldouble = strtold(HDstrtok(temp, ","), NULL);
                                 ((long double *)wdata[i].p)[m++] = tmp_ldouble;
 
                                 while (1) {
-                                    token = strtok (NULL, ",");
+                                    token = HDstrtok (NULL, ",");
                                     if (token == NULL)
                                         break;
                                     if (token[0] == ' ')
@@ -564,31 +542,31 @@ herr_t H5AwriteVL_num (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf)
                             if (sizeof(char) == size) {
                                 if(H5T_SGN_NONE == nsign) {
                                     m = 0;
-                                    tmp_uchar = (unsigned char)strtoul(strtok(temp, ","), NULL, 10);
+                                    tmp_uchar = (unsigned char)HDstrtoul(HDstrtok(temp, ","), NULL, 10);
                                     ((unsigned char *)wdata[i].p)[m++] = tmp_uchar;
 
                                     while (1) {
-                                        token = strtok (NULL, ",");
+                                        token = HDstrtok (NULL, ",");
                                         if (token == NULL)
                                             break;
                                         if (token[0] == ' ')
                                             token++;
-                                        tmp_uchar = (unsigned char)strtoul(token, NULL, 10);
+                                        tmp_uchar = (unsigned char)HDstrtoul(token, NULL, 10);
                                         ((unsigned char *)wdata[i].p)[m++] = tmp_uchar;
                                     }
                                 }
                                 else {
                                     m = 0;
-                                    tmp_char = (char)strtoul(strtok(temp, ","), NULL, 10);
+                                    tmp_char = (char)HDstrtoul(HDstrtok(temp, ","), NULL, 10);
                                     ((char *)wdata[i].p)[m++] = tmp_char;
 
                                     while (1) {
-                                        token = strtok (NULL, ",");
+                                        token = HDstrtok (NULL, ",");
                                         if (token == NULL)
                                             break;
                                         if (token[0] == ' ')
                                             token++;
-                                        tmp_char = (char)strtoul(token, NULL, 10);
+                                        tmp_char = (char)HDstrtoul(token, NULL, 10);
                                         ((char *)wdata[i].p)[m++] = tmp_char;
                                     }
                                 }
@@ -596,31 +574,31 @@ herr_t H5AwriteVL_num (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf)
                             else if (sizeof(int) == size) {
                                 if(H5T_SGN_NONE == nsign) {
                                     m = 0;
-                                    tmp_uint = (unsigned int)strtoul(strtok(temp, ","), NULL, 10);
+                                    tmp_uint = (unsigned int)HDstrtoul(HDstrtok(temp, ","), NULL, 10);
                                     ((unsigned int *)wdata[i].p)[m++] = tmp_uint;
 
                                     while (1) {
-                                        token = strtok (NULL, ",");
+                                        token = HDstrtok (NULL, ",");
                                         if (token == NULL)
                                             break;
                                         if (token[0] == ' ')
                                             token++;
-                                        tmp_uint = (unsigned int)strtoul(token, NULL, 10);
+                                        tmp_uint = (unsigned int)HDstrtoul(token, NULL, 10);
                                         ((unsigned int *)wdata[i].p)[m++] = tmp_uint;
                                     }
                                 }
                                 else {
                                     m = 0;
-                                    tmp_int = (int)strtoul(strtok(temp, ","), NULL, 10);
+                                    tmp_int = (int)HDstrtoul(HDstrtok(temp, ","), NULL, 10);
                                     ((int *)wdata[i].p)[m++] = tmp_int;
 
                                     while (1) {
-                                        token = strtok (NULL, ",");
+                                        token = HDstrtok (NULL, ",");
                                         if (token == NULL)
                                             break;
                                         if (token[0] == ' ')
                                             token++;
-                                        tmp_int = (int)strtoul(token, NULL, 10);
+                                        tmp_int = (int)HDstrtoul(token, NULL, 10);
                                         ((int *)wdata[i].p)[m++] = tmp_int;
                                     }
                                 }
@@ -628,27 +606,27 @@ herr_t H5AwriteVL_num (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf)
                             else if (sizeof(short) == size) {
                                 if(H5T_SGN_NONE == nsign) {
                                     m = 0;
-                                    tmp_ushort = (unsigned short)strtoul(strtok(temp, ","), NULL, 10);
+                                    tmp_ushort = (unsigned short)HDstrtoul(HDstrtok(temp, ","), NULL, 10);
                                     ((unsigned short *)wdata[i].p)[m++] = tmp_ushort;
 
                                     while (1) {
-                                        token = strtok (NULL, ",");
+                                        token = HDstrtok (NULL, ",");
                                         if (token == NULL)
                                             break;
-                                        tmp_ushort = (unsigned short)strtoul(token, NULL, 10);
+                                        tmp_ushort = (unsigned short)HDstrtoul(token, NULL, 10);
                                         ((unsigned short *)wdata[i].p)[m++] = tmp_ushort;
                                     }
                                 }
                                 else {
                                     m = 0;
-                                    tmp_short = (short)strtoul(strtok(temp, ","), NULL, 10);
+                                    tmp_short = (short)HDstrtoul(HDstrtok(temp, ","), NULL, 10);
                                     ((short *)wdata[i].p)[m++] = tmp_short;
 
                                     while (1) {
-                                        token = strtok (NULL, ",");
+                                        token = HDstrtok (NULL, ",");
                                         if (token == NULL)
                                             break;
-                                        tmp_short = (short)strtoul(token, NULL, 10);
+                                        tmp_short = (short)HDstrtoul(token, NULL, 10);
                                         ((short *)wdata[i].p)[m++] = tmp_short;
                                     }
                                 }
@@ -656,31 +634,31 @@ herr_t H5AwriteVL_num (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf)
                             else if (sizeof(long) == size) {
                                 if(H5T_SGN_NONE == nsign) {
                                     m = 0;
-                                    tmp_ulong = strtoul(strtok(temp, ","), NULL, 10);
+                                    tmp_ulong = HDstrtoul(HDstrtok(temp, ","), NULL, 10);
                                     ((unsigned long *)wdata[i].p)[m++] = tmp_ulong;
 
                                     while (1) {
-                                        token = strtok (NULL, ",");
+                                        token = HDstrtok (NULL, ",");
                                         if (token == NULL)
                                             break;
                                         if (token[0] == ' ')
                                             token++;
-                                        tmp_ulong = strtoul(token, NULL, 10);
+                                        tmp_ulong = HDstrtoul(token, NULL, 10);
                                         ((unsigned long *)wdata[i].p)[m++] = tmp_ulong;
                                     }
                                 }
                                 else {
                                     m = 0;
-                                    tmp_long = strtol(strtok(temp, ","), NULL, 10);
+                                    tmp_long = HDstrtol(HDstrtok(temp, ","), NULL, 10);
                                     ((long *)wdata[i].p)[m++] = tmp_long;
 
                                     while (1) {
-                                        token = strtok (NULL, ",");
+                                        token = HDstrtok (NULL, ",");
                                         if (token == NULL)
                                             break;
                                         if (token[0] == ' ')
                                             token++;
-                                        tmp_long = strtol(token, NULL, 10);
+                                        tmp_long = HDstrtol(token, NULL, 10);
                                         ((long *)wdata[i].p)[m++] = tmp_long;
                                     }
                                 }
@@ -688,31 +666,31 @@ herr_t H5AwriteVL_num (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf)
                             else if (sizeof(long long) == size) {
                                 if(H5T_SGN_NONE == nsign) {
                                     m = 0;
-                                    tmp_ullong = strtoull(strtok(temp, ","), NULL, 10);
+                                    tmp_ullong = HDstrtoull(HDstrtok(temp, ","), NULL, 10);
                                     ((unsigned long long *)wdata[i].p)[m++] = tmp_ullong;
 
                                     while (1) {
-                                        token = strtok (NULL, ",");
+                                        token = HDstrtok (NULL, ",");
                                         if (token == NULL)
                                             break;
                                         if (token[0] == ' ')
                                             token++;
-                                        tmp_ullong = strtoull(token, NULL, 10);
+                                        tmp_ullong = HDstrtoull(token, NULL, 10);
                                         ((unsigned long long *)wdata[i].p)[m++] = tmp_ullong;
                                     }
                                 }
                                 else {
                                     m = 0;
-                                    tmp_llong = strtoll(strtok(temp, ","), NULL, 10);
+                                    tmp_llong = HDstrtoll(HDstrtok(temp, ","), NULL, 10);
                                     ((long long *)wdata[i].p)[m++] = tmp_llong;
 
                                     while (1) {
-                                        token = strtok (NULL, ",");
+                                        token = HDstrtok (NULL, ",");
                                         if (token == NULL)
                                             break;
                                         if (token[0] == ' ')
                                             token++;
-                                        tmp_llong = strtoll(token, NULL, 10);
+                                        tmp_llong = HDstrtoll(token, NULL, 10);
                                         ((long long *)wdata[i].p)[m++] = tmp_llong;
                                     }
                                }
@@ -726,15 +704,14 @@ herr_t H5AwriteVL_num (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf)
         }
     }
 
-
     status = H5Awrite((hid_t)aid, (hid_t)tid, wdata);
 
     for (i = 0; i < n; i++) {
        if(wdata[i].p) {
-           free(wdata[i].p);
+        HDfree(wdata[i].p);
        }
     }
-    free(wdata);
+    HDfree(wdata);
 
     if (status < 0) {
         h5libraryError(env);
@@ -764,13 +741,13 @@ herr_t H5AwriteVL_str (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf)
 
     size = ENVPTR->GetArrayLength(ENVPAR (jarray) buf);
 
-    wdata = (char**)calloc((size_t)size + 1, sizeof(char*));
+    wdata = (char**)HDcalloc((size_t)size + 1, sizeof(char*));
     if (!wdata) {
         h5JNIFatalError(env, "H5AwriteVL_str:  cannot allocate buffer");
         return -1;
     }
 
-    memset(wdata, 0, (size_t)size * sizeof(char*));
+    HDmemset(wdata, 0, (size_t)size * sizeof(char*));
     for (i = 0; i < size; ++i) {
         jstring obj = (jstring) ENVPTR->GetObjectArrayElement(ENVPAR (jobjectArray) buf, i);
         if (obj != 0) {
@@ -778,10 +755,10 @@ herr_t H5AwriteVL_str (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf)
             const char *utf8 = ENVPTR->GetStringUTFChars(ENVPAR obj, 0);
 
             if (utf8) {
-                wdata[i] = (char*)malloc((size_t)length + 1);
+                wdata[i] = (char*)HDmalloc((size_t)length + 1);
                 if (wdata[i]) {
-                    memset(wdata[i], 0, ((size_t)length + 1));
-                    strncpy(wdata[i], utf8, (size_t)length);
+                    HDmemset(wdata[i], 0, ((size_t)length + 1));
+                    HDstrncpy(wdata[i], utf8, (size_t)length);
                 }
             }
 
@@ -794,10 +771,10 @@ herr_t H5AwriteVL_str (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf)
 
     for (i = 0; i < size; i++) {
        if(wdata[i]) {
-           free(wdata[i]);
+        HDfree(wdata[i]);
        }
     }
-    free(wdata);
+    HDfree(wdata);
 
     if (status < 0) {
         h5libraryError(env);
@@ -814,8 +791,8 @@ herr_t H5AwriteVL_str (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf)
 JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Aread
   (JNIEnv *env, jclass clss, jlong attr_id, jlong mem_type_id, jbyteArray buf)
 {
-    herr_t status;
-    jbyte *byteP;
+    herr_t   status;
+    jbyte   *byteP;
     jboolean isCopy;
 
     if (buf == NULL) {
@@ -823,7 +800,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Aread
         return -1;
     }
 
-    byteP = ENVPTR->GetByteArrayElements(ENVPAR buf,&isCopy);
+    byteP = ENVPTR->GetByteArrayElements(ENVPAR buf, &isCopy);
 
     if (byteP == NULL) {
         h5JNIFatalError( env,"H5Aread: buf is not pinned");
@@ -833,11 +810,11 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Aread
     status = H5Aread((hid_t)attr_id, (hid_t)mem_type_id, byteP);
 
     if (status < 0) {
-        ENVPTR->ReleaseByteArrayElements(ENVPAR buf,byteP,JNI_ABORT);
+        ENVPTR->ReleaseByteArrayElements(ENVPAR buf, byteP, JNI_ABORT);
         h5libraryError(env);
     }
     else  {
-        ENVPTR->ReleaseByteArrayElements(ENVPAR buf,byteP,0);
+        ENVPTR->ReleaseByteArrayElements(ENVPAR buf, byteP, 0);
     }
 
     return (jint)status;
@@ -853,7 +830,7 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Aget_1space
   (JNIEnv *env, jclass clss, jlong attr_id)
 {
     hid_t retVal = -1;
-    retVal =  H5Aget_space((hid_t)attr_id);
+    retVal = H5Aget_space((hid_t)attr_id);
     if (retVal < 0) {
         /* throw exception */
         h5libraryError(env);
@@ -870,7 +847,7 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Aget_1type
   (JNIEnv *env, jclass clss, jlong attr_id)
 {
     hid_t retVal = -1;
-    retVal =  H5Aget_type((hid_t)attr_id);
+    retVal = H5Aget_type((hid_t)attr_id);
     if (retVal < 0) {
         h5libraryError(env);
     }
@@ -885,27 +862,27 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Aget_1type
 JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5_H5Aget_1name
   (JNIEnv *env, jclass clss, jlong attr_id, jlong buf_size, jobjectArray name)
 {
-    char *aName;
-    jstring str;
+    char    *aName;
+    jstring  str;
     hssize_t size;
-    ssize_t bs;
+    ssize_t  bs;
 
-    if (buf_size==0 && name == NULL)
+    if (buf_size == 0 && name == NULL)
       return (jlong) H5Aget_name((hid_t)attr_id, 0, NULL);
 
     bs = (ssize_t)buf_size;
     if (bs <= 0) {
-        h5badArgument( env, "H5Aget_name:  buf_size <= 0");
+        h5badArgument(env, "H5Aget_name:  buf_size <= 0");
         return -1;
     }
-    aName = (char*)malloc(sizeof(char) * (size_t)bs);
+    aName = (char*)HDmalloc(sizeof(char) * (size_t)bs);
     if (aName == NULL) {
-        h5outOfMemory( env, "H5Aget_name:  malloc failed");
+        h5outOfMemory(env, "H5Aget_name:  malloc failed");
         return -1;
     }
     size = H5Aget_name((hid_t)attr_id, (size_t)buf_size, aName);
     if (size < 0) {
-        free(aName);
+        HDfree(aName);
         h5libraryError(env);
         return -1;
         /*  exception, returns immediately */
@@ -915,15 +892,15 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5_H5Aget_1name
     str = ENVPTR->NewStringUTF(ENVPAR aName);
 
     if (str == NULL) {
-        free(aName);
-        h5JNIFatalError( env,"H5Aget_name:  return string failed");
+        HDfree(aName);
+        h5JNIFatalError(env,"H5Aget_name:  return string failed");
         return -1;
     }
-    free(aName);
+    HDfree(aName);
     /*  Note: throws ArrayIndexOutOfBoundsException,
         ArrayStoreException */
 
-    ENVPTR->SetObjectArrayElement(ENVPAR name,0,str);
+    ENVPTR->SetObjectArrayElement(ENVPAR name, 0, str);
 
     return (jlong)size;
 }
@@ -937,7 +914,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Aget_1num_1attrs
   (JNIEnv *env, jclass clss, jlong loc_id)
 {
     int retVal = -1;
-    retVal =  H5Aget_num_attrs((hid_t)loc_id);
+    retVal = H5Aget_num_attrs((hid_t)loc_id);
     if (retVal < 0) {
         h5libraryError(env);
     }
@@ -952,25 +929,14 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Aget_1num_1attrs
 JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Adelete
   (JNIEnv *env, jclass clss, jlong loc_id, jstring name)
 {
-    herr_t status;
-    const char* aName;
-    jboolean isCopy;
+    herr_t      status;
+    const char *aName;
 
-    if (name == NULL) {
-        h5nullArgument( env,"H5Adelete:  name is NULL");
-        return -1;
-    }
+    PIN_JAVA_STRING(name, aName, -1);
 
-    aName = ENVPTR->GetStringUTFChars(ENVPAR name,&isCopy);
+    status = H5Adelete((hid_t)loc_id, aName);
 
-    if (aName == NULL) {
-        h5JNIFatalError( env,"H5Adelete: name is not pinned");
-        return -1;
-    }
-
-    status = H5Adelete((hid_t)loc_id, aName );
-
-    ENVPTR->ReleaseStringUTFChars(ENVPAR name,aName);
+    ENVPTR->ReleaseStringUTFChars(ENVPAR name, aName);
 
     if (status < 0) {
         h5libraryError(env);
@@ -989,7 +955,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5__1H5Aclose
     herr_t retVal = 0;
 
     if (attr_id > 0)
-        retVal =  H5Aclose((hid_t)attr_id);
+        retVal = H5Aclose((hid_t)attr_id);
 
     if (retVal < 0) {
         h5libraryError(env);
@@ -1008,24 +974,24 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5AreadVL
 {
     htri_t isStr;
 
-    if ( buf == NULL ) {
-        h5nullArgument( env, "H5AreadVL:  buf is NULL");
+    if (buf == NULL) {
+        h5nullArgument(env, "H5AreadVL:  buf is NULL");
         return -1;
     }
 
     isStr = H5Tis_variable_str((hid_t)mem_type_id);
 
     if (H5Tis_variable_str((hid_t)mem_type_id) > 0) {
-        return (jint) H5AreadVL_str (env, (hid_t)attr_id, (hid_t)mem_type_id, buf);
+        return (jint) H5AreadVL_str(env, (hid_t)attr_id, (hid_t)mem_type_id, buf);
     }
     else if (H5Tget_class((hid_t)mem_type_id) == H5T_COMPOUND) {
-        return (jint) H5AreadVL_comp (env, (hid_t)attr_id, (hid_t)mem_type_id, buf);
+        return (jint) H5AreadVL_comp(env, (hid_t)attr_id, (hid_t)mem_type_id, buf);
     }
     else if (H5Tget_class((hid_t)mem_type_id) == H5T_ARRAY) {
-        return (jint) H5AreadVL_comp (env, (hid_t)attr_id, (hid_t)mem_type_id, buf);
+        return (jint) H5AreadVL_comp(env, (hid_t)attr_id, (hid_t)mem_type_id, buf);
     }
     else {
-        return (jint) H5AreadVL_num (env, (hid_t)attr_id, (hid_t)mem_type_id, buf);
+        return (jint) H5AreadVL_num(env, (hid_t)attr_id, (hid_t)mem_type_id, buf);
     }
 }
 
@@ -1044,9 +1010,9 @@ herr_t H5AreadVL_num (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf)
     hsize_t dims[H5S_MAX_RANK];
 
     n = ENVPTR->GetArrayLength(ENVPAR buf);
-    rdata = (hvl_t *)calloc((size_t)n+1, sizeof(hvl_t));
+    rdata = (hvl_t *)HDcalloc((size_t)n+1, sizeof(hvl_t));
     if (rdata == NULL) {
-        h5JNIFatalError( env, "H5AreadVL_num:  failed to allocate buff for read");
+        h5JNIFatalError(env, "H5AreadVL_num:  failed to allocate buff for read");
         return -1;
     }
 
@@ -1056,7 +1022,7 @@ herr_t H5AreadVL_num (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf)
     if (status < 0) {
         H5Dvlen_reclaim(tid, sid, H5P_DEFAULT, rdata);
         H5Sclose(sid);
-        free(rdata);
+        HDfree(rdata);
         h5JNIFatalError(env, "H5AreadVL_num: failed to read data");
         return -1;
     }
@@ -1067,13 +1033,13 @@ herr_t H5AreadVL_num (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf)
     }
 
     size = H5Tget_size(tid);
-    memset((void *)&h5str, (int)0, (size_t)sizeof(h5str_t));
+    HDmemset((void *)&h5str, (int)0, (size_t)sizeof(h5str_t));
     h5str_new(&h5str, 4 * size);
 
     if (h5str.s == NULL) {
         H5Dvlen_reclaim(tid, sid, H5P_DEFAULT, rdata);
         H5Sclose(sid);
-        free(rdata);
+        HDfree(rdata);
         h5JNIFatalError(env, "H5AreadVL_num:  failed to allocate strng buf");
         return -1;
     }
@@ -1089,7 +1055,7 @@ herr_t H5AreadVL_num (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf)
     H5Dvlen_reclaim(tid, sid, H5P_DEFAULT, rdata);
     H5Sclose(sid);
 
-    free(rdata);
+    HDfree(rdata);
 
     return status;
 }
@@ -1111,7 +1077,7 @@ herr_t H5AreadVL_comp (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf)
     size = (((H5Tget_size(tid))>(H5Tget_size(p_type))) ? (H5Tget_size(tid)) : (H5Tget_size(p_type)));
     H5Tclose(p_type);
     n = ENVPTR->GetArrayLength(ENVPAR buf);
-    rdata = (char *)malloc((size_t)n * size);
+    rdata = (char *)HDmalloc((size_t)n * size);
 
     if (rdata == NULL) {
         h5JNIFatalError(env, "H5AreadVL_comp:  failed to allocate buff for read");
@@ -1121,16 +1087,16 @@ herr_t H5AreadVL_comp (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf)
     status = H5Aread(aid, tid, rdata);
 
     if (status < 0) {
-        free(rdata);
+        HDfree(rdata);
         h5JNIFatalError(env, "H5AreadVL_comp: failed to read data");
         return -1;
     }
 
-    memset(&h5str, 0, sizeof(h5str_t));
+    HDmemset(&h5str, 0, sizeof(h5str_t));
     h5str_new(&h5str, 4 * size);
 
     if (h5str.s == NULL) {
-        free(rdata);
+        HDfree(rdata);
         h5JNIFatalError(env, "H5AreadVL_comp:  failed to allocate string buf");
         return -1;
     }
@@ -1144,7 +1110,7 @@ herr_t H5AreadVL_comp (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf)
 
     h5str_free(&h5str);
 
-    free(rdata);
+    HDfree(rdata);
 
     return status;
 }
@@ -1152,16 +1118,16 @@ herr_t H5AreadVL_comp (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf)
 static
 herr_t H5AreadVL_str (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf)
 {
-    herr_t status=-1;
+    herr_t  status=-1;
     jstring jstr;
-    char **strs;
-    int i, n;
-    hid_t sid;
+    char  **strs;
+    int     i, n;
+    hid_t   sid;
     hsize_t dims[H5S_MAX_RANK];
 
     n = ENVPTR->GetArrayLength(ENVPAR buf);
 
-    strs =(char **)malloc((size_t)n * sizeof(char *));
+    strs =(char **)HDmalloc((size_t)n * sizeof(char *));
     if (strs == NULL) {
         h5JNIFatalError( env, "H5AreadVL_str:  failed to allocate buff for read variable length strings");
         return -1;
@@ -1173,7 +1139,7 @@ herr_t H5AreadVL_str (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf)
         sid = H5Screate_simple(1, dims, NULL);
         H5Dvlen_reclaim(tid, sid, H5P_DEFAULT, strs);
         H5Sclose(sid);
-        free(strs);
+        HDfree(strs);
         h5JNIFatalError(env, "H5AreadVL_str: failed to read variable length strings");
         return -1;
     }
@@ -1181,7 +1147,7 @@ herr_t H5AreadVL_str (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf)
     for (i=0; i<n; i++) {
         jstr = ENVPTR->NewStringUTF(ENVPAR strs[i]);
         ENVPTR->SetObjectArrayElement(ENVPAR buf, i, jstr);
-        free (strs[i]);
+        HDfree (strs[i]);
     }
 
     /*
@@ -1193,7 +1159,7 @@ herr_t H5AreadVL_str (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf)
     */
 
     if (strs)
-        free(strs);
+        HDfree(strs);
 
     return status;
 }
@@ -1207,12 +1173,12 @@ herr_t H5AreadVL_str (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf)
 JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Acopy
   (JNIEnv *env, jclass clss, jlong src_id, jlong dst_id)
 {
-    jbyte *buf;
-    herr_t retVal = -1;
-    hid_t src_did = (hid_t)src_id;
-    hid_t dst_did = (hid_t)dst_id;
-    hid_t tid=-1;
-    hid_t sid=-1;
+    jbyte  *buf;
+    herr_t  retVal = -1;
+    hid_t   src_did = (hid_t)src_id;
+    hid_t   dst_did = (hid_t)dst_id;
+    hid_t   tid = -1;
+    hid_t   sid = -1;
     hsize_t total_size = 0;
 
 
@@ -1233,7 +1199,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Acopy
 
     H5Sclose(sid);
 
-    buf = (jbyte *)malloc( (size_t)total_size * sizeof(jbyte));
+    buf = (jbyte *)HDmalloc( (size_t)total_size * sizeof(jbyte));
     if (buf == NULL) {
     H5Tclose(tid);
         h5outOfMemory( env, "H5Acopy:  malloc failed");
@@ -1244,20 +1210,20 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Acopy
     H5Tclose(tid);
 
     if (retVal < 0) {
-        free(buf);
+        HDfree(buf);
         h5libraryError(env);
         return (jint)retVal;
     }
 
     tid = H5Aget_type(dst_did);
     if (tid < 0) {
-        free(buf);
+        HDfree(buf);
         h5libraryError(env);
         return -1;
     }
     retVal = H5Awrite(dst_did, tid, buf);
     H5Tclose(tid);
-    free(buf);
+    HDfree(buf);
 
     if (retVal < 0) {
         h5libraryError(env);
@@ -1265,12 +1231,6 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Acopy
 
     return (jint)retVal;
 }
-
-/**********************************************************************
- *                                                                    *
- *          New functions release 1.8.0                               *
- *                                                                    *
- **********************************************************************/
 
 /*
  * Class:     hdf_hdf5lib_H5
@@ -1281,26 +1241,15 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Acreate2
 (JNIEnv *env, jclass clss, jlong loc_id, jstring name, jlong type_id,
         jlong space_id, jlong create_plist, jlong access_plist)
 {
-    hid_t status;
+    hid_t       status;
     const char *aName;
-    jboolean isCopy;
 
-    if (name == NULL) {
-        h5nullArgument( env, "H5Acreate2:  name is NULL");
-        return -1;
-    }
-
-    aName = ENVPTR->GetStringUTFChars(ENVPAR name, &isCopy);
-
-    if (aName == NULL) {
-        h5JNIFatalError( env, "H5Acreate2: aName is not pinned");
-        return -1;
-    }
+    PIN_JAVA_STRING(name, aName, -1);
 
     status = H5Acreate2((hid_t)loc_id, aName, (hid_t)type_id,
         (hid_t)space_id, (hid_t)create_plist, (hid_t)access_plist );
 
-    ENVPTR->ReleaseStringUTFChars(ENVPAR name,aName);
+    ENVPTR->ReleaseStringUTFChars(ENVPAR name, aName);
 
     if (status < 0) {
         h5libraryError(env);
@@ -1318,27 +1267,16 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Aopen
   (JNIEnv *env, jclass clss, jlong obj_id, jstring name, jlong access_plist)
 
 {
-   hid_t retVal;
-   const char *aName;
-   jboolean isCopy;
+    hid_t       retVal;
+    const char *aName;
 
-   if (name == NULL) {
-        h5nullArgument( env, "H5Aopen:  name is NULL");
-        return -1;
-    }
-
-    aName = ENVPTR->GetStringUTFChars(ENVPAR name, &isCopy);
-
-    if (aName == NULL) {
-        h5JNIFatalError( env, "H5Aopen: aName is not pinned");
-        return -1;
-    }
+    PIN_JAVA_STRING(name, aName, -1);
 
     retVal = H5Aopen((hid_t)obj_id, aName, (hid_t)access_plist);
 
-    ENVPTR->ReleaseStringUTFChars(ENVPAR name,aName);
+    ENVPTR->ReleaseStringUTFChars(ENVPAR name, aName);
 
-    if (retVal< 0) {
+    if (retVal < 0) {
         h5libraryError(env);
     }
     return (jlong)retVal;
@@ -1353,32 +1291,20 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Aopen
 JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Aopen_1by_1idx
   (JNIEnv *env, jclass clss, jlong loc_id, jstring name, jint idx_type, jint order, jlong n, jlong aapl_id, jlong lapl_id)
 {
-  hid_t retVal;
-  const char *aName;
-  jboolean isCopy;
+    hid_t       retVal;
+    const char *aName;
 
-  if (name == NULL) {
-    h5nullArgument( env, "H5Aopen_by_idx:  name is NULL");
-    return -1;
-  }
+    PIN_JAVA_STRING(name, aName, -1);
 
-  aName = ENVPTR->GetStringUTFChars(ENVPAR name, &isCopy);
+    retVal = H5Aopen_by_idx((hid_t)loc_id, aName, (H5_index_t)idx_type,
+            (H5_iter_order_t)order, (hsize_t)n, (hid_t)aapl_id, (hid_t)lapl_id);
 
-  if (aName == NULL) {
-    h5JNIFatalError( env, "H5Aopen_by_idx: aName is not pinned");
-    return -1;
-  }
+    ENVPTR->ReleaseStringUTFChars(ENVPAR name, aName);
 
-  retVal = H5Aopen_by_idx((hid_t)loc_id, aName, (H5_index_t)idx_type,
-    (H5_iter_order_t)order, (hsize_t)n, (hid_t)aapl_id, (hid_t)lapl_id);
-
-  ENVPTR->ReleaseStringUTFChars(ENVPAR name,aName);
-
-  if (retVal< 0) {
-    h5libraryError(env);
-  }
-  return (jlong)retVal;
-
+    if (retVal < 0) {
+        h5libraryError(env);
+    }
+    return (jlong)retVal;
 }
 
 /*
@@ -1389,40 +1315,22 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Aopen_1by_1idx
 JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Acreate_1by_1name
 (JNIEnv *env, jclass clss, jlong loc_id, jstring obj_name, jstring attr_name, jlong type_id, jlong space_id, jlong acpl_id, jlong aapl_id, jlong lapl_id)
 {
-  hid_t retVal;
-  const char *aName, *attrName;
-  jboolean isCopy;
+    hid_t       retVal;
+    const char *aName;
+    const char *attrName;
 
-  if (obj_name == NULL) {
-    h5nullArgument( env, "H5Acreate_by_name:  object name is NULL");
-    return -1;
-  }
-  if (attr_name == NULL) {
-    h5nullArgument( env, "H5Acreate_by_name:  attribute name is NULL");
-    return -1;
-  }
-  aName = ENVPTR->GetStringUTFChars(ENVPAR obj_name, &isCopy);
-  if (aName == NULL) {
-    h5JNIFatalError( env, "H5Acreate_by_name: aName is not pinned");
-    return -1;
-  }
-  attrName = ENVPTR->GetStringUTFChars(ENVPAR attr_name, &isCopy);
-  if (attrName == NULL) {
-    ENVPTR->ReleaseStringUTFChars(ENVPAR obj_name,aName);
-    h5JNIFatalError( env, "H5Acreate_by_name: attrName is not pinned");
-    return -1;
-  }
+    PIN_JAVA_STRING_TWO(obj_name, aName, attr_name, attrName, -1);
 
-  retVal = H5Acreate_by_name((hid_t)loc_id, aName, attrName, (hid_t)type_id,
-    (hid_t)space_id, (hid_t)acpl_id, (hid_t)aapl_id, (hid_t)lapl_id);
+    retVal = H5Acreate_by_name((hid_t)loc_id, aName, attrName, (hid_t)type_id,
+            (hid_t)space_id, (hid_t)acpl_id, (hid_t)aapl_id, (hid_t)lapl_id);
 
-  ENVPTR->ReleaseStringUTFChars(ENVPAR obj_name,aName);
-  ENVPTR->ReleaseStringUTFChars(ENVPAR attr_name,attrName);
+    ENVPTR->ReleaseStringUTFChars(ENVPAR obj_name, aName);
+    ENVPTR->ReleaseStringUTFChars(ENVPAR attr_name, attrName);
 
-  if (retVal< 0) {
-    h5libraryError(env);
-  }
-  return (jlong)retVal;
+    if (retVal < 0) {
+        h5libraryError(env);
+    }
+    return (jlong)retVal;
 }
 
 /*
@@ -1433,36 +1341,18 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Acreate_1by_1name
 JNIEXPORT jboolean JNICALL Java_hdf_hdf5lib_H5_H5Aexists_1by_1name
   (JNIEnv *env, jclass clss, jlong loc_id, jstring obj_name, jstring attr_name, jlong lapl_id)
 {
-    htri_t retVal;
-    const char *aName, *attrName;
-    jboolean isCopy;
+    htri_t      retVal;
+    const char *aName;
+    const char *attrName;
 
-    if (obj_name == NULL) {
-        h5nullArgument( env, "H5Aexists_by_name:  object name is NULL");
-        return 0;
-    }
-    if (attr_name == NULL) {
-        h5nullArgument( env, "H5Aexists_by_name:  attribute name is NULL");
-        return 0;
-    }
-    aName = ENVPTR->GetStringUTFChars(ENVPAR obj_name, &isCopy);
-    if (aName == NULL) {
-        h5JNIFatalError( env, "H5Aexists_by_name: aName is not pinned");
-        return 0;
-    }
-    attrName = ENVPTR->GetStringUTFChars(ENVPAR attr_name, &isCopy);
-    if (attrName == NULL) {
-        ENVPTR->ReleaseStringUTFChars(ENVPAR obj_name,aName);
-        h5JNIFatalError( env, "H5Aexists_by_name: attrName is not pinned");
-        return 0;
-    }
+    PIN_JAVA_STRING_TWO(obj_name, aName, attr_name, attrName, JNI_FALSE);
 
     retVal = H5Aexists_by_name((hid_t)loc_id, aName, attrName, (hid_t)lapl_id);
 
-    ENVPTR->ReleaseStringUTFChars(ENVPAR obj_name,aName);
-    ENVPTR->ReleaseStringUTFChars(ENVPAR attr_name,attrName);
+    ENVPTR->ReleaseStringUTFChars(ENVPAR obj_name, aName);
+    ENVPTR->ReleaseStringUTFChars(ENVPAR attr_name, attrName);
 
-    if (retVal< 0) {
+    if (retVal < 0) {
         h5libraryError(env);
     }
     return (jboolean)retVal;
@@ -1476,37 +1366,18 @@ JNIEXPORT jboolean JNICALL Java_hdf_hdf5lib_H5_H5Aexists_1by_1name
 JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Arename
   (JNIEnv *env, jclass clss, jlong loc_id, jstring old_attr_name, jstring new_attr_name)
 {
-    herr_t retVal;
-    const char *oName, *nName;
-    jboolean isCopy;
+    herr_t      retVal;
+    const char *oName;
+    const char *nName;
 
-    if (old_attr_name == NULL) {
-        h5nullArgument( env, "H5Arename:  old_attr_name is NULL");
-        return -1;
-    }
-    if (new_attr_name == NULL) {
-        h5nullArgument( env, "H5Arename:  new_attr_name is NULL");
-        return -1;
-    }
-
-    oName = ENVPTR->GetStringUTFChars(ENVPAR old_attr_name,&isCopy);
-    if (oName == NULL) {
-        h5JNIFatalError( env, "H5Arename:  old_attr_name not pinned");
-        return -1;
-    }
-    nName = ENVPTR->GetStringUTFChars(ENVPAR new_attr_name,&isCopy);
-    if (nName == NULL) {
-        ENVPTR->ReleaseStringUTFChars(ENVPAR old_attr_name,oName);
-        h5JNIFatalError( env, "H5Arename:  new_attr_name not pinned");
-        return -1;
-    }
+    PIN_JAVA_STRING_TWO(old_attr_name, oName, new_attr_name, nName, -1);
 
     retVal = H5Arename((hid_t)loc_id, oName, nName);
 
-    ENVPTR->ReleaseStringUTFChars(ENVPAR old_attr_name,oName);
-    ENVPTR->ReleaseStringUTFChars(ENVPAR new_attr_name,nName);
+    ENVPTR->ReleaseStringUTFChars(ENVPAR old_attr_name, oName);
+    ENVPTR->ReleaseStringUTFChars(ENVPAR new_attr_name, nName);
 
-    if (retVal< 0) {
+    if (retVal < 0) {
         h5libraryError(env);
     }
     return (jint)retVal;
@@ -1521,52 +1392,23 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Arename
 JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Arename_1by_1name
   (JNIEnv *env, jclass clss, jlong loc_id, jstring obj_name, jstring old_attr_name, jstring new_attr_name, jlong lapl_id)
 {
-  herr_t retVal;
-  const char *aName, *oName, *nName;
-  jboolean isCopy;
+    herr_t      retVal;
+    const char *aName;
+    const char *oName;
+    const char *nName;
 
-  if (obj_name == NULL) {
-    h5nullArgument( env, "H5Arename_by_name:  object name is NULL");
-    return -1;
-  }
-  if (old_attr_name == NULL) {
-    h5nullArgument( env, "H5Arename_by_name:  old_attr_name is NULL");
-    return -1;
-  }
-  if (new_attr_name == NULL) {
-    h5nullArgument( env, "H5Arename_by_name:  new_attr_name is NULL");
-    return -1;
-  }
+    PIN_JAVA_STRING_THREE(obj_name, aName, old_attr_name, oName, new_attr_name, nName, -1);
 
-  aName = ENVPTR->GetStringUTFChars(ENVPAR obj_name, &isCopy);
-  if (aName == NULL) {
-    h5JNIFatalError( env, "H5Arename_by_name: object name is not pinned");
-    return -1;
-  }
-  oName = ENVPTR->GetStringUTFChars(ENVPAR old_attr_name,&isCopy);
-  if (oName == NULL) {
-    ENVPTR->ReleaseStringUTFChars(ENVPAR obj_name,aName);
-    h5JNIFatalError( env, "H5Arename_by_name:  old_attr_name not pinned");
-    return -1;
-  }
-  nName = ENVPTR->GetStringUTFChars(ENVPAR new_attr_name,&isCopy);
-  if (nName == NULL) {
-    ENVPTR->ReleaseStringUTFChars(ENVPAR obj_name,aName);
-    ENVPTR->ReleaseStringUTFChars(ENVPAR old_attr_name,oName);
-    h5JNIFatalError( env, "H5Arename_by_name:  new_attr_name not pinned");
-    return -1;
-  }
+    retVal = H5Arename_by_name((hid_t)loc_id, aName, oName, nName, (hid_t)lapl_id);
 
-  retVal = H5Arename_by_name((hid_t)loc_id, aName, oName, nName, (hid_t)lapl_id);
+    ENVPTR->ReleaseStringUTFChars(ENVPAR obj_name, aName);
+    ENVPTR->ReleaseStringUTFChars(ENVPAR old_attr_name, oName);
+    ENVPTR->ReleaseStringUTFChars(ENVPAR new_attr_name, nName);
 
-  ENVPTR->ReleaseStringUTFChars(ENVPAR obj_name,aName);
-  ENVPTR->ReleaseStringUTFChars(ENVPAR old_attr_name,oName);
-  ENVPTR->ReleaseStringUTFChars(ENVPAR new_attr_name,nName);
-
-  if (retVal< 0) {
-    h5libraryError(env);
-  }
-  return (jint)retVal;
+    if (retVal < 0) {
+        h5libraryError(env);
+    }
+    return (jint)retVal;
 }
 
 /*
@@ -1577,63 +1419,54 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Arename_1by_1name
 JNIEXPORT jstring JNICALL Java_hdf_hdf5lib_H5_H5Aget_1name_1by_1idx
   (JNIEnv *env, jclass clss, jlong loc_id, jstring obj_name, jint idx_type, jint order, jlong n, jlong lapl_id)
 {
-  size_t   buf_size;
-  const char *aName;
-  char    *aValue;
-  jboolean isCopy;
-  jlong    status_size;
-  jstring  str = NULL;
+    size_t   buf_size;
+    char    *aValue;
+    jlong    status_size;
+    jstring  str = NULL;
+    const char *aName;
 
-  if (obj_name == NULL) {
-    h5nullArgument( env, "H5Aget_name_by_idx:  object name is NULL");
-    return NULL;
-  }
-  aName = ENVPTR->GetStringUTFChars(ENVPAR obj_name, &isCopy);
-  if (aName == NULL) {
-    h5JNIFatalError( env, "H5Aget_name_by_idx:  name not pinned");
-    return NULL;
-  }
+    PIN_JAVA_STRING(obj_name, aName, NULL);
 
-  /* get the length of the attribute name */
-  status_size = H5Aget_name_by_idx((hid_t)loc_id, aName, (H5_index_t)idx_type,
-    (H5_iter_order_t) order, (hsize_t) n, (char*)NULL, (size_t)0, (hid_t)lapl_id);
+    /* get the length of the attribute name */
+    status_size = H5Aget_name_by_idx((hid_t)loc_id, aName, (H5_index_t)idx_type,
+            (H5_iter_order_t) order, (hsize_t) n, (char*)NULL, (size_t)0, (hid_t)lapl_id);
 
-  if(status_size < 0) {
+    if(status_size < 0) {
+        ENVPTR->ReleaseStringUTFChars(ENVPAR obj_name, aName);
+        h5libraryError(env);
+        return NULL;
+    }
+    buf_size = (size_t)status_size + 1;/* add extra space for the null terminator */
+
+    aValue = (char*)HDmalloc(sizeof(char) * buf_size);
+    if (aValue == NULL) {
+        ENVPTR->ReleaseStringUTFChars(ENVPAR obj_name, aName);
+        h5outOfMemory(env, "H5Aget_name_by_idx:  malloc failed ");
+        return NULL;
+    }
+
+    status_size = H5Aget_name_by_idx((hid_t)loc_id, aName, (H5_index_t)idx_type,
+            (H5_iter_order_t) order, (hsize_t) n, (char*)aValue, (size_t)buf_size, (hid_t)lapl_id);
+
     ENVPTR->ReleaseStringUTFChars(ENVPAR obj_name, aName);
-    h5libraryError(env);
-    return NULL;
-  }
-  buf_size = (size_t)status_size + 1;/* add extra space for the null terminator */
 
-  aValue = (char*)malloc(sizeof(char) * buf_size);
-  if (aValue == NULL) {
-    ENVPTR->ReleaseStringUTFChars(ENVPAR obj_name, aName);
-    h5outOfMemory( env, "H5Aget_name_by_idx:  malloc failed ");
-    return NULL;
-  }
+    if (status_size < 0) {
+        HDfree(aValue);
+        h5libraryError(env);
+        return NULL;
+    }
+    /* may throw OutOfMemoryError */
+    str = ENVPTR->NewStringUTF(ENVPAR aValue);
+    if (str == NULL) {
+        /* exception -- fatal JNI error */
+        HDfree(aValue);
+        h5JNIFatalError(env, "H5Aget_name_by_idx:  return string not created");
+        return NULL;
+    }
 
-  status_size = H5Aget_name_by_idx((hid_t)loc_id, aName, (H5_index_t)idx_type,
-    (H5_iter_order_t) order, (hsize_t) n, (char*)aValue, (size_t)buf_size, (hid_t)lapl_id);
+    HDfree(aValue);
 
-  ENVPTR->ReleaseStringUTFChars(ENVPAR obj_name, aName);
-
-  if (status_size < 0) {
-    free(aValue);
-    h5libraryError(env);
-    return NULL;
-  }
-  /* may throw OutOfMemoryError */
-  str = ENVPTR->NewStringUTF(ENVPAR aValue);
-  if (str == NULL) {
-    /* exception -- fatal JNI error */
-    free(aValue);
-    h5JNIFatalError( env, "H5Aget_name_by_idx:  return string not created");
-    return NULL;
-  }
-
-  free(aValue);
-
-  return str;
+    return str;
 }
 
 /*
@@ -1644,7 +1477,7 @@ JNIEXPORT jstring JNICALL Java_hdf_hdf5lib_H5_H5Aget_1name_1by_1idx
 JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5_H5Aget_1storage_1size
   (JNIEnv *env, jclass clss, jlong attr_id)
 {
-  hsize_t retVal = (hsize_t)-1;
+    hsize_t retVal = (hsize_t)-1;
 
     retVal = H5Aget_storage_size((hid_t)attr_id);
 /* probably returns '0' if fails--don't do an exception
@@ -1669,7 +1502,7 @@ JNIEXPORT jobject JNICALL Java_hdf_hdf5lib_H5_H5Aget_1info
     jvalue     args[4];
     jobject    ret_obj = NULL;
 
-    status = H5Aget_info((hid_t)attr_id, (H5A_info_t*)&ainfo);
+    status = H5Aget_info((hid_t)attr_id, &ainfo);
 
     if (status < 0) {
        h5libraryError(env);
@@ -1681,8 +1514,8 @@ JNIEXPORT jobject JNICALL Java_hdf_hdf5lib_H5_H5Aget_1info
     args[2].i = ainfo.cset;
     args[3].j = (jlong)ainfo.data_size;
     CALL_CONSTRUCTOR("hdf/hdf5lib/structs/H5A_info_t", "(ZJIJ)V", args);
-    return ret_obj;
 
+    return ret_obj;
 }
 
 /*
@@ -1693,27 +1526,16 @@ JNIEXPORT jobject JNICALL Java_hdf_hdf5lib_H5_H5Aget_1info
 JNIEXPORT jobject JNICALL Java_hdf_hdf5lib_H5_H5Aget_1info_1by_1idx
   (JNIEnv *env, jclass clss, jlong loc_id, jstring obj_name, jint idx_type, jint order, jlong n, jlong lapl_id)
 {
-
+    herr_t      status;
+    H5A_info_t  ainfo;
+    jvalue      args[4];
+    jobject     ret_obj = NULL;
     const char *aName;
-    herr_t     status;
-    H5A_info_t ainfo;
-    jboolean   isCopy;
-    jvalue     args[4];
-    jobject    ret_obj = NULL;
 
-    if (obj_name == NULL) {
-        h5nullArgument( env, "H5Aget_info_by_idx: obj_name is NULL");
-        return NULL;
-    }
+    PIN_JAVA_STRING(obj_name, aName, NULL);
 
-    aName = ENVPTR->GetStringUTFChars(ENVPAR obj_name, &isCopy);
-    if (aName == NULL) {
-        h5JNIFatalError( env, "H5Aget_info_by_idx: object name not pinned");
-        return NULL;
-    }
-
-    status = H5Aget_info_by_idx((hid_t)loc_id, (const char*)aName, (H5_index_t)idx_type,
-            (H5_iter_order_t)order, (hsize_t)n, (H5A_info_t*)&ainfo, (hid_t)lapl_id);
+    status = H5Aget_info_by_idx((hid_t)loc_id, aName, (H5_index_t)idx_type,
+            (H5_iter_order_t)order, (hsize_t)n, &ainfo, (hid_t)lapl_id);
 
     ENVPTR->ReleaseStringUTFChars(ENVPAR obj_name, aName);
 
@@ -1727,6 +1549,7 @@ JNIEXPORT jobject JNICALL Java_hdf_hdf5lib_H5_H5Aget_1info_1by_1idx
     args[2].i = ainfo.cset;
     args[3].j = (jlong)ainfo.data_size;
     CALL_CONSTRUCTOR("hdf/hdf5lib/structs/H5A_info_t", "(ZJIJ)V", args);
+
     return ret_obj;
 }
 
@@ -1740,33 +1563,14 @@ JNIEXPORT jobject JNICALL Java_hdf_hdf5lib_H5_H5Aget_1info_1by_1name
 {
     const char *aName;
     const char *attrName;
-    herr_t     status;
-    H5A_info_t ainfo;
-    jboolean   isCopy;
-    jvalue     args[4];
-    jobject    ret_obj = NULL;
+    herr_t      status;
+    H5A_info_t  ainfo;
+    jvalue      args[4];
+    jobject     ret_obj = NULL;
 
-    if (obj_name == NULL) {
-        h5nullArgument( env, "H5Aget_info_by_name: obj_name is NULL");
-        return NULL;
-    }
-    if (attr_name == NULL) {
-        h5nullArgument( env, "H5Aget_info_by_name: attr_name is NULL");
-        return NULL;
-    }
-    aName = ENVPTR->GetStringUTFChars(ENVPAR obj_name, &isCopy);
-    if (aName == NULL) {
-        h5JNIFatalError( env, "H5Aget_info_by_name: object name not pinned");
-        return NULL;
-    }
-    attrName = ENVPTR->GetStringUTFChars(ENVPAR attr_name, &isCopy);
-    if (attrName == NULL) {
-    ENVPTR->ReleaseStringUTFChars(ENVPAR obj_name, aName);
-        h5JNIFatalError( env, "H5Aget_info_by_name: Attribute name not pinned");
-        return NULL;
-    }
-    status = H5Aget_info_by_name((hid_t)loc_id, (const char*)aName, (const char*)attrName,
-                  (H5A_info_t*)&ainfo,(hid_t)lapl_id);
+    PIN_JAVA_STRING_TWO(obj_name, aName, attr_name, attrName, NULL);
+
+    status = H5Aget_info_by_name((hid_t)loc_id, aName, attrName, &ainfo, (hid_t)lapl_id);
 
     ENVPTR->ReleaseStringUTFChars(ENVPAR obj_name, aName);
     ENVPTR->ReleaseStringUTFChars(ENVPAR attr_name, attrName);
@@ -1781,6 +1585,7 @@ JNIEXPORT jobject JNICALL Java_hdf_hdf5lib_H5_H5Aget_1info_1by_1name
     args[2].i = ainfo.cset;
     args[3].j = (jlong)ainfo.data_size;
     CALL_CONSTRUCTOR("hdf/hdf5lib/structs/H5A_info_t", "(ZJIJ)V", args);
+
     return ret_obj;
 }
 
@@ -1792,35 +1597,18 @@ JNIEXPORT jobject JNICALL Java_hdf_hdf5lib_H5_H5Aget_1info_1by_1name
 JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Adelete_1by_1name
   (JNIEnv *env, jclass clss, jlong loc_id, jstring obj_name, jstring attr_name, jlong lapl_id)
 {
-    herr_t retVal;
-    const char *aName, *attrName;
-    jboolean isCopy;
+    herr_t      retVal;
+    const char *aName;
+    const char *attrName;
 
-    if (obj_name == NULL) {
-        h5nullArgument( env, "H5Adelete_by_name:  object name is NULL");
-        return -1;
-    }
-    if (attr_name == NULL) {
-        h5nullArgument( env, "H5Adelete_by_name:  attribute name is NULL");
-        return -1;
-    }
-    aName = ENVPTR->GetStringUTFChars(ENVPAR obj_name, &isCopy);
-    if (aName == NULL) {
-        h5JNIFatalError( env, "H5Adelete_by_name: aName is not pinned");
-        return -1;
-    }
-    attrName = ENVPTR->GetStringUTFChars(ENVPAR attr_name, &isCopy);
-    if (attrName == NULL) {
-        ENVPTR->ReleaseStringUTFChars(ENVPAR obj_name,aName);
-        h5JNIFatalError( env, "H5Adelete_by_name: attrName is not pinned");
-        return -1;
-    }
-    retVal = H5Adelete_by_name((hid_t)loc_id, (const char*)aName, (const char*)attrName, (hid_t)lapl_id);
+    PIN_JAVA_STRING_TWO(obj_name, aName, attr_name, attrName, -1);
 
-    ENVPTR->ReleaseStringUTFChars(ENVPAR obj_name,aName);
-    ENVPTR->ReleaseStringUTFChars(ENVPAR attr_name,attrName);
+    retVal = H5Adelete_by_name((hid_t)loc_id, aName, attrName, (hid_t)lapl_id);
 
-    if (retVal< 0) {
+    ENVPTR->ReleaseStringUTFChars(ENVPAR obj_name, aName);
+    ENVPTR->ReleaseStringUTFChars(ENVPAR attr_name, attrName);
+
+    if (retVal < 0) {
         h5libraryError(env);
     }
     return (jint)retVal;
@@ -1834,21 +1622,13 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Adelete_1by_1name
 JNIEXPORT jboolean JNICALL Java_hdf_hdf5lib_H5_H5Aexists
   (JNIEnv *env, jclass clss, jlong obj_id, jstring attr_name)
 {
+    htri_t      bval = 0;
     const char *aName;
-    jboolean isCopy;
-    htri_t   bval = 0;
 
-    if (attr_name == NULL) {
-        h5nullArgument( env, "H5Aexists: attr_name is NULL");
-        return JNI_FALSE;
-    }
-    aName = ENVPTR->GetStringUTFChars(ENVPAR attr_name, &isCopy);
-    if (aName == NULL) {
-        h5JNIFatalError( env, "H5Aexists: attr_name not pinned");
-        return JNI_FALSE;
-    }
+    PIN_JAVA_STRING(attr_name, aName, JNI_FALSE);
 
-    bval = H5Aexists((hid_t)obj_id, (const char*)aName);
+    bval = H5Aexists((hid_t)obj_id, aName);
+
     ENVPTR->ReleaseStringUTFChars(ENVPAR attr_name, aName);
 
     if (bval > 0) {
@@ -1871,29 +1651,19 @@ JNIEXPORT jboolean JNICALL Java_hdf_hdf5lib_H5_H5Aexists
 JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Adelete_1by_1idx
   (JNIEnv *env, jclass clss, jlong loc_id, jstring obj_name, jint idx_type, jint order, jlong n, jlong lapl_id)
 {
-  const char *aName;
-  herr_t     status;
-  jboolean   isCopy;
+    herr_t      status;
+    const char *aName;
 
-  if (obj_name == NULL) {
-    h5nullArgument( env, "H5Adelete_by_idx: obj_name is NULL");
-    return;
-  }
+    PIN_JAVA_STRING0(obj_name, aName);
 
-  aName = ENVPTR->GetStringUTFChars(ENVPAR obj_name, &isCopy);
-  if (aName == NULL) {
-    h5JNIFatalError( env, "H5Adelete_by_idx: obj_name not pinned");
-    return;
-  }
+    status = H5Adelete_by_idx((hid_t)loc_id, aName, (H5_index_t)idx_type, (H5_iter_order_t)order, (hsize_t)n, (hid_t)lapl_id);
 
-  status = H5Adelete_by_idx((hid_t)loc_id, (const char*)aName, (H5_index_t)idx_type,
-    (H5_iter_order_t)order, (hsize_t)n, (hid_t)lapl_id);
-  ENVPTR->ReleaseStringUTFChars(ENVPAR obj_name, aName);
+    ENVPTR->ReleaseStringUTFChars(ENVPAR obj_name, aName);
 
-  if (status < 0) {
-    h5libraryError(env);
-    return;
-  }
+    if (status < 0) {
+        h5libraryError(env);
+        return;
+    }
 }
 
 /*
@@ -1905,35 +1675,16 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Aopen_1by_1name
   (JNIEnv *env, jclass clss, jlong loc_id, jstring obj_name, jstring attr_name, jlong aapl_id, jlong lapl_id)
 
 {
-    hid_t status;
-    const char *aName, *oName;
-    jboolean isCopy;
+    hid_t       status;
+    const char *aName;
+    const char *oName;
 
-    if (obj_name == NULL) {
-        h5nullArgument( env,"_H5Aopen_by_name:  obj_name is NULL");
-        return -1;
-    }
-    if (attr_name == NULL) {
-        h5nullArgument( env,"_H5Aopen_by_name:  attr_name is NULL");
-        return -1;
-    }
-
-    oName = ENVPTR->GetStringUTFChars(ENVPAR obj_name,&isCopy);
-    if (oName == NULL) {
-        h5JNIFatalError( env,"_H5Aopen_by_name: obj_name is not pinned");
-        return -1;
-    }
-    aName = ENVPTR->GetStringUTFChars(ENVPAR attr_name,&isCopy);
-    if (aName == NULL) {
-    ENVPTR->ReleaseStringUTFChars(ENVPAR obj_name,oName);
-        h5JNIFatalError( env,"_H5Aopen_by_name: attr_name is not pinned");
-        return -1;
-    }
+    PIN_JAVA_STRING_TWO(obj_name, oName, attr_name, aName, -1);
 
     status = H5Aopen_by_name((hid_t)loc_id, oName, aName, (hid_t)aapl_id, (hid_t)lapl_id);
 
-    ENVPTR->ReleaseStringUTFChars(ENVPAR obj_name,oName);
-    ENVPTR->ReleaseStringUTFChars(ENVPAR attr_name,aName);
+    ENVPTR->ReleaseStringUTFChars(ENVPAR obj_name, oName);
+    ENVPTR->ReleaseStringUTFChars(ENVPAR attr_name, aName);
 
     if (status < 0) {
         h5libraryError(env);
@@ -1951,7 +1702,7 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Aget_1create_1plist
   (JNIEnv *env, jclass clss, jlong attr_id)
 {
     hid_t retVal = -1;
-    retVal =  H5Aget_create_plist((hid_t)attr_id);
+    retVal = H5Aget_create_plist((hid_t)attr_id);
     if (retVal < 0) {
         /* throw exception */
         h5libraryError(env);
@@ -1993,14 +1744,14 @@ herr_t H5A_iterate_cb(hid_t g_id, const char *name, const H5A_info_t *info, void
     args[1].j = info->corder;
     args[2].i = info->cset;
     args[3].j = (jlong)info->data_size;
-    // get a reference to your class if you don't have it already
+    /* get a reference to your class if you don't have it already */
     cls = CBENVPTR->FindClass(CBENVPAR "hdf/hdf5lib/structs/H5A_info_t");
     if (cls == 0) {
         /* printf("JNI H5A_iterate_cb error: GetObjectClass info failed\n"); */
        JVMPTR->DetachCurrentThread(JVMPAR);
        return -1;
     }
-    // get a reference to the constructor; the name is <init>
+    /* get a reference to the constructor; the name is <init> */
     constructor = CBENVPTR->GetMethodID(CBENVPAR cls, "<init>", "(ZJIJ)V");
     if (constructor == 0) {
         /* printf("JNI H5A_iterate_cb error: GetMethodID constructor failed\n"); */
@@ -2058,7 +1809,6 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Aiterate_1by_1name
   (JNIEnv *env, jclass clss, jlong grp_id, jstring name, jint idx_type, jint order,
           jlong idx, jobject callback_op, jobject op_data, jlong access_id)
 {
-    jboolean      isCopy;
     const char   *lName;
     hsize_t       start_idx = (hsize_t)idx;
     herr_t        status = -1;
@@ -2066,16 +1816,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Aiterate_1by_1name
     ENVPTR->GetJavaVM(ENVPAR &jvm);
     visit_callback = callback_op;
 
-    if (name == NULL) {
-        h5nullArgument(env, "H5Aiterate_by_name:  name is NULL");
-        return -1;
-    }
-
-    lName = ENVPTR->GetStringUTFChars(ENVPAR name, &isCopy);
-    if (lName == NULL) {
-        h5JNIFatalError(env, "H5Aiterate_by_name:  name not pinned");
-        return -1;
-    }
+    PIN_JAVA_STRING(name, lName, -1);
 
     if (op_data == NULL) {
         h5nullArgument(env,  "H5Aiterate_by_name:  op_data is NULL");

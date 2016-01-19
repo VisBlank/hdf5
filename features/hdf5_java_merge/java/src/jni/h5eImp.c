@@ -88,40 +88,15 @@ static herr_t H5E_walk_cb(int nindx, const H5E_error2_t *info, void *op_data);
     JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5_H5Eregister_1class
       (JNIEnv *env, jclass cls, jstring cls_name, jstring lib_name, jstring version)
     {
-        hid_t ret_val = -1;
+        hid_t       ret_val = -1;
         const char* the_cls_name;
         const char* the_lib_name;
         const char* the_version;
-        jboolean isCopy;
 
-        if(cls_name==NULL) {
-            h5nullArgument( env, "H5Eregister_class: error class name is NULL");
-            return ret_val;
-        }
-        the_cls_name = ENVPTR->GetStringUTFChars(ENVPAR cls_name,&isCopy);
-        if (the_cls_name == NULL) {
-            h5JNIFatalError( env, "H5Eregister_class: error class name not pinned");
-            return ret_val;
-        }
-        if(lib_name==NULL) {
-            h5nullArgument( env, "H5Eregister_class: client library or application name is NULL");
-            return ret_val;
-        }
-        the_lib_name = ENVPTR->GetStringUTFChars(ENVPAR lib_name,&isCopy);
-        if (the_lib_name == NULL) {
-            h5JNIFatalError( env, "H5Eregister_class: client name not pinned");
-            return ret_val;
-        }
-        if(version==NULL) {
-            h5nullArgument( env, "H5Eregister_class: version of the client library or application is NULL");
-            return ret_val;
-        }
-        the_version = ENVPTR->GetStringUTFChars(ENVPAR version,&isCopy);
-        if (the_version == NULL) {
-            h5JNIFatalError( env, "H5Eregister_class: version not pinned");
-            return ret_val;
-        }
+        PIN_JAVA_STRING_THREE(cls_name, the_cls_name, lib_name, the_lib_name, version, the_version, -1);
+
         ret_val = H5Eregister_class(the_cls_name, the_lib_name, the_version);
+
         ENVPTR->ReleaseStringUTFChars(ENVPAR cls_name, the_cls_name);
         ENVPTR->ReleaseStringUTFChars(ENVPAR lib_name, the_lib_name);
         ENVPTR->ReleaseStringUTFChars(ENVPAR version, the_version);
@@ -179,26 +154,21 @@ static herr_t H5E_walk_cb(int nindx, const H5E_error2_t *info, void *op_data);
     JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5_H5Ecreate_1msg
       (JNIEnv *env, jclass cls, jlong err_id, jint msg_type, jstring err_msg)
     {
-        hid_t ret_val = -1;
+        hid_t       ret_val = -1;
         const char *the_err_msg;
-        jboolean isCopy;
-        H5E_type_t error_msg_type = (H5E_type_t)msg_type;
+        H5E_type_t  error_msg_type = (H5E_type_t)msg_type;
 
         if (err_id < 0) {
             h5badArgument(env, "H5Ecreate_msg: invalid argument");
             return ret_val;
         }
-        if(err_msg==NULL) {
-            h5nullArgument( env, "H5Ecreate_msg: error message is NULL");
-            return ret_val;
-        }
-        the_err_msg = ENVPTR->GetStringUTFChars(ENVPAR err_msg,&isCopy);
-        if (the_err_msg == NULL) {
-            h5JNIFatalError( env, "H5Ecreate_msg: error message not pinned");
-            return ret_val;
-        }
+
+        PIN_JAVA_STRING(err_msg, the_err_msg, -1);
+
         ret_val = H5Ecreate_msg((hid_t)err_id, error_msg_type, the_err_msg);
+
         ENVPTR->ReleaseStringUTFChars(ENVPAR err_msg, the_err_msg);
+
         if (ret_val < 0) {
             h5libraryError(env);
             return ret_val;
@@ -309,7 +279,7 @@ static herr_t H5E_walk_cb(int nindx, const H5E_error2_t *info, void *op_data);
     JNIEXPORT jstring JNICALL Java_hdf_hdf5lib_H5_H5Eget_1class_1name
       (JNIEnv *env, jclass cls, jlong cls_id)
     {
-        char *namePtr;
+        char   *namePtr;
         jstring str;
         ssize_t buf_size;
 
@@ -330,7 +300,7 @@ static herr_t H5E_walk_cb(int nindx, const H5E_error2_t *info, void *op_data);
         }
 
         buf_size++; /* add extra space for the null terminator */
-        namePtr = (char*)malloc(sizeof(char) * (size_t)buf_size);
+        namePtr = (char*)HDmalloc(sizeof(char) * (size_t)buf_size);
         if (namePtr == NULL) {
             h5outOfMemory( env, "H5Eget_class_name:  malloc failed");
             return NULL;
@@ -338,13 +308,13 @@ static herr_t H5E_walk_cb(int nindx, const H5E_error2_t *info, void *op_data);
         buf_size = H5Eget_class_name((hid_t)cls_id, (char *)namePtr, (size_t)buf_size);
 
         if (buf_size < 0) {
-            free(namePtr);
+            HDfree(namePtr);
             h5libraryError(env);
             return NULL;
         }
 
         str = ENVPTR->NewStringUTF(ENVPAR namePtr);
-        free(namePtr);
+        HDfree(namePtr);
 
         return str;
     }
@@ -400,11 +370,10 @@ static herr_t H5E_walk_cb(int nindx, const H5E_error2_t *info, void *op_data);
       (JNIEnv *env, jclass cls, jlong stk_id, jstring filename, jstring funcname, jint linenumber, jlong class_id,
           jlong major_id, jlong minor_id, jstring err_desc)
     {
-        herr_t ret_val = -1;
+        herr_t      ret_val = -1;
         const char* fName;
         const char* fncName;
         const char* errMsg;
-        jboolean isCopy;
 
         if (stk_id < 0) {
             h5badArgument(env, "H5Epush: invalid argument");
@@ -423,38 +392,10 @@ static herr_t H5E_walk_cb(int nindx, const H5E_error2_t *info, void *op_data);
             return;
         }
 
-        if (filename == NULL) {
-            h5nullArgument( env,"H5Epush:  filename is NULL");
-            return;
-        }
-        fName = ENVPTR->GetStringUTFChars(ENVPAR filename,&isCopy);
-        if (fName == NULL) {
-            h5JNIFatalError( env,"H5Epush: filename is not pinned");
-            return;
-        }
-
-        if (funcname == NULL) {
-            h5nullArgument( env,"H5Epush:  funcname is NULL");
-            return;
-        }
-        fncName = ENVPTR->GetStringUTFChars(ENVPAR funcname,&isCopy);
-        if (fncName == NULL) {
-            h5JNIFatalError( env,"H5Epush: funcname is not pinned");
-            return;
-        }
-
-        if (err_desc == NULL) {
-            h5nullArgument( env,"H5Epush:  err_desc is NULL");
-            return;
-        }
-        errMsg = ENVPTR->GetStringUTFChars(ENVPAR err_desc,&isCopy);
-        if (errMsg == NULL) {
-            h5JNIFatalError( env,"H5Epush: err_desc is not pinned");
-            return;
-        }
+        PIN_JAVA_STRING_THREE0(filename, fName, funcname, fncName, err_desc, errMsg);
 
         ret_val = H5Epush2((hid_t)stk_id, fName, fncName, (unsigned)linenumber, (hid_t)class_id,
-            (hid_t)major_id, (hid_t)minor_id, errMsg);
+                (hid_t)major_id, (hid_t)minor_id, errMsg);
 
         ENVPTR->ReleaseStringUTFChars(ENVPAR err_desc, errMsg);
         ENVPTR->ReleaseStringUTFChars(ENVPAR funcname, fncName);
@@ -495,11 +436,11 @@ static herr_t H5E_walk_cb(int nindx, const H5E_error2_t *info, void *op_data);
     JNIEXPORT jstring JNICALL Java_hdf_hdf5lib_H5_H5Eget_1msg
       (JNIEnv *env, jclass cls, jlong msg_id, jintArray error_msg_type_list)
     {
-        char *namePtr;
-        jstring str;
-        jboolean isCopy;
-        ssize_t buf_size;
-        jint *theArray;
+        char      *namePtr;
+        jstring    str;
+        jboolean   isCopy;
+        ssize_t    buf_size;
+        jint      *theArray;
         H5E_type_t error_msg_type;
 
         if (msg_id < 0) {
@@ -510,43 +451,46 @@ static herr_t H5E_walk_cb(int nindx, const H5E_error2_t *info, void *op_data);
         buf_size = H5Eget_msg((hid_t)msg_id, NULL, NULL, 0);
 
         if (buf_size < 0) {
-            h5badArgument( env, "H5Eget_msg:  buf_size < 0");
+            h5badArgument(env, "H5Eget_msg:  buf_size < 0");
             return NULL;
         }
         if (buf_size == 0) {
-            h5badArgument( env, "H5Eget_msg:  No message");
+            h5badArgument(env, "H5Eget_msg:  No message");
             return NULL;
         }
 
         buf_size++; /* add extra space for the null terminator */
-        namePtr = (char*)malloc(sizeof(char) * (size_t)buf_size);
+        namePtr = (char*)HDmalloc(sizeof(char) * (size_t)buf_size);
         if (namePtr == NULL) {
-            h5outOfMemory( env, "H5Eget_msg:  malloc failed");
+            h5outOfMemory(env, "H5Eget_msg:  malloc failed");
             return NULL;
         }
-        if ( error_msg_type_list == NULL ) {
-            h5nullArgument( env, "H5Eget_msg:  error_msg_type_list is NULL");
+        if (error_msg_type_list == NULL) {
+            HDfree(namePtr);
+            h5nullArgument(env, "H5Eget_msg:  error_msg_type_list is NULL");
             return NULL;
         }
-        theArray = (jint *)ENVPTR->GetIntArrayElements(ENVPAR error_msg_type_list,&isCopy);
+        theArray = (jint *)ENVPTR->GetIntArrayElements(ENVPAR error_msg_type_list, &isCopy);
         if (theArray == NULL) {
-            h5JNIFatalError( env, "H5Eget_msg:  error_msg_type_list not pinned");
+            HDfree(namePtr);
+            ENVPTR->ReleaseIntArrayElements(ENVPAR error_msg_type_list, theArray, JNI_ABORT);
+            h5JNIFatalError(env, "H5Eget_msg:  error_msg_type_list not pinned");
             return NULL;
         }
 
         buf_size = H5Eget_msg((hid_t)msg_id, &error_msg_type, (char *)namePtr, (size_t)buf_size);
 
         if (buf_size < 0) {
-            free(namePtr);
-            ENVPTR->ReleaseIntArrayElements(ENVPAR error_msg_type_list,theArray,JNI_ABORT);
+            HDfree(namePtr);
+            ENVPTR->ReleaseIntArrayElements(ENVPAR error_msg_type_list, theArray, JNI_ABORT);
             h5libraryError(env);
             return NULL;
         }
         theArray[0] = error_msg_type;
-        ENVPTR->ReleaseIntArrayElements(ENVPAR error_msg_type_list,theArray,0);
+        ENVPTR->ReleaseIntArrayElements(ENVPAR error_msg_type_list, theArray, 0);
 
         str = ENVPTR->NewStringUTF(ENVPAR namePtr);
-        free(namePtr);
+        HDfree(namePtr);
 
         return str;
     }
@@ -642,7 +586,7 @@ static herr_t H5E_walk_cb(int nindx, const H5E_error2_t *info, void *op_data);
     JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Ewalk2
       (JNIEnv *env, jclass cls, jlong stk_id, jlong direction, jobject callback_op, jobject op_data)
     {
-      herr_t ret_val = -1;
+        herr_t ret_val = -1;
 
         ENVPTR->GetJavaVM(ENVPAR &jvm);
         visit_callback = callback_op;

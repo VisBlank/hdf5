@@ -29,6 +29,7 @@ extern "C" {
 #include "hdf5.h"
 #include "h5util.h"
 #include "jni.h"
+#include "H5private.h"
 
 /* size of hyperslab buffer when a dataset is bigger than H5TOOLS_MALLOCSIZE */
 hsize_t H5TOOLS_BUFSIZE = (32 * 1024 * 1024);  /* 32 MB */
@@ -65,15 +66,15 @@ void h5str_array_free(char **strs, size_t len) {
 
     for (i = 0; i < len; i++) {
         if (*(strs + i))
-            free(*(strs + i));
+            HDfree(*(strs + i));
     } /* for (i=0; i<n; i++)*/
-    free(strs);
+    HDfree(strs);
 }
 
 /** allocate a new str with given length */
 void h5str_new(h5str_t *str, size_t len) {
     if (str && len > 0) {
-        str->s = (char *) malloc(len);
+        str->s = (char *)HDmalloc(len);
         str->max = len;
         str->s[0] = '\0';
     }
@@ -82,8 +83,8 @@ void h5str_new(h5str_t *str, size_t len) {
 /** free string memory */
 void h5str_free(h5str_t *str) {
     if (str && str->max > 0) {
-        free(str->s);
-        memset(str, 0, sizeof(h5str_t));
+        HDfree(str->s);
+        HDmemset(str, 0, sizeof(h5str_t));
     }
 }
 
@@ -94,13 +95,13 @@ void h5str_resize(h5str_t *str, size_t new_len) {
     if (!str || new_len <= 0 || str->max == new_len)
         return;
 
-    new_str = (char *) malloc(new_len);
+    new_str = (char *)HDmalloc(new_len);
     if (new_len > str->max) /* increase memory */
-        strcpy(new_str, str->s);
+        HDstrcpy(new_str, str->s);
     else
-        strncpy(new_str, str->s, new_len - 1);
+        HDstrncpy(new_str, str->s, new_len - 1);
 
-    free(str->s);
+    HDfree(str->s);
     str->s = new_str;
     str->max = new_len;
 }
@@ -117,13 +118,13 @@ char* h5str_append(h5str_t *str, const char* cstr) {
     else if (!cstr)
         return str->s;
 
-    len = strlen(str->s) + strlen(cstr);
+    len = HDstrlen(str->s) + HDstrlen(cstr);
     while (len >= str->max) /* not enough to hold the new string, double the space */
     {
         h5str_resize(str, str->max * 2);
     }
 
-    return strcat(str->s, cstr);
+    return HDstrcat(str->s, cstr);
 }
 
 /** print value of a data point into string.
@@ -178,21 +179,21 @@ size_t h5str_sprintf(h5str_t *str, hid_t container, hid_t tid, void *ptr, int ex
     case H5T_FLOAT:
         if (sizeof(float) == size) {
             /* if (H5Tequal(tid, H5T_NATIVE_FLOAT)) */
-            memcpy(&tmp_float, ptr, sizeof(float));
-            this_str = (char*) malloc(25);
+            HDmemcpy(&tmp_float, ptr, sizeof(float));
+            this_str = (char*)HDmalloc(25);
             sprintf(this_str, "%g", tmp_float);
         }
         else if (sizeof(double) == size) {
             /* if (H5Tequal(tid, H5T_NATIVE_DOUBLE)) */
-            memcpy(&tmp_double, ptr, sizeof(double));
-            this_str = (char*) malloc(25);
+            HDmemcpy(&tmp_double, ptr, sizeof(double));
+            this_str = (char*)HDmalloc(25);
             sprintf(this_str, "%g", tmp_double);
         }
 #if H5_SIZEOF_LONG_DOUBLE !=0
         else if (sizeof(long double) == size) {
             /* if (H5Tequal(tid, H5T_NATIVE_LDOUBLE)) */
-            memcpy(&tmp_ldouble, ptr, sizeof(long double));
-            this_str = (char*) malloc(27);
+            HDmemcpy(&tmp_ldouble, ptr, sizeof(long double));
+            this_str = (char*)HDmalloc(27);
             sprintf(this_str, "%Lf", tmp_ldouble);
         }
 #endif
@@ -205,7 +206,7 @@ size_t h5str_sprintf(h5str_t *str, hid_t container, hid_t tid, void *ptr, int ex
         if (H5Tis_variable_str(tid)) {
             tmp_str = *(char**) ptr;
             if (tmp_str != NULL)
-                size = strlen(tmp_str);
+                size = HDstrlen(tmp_str);
         }
         else {
             tmp_str = cptr;
@@ -213,13 +214,13 @@ size_t h5str_sprintf(h5str_t *str, hid_t container, hid_t tid, void *ptr, int ex
 
         /* Check for NULL pointer for string */
         if (tmp_str == NULL) {
-            this_str = (char *) malloc(5);
-            strncpy(this_str, "NULL", 4);
+            this_str = (char *)HDmalloc(5);
+            HDstrncpy(this_str, "NULL", 4);
         }
         else {
             if (size > 0) {
-                this_str = (char *) malloc(size+1);
-                strncpy(this_str, tmp_str, size);
+                this_str = (char *)HDmalloc(size+1);
+                HDstrncpy(this_str, tmp_str, size);
             }
         }
     }
@@ -228,70 +229,70 @@ size_t h5str_sprintf(h5str_t *str, hid_t container, hid_t tid, void *ptr, int ex
         if (sizeof(char) == size) {
             if(H5T_SGN_NONE == nsign) {
                 /* if (H5Tequal(tid, H5T_NATIVE_UCHAR)) */
-                memcpy(&tmp_uchar, ptr, sizeof(unsigned char));
-                this_str = (char*) malloc(7);
+                HDmemcpy(&tmp_uchar, ptr, sizeof(unsigned char));
+                this_str = (char*)HDmalloc(7);
                 sprintf(this_str, "%u", tmp_uchar);
             }
             else {
                 /* if (H5Tequal(tid, H5T_NATIVE_SCHAR)) */
-                memcpy(&tmp_char, ptr, sizeof(char));
-                this_str = (char*) malloc(7);
+                HDmemcpy(&tmp_char, ptr, sizeof(char));
+                this_str = (char*)HDmalloc(7);
                 sprintf(this_str, "%hhd", tmp_char);
             }
         }
         else if (sizeof(int) == size) {
             if(H5T_SGN_NONE == nsign) {
                 /* if (H5Tequal(tid, H5T_NATIVE_UINT)) */
-                memcpy(&tmp_uint, ptr, sizeof(unsigned int));
-                this_str = (char*) malloc(14);
+                HDmemcpy(&tmp_uint, ptr, sizeof(unsigned int));
+                this_str = (char*)HDmalloc(14);
                 sprintf(this_str, "%u", tmp_uint);
             }
             else {
                 /* if (H5Tequal(tid, H5T_NATIVE_INT)) */
-                memcpy(&tmp_int, ptr, sizeof(int));
-                this_str = (char*) malloc(14);
+                HDmemcpy(&tmp_int, ptr, sizeof(int));
+                this_str = (char*)HDmalloc(14);
                 sprintf(this_str, "%d", tmp_int);
             }
         }
         else if (sizeof(short) == size) {
             if(H5T_SGN_NONE == nsign) {
                 /* if (H5Tequal(tid, H5T_NATIVE_USHORT)) */
-                memcpy(&tmp_ushort, ptr, sizeof(unsigned short));
-                this_str = (char*) malloc(9);
+                HDmemcpy(&tmp_ushort, ptr, sizeof(unsigned short));
+                this_str = (char*)HDmalloc(9);
                 sprintf(this_str, "%u", tmp_ushort);
             }
             else {
                 /* if (H5Tequal(tid, H5T_NATIVE_SHORT)) */
-                memcpy(&tmp_short, ptr, sizeof(short));
-                this_str = (char*) malloc(9);
+                HDmemcpy(&tmp_short, ptr, sizeof(short));
+                this_str = (char*)HDmalloc(9);
                 sprintf(this_str, "%d", tmp_short);
             }
         }
         else if (sizeof(long) == size) {
             if(H5T_SGN_NONE == nsign) {
                 /* if (H5Tequal(tid, H5T_NATIVE_ULONG)) */
-                memcpy(&tmp_ulong, ptr, sizeof(unsigned long));
-                this_str = (char*) malloc(23);
+                HDmemcpy(&tmp_ulong, ptr, sizeof(unsigned long));
+                this_str = (char*)HDmalloc(23);
                 sprintf(this_str, "%lu", tmp_ulong);
             }
             else {
                 /* if (H5Tequal(tid, H5T_NATIVE_LONG)) */
-                memcpy(&tmp_long, ptr, sizeof(long));
-                this_str = (char*) malloc(23);
+                HDmemcpy(&tmp_long, ptr, sizeof(long));
+                this_str = (char*)HDmalloc(23);
                 sprintf(this_str, "%ld", tmp_long);
             }
         }
         else if (sizeof(long long) == size) {
             if(H5T_SGN_NONE == nsign) {
                 /* if (H5Tequal(tid, H5T_NATIVE_ULLONG)) */
-                memcpy(&tmp_ullong, ptr, sizeof(unsigned long long));
-                this_str = (char*) malloc(25);
+                HDmemcpy(&tmp_ullong, ptr, sizeof(unsigned long long));
+                this_str = (char*)HDmalloc(25);
                 sprintf(this_str, fmt_ullong, tmp_ullong);
             }
             else {
                 /* if (H5Tequal(tid, H5T_NATIVE_LLONG)) */
-                memcpy(&tmp_llong, ptr, sizeof(long long));
-                this_str = (char*) malloc(25);
+                HDmemcpy(&tmp_llong, ptr, sizeof(long long));
+                this_str = (char*)HDmalloc(25);
                 sprintf(this_str, fmt_llong, tmp_llong);
             }
         }
@@ -322,7 +323,7 @@ size_t h5str_sprintf(h5str_t *str, hid_t container, hid_t tid, void *ptr, int ex
         else {
             size_t i;
             nll = H5Tget_size(tid);
-            this_str = (char*) malloc(4 * (nll + 1));
+            this_str = (char*)HDmalloc(4 * (nll + 1));
 
             if (1 == nll) {
                 sprintf(this_str, "0x%02x", ucptr[0]);
@@ -395,7 +396,7 @@ size_t h5str_sprintf(h5str_t *str, hid_t container, hid_t tid, void *ptr, int ex
                 H5O_info_t  oi;
                 hid_t       obj;
 
-                this_str = (char*) malloc(64);
+                this_str = (char*)HDmalloc(64);
                 obj = H5Rdereference2(container, H5P_DEFAULT, H5R_OBJECT, ptr);
                 H5Oget_info(obj, &oi);
 
@@ -453,7 +454,7 @@ size_t h5str_sprintf(h5str_t *str, hid_t container, hid_t tid, void *ptr, int ex
         /* All other types get printed as hexadecimal */
         size_t i;
         nll = H5Tget_size(tid);
-        this_str = (char*) malloc(4 * (nll + 1));
+        this_str = (char*)HDmalloc(4 * (nll + 1));
 
         if (1 == nll) {
             sprintf(this_str, "0x%02x", ucptr[0]);
@@ -468,8 +469,8 @@ size_t h5str_sprintf(h5str_t *str, hid_t container, hid_t tid, void *ptr, int ex
 
     if (this_str) {
         h5str_append(str, this_str);
-        this_strlen = strlen(str->s);
-        free(this_str);
+        this_strlen = HDstrlen(str->s);
+        HDfree(this_str);
     }
 
     return this_strlen;
@@ -509,7 +510,7 @@ int h5str_print_region_data_blocks(hid_t region_id,
     if((sid1 = H5Dget_space(region_id)) >= 0) {
 
         /* Allocate space for the dimension array */
-        if((dims1 = (hsize_t *) malloc(sizeof(hsize_t) * (size_t)ndims)) != NULL) {
+        if((dims1 = (hsize_t *)HDmalloc(sizeof(hsize_t) * (size_t)ndims)) != NULL) {
 
             /* find the dimensions of each data space from the block coordinates */
             numelem = 1;
@@ -521,11 +522,11 @@ int h5str_print_region_data_blocks(hid_t region_id,
             /* Create dataspace for reading buffer */
             if((mem_space = H5Screate_simple(ndims, dims1, NULL)) >= 0) {
                 if((type_size = H5Tget_size(type_id)) > 0) {
-                    if((region_buf = malloc(type_size * (size_t)numelem)) != NULL) {
+                    if((region_buf = HDmalloc(type_size * (size_t)numelem)) != NULL) {
                         /* Select (x , x , ..., x ) x (y , y , ..., y ) hyperslab for reading memory dataset */
                         /*          1   2        n      1   2        n                                       */
-                        if((start = (hsize_t *) malloc(sizeof(hsize_t) * (size_t)ndims)) != NULL) {
-                            if((count = (hsize_t *) malloc(sizeof(hsize_t) * (size_t)ndims)) != NULL) {
+                        if((start = (hsize_t *)HDmalloc(sizeof(hsize_t) * (size_t)ndims)) != NULL) {
+                            if((count = (hsize_t *)HDmalloc(sizeof(hsize_t) * (size_t)ndims)) != NULL) {
                                 for (blkndx = 0; blkndx < nblocks; blkndx++) {
                                     for (indx = 0; indx < ndims; indx++) {
                                         start[indx] = ptdata[indx + blkndx * (hsize_t)ndims * 2];
@@ -546,17 +547,17 @@ int h5str_print_region_data_blocks(hid_t region_id,
                                     } /* end if(H5Sselect_hyperslab(sid1, H5S_SELECT_SET, start, NULL, count, NULL) >= 0) */
                                 } /* end for (blkndx = 0; blkndx < nblocks; blkndx++) */
 
-                                free(count);
+                                HDfree(count);
                             } /* end if((count = (hsize_t *) HDmalloc(sizeof(hsize_t) * ndims)) != NULL) */
                             else
                                 ret_value = -1;
 
-                            free(start);
+                            HDfree(start);
                         } /* end if((start = (hsize_t *) HDmalloc(sizeof(hsize_t) * ndims)) != NULL) */
                         else
                             ret_value = -1;
 
-                        free(region_buf);
+                        HDfree(region_buf);
                     } /* end if((region_buf = HDmalloc(type_size * (size_t)numelem)) != NULL) */
                     else
                         ret_value = -1;
@@ -570,7 +571,7 @@ int h5str_print_region_data_blocks(hid_t region_id,
             else
                 ret_value = -1;
 
-            free(dims1);
+            HDfree(dims1);
         } /* end if((dims1 = (hsize_t *) HDmalloc(sizeof(hsize_t) * ndims)) != NULL) */
         else
             ret_value = -1;
@@ -608,7 +609,7 @@ int h5str_dump_region_blocks_data(h5str_t *str, hid_t region, hid_t region_id)
 
         alloc_size = (hsize_t)nblocks * (hsize_t)ndims * 2 * (hsize_t)sizeof(ptdata[0]);
         if (alloc_size == (hsize_t)((size_t) alloc_size)) {
-            ptdata = (hsize_t *) malloc((size_t) alloc_size);
+            ptdata = (hsize_t *)HDmalloc((size_t) alloc_size);
             H5Sget_select_hyper_blocklist(region, (hsize_t) 0,
                     (hsize_t) nblocks, ptdata);
 
@@ -629,7 +630,7 @@ int h5str_dump_region_blocks_data(h5str_t *str, hid_t region, hid_t region_id)
             } /* end if((dtype = H5Dget_type(region_id)) >= 0) */
             else
                 ret_value = -1;
-            free(ptdata);
+            HDfree(ptdata);
         } /* if (alloc_size == (hsize_t)((size_t)alloc_size)) */
     } /* if (nblocks > 0) */
 
@@ -661,7 +662,7 @@ int h5str_dump_region_blocks(h5str_t *str, hid_t region, hid_t region_id)
 
         alloc_size = (hsize_t)nblocks * (hsize_t)ndims * 2 * (hsize_t)sizeof(ptdata[0]);
         if (alloc_size == (hsize_t)((size_t) alloc_size)) {
-            ptdata = (hsize_t *) malloc((size_t) alloc_size);
+            ptdata = (hsize_t *)HDmalloc((size_t) alloc_size);
             H5Sget_select_hyper_blocklist(region, (hsize_t) 0,
                     (hsize_t) nblocks, ptdata);
 
@@ -690,7 +691,7 @@ int h5str_dump_region_blocks(h5str_t *str, hid_t region, hid_t region_id)
             }
             h5str_append(str, " }");
 
-            free(ptdata);
+            HDfree(ptdata);
         } /* if (alloc_size == (hsize_t)((size_t)alloc_size)) */
     } /* if (nblocks > 0) */
 
@@ -723,7 +724,7 @@ int h5str_print_region_data_points(hid_t region_space, hid_t region_id,
     char            tmp_str[256];
 
     /* Allocate space for the dimension array */
-    if((dims1 = (hsize_t *) malloc(sizeof(hsize_t) * (size_t)ndims)) != NULL) {
+    if((dims1 = (hsize_t *)HDmalloc(sizeof(hsize_t) * (size_t)ndims)) != NULL) {
 
         dims1[0] = (hsize_t)npoints;
 
@@ -732,7 +733,7 @@ int h5str_print_region_data_points(hid_t region_space, hid_t region_id,
 
             if((type_size = H5Tget_size(type_id)) > 0) {
 
-                if((region_buf = malloc(type_size * (size_t)npoints)) != NULL) {
+                if((region_buf = HDmalloc(type_size * (size_t)npoints)) != NULL) {
 
                     if(H5Dread(region_id, type_id, mem_space, region_space, H5P_DEFAULT, region_buf) >= 0) {
 
@@ -750,7 +751,7 @@ int h5str_print_region_data_points(hid_t region_space, hid_t region_id,
                     else
                         ret_value = -1;
 
-                    free(region_buf);
+                    HDfree(region_buf);
                 } /* end if((region_buf = HDmalloc(type_size * (size_t)npoints)) != NULL) */
                 else
                     ret_value = -1;
@@ -763,7 +764,7 @@ int h5str_print_region_data_points(hid_t region_space, hid_t region_id,
         } /* end if((mem_space = H5Screate_simple(1, dims1, NULL)) >= 0) */
         else
             ret_value = -1;
-        free(dims1);
+        HDfree(dims1);
     } /* end if((dims1 = (hsize_t *) HDmalloc(sizeof(hsize_t) * ndims)) != NULL) */
     else
         ret_value = -1;
@@ -795,7 +796,7 @@ int h5str_dump_region_points_data(h5str_t *str, hid_t region, hid_t region_id)
 
         alloc_size = (hsize_t)npoints * (hsize_t)ndims * (hsize_t)sizeof(ptdata[0]);
         if (alloc_size == (hsize_t)((size_t) alloc_size)) {
-            ptdata = (hsize_t *) malloc((size_t) alloc_size);
+            ptdata = (hsize_t *)HDmalloc((size_t) alloc_size);
             H5Sget_select_elem_pointlist(region, (hsize_t) 0,
                     (hsize_t) npoints, ptdata);
 
@@ -816,7 +817,7 @@ int h5str_dump_region_points_data(h5str_t *str, hid_t region, hid_t region_id)
             } /* end if((dtype = H5Dget_type(region_id)) >= 0) */
             else
                 ret_value = -1;
-            free(ptdata);
+            HDfree(ptdata);
         }
     }
 
@@ -848,7 +849,7 @@ int h5str_dump_region_points(h5str_t *str, hid_t region, hid_t region_id)
 
         alloc_size = (hsize_t)npoints * (hsize_t)ndims * (hsize_t)sizeof(ptdata[0]);
         if (alloc_size == (hsize_t)((size_t) alloc_size)) {
-            ptdata = (hsize_t *) malloc((size_t) alloc_size);
+            ptdata = (hsize_t *)HDmalloc((size_t) alloc_size);
             H5Sget_select_elem_pointlist(region, (hsize_t) 0,
                     (hsize_t) npoints, ptdata);
 
@@ -869,7 +870,7 @@ int h5str_dump_region_points(h5str_t *str, hid_t region, hid_t region_id)
             }
             h5str_append(str, " }");
 
-            free(ptdata);
+            HDfree(ptdata);
         }
     }
 
@@ -1213,7 +1214,7 @@ int h5str_render_bin_output(FILE *stream, hid_t container, hid_t tid, void *_mem
                             s = (char *) mem;
                         }
                         for (i = 0; i < size && (s[i] || pad != H5T_STR_NULLTERM); i++) {
-                            memcpy(&tempuchar, &s[i], sizeof(unsigned char));
+                            HDmemcpy(&tempuchar, &s[i], sizeof(unsigned char));
                             if (1 != fwrite(&tempuchar, sizeof(unsigned char), 1, stream)) {
                                 ret_value = -1;
                                 break;
@@ -1387,7 +1388,7 @@ int render_bin_output_region_data_blocks(FILE *stream, hid_t region_id,
     /* Get the dataspace of the dataset */
     if((sid1 = H5Dget_space(region_id)) >= 0) {
         /* Allocate space for the dimension array */
-        if((dims1 = (hsize_t *)malloc(sizeof(hsize_t) * (size_t)ndims)) != NULL) {
+        if((dims1 = (hsize_t *)HDmalloc(sizeof(hsize_t) * (size_t)ndims)) != NULL) {
             /* find the dimensions of each data space from the block coordinates */
             numelem = 1;
             for (jndx = 0; jndx < ndims; jndx++) {
@@ -1398,11 +1399,11 @@ int render_bin_output_region_data_blocks(FILE *stream, hid_t region_id,
             /* Create dataspace for reading buffer */
             if((mem_space = H5Screate_simple(ndims, dims1, NULL)) >= 0) {
                 if((type_size = H5Tget_size(type_id)) > 0) {
-                    if((region_buf = malloc(type_size * (size_t)numelem)) != NULL) {
+                    if((region_buf = HDmalloc(type_size * (size_t)numelem)) != NULL) {
                         /* Select (x , x , ..., x ) x (y , y , ..., y ) hyperslab for reading memory dataset */
                         /*          1   2        n      1   2        n                                       */
-                        if((start = (hsize_t *) malloc(sizeof(hsize_t) * (size_t)ndims)) != NULL) {
-                            if((count = (hsize_t *) malloc(sizeof(hsize_t) * (size_t)ndims)) != NULL) {
+                        if((start = (hsize_t *)HDmalloc(sizeof(hsize_t) * (size_t)ndims)) != NULL) {
+                            if((count = (hsize_t *)HDmalloc(sizeof(hsize_t) * (size_t)ndims)) != NULL) {
                                 for (blkndx = 0; blkndx < nblocks; blkndx++) {
                                     for (jndx = 0; jndx < ndims; jndx++) {
                                         start[jndx] = ptdata[jndx + blkndx * ndims * 2];
@@ -1431,15 +1432,15 @@ int render_bin_output_region_data_blocks(FILE *stream, hid_t region_id,
                                     /* Render the region data element end */
                                 } /* end for (blkndx = 0; blkndx < nblocks; blkndx++) */
 
-                                free(count);
+                                HDfree(count);
                             } /* end if((count = (hsize_t *) HDmalloc(sizeof(hsize_t) * ndims)) != NULL) */
                             else
                                 ret_value = -1;
-                            free(start);
+                            HDfree(start);
                         } /* end if((start = (hsize_t *) HDmalloc(sizeof(hsize_t) * ndims)) != NULL) */
                         else
                             ret_value = -1;
-                        free(region_buf);
+                        HDfree(region_buf);
                     } /* end if((region_buf = HDmalloc(type_size * (size_t)numelem)) != NULL) */
                     else
                         ret_value = -1;
@@ -1452,7 +1453,7 @@ int render_bin_output_region_data_blocks(FILE *stream, hid_t region_id,
             } /* end if((mem_space = H5Screate_simple(ndims, dims1, NULL)) >= 0) */
             else
                 ret_value = -1;
-            free(dims1);
+            HDfree(dims1);
         } /* end if((dims1 = (hsize_t *) HDmalloc(sizeof(hsize_t) * ndims)) != NULL) */
         else
             ret_value = -1;
@@ -1491,7 +1492,7 @@ int render_bin_output_region_blocks(FILE *stream, hid_t region_space, hid_t regi
         /* Print block information */
         if((ndims = H5Sget_simple_extent_ndims(region_space)) >= 0) {
             alloc_size = (hsize_t)nblocks * (hsize_t)ndims * 2 * (hsize_t)sizeof(ptdata[0]);
-            if((ptdata = (hsize_t*) malloc((size_t)alloc_size)) != NULL) {
+            if((ptdata = (hsize_t*)HDmalloc((size_t)alloc_size)) != NULL) {
                 if(H5Sget_select_hyper_blocklist(region_space, (hsize_t)0, (hsize_t)nblocks, ptdata) >= 0) {
                     if((dtype = H5Dget_type(region_id)) >= 0) {
                         if((type_id = H5Tget_native_type(dtype, H5T_DIR_DEFAULT)) >= 0) {
@@ -1513,7 +1514,7 @@ int render_bin_output_region_blocks(FILE *stream, hid_t region_space, hid_t regi
                 else
                     ret_value = -1;
 
-                free(ptdata);
+                HDfree(ptdata);
             } /* end if((ptdata = (hsize_t*) HDmalloc((size_t) alloc_size)) != NULL) */
             else
                 ret_value = -1;
@@ -1550,9 +1551,9 @@ int render_bin_output_region_data_points(FILE *stream, hid_t region_space, hid_t
     int      ret_value = SUCCEED;
 
     if((type_size = H5Tget_size(type_id)) > 0) {
-        if((region_buf = malloc(type_size * (size_t)npoints)) != NULL) {
+        if((region_buf = HDmalloc(type_size * (size_t)npoints)) != NULL) {
             /* Allocate space for the dimension array */
-            if((dims1 = (hsize_t *)malloc(sizeof(hsize_t) * (size_t)ndims)) != NULL) {
+            if((dims1 = (hsize_t *)HDmalloc(sizeof(hsize_t) * (size_t)ndims)) != NULL) {
                 dims1[0] = (hsize_t)npoints;
                 if((mem_space = H5Screate_simple(1, dims1, NULL)) >= 0) {
                     if(H5Dread(region_id, type_id, mem_space, region_space, H5P_DEFAULT, region_buf) >= 0) {
@@ -1568,11 +1569,11 @@ int render_bin_output_region_data_points(FILE *stream, hid_t region_space, hid_t
                 else
                     ret_value = -1;
 
-                free(dims1);
+                HDfree(dims1);
             } /* end if((dims1 = (hsize_t *) malloc(sizeof(hsize_t) * ndims)) != NULL) */
             else
                 ret_value = -1;
-            free(region_buf);
+            HDfree(region_buf);
         } /* end if((region_buf = malloc(type_size * (size_t)npoints)) != NULL) */
         else
             ret_value = -1;
@@ -1612,7 +1613,7 @@ int render_bin_output_region_points(FILE *stream, hid_t region_space, hid_t regi
         /* Allocate space for the dimension array */
         if((ndims = H5Sget_simple_extent_ndims(region_space)) >= 0) {
             alloc_size = (hsize_t)npoints * (hsize_t)ndims * (hsize_t)sizeof(ptdata[0]);
-            if(NULL != (ptdata = (hsize_t *)malloc((size_t)alloc_size))) {
+            if(NULL != (ptdata = (hsize_t *)HDmalloc((size_t)alloc_size))) {
                 if(H5Sget_select_elem_pointlist(region_space, (hsize_t)0, (hsize_t)npoints, ptdata) >= 0) {
                     if((dtype = H5Dget_type(region_id)) >= 0) {
                         if((type_id = H5Tget_native_type(dtype, H5T_DIR_DEFAULT)) >= 0) {
@@ -1634,7 +1635,7 @@ int render_bin_output_region_points(FILE *stream, hid_t region_space, hid_t regi
                 else
                     ret_value = -1;
 
-                free(ptdata);
+                HDfree(ptdata);
             } /* end if(NULL != (ptdata = (hsize_t *)malloc((size_t) alloc_size))) */
             else
                 ret_value = -1;
@@ -1732,14 +1733,14 @@ int h5str_dump_simple_dset(FILE *stream, hid_t dset, int binary_order)
                     }
 
                     if(sm_nbytes > 0) {
-                        sm_buf = (unsigned char *)malloc((size_t)sm_nbytes);
+                        sm_buf = (unsigned char *)HDmalloc((size_t)sm_nbytes);
 
                         sm_nelmts = sm_nbytes / p_type_nbytes;
                         sm_space = H5Screate_simple(1, &sm_nelmts, NULL);
 
                         /* The stripmine loop */
-                        memset(hs_offset, 0, sizeof hs_offset);
-                        memset(zero, 0, sizeof zero);
+                        HDmemset(hs_offset, 0, sizeof hs_offset);
+                        HDmemset(zero, 0, sizeof zero);
 
                         for (elmtno = 0; elmtno < p_nelmts; elmtno += hs_nelmts) {
                             /* Calculate the hyperslab size */
@@ -1789,7 +1790,7 @@ int h5str_dump_simple_dset(FILE *stream, hid_t dset, int binary_order)
                         }
 
                         if(sm_buf)
-                            free(sm_buf);
+                            HDfree(sm_buf);
                     }
                     if(sm_space >= 0 && H5Sclose(sm_space) < 0)
                         ret_value = -1;
@@ -1828,16 +1829,16 @@ int h5tools_dump_simple_data(FILE *stream, hid_t container, hid_t type, void *_m
             h5str_new(&buffer, 32 * size);
             bytes_in = h5str_sprintf(&buffer, container, type, memref, 1);
             if(i > 0) {
-                fprintf(stream, ", ");
+                HDfprintf(stream, ", ");
                 if (line_count >= H5TOOLS_TEXT_BLOCK) {
                     line_count = 0;
-                    fprintf(stream, "\n");
+                    HDfprintf(stream, "\n");
                 }
             }
-            fprintf(stream, "%s", buffer.s);
+            HDfprintf(stream, "%s", buffer.s);
             h5str_free(&buffer);
         } /* end for (i = 0; i < nelmts... */
-        fprintf(stream, "\n");
+        HDfprintf(stream, "\n");
     } /* end if((size = H5Tget_size(tid)) > 0) */
     else
         ret_value = -1;

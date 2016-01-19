@@ -53,21 +53,10 @@ static herr_t H5O_iterate_cb(hid_t g_id, const char *name, const H5O_info_t *inf
     JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Oopen
       (JNIEnv *env, jclass clss, jlong loc_id, jstring name, jlong access_plist_id)
     {
-        hid_t    status;
+        hid_t       status;
         const char *oName;
-        jboolean isCopy;
 
-        if (name == NULL) {
-            h5nullArgument( env, "H5Oopen:  name is NULL");
-            return -1;
-        }
-
-        oName = ENVPTR->GetStringUTFChars(ENVPAR name,&isCopy);
-
-        if (oName == NULL) {
-            h5JNIFatalError( env, "H5Oopen:  object name not pinned");
-            return -1;
-        }
+        PIN_JAVA_STRING(name, oName, -1);
 
         status = H5Oopen((hid_t)loc_id, oName, (hid_t)access_plist_id );
 
@@ -86,7 +75,7 @@ static herr_t H5O_iterate_cb(hid_t g_id, const char *name, const H5O_info_t *inf
     JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5__1H5Oclose
       (JNIEnv *env, jclass clss, jlong object_id)
     {
-        herr_t retVal =  H5Oclose((hid_t)object_id) ;
+        herr_t retVal =  H5Oclose((hid_t)object_id);
 
         if (retVal < 0) {
             h5libraryError(env);
@@ -103,34 +92,11 @@ static herr_t H5O_iterate_cb(hid_t g_id, const char *name, const H5O_info_t *inf
     JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Ocopy
       (JNIEnv *env, jclass clss, jlong cur_loc_id, jstring cur_name, jlong dst_loc_id, jstring dst_name, jlong create_id, jlong access_id)
     {
+        herr_t      status = -1;
         const char *lCurName;
         const char *lDstName;
-        jboolean isCopy;
-        herr_t   status = -1;
 
-        if (cur_name == NULL) {
-            h5nullArgument(env, "H5Ocopy:  cur_name is NULL");
-            return;
-        }
-
-        lCurName = ENVPTR->GetStringUTFChars(ENVPAR cur_name, &isCopy);
-        if (lCurName == NULL) {
-            h5JNIFatalError(env, "H5Ocopy:  cur_name not pinned");
-            return;
-        }
-
-        if (dst_name == NULL) {
-            ENVPTR->ReleaseStringUTFChars(ENVPAR cur_name, lCurName);
-            h5nullArgument(env, "H5Ocopy:  dst_name is NULL");
-            return;
-        }
-
-        lDstName = ENVPTR->GetStringUTFChars(ENVPAR dst_name, &isCopy);
-        if (lDstName == NULL) {
-            ENVPTR->ReleaseStringUTFChars(ENVPAR cur_name, lCurName);
-            h5JNIFatalError(env, "H5Ocopy:  dst_name not pinned");
-            return;
-        }
+        PIN_JAVA_STRING_TWO0(cur_name, lCurName, dst_name, lDstName);
 
         status = H5Ocopy((hid_t)cur_loc_id, lCurName, (hid_t)dst_loc_id, lDstName, (hid_t)create_id, (hid_t)access_id);
 
@@ -161,7 +127,7 @@ static herr_t H5O_iterate_cb(hid_t g_id, const char *name, const H5O_info_t *inf
         jobject     ihinfobuf2;
         jobject     ret_obj = NULL;
 
-        status = H5Oget_info((hid_t)loc_id, (H5O_info_t*)&infobuf);
+        status = H5Oget_info((hid_t)loc_id, &infobuf);
 
         if (status < 0) {
            h5libraryError(env);
@@ -218,25 +184,15 @@ static herr_t H5O_iterate_cb(hid_t g_id, const char *name, const H5O_info_t *inf
         const char *lName;
         herr_t      status;
         H5O_info_t  infobuf;
-        jboolean    isCopy;
         jvalue      args[12];
         jobject     hdrinfobuf;
         jobject     ihinfobuf1;
         jobject     ihinfobuf2;
         jobject     ret_obj = NULL;
 
-        if (name == NULL) {
-            h5nullArgument(env, "H5Oget_info_by_name:  name is NULL");
-            return NULL;
-        }
+        PIN_JAVA_STRING(name, lName, NULL);
 
-        lName = ENVPTR->GetStringUTFChars(ENVPAR name, &isCopy);
-        if (lName == NULL) {
-            h5JNIFatalError(env, "H5Oget_info_by_name:  name not pinned");
-            return NULL;
-        }
-
-        status = H5Oget_info_by_name((hid_t)loc_id, lName, (H5O_info_t*)&infobuf, (hid_t)access_id);
+        status = H5Oget_info_by_name((hid_t)loc_id, lName, &infobuf, (hid_t)access_id);
 
         ENVPTR->ReleaseStringUTFChars(ENVPAR name, lName);
 
@@ -295,25 +251,15 @@ static herr_t H5O_iterate_cb(hid_t g_id, const char *name, const H5O_info_t *inf
         const char *lName;
         herr_t      status;
         H5O_info_t  infobuf;
-        jboolean    isCopy;
         jvalue      args[12];
         jobject     hdrinfobuf;
         jobject     ihinfobuf1;
         jobject     ihinfobuf2;
         jobject     ret_obj = NULL;
 
-        if (name == NULL) {
-            h5nullArgument(env, "H5Oget_info_by_idx:  name is NULL");
-            return NULL;
-        }
+        PIN_JAVA_STRING(name, lName, NULL);
 
-        lName = ENVPTR->GetStringUTFChars(ENVPAR name, &isCopy);
-        if (lName == NULL) {
-            h5JNIFatalError(env, "H5Oget_info_by_idx:  name not pinned");
-            return NULL;
-        }
-
-        status = H5Oget_info_by_idx((hid_t)loc_id, lName, (H5_index_t)index_field, (H5_iter_order_t)order, (hsize_t)link_n, (H5O_info_t*)&infobuf, (hid_t)access_id);
+        status = H5Oget_info_by_idx((hid_t)loc_id, lName, (H5_index_t)index_field, (H5_iter_order_t)order, (hsize_t)link_n, &infobuf, (hid_t)access_id);
 
         ENVPTR->ReleaseStringUTFChars(ENVPAR name, lName);
 
@@ -369,20 +315,10 @@ static herr_t H5O_iterate_cb(hid_t g_id, const char *name, const H5O_info_t *inf
     JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Olink
       (JNIEnv *env, jclass clss, jlong cur_loc_id, jlong dst_loc_id, jstring dst_name, jlong create_id, jlong access_id)
     {
+        herr_t      status = -1;
         const char *lDstName;
-        jboolean isCopy;
-        herr_t   status = -1;
 
-        if (dst_name == NULL) {
-            h5nullArgument(env, "H5Ocreate_hard:  dst_name is NULL");
-            return;
-        }
-
-        lDstName = ENVPTR->GetStringUTFChars(ENVPAR dst_name, &isCopy);
-        if (lDstName == NULL) {
-            h5JNIFatalError( env, "H5Ocreate_hard:  dst_name not pinned");
-            return;
-        }
+        PIN_JAVA_STRING0(dst_name, lDstName);
 
         status = H5Olink((hid_t)cur_loc_id, (hid_t)dst_loc_id, lDstName, (hid_t)create_id, (hid_t)access_id);
 
@@ -513,7 +449,7 @@ static herr_t H5O_iterate_cb(hid_t g_id, const char *name, const H5O_info_t *inf
       (JNIEnv *env, jclass clss, jlong grp_id, jint idx_type, jint order,
               jobject callback_op, jobject op_data)
     {
-        herr_t        status = -1;
+        herr_t   status = -1;
 
         ENVPTR->GetJavaVM(ENVPAR &jvm);
         visit_callback = callback_op;
@@ -546,23 +482,13 @@ static herr_t H5O_iterate_cb(hid_t g_id, const char *name, const H5O_info_t *inf
       (JNIEnv *env, jclass clss, jlong grp_id, jstring name, jint idx_type, jint order,
               jobject callback_op, jobject op_data, jlong access_id)
     {
-        jboolean      isCopy;
-        const char   *lName;
         herr_t        status = -1;
+        const char   *lName;
 
         ENVPTR->GetJavaVM(ENVPAR &jvm);
         visit_callback = callback_op;
 
-        if (name == NULL) {
-            h5nullArgument(env, "H5Ovisit_by_name:  name is NULL");
-            return -1;
-        }
-
-        lName = ENVPTR->GetStringUTFChars(ENVPAR name, &isCopy);
-        if (lName == NULL) {
-            h5JNIFatalError(env, "H5Ovisit_by_name:  name not pinned");
-            return -1;
-        }
+        PIN_JAVA_STRING(name, lName, -1);
 
         if (op_data == NULL) {
             h5nullArgument(env, "H5Ovisit_by_name:  op_data is NULL");
@@ -610,7 +536,8 @@ static herr_t H5O_iterate_cb(hid_t g_id, const char *name, const H5O_info_t *inf
 
         status = H5Oset_comment((hid_t)loc_id, oComment);
 
-        ENVPTR->ReleaseStringUTFChars(ENVPAR comment, oComment);
+        if(oComment)
+            ENVPTR->ReleaseStringUTFChars(ENVPAR comment, oComment);
 
         if (status < 0) {
             h5libraryError(env);
@@ -628,22 +555,15 @@ static herr_t H5O_iterate_cb(hid_t g_id, const char *name, const H5O_info_t *inf
         herr_t      status;
         const char *oName;
         const char *oComment;
-        jboolean    isCopy;
 
-        if (name == NULL) {
-            h5nullArgument( env, "H5Oset_comment_by_name:  name is NULL");
-            return;
-        }
-        oName = ENVPTR->GetStringUTFChars(ENVPAR name, &isCopy);
-        if (oName == NULL) {
-            h5JNIFatalError( env, "H5Oset_comment_by_name:  name not pinned");
-            return;
-        }
+        PIN_JAVA_STRING0(name, oName);
+
         if (comment == NULL) {
             oComment = NULL;
         }
         else {
-            oComment = ENVPTR->GetStringUTFChars(ENVPAR comment,&isCopy);
+            jboolean    isCopy;
+            oComment = ENVPTR->GetStringUTFChars(ENVPAR comment, &isCopy);
             if (oComment == NULL) {
                 ENVPTR->ReleaseStringUTFChars(ENVPAR name, oName);
                 h5JNIFatalError( env, "H5Oset_comment_by_name:  comment not pinned");
@@ -653,7 +573,8 @@ static herr_t H5O_iterate_cb(hid_t g_id, const char *name, const H5O_info_t *inf
 
         status = H5Oset_comment_by_name((hid_t)loc_id, oName, oComment, (hid_t)access_id);
 
-        ENVPTR->ReleaseStringUTFChars(ENVPAR comment, oComment);
+        if(oComment)
+            ENVPTR->ReleaseStringUTFChars(ENVPAR comment, oComment);
         ENVPTR->ReleaseStringUTFChars(ENVPAR name, oName);
 
         if (status < 0) {
@@ -670,10 +591,10 @@ static herr_t H5O_iterate_cb(hid_t g_id, const char *name, const H5O_info_t *inf
     JNIEXPORT jstring JNICALL Java_hdf_hdf5lib_H5_H5Oget_1comment
       (JNIEnv *env, jclass clss, jlong loc_id)
     {
-        char   *oComment;
+        char    *oComment;
         ssize_t  buf_size;
-        ssize_t status;
-        jstring str;
+        ssize_t  status;
+        jstring  str;
 
         /* get the length of the comment */
         buf_size = H5Oget_comment((hid_t)loc_id, NULL, 0);
@@ -686,26 +607,26 @@ static herr_t H5O_iterate_cb(hid_t g_id, const char *name, const H5O_info_t *inf
         }
 
         buf_size++; /* add extra space for the null terminator */
-        oComment = (char *)malloc(sizeof(char) * (size_t)buf_size);
+        oComment = (char *)HDmalloc(sizeof(char) * (size_t)buf_size);
         if (oComment == NULL) {
             /* exception -- out of memory */
             h5outOfMemory( env, "H5Oget_comment:  malloc failed");
             return NULL;
         }
 
-        status = H5Oget_comment((hid_t)loc_id, (char*)oComment, (size_t)buf_size);
+        status = H5Oget_comment((hid_t)loc_id, oComment, (size_t)buf_size);
 
         if (status >= 0) {
             /*  may throw OutOfMemoryError */
             str = ENVPTR->NewStringUTF(ENVPAR oComment);
-            free(oComment);
+            HDfree(oComment);
             if (str == NULL) {
                 h5JNIFatalError( env, "H5Oget_comment:  return string not allocated");
                 return NULL;
             }
         }
         else {
-            free(oComment);
+            HDfree(oComment);
             h5libraryError(env);
             return NULL;
         }
@@ -721,22 +642,13 @@ static herr_t H5O_iterate_cb(hid_t g_id, const char *name, const H5O_info_t *inf
     JNIEXPORT jstring JNICALL Java_hdf_hdf5lib_H5_H5Oget_1comment_1by_1name
       (JNIEnv *env, jclass clss, jlong loc_id, jstring name, jlong access_id)
     {
-        char    *oComment;
+        char       *oComment;
         const char *oName;
-        ssize_t   buf_size;
-        ssize_t  status;
-        jstring  str;
-        jboolean isCopy;
+        ssize_t     buf_size;
+        ssize_t     status;
+        jstring     str;
 
-        if (name == NULL) {
-            h5nullArgument( env, "H5Oget_comment_by_name:  name is NULL");
-            return NULL;
-        }
-        oName = ENVPTR->GetStringUTFChars(ENVPAR name, &isCopy);
-        if (oName == NULL) {
-            h5JNIFatalError( env, "H5Oget_comment_by_name:  name not pinned");
-            return NULL;
-        }
+        PIN_JAVA_STRING(name, oName, NULL);
 
         /* get the length of the comment */
         buf_size = H5Oget_comment_by_name((hid_t)loc_id, oName, NULL, 0, (hid_t)access_id);
@@ -751,27 +663,27 @@ static herr_t H5O_iterate_cb(hid_t g_id, const char *name, const H5O_info_t *inf
         }
 
         buf_size++; /* add extra space for the null terminator */
-        oComment = (char *)malloc(sizeof(char) * (size_t)buf_size);
+        oComment = (char *)HDmalloc(sizeof(char) * (size_t)buf_size);
         if (oComment == NULL) {
             ENVPTR->ReleaseStringUTFChars(ENVPAR name, oName);
             h5outOfMemory( env, "H5Oget_comment_by_name:  malloc failed");
             return NULL;
         }
 
-        status = H5Oget_comment_by_name((hid_t)loc_id, oName, (char*)oComment, (size_t)buf_size, (hid_t)access_id);
+        status = H5Oget_comment_by_name((hid_t)loc_id, oName, oComment, (size_t)buf_size, (hid_t)access_id);
         ENVPTR->ReleaseStringUTFChars(ENVPAR name, oName);
 
         if (status >= 0) {
             /*  may throw OutOfMemoryError */
             str = ENVPTR->NewStringUTF(ENVPAR oComment);
-            free(oComment);
+            HDfree(oComment);
             if (str == NULL) {
                 h5JNIFatalError( env, "H5Oget_comment_by_name:  return string not allocated");
                 return NULL;
             }
         }
         else {
-            free(oComment);
+            HDfree(oComment);
             h5libraryError(env);
             return NULL;
         }
@@ -787,19 +699,10 @@ static herr_t H5O_iterate_cb(hid_t g_id, const char *name, const H5O_info_t *inf
     JNIEXPORT jboolean JNICALL Java_hdf_hdf5lib_H5_H5Oexists_1by_1name
       (JNIEnv *env, jclass clss, jlong loc_id, jstring name, jlong access_id)
     {
-        htri_t bval;
+        htri_t      bval;
         const char *oName;
-        jboolean isCopy;
 
-        if (name == NULL) {
-            h5nullArgument( env, "H5Oexists_by_name:  name is NULL");
-            return JNI_FALSE;
-        }
-        oName = ENVPTR->GetStringUTFChars(ENVPAR name, &isCopy);
-        if (oName == NULL) {
-            h5JNIFatalError( env, "H5Oexists_by_name:  name not pinned");
-            return JNI_FALSE;
-        }
+        PIN_JAVA_STRING(name, oName, JNI_FALSE);
 
         bval = H5Oexists_by_name((hid_t)loc_id, oName, (hid_t)access_id);
 
@@ -826,7 +729,7 @@ static herr_t H5O_iterate_cb(hid_t g_id, const char *name, const H5O_info_t *inf
     JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Odecr_1refcount
     (JNIEnv *env, jclass clss, jlong object_id)
     {
-      herr_t retVal =  H5Odecr_refcount((hid_t)object_id) ;
+      herr_t retVal = H5Odecr_refcount((hid_t)object_id) ;
 
       if (retVal < 0) {
           h5libraryError(env);
@@ -841,7 +744,7 @@ static herr_t H5O_iterate_cb(hid_t g_id, const char *name, const H5O_info_t *inf
     JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Oincr_1refcount
     (JNIEnv *env, jclass clss, jlong object_id)
     {
-      herr_t retVal =  H5Oincr_refcount((hid_t)object_id) ;
+      herr_t retVal = H5Oincr_refcount((hid_t)object_id) ;
 
       if (retVal < 0) {
           h5libraryError(env);
@@ -856,9 +759,7 @@ static herr_t H5O_iterate_cb(hid_t g_id, const char *name, const H5O_info_t *inf
     JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Oopen_1by_1addr
       (JNIEnv *env, jclass clss, jlong loc_id, jlong addr)
     {
-        hid_t    status;
-
-        status = H5Oopen_by_addr((hid_t)loc_id, (haddr_t)addr );
+        hid_t status = H5Oopen_by_addr((hid_t)loc_id, (haddr_t)addr );
 
         if (status < 0) {
             h5libraryError(env);
@@ -874,21 +775,10 @@ static herr_t H5O_iterate_cb(hid_t g_id, const char *name, const H5O_info_t *inf
     JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Oopen_1by_1idx
       (JNIEnv *env, jclass clss, jlong loc_id, jstring name, jint index_field, jint order, jlong link_n, jlong lapl_id)
     {
-        hid_t    status;
+        hid_t       status;
         const char *oName;
-        jboolean isCopy;
 
-        if (name == NULL) {
-            h5nullArgument( env, "H5Oopen:  name is NULL");
-            return -1;
-        }
-
-        oName = ENVPTR->GetStringUTFChars(ENVPAR name,&isCopy);
-
-        if (oName == NULL) {
-            h5JNIFatalError( env, "H5Oopen:  object name not pinned");
-            return -1;
-        }
+        PIN_JAVA_STRING(name, oName, -1);
 
         status = H5Oopen_by_idx((hid_t)loc_id, oName, (H5_index_t)index_field, (H5_iter_order_t)order, (hsize_t)link_n, (hid_t)lapl_id );
 

@@ -25,7 +25,7 @@ extern "C" {
 #define THROWEXCEPTION(className,args) {                                    \
     jclass     jc;                                                          \
     jmethodID  jm;                                                          \
-    jobject   ex;                                                           \
+    jobject    ex;                                                          \
     jc = ENVPTR->FindClass(ENVPAR className);                               \
     if (jc == NULL) {                                                       \
         return JNI_FALSE;                                                   \
@@ -34,9 +34,8 @@ extern "C" {
     if (jm == NULL) {                                                       \
         return JNI_FALSE;                                                   \
     }                                                                       \
-    ex = ENVPTR->NewObjectA (ENVPAR jc, jm, (jvalue *)args );               \
-    rval = ENVPTR->Throw(ENVPAR (jthrowable ) ex );                         \
-    if (rval < 0) {                                                         \
+    ex = ENVPTR->NewObjectA (ENVPAR jc, jm, (jvalue*)args);                 \
+    if (ENVPTR->Throw(ENVPAR (jthrowable)ex) < 0) {                         \
         printf("FATAL ERROR:  %s: Throw failed\n", className);              \
         return JNI_FALSE;                                                   \
     }                                                                       \

@@ -92,7 +92,7 @@ public class TestH5A {
             assertTrue("TestH5D.createH5file: _createDataset: ", H5did > 0);
             space_id = H5.H5Screate(HDF5Constants.H5S_NULL);
             assertTrue(space_id > 0);
-            lapl_id = H5.H5Pcreate(HDF5Constants.H5P_DATASET_ACCESS);
+            lapl_id = H5.H5Pcreate(HDF5Constants.H5P_ATTRIBUTE_ACCESS);
             assertTrue(lapl_id > 0);
             type_id = H5.H5Tenum_create(HDF5Constants.H5T_STD_I32LE);
             assertTrue(type_id > 0);

@@ -342,6 +342,7 @@ public class HDF5Constants {
     public static final long H5P_DATATYPE_ACCESS = H5P_DATATYPE_ACCESS();
     public static final long H5P_STRING_CREATE = H5P_STRING_CREATE();
     public static final long H5P_ATTRIBUTE_CREATE = H5P_ATTRIBUTE_CREATE();
+    public static final long H5P_ATTRIBUTE_ACCESS = H5P_ATTRIBUTE_ACCESS();
     public static final long H5P_OBJECT_COPY = H5P_OBJECT_COPY();
     public static final long H5P_LINK_CREATE = H5P_LINK_CREATE();
     public static final long H5P_LINK_ACCESS = H5P_LINK_ACCESS();
@@ -356,6 +357,7 @@ public class HDF5Constants {
     public static final long H5P_DATATYPE_CREATE_DEFAULT = H5P_DATATYPE_CREATE_DEFAULT();
     public static final long H5P_DATATYPE_ACCESS_DEFAULT = H5P_DATATYPE_ACCESS_DEFAULT();
     public static final long H5P_ATTRIBUTE_CREATE_DEFAULT = H5P_ATTRIBUTE_CREATE_DEFAULT();
+    public static final long H5P_ATTRIBUTE_ACCESS_DEFAULT = H5P_ATTRIBUTE_ACCESS_DEFAULT();
     public static final long H5P_OBJECT_COPY_DEFAULT = H5P_OBJECT_COPY_DEFAULT();
     public static final long H5P_LINK_CREATE_DEFAULT = H5P_LINK_CREATE_DEFAULT();
     public static final long H5P_LINK_ACCESS_DEFAULT = H5P_LINK_ACCESS_DEFAULT();
@@ -1242,6 +1244,8 @@ public class HDF5Constants {
 
     private static native final long H5P_ATTRIBUTE_CREATE();
 
+    private static native final long H5P_ATTRIBUTE_ACCESS();
+
     private static native final long H5P_OBJECT_COPY();
 
     private static native final long H5P_LINK_CREATE();
@@ -1269,6 +1273,8 @@ public class HDF5Constants {
     private static native final long H5P_DATATYPE_ACCESS_DEFAULT();
 
     private static native final long H5P_ATTRIBUTE_CREATE_DEFAULT();
+
+    private static native final long H5P_ATTRIBUTE_ACCESS_DEFAULT();
 
     private static native final long H5P_OBJECT_COPY_DEFAULT();
 

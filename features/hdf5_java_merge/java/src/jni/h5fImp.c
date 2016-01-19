@@ -39,25 +39,14 @@ extern "C" {
 JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Fopen
   (JNIEnv *env, jclass clss, jstring name, jint flags, jlong access_id)
 {
-    hid_t status;
-    const char *file;
-    jboolean isCopy;
+    hid_t       status;
+    const char *fileName;
 
-    if (name == NULL) {
-        /* exception -- bad argument? */
-        h5nullArgument( env, "H5Fopen:  name is NULL");
-        return -1;
-    }
+    PIN_JAVA_STRING(name, fileName, -1);
 
-    file = ENVPTR->GetStringUTFChars(ENVPAR name,&isCopy);
-    if (file == NULL) {
-        /* exception -- out of memory? */
-        h5JNIFatalError( env, "H5Fopen:  file name not pinned");
-        return -1;
-    }
-    status = H5Fopen(file, (unsigned) flags, (hid_t) access_id );
+    status = H5Fopen(fileName, (unsigned)flags, (hid_t)access_id );
 
-    ENVPTR->ReleaseStringUTFChars(ENVPAR name,file);
+    ENVPTR->ReleaseStringUTFChars(ENVPAR name, fileName);
     if (status < 0) {
         /* throw exception */
         h5libraryError(env);
@@ -75,26 +64,14 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Fopen
 JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Fcreate
   (JNIEnv *env, jclass clss, jstring name, jint flags, jlong create_id, jlong access_id)
 {
-    hid_t status;
-    const char *file;
-    jboolean isCopy;
+    hid_t       status;
+    const char *fileName;
 
-    if (name == NULL) {
-        /* exception -- bad argument? */
-        h5nullArgument( env, "H5Fcreate:  name is NULL");
-        return -1;
-    }
+    PIN_JAVA_STRING(name, fileName, -1);
 
-    file = ENVPTR->GetStringUTFChars(ENVPAR name,&isCopy);
-    if (file == NULL) {
-        /* exception -- out of memory? */
-        h5JNIFatalError( env, "H5Fcreate:  file name is not pinned");
-        return -1;
-    }
+    status = H5Fcreate(fileName, (unsigned)flags, create_id, access_id);
 
-    status = H5Fcreate(file, (unsigned)flags, create_id, access_id);
-
-    ENVPTR->ReleaseStringUTFChars(ENVPAR name,file);
+    ENVPTR->ReleaseStringUTFChars(ENVPAR name, fileName);
     if (status < 0) {
         /* throw exception */
         h5libraryError(env);
@@ -111,7 +88,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Fflush
   (JNIEnv *env, jclass clss, jlong object_id, jint scope)
 {
     herr_t retVal = -1;
-    retVal =  H5Fflush((hid_t) object_id, (H5F_scope_t) scope );
+    retVal =  H5Fflush((hid_t)object_id, (H5F_scope_t)scope );
     if (retVal < 0) {
         /* throw exception */
         h5libraryError(env);
@@ -127,7 +104,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Fflush
 JNIEXPORT jstring JNICALL Java_hdf_hdf5lib_H5_H5Fget_1name
   (JNIEnv *env, jclass cls, jlong file_id)
 {
-    char *namePtr;
+    char   *namePtr;
     jstring str;
     ssize_t buf_size;
 
@@ -140,22 +117,22 @@ JNIEXPORT jstring JNICALL Java_hdf_hdf5lib_H5_H5Fget_1name
     }
 
     buf_size++; /* add extra space for the null terminator */
-    namePtr = (char*)malloc(sizeof(char) * (size_t)buf_size);
+    namePtr = (char*)HDmalloc(sizeof(char) * (size_t)buf_size);
     if (namePtr == NULL) {
         h5outOfMemory( env, "H5Fget_name:  malloc failed");
         return NULL;
     }
 
-    buf_size = H5Fget_name ((hid_t) file_id, (char *)namePtr, (size_t)buf_size);
+    buf_size = H5Fget_name((hid_t)file_id, namePtr, (size_t)buf_size);
 
     if (buf_size < 0) {
-        free(namePtr);
+        HDfree(namePtr);
         h5libraryError(env);
         return NULL;
     }
 
     str = ENVPTR->NewStringUTF(ENVPAR namePtr);
-    free(namePtr);
+    HDfree(namePtr);
 
     return str;
 }
@@ -169,25 +146,13 @@ JNIEXPORT jboolean JNICALL Java_hdf_hdf5lib_H5_H5Fis_1hdf5
   (JNIEnv *env, jclass clss, jstring name)
 {
     htri_t retVal = 0;
-    const char *file;
-    jboolean isCopy;
+    const char *fileName;
 
-    if (name == NULL) {
-        /* exception -- bad argument? */
-        h5nullArgument( env, "H5Fis_hdf5:  name is NULL");
-        return JNI_FALSE;
-    }
+    PIN_JAVA_STRING(name, fileName, JNI_FALSE);
 
-    file = ENVPTR->GetStringUTFChars(ENVPAR name,&isCopy);
-    if (file == NULL) {
-        /* exception -- out of memory? */
-        h5JNIFatalError( env, "H5Fis_hdf5:  file name is not pinned");
-        return JNI_FALSE;
-    }
+    retVal = H5Fis_hdf5(fileName);
 
-    retVal = H5Fis_hdf5(file);
-
-    ENVPTR->ReleaseStringUTFChars(ENVPAR name,file);
+    ENVPTR->ReleaseStringUTFChars(ENVPAR name, fileName);
 
     if (retVal > 0) {
         return JNI_TRUE;
@@ -211,7 +176,7 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Fget_1create_1plist
   (JNIEnv *env, jclass clss, jlong file_id)
 {
     hid_t retVal = -1;
-    retVal =  H5Fget_create_plist((hid_t) file_id );
+    retVal =  H5Fget_create_plist((hid_t)file_id );
     if (retVal < 0) {
         /* throw exception */
         h5libraryError(env);
@@ -228,7 +193,7 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Fget_1access_1plist
   (JNIEnv *env, jclass clss, jlong file_id)
 {
     hid_t retVal = -1;
-    retVal =  H5Fget_access_plist((hid_t) file_id);
+    retVal =  H5Fget_access_plist((hid_t)file_id);
     if (retVal < 0) {
         /* throw exception */
         h5libraryError(env);
@@ -244,10 +209,10 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Fget_1access_1plist
 JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Fget_1intent
   (JNIEnv *env, jclass cls, jlong file_id)
 {
-    herr_t ret_val = -1;
+    herr_t   ret_val = -1;
     unsigned intent = 0;
 
-    ret_val =  H5Fget_intent((hid_t) file_id, &intent);
+    ret_val =  H5Fget_intent((hid_t)file_id, &intent);
 
     if (ret_val < 0) {
         h5libraryError(env);
@@ -267,7 +232,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5__1H5Fclose
     herr_t status = -1;
 
     if (file_id > 0)
-        status = H5Fclose((hid_t) file_id );
+        status = H5Fclose((hid_t)file_id );
 
     if (status < 0) {
         h5libraryError(env);
@@ -285,25 +250,14 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5__1H5Fclose
 JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Fmount
   (JNIEnv *env, jclass clss, jlong loc_id, jstring name, jlong child_id, jlong plist_id)
 {
-    herr_t status;
-    const char *file;
-    jboolean isCopy;
+    herr_t      status;
+    const char *fileName;
 
-    if (name == NULL) {
-        /* exception -- bad argument? */
-        h5nullArgument( env, "H5Fmount:  name is NULL");
-        return -1;
-    }
+    PIN_JAVA_STRING(name, fileName, -1);
 
-    file = ENVPTR->GetStringUTFChars(ENVPAR name,&isCopy);
-    if (file == NULL) {
-        /* exception -- out of memory? */
-        h5JNIFatalError( env, "H5Fmount:  file name is not pinned");
-        return -1;
-    }
+    status = H5Fmount((hid_t)loc_id, fileName, (hid_t)child_id, (hid_t)plist_id);
 
-    status = H5Fmount((hid_t) loc_id, file, (hid_t) child_id, (hid_t) plist_id );
-    ENVPTR->ReleaseStringUTFChars(ENVPAR name,file);
+    ENVPTR->ReleaseStringUTFChars(ENVPAR name, fileName);
     if (status < 0) {
         /* throw exception */
         h5libraryError(env);
@@ -319,26 +273,14 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Fmount
 JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Funmount
   (JNIEnv *env, jclass clss, jlong loc_id, jstring name)
 {
-    herr_t status;
-    const char *file;
-    jboolean isCopy;
+    herr_t      status;
+    const char *fileName;
 
-    if (name == NULL) {
-        /* exception -- bad argument? */
-        h5nullArgument( env, "H5Funmount:  name is NULL");
-        return -1;
-    }
+    PIN_JAVA_STRING(name, fileName, -1);
 
-    file = ENVPTR->GetStringUTFChars(ENVPAR name,&isCopy);
-    if (file == NULL) {
-        h5JNIFatalError( env, "H5Funmount:  file name is not pinned");
-        /* exception -- out of memory? */
-        return -1;
-    }
+    status = H5Funmount((hid_t)loc_id, fileName);
 
-    status = H5Funmount((hid_t) loc_id, file );
-
-    ENVPTR->ReleaseStringUTFChars(ENVPAR name,file);
+    ENVPTR->ReleaseStringUTFChars(ENVPAR name, fileName);
     if (status < 0) {
         /* throw exception */
         h5libraryError(env);
@@ -374,7 +316,7 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Freopen
   (JNIEnv *env, jclass clss, jlong file_id)
 {
     hid_t retVal = -1;
-    retVal =  H5Freopen((hid_t)file_id);
+    retVal = H5Freopen((hid_t)file_id);
     if (retVal < 0) {
         /* throw exception */
         h5libraryError(env);
@@ -391,40 +333,38 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5_H5Fget_1obj_1ids_1long
   (JNIEnv *env, jclass cls, jlong file_id, jint types, jlong maxObjs,
           jlongArray obj_id_list)
 {
-    ssize_t ret_val;
-    jlong *obj_id_listP;
+    ssize_t  ret_val;
+    jlong   *obj_id_listP;
     jboolean isCopy;
-    hid_t *id_list;
-    size_t rank;
-    size_t i;
+    hid_t   *id_list;
+    size_t   rank;
+    size_t   i;
 
     ret_val = -1;
 
-    if ( obj_id_list == NULL ) {
-        h5nullArgument( env, "H5Fget_obj_ids_long:  obj_id_list is NULL");
+    if (obj_id_list == NULL) {
+        h5nullArgument(env, "H5Fget_obj_ids_long:  obj_id_list is NULL");
         return -1;
     }
-
-    obj_id_listP = ENVPTR->GetLongArrayElements(ENVPAR obj_id_list,&isCopy);
+    obj_id_listP = ENVPTR->GetLongArrayElements(ENVPAR obj_id_list, &isCopy);
     if (obj_id_listP == NULL) {
-        h5JNIFatalError( env, "H5Fget_obj_ids_long:  obj_id_list not pinned");
+        h5JNIFatalError(env, "H5Fget_obj_ids_long:  obj_id_list not pinned");
         return -1;
     }
     rank = (size_t)ENVPTR->GetArrayLength(ENVPAR obj_id_list);
 
-    id_list = (hid_t *)malloc(rank * sizeof(hid_t));
-
+    id_list = (hid_t *)HDmalloc(rank * sizeof(hid_t));
     if (id_list == NULL) {
-        ENVPTR->ReleaseLongArrayElements(ENVPAR obj_id_list,obj_id_listP,JNI_ABORT);
-        h5JNIFatalError(env,  "H5Fget_obj_ids_long:  obj_id_list not converted to hid_t");
+        ENVPTR->ReleaseLongArrayElements(ENVPAR obj_id_list, obj_id_listP, JNI_ABORT);
+        h5JNIFatalError(env, "H5Fget_obj_ids_long:  obj_id_list not converted to hid_t");
         return -1;
     }
 
     ret_val = H5Fget_obj_ids((hid_t)file_id, (unsigned int)types, (size_t)maxObjs, id_list);
 
     if (ret_val < 0) {
-        ENVPTR->ReleaseLongArrayElements(ENVPAR obj_id_list,obj_id_listP,JNI_ABORT);
-        free(id_list);
+        ENVPTR->ReleaseLongArrayElements(ENVPAR obj_id_list, obj_id_listP, JNI_ABORT);
+        HDfree(id_list);
         h5libraryError(env);
         return -1;
     }
@@ -432,8 +372,8 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5_H5Fget_1obj_1ids_1long
     for (i = 0; i < rank; i++) {
         obj_id_listP[i] = (jlong)id_list[i];
     }
-    free(id_list);
-    ENVPTR->ReleaseLongArrayElements(ENVPAR obj_id_list,obj_id_listP,0);
+    HDfree(id_list);
+    ENVPTR->ReleaseLongArrayElements(ENVPAR obj_id_list, obj_id_listP, 0);
 
     return (jlong)ret_val;
 }
@@ -446,29 +386,29 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5_H5Fget_1obj_1ids_1long
 JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Fget_1obj_1ids
   (JNIEnv *env, jclass clss, jlong file_id, jint types, jint obj_count, jlongArray obj_id_list)
 {
-    ssize_t status=-1;
-    jint *obj_id_listP;
+    ssize_t  status=-1;
+    jint    *obj_id_listP;
     jboolean isCopy;
 
-    if ( obj_id_list == NULL ) {
-        h5nullArgument( env, "H5Fget_obj_ids:  obj_id_list is NULL");
+    if (obj_id_list == NULL) {
+        h5nullArgument(env, "H5Fget_obj_ids:  obj_id_list is NULL");
         return -1;
     }
 
     obj_id_listP = ENVPTR->GetIntArrayElements(ENVPAR obj_id_list,&isCopy);
     if (obj_id_listP == NULL) {
-        h5JNIFatalError( env, "H5Fget_obj_ids:  obj_id_list not pinned");
+        h5JNIFatalError(env, "H5Fget_obj_ids:  obj_id_list not pinned");
         return -1;
     }
 
     status = H5Fget_obj_ids((hid_t)file_id, (unsigned)types, (size_t)obj_count, (hid_t*)obj_id_listP);
 
     if (status < 0) {
-        ENVPTR->ReleaseIntArrayElements(ENVPAR obj_id_list,obj_id_listP,JNI_ABORT);
+        ENVPTR->ReleaseIntArrayElements(ENVPAR obj_id_list, obj_id_listP, JNI_ABORT);
         h5libraryError(env);
     }
     else  {
-        ENVPTR->ReleaseIntArrayElements(ENVPAR obj_id_list,obj_id_listP,0);
+        ENVPTR->ReleaseIntArrayElements(ENVPAR obj_id_list, obj_id_listP, 0);
     }
 
     return (jint)status;
@@ -484,7 +424,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Fget_1obj_1count
 {
     ssize_t status = -1;
 
-    status = H5Fget_obj_count((hid_t)file_id, (unsigned int)types );
+    status = H5Fget_obj_count((hid_t)file_id, (unsigned int)types);
 
     if (status < 0) {
         h5libraryError(env);
@@ -503,7 +443,7 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5_H5Fget_1obj_1count_1long
 {
     ssize_t ret_val = -1;
 
-    ret_val = H5Fget_obj_count((hid_t)file_id, (unsigned int)types );
+    ret_val = H5Fget_obj_count((hid_t)file_id, (unsigned int)types);
 
     if (ret_val < 0) {
         h5libraryError(env);
@@ -520,28 +460,28 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5_H5Fget_1obj_1count_1long
 JNIEXPORT jstring JNICALL Java_hdf_hdf5lib_H5_H5Fget_2name
   (JNIEnv *env, jclass clss, jlong obj_id, jstring name, jint buf_size)
 {
-    char *aName;
+    char   *aName;
     jstring str;
     ssize_t size;
 
     if (buf_size <= 0) {
-        h5badArgument( env, "H5Fget_name:  buf_size <= 0");
+        h5badArgument(env, "H5Fget_name:  buf_size <= 0");
         return NULL;
     }
-    aName = (char*)malloc(sizeof(char) * (size_t)buf_size);
+    aName = (char*)HDmalloc(sizeof(char) * (size_t)buf_size);
     if (aName == NULL) {
-        h5outOfMemory( env, "H5Fget_name:  malloc failed");
+        h5outOfMemory(env, "H5Fget_name:  malloc failed");
         return NULL;
     }
     size = H5Fget_name ((hid_t) obj_id, (char *)aName, (size_t)buf_size);
     if (size < 0) {
-        free(aName);
+        HDfree(aName);
         h5libraryError(env);
         return NULL;
     }
 
     str = ENVPTR->NewStringUTF(ENVPAR aName);
-    free(aName);
+    HDfree(aName);
 
     return str;
 }
@@ -554,10 +494,10 @@ JNIEXPORT jstring JNICALL Java_hdf_hdf5lib_H5_H5Fget_2name
 JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5_H5Fget_1filesize
   (JNIEnv *env, jclass clss, jlong file_id)
 {
-    herr_t status;
+    herr_t  status;
     hsize_t size = 0;
 
-    status = H5Fget_filesize ((hid_t) file_id, (hsize_t *) &size);
+    status = H5Fget_filesize ((hid_t)file_id, &size);
 
     if (status < 0) {
         h5libraryError(env);
@@ -594,15 +534,15 @@ JNIEXPORT jdouble JNICALL Java_hdf_hdf5lib_H5_H5Fget_1mdc_1hit_1rate
 JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Fget_1mdc_1size
   (JNIEnv *env, jclass cls, jlong file_id, jlongArray metadata_cache)
 {
-    herr_t ret_val = -1;
-    jint size = 0;
-    jlong *metadata_cache_ptr;
-    size_t max_size=0, min_clean_size=0, cur_size=0;
-    int cur_num_entries=0;
+    herr_t   ret_val = -1;
+    jint     size = 0;
+    jlong   *metadata_cache_ptr;
+    size_t   max_size = 0, min_clean_size = 0, cur_size = 0;
+    int      cur_num_entries = 0;
     jboolean isCopy;
 
-    if ( metadata_cache == NULL ) {
-        h5nullArgument( env, "H5Fget_mdc_size:  metadata_cache is NULL");
+    if (metadata_cache == NULL) {
+        h5nullArgument(env, "H5Fget_mdc_size:  metadata_cache is NULL");
         return -1;
     }
 
@@ -620,7 +560,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Fget_1mdc_1size
         return -1;
     }
 
-    metadata_cache_ptr = ENVPTR->GetLongArrayElements(ENVPAR metadata_cache,&isCopy);
+    metadata_cache_ptr = ENVPTR->GetLongArrayElements(ENVPAR metadata_cache, &isCopy);
     metadata_cache_ptr[0] = (jlong)max_size;
     metadata_cache_ptr[1] = (jlong)min_clean_size;
     metadata_cache_ptr[2] = (jlong)cur_size;
@@ -642,7 +582,7 @@ JNIEXPORT jobject JNICALL Java_hdf_hdf5lib_H5_H5Fget_1info
     jobject     ihinfobuf;
     jobject     ret_obj = NULL;
 
-    status = H5Fget_info2((hid_t)obj_id, (H5F_info2_t *)&finfo);
+    status = H5Fget_info2((hid_t)obj_id, &finfo);
 
     if (status < 0) {
        h5libraryError(env);
@@ -709,22 +649,18 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Fclear_1elink_1file_1cache
 JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5export_1dataset
   (JNIEnv *env, jclass cls, jstring file_export_name, jstring file_name, jstring object_path, jint binary_order)
 {
-    herr_t status = -1;
-    herr_t ret_val = -1;
-    hid_t file_id = -1;
-    hid_t dataset_id = -1;
-    FILE *stream;
+    herr_t      status = -1;
+    herr_t      ret_val = -1;
+    hid_t       file_id = -1;
+    hid_t       dataset_id = -1;
+    FILE       *stream;
     const char *file_export;
-    const char *file;
     const char *object_name;
-    jboolean isCopy;
+    const char *fileName;
+    jboolean    isCopy2;
 
     if (file_export_name == NULL) {
         h5nullArgument(env, "HDF5Library_export_data:  file_export_name is NULL");
-        return;
-    }
-    if (file_name == NULL) {
-        h5nullArgument(env, "HDF5Library_export_data:  file_name is NULL");
         return;
     }
     if (object_path == NULL) {
@@ -732,29 +668,24 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5export_1dataset
         return;
     }
 
-    file = ENVPTR->GetStringUTFChars(ENVPAR file_name, &isCopy);
-    if (file == NULL) {
-        /* exception -- out of memory? */
-        h5JNIFatalError( env, "H5Fopen:  file name not pinned");
-        return;
-    }
+    PIN_JAVA_STRING0(file_name, fileName);
 
-    file_id = H5Fopen(file, (unsigned)H5F_ACC_RDWR, (hid_t)H5P_DEFAULT);
+    file_id = H5Fopen(fileName, (unsigned)H5F_ACC_RDWR, (hid_t)H5P_DEFAULT);
 
-    ENVPTR->ReleaseStringUTFChars(ENVPAR file_name, file);
+    ENVPTR->ReleaseStringUTFChars(ENVPAR file_name, fileName);
     if (file_id < 0) {
         /* throw exception */
         h5libraryError(env);
         return;
     }
 
-    object_name = ENVPTR->GetStringUTFChars(ENVPAR object_path, &isCopy);
+    object_name = ENVPTR->GetStringUTFChars(ENVPAR object_path, &isCopy2);
     if (object_name == NULL) {
         h5JNIFatalError( env, "H5Dopen:  object name not pinned");
         return;
     }
 
-    dataset_id = H5Dopen2(file_id, object_name, (hid_t)H5P_DEFAULT);
+    dataset_id = H5Dopen2(file_id, object_name, H5P_DEFAULT);
 
     ENVPTR->ReleaseStringUTFChars(ENVPAR object_path, object_name);
     if (dataset_id < 0) {
@@ -764,13 +695,13 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5export_1dataset
     }
 
     file_export = ENVPTR->GetStringUTFChars(ENVPAR file_export_name, 0);
-    stream = fopen(file_export, "w+");
+    stream = HDfopen(file_export, "w+");
     ENVPTR->ReleaseStringUTFChars(ENVPAR file_export_name, file_export);
 
     ret_val = h5str_dump_simple_dset(stream, dataset_id, binary_order);
 
     if (stream)
-        fclose(stream);
+        HDfclose(stream);
 
     H5Dclose(dataset_id);
 
