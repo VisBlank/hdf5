@@ -295,9 +295,9 @@ H5B2__test_decode(const uint8_t *raw, void *nrecord, void *_ctx)
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5B2__test_debug(FILE *stream, const H5F_t UNUSED *f, hid_t UNUSED dxpl_id,
+H5B2__test_debug(FILE *stream, const H5F_t H5_ATTR_UNUSED *f, hid_t H5_ATTR_UNUSED dxpl_id,
     int indent, int fwidth, const void *record,
-    const void UNUSED *_udata)
+    const void H5_ATTR_UNUSED *_udata)
 {
     FUNC_ENTER_STATIC_NOERR
 
@@ -324,7 +324,7 @@ H5B2__test_debug(FILE *stream, const H5F_t UNUSED *f, hid_t UNUSED dxpl_id,
  *-------------------------------------------------------------------------
  */
 static void *
-H5B2__test_crt_dbg_context(H5F_t *f, hid_t UNUSED dxpl_id, haddr_t UNUSED addr)
+H5B2__test_crt_dbg_context(H5F_t *f, hid_t H5_ATTR_UNUSED dxpl_id, haddr_t H5_ATTR_UNUSED addr)
 {
     H5B2_test_ctx_t *ctx;       /* Callback context structure */
     void *ret_value;            /* Return value */
@@ -430,7 +430,7 @@ H5B2_get_node_info_test(H5B2_t *bt2, hid_t dxpl_id, void *udata,
         H5B2_node_ptr_t next_node_ptr;      /* Node pointer info for next node */
 
         /* Lock B-tree current node */
-        if(NULL == (internal = H5B2__protect_internal(hdr, dxpl_id, curr_node_ptr.addr, curr_node_ptr.node_nrec, depth, H5AC_READ)))
+        if(NULL == (internal = H5B2__protect_internal(hdr, dxpl_id, curr_node_ptr.addr, curr_node_ptr.node_nrec, depth, H5AC__READ_ONLY_FLAG)))
             HGOTO_ERROR(H5E_BTREE, H5E_CANTPROTECT, FAIL, "unable to load B-tree internal node")
 
         /* Locate node pointer for child */
@@ -470,7 +470,7 @@ H5B2_get_node_info_test(H5B2_t *bt2, hid_t dxpl_id, void *udata,
         H5B2_leaf_t *leaf;          /* Pointer to leaf node in B-tree */
 
         /* Lock B-tree leaf node */
-        if(NULL == (leaf = H5B2__protect_leaf(hdr, dxpl_id, curr_node_ptr.addr, curr_node_ptr.node_nrec, H5AC_READ)))
+        if(NULL == (leaf = H5B2__protect_leaf(hdr, dxpl_id, curr_node_ptr.addr, curr_node_ptr.node_nrec, H5AC__READ_ONLY_FLAG)))
             HGOTO_ERROR(H5E_BTREE, H5E_CANTPROTECT, FAIL, "unable to protect B-tree leaf node")
 
         /* Locate record */

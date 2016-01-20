@@ -22,7 +22,7 @@
 
 static int parse_command_line(int argc, const char **argv, pack_opt_t* options);
 static void dump_options(const pack_opt_t* options);
-static void leave(int ret) NORETURN;
+static void leave(int ret) H5_ATTR_NORETURN;
 
 
 /* module-scoped variables */
