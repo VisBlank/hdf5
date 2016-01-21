@@ -750,10 +750,6 @@ public class HDF5Constants {
 
     private static native final int H5D_SPACE_STATUS_PART_ALLOCATED();
 
-    private static native final int H5E_MAJOR();
-
-    private static native final int H5E_MINOR();
-
     private static native final long H5E_ALIGNMENT();
 
     private static native final long H5E_ALREADYEXISTS();
@@ -887,6 +883,10 @@ public class HDF5Constants {
     private static native final long H5E_LINK();
 
     private static native final long H5E_LINKCOUNT();
+
+    private static native final int H5E_MAJOR();
+
+    private static native final int H5E_MINOR();
 
     private static native final long H5E_MOUNT();
 

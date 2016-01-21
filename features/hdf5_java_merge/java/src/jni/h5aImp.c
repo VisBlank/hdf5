@@ -1690,7 +1690,6 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Aopen_1by_1name
         h5libraryError(env);
     }
     return (jlong)status;
-
 }
 
 /*
