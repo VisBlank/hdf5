@@ -258,7 +258,7 @@ usage(const char *prog)
     PRINTVALSTREAM(rawoutstream, "                          P can be the absolute path or just a relative path.\n");
     PRINTVALSTREAM(rawoutstream, "     -A,   --onlyattr     Print the header and value of attributes\n");
     PRINTVALSTREAM(rawoutstream, "                          Optional value 0 suppresses printing attributes.\n");
-    PRINTVALSTREAM(rawoutstream, "     --vds-view           Set the VDS bounds to first missing:\n");
+    PRINTVALSTREAM(rawoutstream, "     --vds-view           Set the VDS bounds to first missing  mapped elements.\n");
     PRINTVALSTREAM(rawoutstream, "     --vds-gap-size=N     Set the missing file gap size, N=non-negative integers\n");
     PRINTVALSTREAM(rawoutstream, "--------------- Object Property Options ---------------\n");
     PRINTVALSTREAM(rawoutstream, "     -i,   --object-ids   Print the object ids\n");
