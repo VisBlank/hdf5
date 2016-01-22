@@ -319,12 +319,10 @@ H5_DLL herr_t H5Pget_cache(hid_t plist_id,
        int *mdc_nelmts, /* out */
        size_t *rdcc_nslots/*out*/,
        size_t *rdcc_nbytes/*out*/, double *rdcc_w0);
-#if 1 /* new code */ /* JRM */
 H5_DLL herr_t H5Pset_mdc_image_config(hid_t    plist_id,
        H5AC_cache_image_config_t * config_ptr);
 H5_DLL herr_t H5Pget_mdc_image_config(hid_t     plist_id,
        H5AC_cache_image_config_t * config_ptr);	/* out */
-#endif /* new code */ /* JRM */
 H5_DLL herr_t H5Pset_mdc_config(hid_t    plist_id,
        H5AC_cache_config_t * config_ptr);
 H5_DLL herr_t H5Pget_mdc_config(hid_t     plist_id,

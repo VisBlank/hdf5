@@ -45,13 +45,11 @@
 /* Package Private Macros */
 /**************************/
 
-#if 1 /* moved from H5Cprivate.h */ /* JRM */
 /* Number of epoch markers active */
 #define H5C__MAX_EPOCH_MARKERS                  10
 
 /* type ID for epoch markers */
 #define H5C__EPOCH_MARKER_TYPE  H5C__MAX_NUM_TYPE_IDS
-#endif /* moved fron H5Cprivate.h */ /* JRM */
 
 
 /* With the introduction of the fractal heap, it is now possible for
@@ -730,9 +728,12 @@ if ( ( ( ( (head_ptr) == NULL ) || ( (tail_ptr) == NULL ) ) &&             \
     (cache_ptr)->images_created++;                          \
 }
 
-#define H5C__UPDATE_STATS_FOR_CACHE_IMAGE_LOAD(cache_ptr) \
-{                                                         \
-    (cache_ptr)->images_loaded++;                         \
+#define H5C__UPDATE_STATS_FOR_CACHE_IMAGE_LOAD(cache_ptr)  \
+{                                                          \
+    /* make sure image len is still good */                \
+    HDassert((cache_ptr)->image_len > 0);                  \
+    (cache_ptr)->images_loaded++;                          \
+    (cache_ptr)->last_image_size = (cache_ptr)->image_len; \
 }
 
 #define H5C__UPDATE_STATS_FOR_PREFETCH(cache_ptr, dirty) \
@@ -2273,7 +2274,6 @@ if ( ( (cache_ptr)->index_size !=                                           \
 #endif /* H5C_MAINTAIN_CLEAN_AND_DIRTY_LRU_LISTS */
 
 
-#if 1 /* new code */ /* JRM */
 /*-------------------------------------------------------------------------
  *
  * Macro:	H5C__UPDATE_RP_FOR_INSERT_APPEND
@@ -2390,8 +2390,6 @@ if ( ( (cache_ptr)->index_size !=                                           \
 }
 
 #endif /* H5C_MAINTAIN_CLEAN_AND_DIRTY_LRU_LISTS */
-
-#endif /* new code */ /* JRM */
 
 
 /*-------------------------------------------------------------------------
@@ -3504,6 +3502,7 @@ if ( ( (cache_ptr)->index_size !=                                           \
  *
  * ignore_tags:	Boolean flag to disable tag validation during entry insertion.
  *
+ *
  * When we flush the cache, we need to write entries out in increasing
  * address order.  An instance of a skip list is used to store dirty entries in
  * sorted order.  Whether it is cheaper to sort the dirty entries as needed,
@@ -3829,6 +3828,21 @@ if ( ( (cache_ptr)->index_size !=                                           \
  * size_decreased:  Boolean flag set to TRUE whenever the maximum cache
  *		size is decreased.  The flag triggers a call to
  *		H5C_make_space_in_cache() on the next call to H5C_protect().
+ *
+ * resize_in_progress: As the metadata cache has become re-entrant, it is 
+ *		possible that a protect may trigger a call to 
+ *		H5C__auto_adjust_cache_size(), which may trigger a flush,
+ *		which may trigger a protect, which will result in another 
+ *		call to H5C__auto_adjust_cache_size().  
+ *
+ *		The resize_in_progress boolean flag is used to detect this,
+ *		and to prevent the infinite recursion that would otherwise
+ *		occur.
+ *
+ *		Note that this issue is not hypothetical -- this field 
+ *		was added 12/29/15 to fix a bug exposed in the testing 
+ *		of changes to the file driver info superblock extension
+ *		management code needed to support rings.
  *
  * resize_ctl:	Instance of H5C_auto_size_ctl_t containing configuration
  * 		data for automatic cache resizing.
@@ -4209,6 +4223,15 @@ if ( ( (cache_ptr)->index_size !=                                           \
  *		time of the first protect or on file close, this value
  *		should only change on those events.
  *
+ * last_image_size:  Size of the most recently loaded metadata cache image
+ *             loaded into the cache, or zero if no image has been
+ *             loaded.  
+ *
+ *             At present, at most one cache image can be loaded into 
+ *             the metadata cache for any given file, and this image
+ *             will be loaded either on the first protect, or on file
+ *             close if no entry is protected before then.
+ *
  *
  * Fields for tracking prefetched entries.  Note that flushes and evictions
  * of prefetched entries are tracked in the flushes and evictions arrays 
@@ -4396,6 +4419,7 @@ struct H5C_t {
     hbool_t			resize_enabled;
     hbool_t			cache_full;
     hbool_t			size_decreased;
+    hbool_t			resize_in_progress;
     H5C_auto_size_ctl_t		resize_ctl;
 
     /* Fields for epoch markers used in automatic cache size adjustment */
@@ -4486,24 +4510,23 @@ struct H5C_t {
     int64_t                     entries_scanned_to_make_space;
 
  
-    /* Fields for tracking skip list scan restarts */
+    /* Fields for tracking list scan restarts */
     int64_t			slist_scan_restarts;
     int64_t			LRU_scan_restarts;
     int64_t			hash_bucket_scan_restarts;
-#if 1 /* new code */ /* JRM */
     int64_t			index_scan_restarts;
 
 
     /* Fields for tracking cache image operations */
     int32_t			images_created;
     int32_t			images_loaded;
+    size_t			last_image_size;
 
 
     /* Fields for tracking prefetched entries */
     int64_t			prefetches;
     int64_t			dirty_prefetches;
     int64_t			prefetch_hits;
-#endif /* new code */ /* JRM */
 
 #if H5C_COLLECT_CACHE_ENTRY_STATS
     int32_t                     max_accesses[H5C__MAX_NUM_TYPE_IDS + 1];

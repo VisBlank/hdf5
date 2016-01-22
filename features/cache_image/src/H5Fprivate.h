@@ -432,10 +432,8 @@
 
 
 /* ========= File Access properties ============ */
-#if 1 /* new code */ /* JRM */
 #define H5F_ACS_META_CACHE_INIT_IMAGE_CONFIG_NAME \
 						"mdc_initCacheImageCfg" /* Initial metadata cache image creation configuration */
-#endif /* new code */ /* JRM */
 #define H5F_ACS_META_CACHE_INIT_CONFIG_NAME	"mdc_initCacheCfg" /* Initial metadata cache resize configuration */
 #define H5F_ACS_DATA_CACHE_NUM_SLOTS_NAME       "rdcc_nslots"   /* Size of raw data chunk cache(slots) */
 #define H5F_ACS_DATA_CACHE_BYTE_SIZE_NAME       "rdcc_nbytes"   /* Size of raw data chunk cache(bytes) */
@@ -679,6 +677,7 @@ H5_DLL herr_t H5F_fake_free(H5F_t *f);
 
 /* Superblock related routines */
 H5_DLL herr_t H5F_super_dirty(H5F_t *f);
+H5_DLL herr_t H5F_update_super_ext_driver_msg(H5F_t *f, hid_t dxpl_id);
 
 /* Parallel I/O (i.e. MPI) related routines */
 #ifdef H5_HAVE_PARALLEL

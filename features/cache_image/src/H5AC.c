@@ -299,9 +299,7 @@ H5AC_create(const H5F_t *f, H5AC_cache_config_t *config_ptr, H5AC_cache_image_co
     char 	 prefix[H5C__PREFIX_LEN] = "";
     H5AC_aux_t * aux_ptr = NULL;
 #endif /* H5_HAVE_PARALLEL */
-#if 1 /* new code */ /* JRM */
     struct H5C_cache_image_ctl_t int_ci_config = H5C__DEFAULT_CACHE_IMAGE_CTL;
-#endif /* new code */ /* JRM */
     herr_t ret_value = SUCCEED;      /* Return value */
 
     FUNC_ENTER_NOAPI(FAIL)
@@ -310,22 +308,18 @@ H5AC_create(const H5F_t *f, H5AC_cache_config_t *config_ptr, H5AC_cache_image_co
     HDassert(f);
     HDassert(NULL == f->shared->cache);
     HDassert(config_ptr != NULL) ;
-#if 1 /* new code */ /* JRM */
     HDassert(image_config_ptr != NULL) ;
     HDassert(image_config_ptr->version == \
              H5AC__CURR_CACHE_IMAGE_CONFIG_VERSION);
-#endif /* new code */ /* JRM */
     HDcompile_assert(NELMTS(H5AC_entry_type_names) == H5AC_NTYPES);
     HDcompile_assert(H5C__MAX_NUM_TYPE_IDS == H5AC_NTYPES);
 
     if(H5AC_validate_config(config_ptr) < 0)
         HGOTO_ERROR(H5E_CACHE, H5E_BADVALUE, FAIL, "Bad cache configuration")
 
-#if 1 /* new code */ /* JRM */
     if(H5AC_validate_cache_image_config(image_config_ptr) < 0)
         HGOTO_ERROR(H5E_CACHE, H5E_BADVALUE, FAIL, \
                     "Bad cache image configuration")
-#endif /* new code */ /* JRM */
 
 #ifdef H5_HAVE_PARALLEL
     if(H5F_HAS_FEATURE(f, H5FD_FEAT_HAS_MPI)) {
@@ -430,7 +424,6 @@ H5AC_create(const H5F_t *f, H5AC_cache_config_t *config_ptr, H5AC_cache_image_co
     if(H5AC_set_cache_auto_resize_config(f->shared->cache, config_ptr) < 0)
         HGOTO_ERROR(H5E_CACHE, H5E_CANTALLOC, FAIL, "auto resize configuration failed")
 
-#if 1 /* new code */ /* JRM */
     /* don't need to get the current H5C image config here since the
      * cache has just been created, and thus f->shared->cache->image_ctl 
      * must still set to its initial value (H5C__DEFAULT_CACHE_IMAGE_CTL).  
@@ -443,7 +436,6 @@ H5AC_create(const H5F_t *f, H5AC_cache_config_t *config_ptr, H5AC_cache_image_co
 
     if(H5C_set_cache_image_config(f, f->shared->cache, &int_ci_config) < 0)
         HGOTO_ERROR(H5E_CACHE, H5E_CANTALLOC, FAIL, "auto resize configuration failed")
-#endif /* new code */ /* JRM */
 
 done:
 #ifdef H5_HAVE_PARALLEL
@@ -729,7 +721,6 @@ done:
     FUNC_LEAVE_NOAPI(ret_value)
 } /* H5AC_get_entry_status() */
 
-#if 1 /* new code */ /* JRM */
 
 /*-------------------------------------------------------------------------
  * Function:    H5AC_get_serialization_in_progress
@@ -757,8 +748,6 @@ H5AC_get_serialization_in_progress(H5F_t * f)
     FUNC_LEAVE_NOAPI(ret_value)
 
 } /* H5AC_get_serialization_in_progress() */
-
-#endif /* new code */ /* JRM */
 
 
 /*-------------------------------------------------------------------------
@@ -852,7 +841,6 @@ done:
 } /* H5AC_insert_entry() */
 
 
-#if 1 /* new code */ /* JRM */
 /*-------------------------------------------------------------------------
  * Function:    H5AC_load_cache_image_on_next_protect
  *
@@ -887,7 +875,6 @@ done:
     FUNC_LEAVE_NOAPI(ret_value)
 
 } /* H5AC_load_cache_image_on_next_protect() */
-#endif /* new code */ /* JRM */
 
 
 /*-------------------------------------------------------------------------
@@ -1076,7 +1063,6 @@ done:
 } /* H5AC_pin_protected_entry() */
 
 
-#if 1 /* new code */ /* JRM */
 /*-------------------------------------------------------------------------
  *
  * Function:    H5AC_prep_for_file_close
@@ -1116,8 +1102,6 @@ done:
     FUNC_LEAVE_NOAPI(ret_value)
 
 } /* H5C_prep_for_file_close() */
-
-#endif /* new code */ /* JRM */
 
 
 /*-------------------------------------------------------------------------
@@ -2150,7 +2134,6 @@ done:
 } /* H5AC_validate_config() */
 
 
-#if 1 /* new code */ /* JRM */
 /*-------------------------------------------------------------------------
  * Function:    H5AC_validate_cache_image_config()
  *
@@ -2208,8 +2191,6 @@ done:
     FUNC_LEAVE_NOAPI(ret_value)
 
 } /* H5AC_validate_cache_image_config() */
-
-#endif /* new code */ /* JRM */
 
 
 /*-------------------------------------------------------------------------

@@ -239,6 +239,14 @@ struct H5F_file_t {
                                  * block is present.  At all other times
                                  * it should be NULL.
                                  */
+    hbool_t    drvinfo_sb_msg_exists; /* Convenience field used to track 
+				 * whether the driver info superblock 
+                                 * extension message has been created 
+                                 * yet. This field should be TRUE iff the
+				 * superblock extension exists and contains
+                                 * a driver info message.  Under all other
+                                 * circumstances, it must be set to FALSE.
+                                 */
     unsigned	nrefs;		/* Ref count for times file is opened	*/
     unsigned	flags;		/* Access Permissions for file          */
     H5F_mtab_t	mtab;		/* File mount table                     */
@@ -259,14 +267,12 @@ struct H5F_file_t {
                                 /* metadata cache.  This structure is   */
                                 /* fixed at creation time and should    */
                                 /* not change thereafter.               */
-#if 1 /* new code */ /* JRM */
     H5AC_cache_image_config_t 
 		mdc_initCacheImageCfg; /* initial configuration for the */
                                 /* generate metadata cache image on     */
                                 /* close option.  This structure is     */
                                 /* fixed at creation time and should    */
                                 /* not change thereafter.               */
-#endif /* new code */ /* JRM */
     hid_t       fcpl_id;	/* File creation property list ID 	*/
     H5F_close_degree_t fc_degree;   /* File close behavior degree	*/
     size_t	rdcc_nslots;	/* Size of raw data chunk cache (slots)	*/
@@ -362,18 +368,7 @@ H5_DLL herr_t H5F__super_free(H5F_super_t *sblock);
 
 /* Superblock extension related routines */
 H5_DLL herr_t H5F_super_ext_open(H5F_t *f, haddr_t ext_addr, H5O_loc_t *ext_ptr);
-#if 0 /* new code */ /* JRM */
-/* mdc rings has made this code superfluous -- delete eventually */
-H5_DLL herr_t H5F__super_ext_get_num_chunks(H5F_t *f, hid_t dxpl_id, 
-    unsigned * nchunks_ptr);
-H5_DLL herr_t H5F__super_ext_get_chunk_addrs(H5F_t *f, hid_t dxpl_id, 
-    unsigned nchunks, haddr_t *addrs);
-#endif /* new code */ /* JRM */
-#if 0 /* original code */ /* JRM */
-H5_DLL herr_t H5F_super_ext_write_msg(H5F_t *f, hid_t dxpl_id, void *mesg, unsigned id, hbool_t may_create);
-#else /* modified code */ /* JRM */
 H5_DLL herr_t H5F_super_ext_write_msg(H5F_t *f, hid_t dxpl_id, void *mesg, unsigned id, hbool_t may_create, unsigned mesg_flags);
-#endif /* modified code */ /* JRM */
 H5_DLL herr_t H5F_super_ext_remove_msg(H5F_t *f, hid_t dxpl_id, unsigned id);
 H5_DLL herr_t H5F_super_ext_close(H5F_t *f, H5O_loc_t *ext_ptr, hid_t dxpl_id,
     hbool_t was_created);

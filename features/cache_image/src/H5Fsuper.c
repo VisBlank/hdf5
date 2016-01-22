@@ -126,140 +126,6 @@ done:
     FUNC_LEAVE_NOAPI(ret_value)
 } /* H5F_super_ext_create() */
 
-#if 0 /* new code */ /* JRM */
-      /* mdc rings have made this code superfluous -- delete eventually */
-
-/*-------------------------------------------------------------------------
- * Function:    H5F__super_ext_get_num_chunks
- *
- * Purpose:     Get the number of chunks in the superblock extension.
- *
- *		This is the actual number of chunks if the superblock 
- *		extension exists, or zero if it does not.
- *
- * Return:      Success:        non-negative on success
- *              Failure:        Negative
- *
- * Programmer:  John Mainzer 
- *              Aug. 1, 2015
- *
- *-------------------------------------------------------------------------
- */
-herr_t
-H5F__super_ext_get_num_chunks(H5F_t *f, hid_t dxpl_id, unsigned * nchunks_ptr)
-{
-    H5P_genplist_t *dxpl = NULL;        /* DXPL for setting ring */
-    H5AC_ring_t orig_ring = H5AC_RING_INV;      /* Original ring value */
-    herr_t ret_value = SUCCEED;         /* Return value */
-
-    FUNC_ENTER_PACKAGE
-
-    /* Sanity check */
-    HDassert(f);
-    HDassert(f->shared);
-    HDassert(f->shared->sblock);
-    HDassert(nchunks_ptr);
-
-    /* get num chunks if extension exists */
-    if(H5F_addr_defined(f->shared->sblock->ext_addr)) {
-
-        H5O_loc_t ext_loc;      /* "Object location" for superblock extension */
-        H5O_hdr_info_t hdr_info; /* Object info for superblock extension */
-
-        /* Set up "fake" object location for superblock extension */
-        H5O_loc_reset(&ext_loc);
-        ext_loc.file = f;
-        ext_loc.addr = f->shared->sblock->ext_addr;
-
-        /* Set the ring type in the DXPL */
-        if(H5AC_set_ring(dxpl_id, H5AC_RING_SBE, &dxpl, &orig_ring) < 0)
-            HGOTO_ERROR(H5E_FILE, H5E_CANTSET, FAIL, "unable to set ring value")
-
-        /* Get object header info for superblock extension */
-        if(H5O_get_hdr_info(&ext_loc, dxpl_id, &hdr_info) < 0)
-
-                HGOTO_ERROR(H5E_FILE, H5E_CANTGET, FAIL, \
-                            "unable to retrieve superblock extension info")
-
-        /* set num chunks */
-        *nchunks_ptr = hdr_info.nchunks;
-    } /* end if */
-    else
-        /* Set num chunks to zero */
-        *nchunks_ptr = 0;
-
-done:
-    /* Reset the ring in the DXPL */
-    if(H5AC_reset_ring(dxpl, orig_ring) < 0)
-        HDONE_ERROR(H5E_FILE, H5E_CANTSET, FAIL, "unable to set property value")
-
-    FUNC_LEAVE_NOAPI(ret_value)
-
-} /* H5F__super_ext_get_num_chunks() */
-#endif /* new code */ /* JRM */
-
-#if 0 /* new code */ /* JRM */
-      /* mdc rings have made this code superfluous -- delete eventually */
-
-/*-------------------------------------------------------------------------
- * Function:    H5F__super_ext_get_chunk_addrs
- *
- * Purpose:     Get the addresses of all chunks in the superblock 
- *		extension.  nchunks must be positive, and addrs must
- *		point to an array of haddr_t of length <= nchunks.
- *
- * Return:      Success:        non-negative on success
- *              Failure:        Negative
- *
- * Programmer:  John Mainzer 
- *              Aug. 1, 2015
- *
- *-------------------------------------------------------------------------
- */
-herr_t
-H5F__super_ext_get_chunk_addrs(H5F_t *f, hid_t dxpl_id, unsigned nchunks,
-    haddr_t *addrs)
-{
-    H5P_genplist_t *dxpl = NULL;        /* DXPL for setting ring */
-    H5AC_ring_t orig_ring = H5AC_RING_INV;      /* Original ring value */
-    H5O_loc_t ext_loc;      /* "Object location" for superblock extension */
-    herr_t ret_value = SUCCEED;         /* Return value */
-
-    FUNC_ENTER_PACKAGE
-
-    /* Sanity check */
-    HDassert(f);
-    HDassert(f->shared);
-    HDassert(f->shared->sblock);
-    HDassert(H5F_addr_defined(f->shared->sblock->ext_addr));
-    HDassert(nchunks > 0);
-    HDassert(addrs);
-
-    /* Set up "fake" object location for superblock extension */
-    H5O_loc_reset(&ext_loc);
-    ext_loc.file = f;
-    ext_loc.addr = f->shared->sblock->ext_addr;
-
-    /* Set the ring type in the DXPL */
-    if(H5AC_set_ring(dxpl_id, H5AC_RING_SBE, &dxpl, &orig_ring) < 0)
-        HGOTO_ERROR(H5E_FILE, H5E_CANTSET, FAIL, "unable to set ring value")
-
-    /* Get object header chunk addresses */
-    if(H5O_get_chunk_addrs(&ext_loc, dxpl_id, nchunks, addrs) < 0)
-
-        HGOTO_ERROR(H5E_FILE, H5E_CANTGET, FAIL, \
-                    "unable to retrieve superblock chunk addresses")
-
-done:
-    /* Reset the ring in the DXPL */
-    if(H5AC_reset_ring(dxpl, orig_ring) < 0)
-        HDONE_ERROR(H5E_FILE, H5E_CANTSET, FAIL, "unable to set property value")
-
-    FUNC_LEAVE_NOAPI(ret_value)
-
-} /* H5F__super_ext_get_chunk_addrs() */
-#endif /* new code */ /* JRM */
-
 
 /*-------------------------------------------------------------------------
  * Function:    H5F_super_ext_open
@@ -353,6 +219,105 @@ done:
 
     FUNC_LEAVE_NOAPI(ret_value)
 } /* H5F_super_ext_close() */
+
+
+/*-------------------------------------------------------------------------
+ * Function:    H5F_update_super_ext_driver_msg
+ *
+ * Purpose:	Update the superblock extension file driver info message if 
+ *		we are using a V 2 superblock.  Observe that the function
+ *		is a NO-OP if the file driver info message does not exist.
+ *              This is necessary, as the function is called whenever the 
+ *		EOA is updated, and were it to create the file driver info
+ *		message, it would find itself in an infinite recursion.
+ *
+ * Return:      Success:        SUCCEED
+ *              Failure:        FAIL
+ *
+ * Programmer:  John Mainzer
+ *              11/10/15
+ *
+ *-------------------------------------------------------------------------
+ */
+herr_t
+H5F_update_super_ext_driver_msg(H5F_t *f, hid_t dxpl_id)
+{
+    H5F_super_t *sblock = NULL; /* Pointer to the super block */
+    herr_t ret_value = SUCCEED; /* Return value */
+
+    FUNC_ENTER_NOAPI_NOINIT
+
+    /* Sanity check */
+    HDassert(f);
+    HDassert(f->shared);
+
+    sblock = f->shared->sblock;
+
+    HDassert(sblock);
+    HDassert(sblock->cache_info.magic == H5C__H5C_CACHE_ENTRY_T_MAGIC);
+    HDassert(sblock->cache_info.type == H5AC_SUPERBLOCK);
+
+    if(sblock->super_vers >= HDF5_SUPERBLOCK_VERSION_2) {
+
+        /* Update the driver information message in the superblock extension
+         * if appropriate.
+         */
+        if(H5F_addr_defined(sblock->ext_addr)) {
+            size_t     driver_size;    /* Size of driver info block (bytes)*/
+
+            HDassert(sblock->super_vers >= HDF5_SUPERBLOCK_VERSION_2);
+
+            /* Check for ignoring the driver info for this file */
+            if(!H5F_HAS_FEATURE(f, H5FD_FEAT_IGNORE_DRVRINFO)) {
+
+                /* Check for driver info */
+                H5_CHECKED_ASSIGN(driver_size, size_t, 
+                                  H5FD_sb_size(f->shared->lf), hsize_t);
+
+		/* nothing to do unless there is both driver info and 
+                 * the driver info superblock extension message has 
+                 * already been created.
+                 */
+                if((driver_size > 0) && (f->shared->drvinfo_sb_msg_exists)) {
+
+                    H5O_drvinfo_t drvinfo;      /* Driver info */
+
+                    uint8_t dbuf[H5F_MAX_DRVINFOBLOCK_SIZE];  
+                                      /* Driver info block encoding buffer */
+
+                    /* Sanity check */
+                    HDassert(driver_size <= H5F_MAX_DRVINFOBLOCK_SIZE);
+
+                    /* Encode driver-specific data */
+                    if(H5FD_sb_encode(f->shared->lf, drvinfo.name, dbuf) < 0)
+                        HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, FAIL, 
+                                    "unable to encode driver information")
+
+                    /* write the message to the superblock extension.
+                     *
+                     * note that the superblock extension and the 
+                     * file driver info message must already exist.
+                     */
+                    drvinfo.len = driver_size;
+                    drvinfo.buf = dbuf;
+                    if(H5F_super_ext_write_msg(f, dxpl_id, &drvinfo, 
+                                               H5O_DRVINFO_ID, FALSE, 0) < 0 )
+                        HGOTO_ERROR(H5E_FILE, H5E_WRITEERROR, FAIL, \
+                                "unable to update driver info header message")
+
+                } /* end if driver_size > 0 */
+
+            } /* end if !H5F_HAS_FEATURE(f, H5FD_FEAT_IGNORE_DRVRINFO) */
+
+        } /* end if superblock extension exists */
+
+    } /* end if sblock->super_vers >= HDF5_SUPERBLOCK_VERSION_2 */
+
+done:
+
+    FUNC_LEAVE_NOAPI(ret_value)
+
+} /* end H5F_update_super_ext_driver_msg() */
 
 
 /*-------------------------------------------------------------------------
@@ -649,6 +614,10 @@ H5F__super_read(H5F_t *f, hid_t dxpl_id)
 
                 /* Reset driver info message */
                 H5O_msg_reset(H5O_DRVINFO_ID, &drvinfo);
+
+		HDassert(FALSE == f->shared->drvinfo_sb_msg_exists);
+		f->shared->drvinfo_sb_msg_exists = TRUE;
+
             } /* end else */
         } /* end if */
 
@@ -708,8 +677,7 @@ H5F__super_read(H5F_t *f, hid_t dxpl_id)
 		f->shared->fs_addr[u] = fsinfo.fs_addr[u-1];
         } /* end if */
 
-#if 1 /* new code */ /* JRM */
-	/* Check for the extensin having a 'metadata cache image' message */
+	/* Check for the extension having a 'metadata cache image' message */
         if((status = H5O_msg_exists(&ext_loc, H5O_MDCI_MSG_ID, dxpl_id)) < 0)
             HGOTO_ERROR(H5E_FILE, H5E_EXISTS, FAIL, "unable to read object header")
         if(status) {
@@ -735,7 +703,6 @@ H5F__super_read(H5F_t *f, hid_t dxpl_id)
             if(H5AC_load_cache_image_on_next_protect(f, mdci_msg.addr, mdci_msg.size, rw) < 0)
 		HGOTO_ERROR(H5E_CACHE, H5E_CANTLOAD, FAIL, "call to H5AC_load_cache_image_on_next_protect failed");
         } /* end if */
-#endif /* new code */ /* JRM */
 
         /* Close superblock extension */
         if(H5F_super_ext_close(f, &ext_loc, dxpl_id, FALSE) < 0)
@@ -974,6 +941,26 @@ H5F__super_init(H5F_t *f, hid_t dxpl_id)
 
     /* Compute the size of the driver information block */
     H5_CHECKED_ASSIGN(driver_size, size_t, H5FD_sb_size(f->shared->lf), hsize_t);
+
+    /* Quincey:  The following code sets driver_size to the valued needed 
+     *           for the driver info block, and sets the driver info block
+     *           address regardless of the version of the superblock.
+     *
+     *           Rather than alter this code to test for superblock version,
+     *           I have modified the code below that creates the file driver 
+     *		 info superblock extension message to subtract 
+     *           H5F_DRVINFOBLOCK_HDR_SIZE from driver_size to obtain the 
+     *           the correct superblock extension message size.
+     *
+     *           However, I question whether it is appropriate to set 
+     *           sblock->driver_addr in the version 2 superblock.  As it
+     *		 doesn't seem to be causing any issues at present, I have 
+     *		 left this code alone.  Per your request, I have inserted
+     *		 this comment to draw your attention to this issue on 
+     *		 review.
+     *
+     *                                           JRM -- 12/28/15
+     */
     if(driver_size > 0) {
         driver_size += H5F_DRVINFOBLOCK_HDR_SIZE;
 
@@ -1102,10 +1089,21 @@ H5F__super_init(H5F_t *f, hid_t dxpl_id)
                 HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, FAIL, "unable to encode driver information")
 
             /* Write driver info information to the superblock extension */
-            info.len = driver_size;
+            /* driver_size was computed for the driver info block, and thus
+             * includes space for the driver info block header.  This header
+             * does not appear in the driver info superblock extension message.
+             * Thus we must subtract H5F_DRVINFOBLOCK_HDR_SIZE from driver_size
+             * to get the correct size of the driver info superblock 
+             * extension message.
+             */
+	    HDassert(H5F_DRVINFOBLOCK_HDR_SIZE < driver_size);
+	    info.len = driver_size - H5F_DRVINFOBLOCK_HDR_SIZE;
             info.buf = dbuf;
             if(H5O_msg_create(&ext_loc, H5O_DRVINFO_ID, H5O_MSG_FLAG_DONTSHARE, H5O_UPDATE_TIME, &info, dxpl_id) < 0)
                 HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, FAIL, "unable to update driver info header message")
+
+	    HDassert(FALSE == f->shared->drvinfo_sb_msg_exists);
+	    f->shared->drvinfo_sb_msg_exists = TRUE;
         } /* end if */
 
         /* Check for non-default free space settings */
@@ -1358,11 +1356,7 @@ done:
  *-------------------------------------------------------------------------
  */
 herr_t
-#if 0 /* original code */ /* JRM */
-H5F_super_ext_write_msg(H5F_t *f, hid_t dxpl_id, void *mesg, unsigned id, hbool_t may_create)
-#else /* modified code */ /* JRM */
 H5F_super_ext_write_msg(H5F_t *f, hid_t dxpl_id, void *mesg, unsigned id, hbool_t may_create, unsigned mesg_flags)
-#endif /* modified code */ /* JRM */
 {
     H5P_genplist_t *dxpl = NULL;        /* DXPL for setting ring */
     H5AC_ring_t orig_ring = H5AC_RING_INV;      /* Original ring value */
@@ -1415,11 +1409,7 @@ H5F_super_ext_write_msg(H5F_t *f, hid_t dxpl_id, void *mesg, unsigned id, hbool_
 	    HGOTO_ERROR(H5E_OHDR, H5E_CANTGET, FAIL, "Message should exist")
 
 	/* Update the message with ID in the superblock extension */
-#if 0 /* original code */ /* JRM */
-	if(H5O_msg_write(&ext_loc, id, H5O_MSG_FLAG_DONTSHARE, H5O_UPDATE_TIME, mesg, dxpl_id) < 0)
-#else /* modified code */ /* JRM */
 	if(H5O_msg_write(&ext_loc, id, (mesg_flags | H5O_MSG_FLAG_DONTSHARE), H5O_UPDATE_TIME, mesg, dxpl_id) < 0)
-#endif /* modified code */ /* JRM */
 	    HGOTO_ERROR(H5E_OHDR, H5E_CANTGET, FAIL, "unable to write the message in object header")
     } /* end else */
 

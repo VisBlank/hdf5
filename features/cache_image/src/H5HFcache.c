@@ -2572,13 +2572,9 @@ H5HF__cache_verify_hdr_descendants_clean(H5F_t *f, hid_t dxpl_id,
 
 	if(!root_iblock_in_cache) /* we are done */
 	    *clean = TRUE;
-#if 0 /* old code */ /* JRM */
-	else if(root_iblock_status & H5AC_ES__IS_DIRTY)
-#else /* new code */ /* JRM */
         else if ((root_iblock_status & H5AC_ES__IS_DIRTY) &&
                  (((root_iblock_status & H5AC_ES__IMAGE_IS_UP_TO_DATE) == 0) ||
                   (!H5AC_get_serialization_in_progress(f))))
-#endif /* new code */ /* JRM */
 	    *clean = FALSE;
 	else { /* must examine children */
             hbool_t	unprotect_root_iblock = FALSE;
@@ -2747,14 +2743,10 @@ H5HF__cache_verify_hdr_descendants_clean(H5F_t *f, hid_t dxpl_id,
             if(0 != (root_dblock_status & H5AC_ES__IS_FLUSH_DEP_PARENT))
                 HGOTO_ERROR(H5E_HEAP, H5E_SYSTEM, FAIL, "root dblock in cache and is a flush dep parent.")
 
-#if 0 /* old code */ /* JRM */
-	    *clean = ! (root_dblock_status & H5AC_ES__IS_DIRTY);
-#else /* new code */ /* JRM */
             *clean = !((root_dblock_status & H5AC_ES__IS_DIRTY) &&
                        (((root_dblock_status & 
                           H5AC_ES__IMAGE_IS_UP_TO_DATE) == 0) || 
                         (!H5AC_get_serialization_in_progress(f))));
-#endif /* new code */ /* JRM */
 	} /* end if */
         else    /* root dblock not in cache */
 	    *clean = TRUE;
@@ -2935,13 +2927,9 @@ H5HF__cache_verify_iblocks_dblocks_clean(H5F_t *f, H5HF_indirect_t *iblock,
                 HDassert(dblock_status & H5AC_ES__IN_CACHE);
 
 	        *has_dblocks = TRUE;
-#if 0 /* old code */ /* JRM */
-                if(dblock_status & H5AC_ES__IS_DIRTY)
-#else /* new code */ /* JRM */
                 if((dblock_status & H5AC_ES__IS_DIRTY) &&
                    (((dblock_status & H5AC_ES__IMAGE_IS_UP_TO_DATE) == 0) ||
                      (!H5AC_get_serialization_in_progress(f))))
-#endif /* new code */ /* JRM */
 		    *clean = FALSE;
 
 	        /* If a child dblock is in cache, it must have a flush 
@@ -3050,14 +3038,11 @@ H5HF__cache_verify_descendant_iblocks_clean(H5F_t *f, hid_t dxpl_id,
 
 	    if(child_iblock_status & H5AC_ES__IN_CACHE) {
 	        *has_iblocks = TRUE;
-#if 0 /* old code */ /* JRM */
-                if(child_iblock_status & H5AC_ES__IS_DIRTY)
-#else /* new code */ /* JRM */
                if((child_iblock_status & H5AC_ES__IS_DIRTY) &&
                   (((child_iblock_status & 
                      H5AC_ES__IMAGE_IS_UP_TO_DATE) == 0) ||
                    (!H5AC_get_serialization_in_progress(f))))
-#endif /* new code */ /* JRM */
+
 		    *clean = FALSE;
 
                 /* if the child iblock is in cache and *clean is TRUE, 

@@ -1096,6 +1096,90 @@ H5C_get_serialization_in_progress(H5F_t * f)
 
 
 /*-------------------------------------------------------------------------
+ * Function:    H5C_image_stats
+ *
+ * Purpose:     Prints statistics specific to the cache image.
+ *
+ * Return:      Non-negative on success/Negative on failure
+ *
+ * Programmer:  John Mainzer
+ *              10/26/15
+ *
+ *-------------------------------------------------------------------------
+ */
+herr_t
+H5C_image_stats(H5C_t * cache_ptr, hbool_t print_header)
+{
+#if H5C_COLLECT_CACHE_STATS
+    int         i;
+    int64_t     total_hits = 0;
+    int64_t     total_misses = 0;
+    double      hit_rate;
+    double      prefetch_use_rate;
+#endif /* H5C_COLLECT_CACHE_STATS */
+    herr_t      ret_value = SUCCEED;   /* Return value */
+
+    FUNC_ENTER_NOAPI(FAIL)
+
+    if ( ( ! cache_ptr ) ||
+         ( cache_ptr->magic != H5C__H5C_T_MAGIC ) ) {
+
+        HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, "Bad cache_ptr")
+    }
+
+#if H5C_COLLECT_CACHE_STATS
+
+    for ( i = 0; i <= cache_ptr->max_type_id; i++ ) {
+
+        total_hits              += cache_ptr->hits[i];
+        total_misses            += cache_ptr->misses[i];
+    }
+
+    if ( ( total_hits > 0 ) || ( total_misses > 0 ) ) {
+
+        hit_rate = (double)100.0f * ((double)(total_hits)) /
+                   ((double)(total_hits + total_misses));
+    } else {
+        hit_rate = 0.0f;
+    }
+
+    if ( cache_ptr->prefetches > 0 ) {
+
+        prefetch_use_rate =
+                   (double)100.0f * ((double)(cache_ptr->prefetch_hits)) /
+                   ((double)(cache_ptr->prefetches));
+    } else {
+        prefetch_use_rate = 0.0f;
+    }
+
+    if ( print_header ) {
+
+        HDfprintf(stdout,
+           "\nhit     prefetches      prefetch              image  pf hit\n");
+        HDfprintf(stdout,
+             "rate:   total:  dirty:  hits:  flshs:  evct:  size:  rate:\n");
+    }
+
+    HDfprintf(stdout,
+           "%3.1lf    %5lld   %5lld   %5lld  %5lld   %5lld   %5lld   %3.1lf\n",
+            hit_rate,
+            (long long)(cache_ptr->prefetches),
+            (long long)(cache_ptr->dirty_prefetches),
+            (long long)(cache_ptr->prefetch_hits),
+            (long long)(cache_ptr->flushes[H5AC_PREFETCHED_ENTRY_ID]),
+            (long long)(cache_ptr->evictions[H5AC_PREFETCHED_ENTRY_ID]),
+            (long long)(cache_ptr->last_image_size),
+            prefetch_use_rate);
+
+#endif /* H5C_COLLECT_CACHE_STATS */
+
+done:
+    FUNC_LEAVE_NOAPI(ret_value)
+
+} /* H5C_image_stats() */
+
+
+/*-------------------------------------------------------------------------
  * Function:    H5C_load_cache_image
  *
  * Purpose:     Read the cache image superblock extension message and
@@ -1188,6 +1272,11 @@ H5C_load_cache_image(H5F_t *    f,
 	/* free the image buffer */
         cache_ptr->image_buffer = H5MM_xfree(cache_ptr->image_buffer);
 
+        /* update stats -- must do this now, as we are about
+         * to discard the size of the cache image.
+         */
+        H5C__UPDATE_STATS_FOR_CACHE_IMAGE_LOAD(cache_ptr)
+
 	/* if directed, free the on disk metadata cache image */
         if ( cache_ptr->delete_image ) { 
 
@@ -1228,9 +1317,6 @@ H5C_load_cache_image(H5F_t *    f,
 	cache_ptr->image_entries =
                 (H5C_image_entry_t *)H5MM_xfree(cache_ptr->image_entries);
 	cache_ptr->num_entries_in_image = 0;
-
-
-        H5C__UPDATE_STATS_FOR_CACHE_IMAGE_LOAD(cache_ptr)
     }
 
 done:
@@ -2718,29 +2804,6 @@ H5C_prep_for_file_close__partition_image_entries_array(H5C_t * cache_ptr,
     j = top + 1;
 
     while ( ! done ) {
-#if 0 /* old code */ /* JRM */
-	do {
-	    i_le_pivot = FALSE;
-	    i++;
-            ith_ptr = &((cache_ptr->image_entries)[i]);
-
-	    if ( ( ith_ptr->flush_dep_height > 0 ) &&
-                 ( ith_ptr->flush_dep_height <= pivot_ptr->flush_dep_height ) )
-            {
-
-		HDassert(ith_ptr->lru_rank == -1);
-
-		i_le_pivot = TRUE;
-
-	    } else if ( ( ith_ptr->flush_dep_height == 0 ) &&
-                        ( ith_ptr->lru_rank >= pivot_ptr->lru_rank ) ) {
-
-		/* HDassert(pivot_ptr->flush_dep_height == 0); */
-
-		i_le_pivot = TRUE;
-	    }
-        } while ( ! i_le_pivot );
-#else /* new code */ /* JRM */
 	do {
 	    i_le_pivot = FALSE;
 	    i++;
@@ -2767,32 +2830,6 @@ H5C_prep_for_file_close__partition_image_entries_array(H5C_t * cache_ptr,
             } 
         } while ( ! i_le_pivot );
 
-#endif /* new code */ /* JRM */
-
-#if 0 /* old code */ /* JRM */
-	do {
-	    j_ge_pivot = FALSE;
-	    j--;
-	    jth_ptr = &((cache_ptr->image_entries)[j]);
-
-	    if ( ( jth_ptr->flush_dep_height > 0 ) &&
-                 ( jth_ptr->flush_dep_height >= pivot_ptr->flush_dep_height ) )
-            {
-
-		HDassert(jth_ptr->lru_rank == -1);
-
-		j_ge_pivot = TRUE;
-
-	    } else if ( ( jth_ptr->flush_dep_height == 0 ) &&
-                        ( jth_ptr->lru_rank <= pivot_ptr->lru_rank ) ) {
-
-		/* HDassert(pivot_ptr->flush_dep_height == 0); */
-
-		j_ge_pivot = TRUE;
-	    }
-	} while  ( ! j_ge_pivot );
-
-#else /* new code */ /* JRM */
 	do {
 	    j_ge_pivot = FALSE;
 	    j--;
@@ -2820,8 +2857,6 @@ H5C_prep_for_file_close__partition_image_entries_array(H5C_t * cache_ptr,
                 }
             } 
 	} while  ( ! j_ge_pivot );
-
-#endif /* new code */ /* JRM */
 
 	if ( i < j ) { /* swap ith and jth entries */
 
@@ -4057,11 +4092,7 @@ H5C_serialize_single_entry(const H5F_t *f,
     size_t		new_compressed_len = 0;
     herr_t		ret_value = SUCCEED;      /* Return value */
 
-#if 0
-    FUNC_ENTER_PACKAGE
-#else
     FUNC_ENTER_NOAPI(FAIL)
-#endif
 
     /* sanity checks */
     HDassert(f);

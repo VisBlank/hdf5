@@ -198,10 +198,6 @@ typedef struct H5O_copy_t {
 #define H5O_AINFO_ID    0x0015          /* Attribute info message.  */
 #define H5O_REFCOUNT_ID 0x0016          /* Reference count message.  */
 #define H5O_FSINFO_ID   0x0017          /* Free-space manager info message.  */
-#if 0 /* original code */ /* JRM */
-#define H5O_UNKNOWN_ID  0x0018          /* Placeholder message ID for unknown message.  */
-                                        /* (this should never exist in a file) */
-#else /* modified code */ /* JRM */
 #define H5O_MDCI_MSG_ID 0x0018		/* Metadata Cache Image Message */
 #define H5O_UNKNOWN_ID  0x0019          /* Placeholder message ID for unknown message.  */
                                         /* (this should never exist in a file) */
@@ -209,7 +205,6 @@ typedef struct H5O_copy_t {
  * Note: Must increment H5O_MSG_TYPES in H5Opkg.h and update H5O_msg_class_g
  *	 H5O.c when creating a new message type.
  */
-#endif /* modified code */ /* JRM */
 
 /* Shared object message types.
  * Shared objects can be committed, in which case the shared message contains
@@ -701,7 +696,7 @@ typedef struct H5O_fsinfo_t {
     haddr_t     	  fs_addr[H5FD_MEM_NTYPES-1]; /* Addresses of free space managers */
 } H5O_fsinfo_t;
 
-#if 1 /* new code */ /* JRM */
+
 /*
  * Metadata Cache Image Message.
  * Contains base address and length of the metadata cache image.
@@ -715,7 +710,6 @@ typedef struct H5O_mdci_msg_t {
 /* only one version of the metadata cache image message at present */
 #define H5O_MDCI_VERSION_0 	0
 
-#endif /* new code */ /* JRM */
 
 /* Typedef for "application" iteration operations */
 typedef herr_t (*H5O_operator_t)(const void *mesg/*in*/, unsigned idx,
@@ -778,11 +772,6 @@ H5_DLL herr_t H5O_touch_oh(H5F_t *f, hid_t dxpl_id, H5O_t *oh,
 H5_DLL herr_t H5O_bogus_oh(H5F_t *f, hid_t dxpl_id, H5O_t *oh, unsigned mesg_flags);
 #endif /* H5O_ENABLE_BOGUS */
 H5_DLL herr_t H5O_delete(H5F_t *f, hid_t dxpl_id, haddr_t addr);
-#if 0 /* new code */ /* JRM */
-/* mdc rings have made this code superfluous -- delete eventually */
-H5_DLL herr_t H5O_get_chunk_addrs(const H5O_loc_t *loc, hid_t dxpl_id, 
-    unsigned nchunks, haddr_t *addrs);
-#endif /* new code */ /* JRM */
 H5_DLL herr_t H5O_get_hdr_info(const H5O_loc_t *oloc, hid_t dxpl_id, H5O_hdr_info_t *hdr);
 H5_DLL herr_t H5O_get_info(const H5O_loc_t *oloc, hid_t dxpl_id, hbool_t want_ih_info,
     H5O_info_t *oinfo);

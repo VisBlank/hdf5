@@ -132,14 +132,6 @@
 #define H5C__CURR_AUTO_RESIZE_RPT_FCN_VER	1
 #define H5C__CURR_CACHE_IMAGE_CTL_VER		1
 
-#if 0 /* moved to H5Cpkg.h */ /* JRM */
-/* Number of epoch markers active */
-#define H5C__MAX_EPOCH_MARKERS  		10
-
-/* type ID for epoch markers */
-#define H5C__EPOCH_MARKER_TYPE  H5C__MAX_NUM_TYPE_IDS
-#endif /* moved to H5Cpkg.h */ /* JRM */
-
 /* Default configuration settings */
 #define H5C__DEF_AR_UPPER_THRESHHOLD		0.9999f
 #define H5C__DEF_AR_LOWER_THRESHHOLD		0.9f
@@ -1178,7 +1170,7 @@ typedef herr_t (*H5C_log_flush_func_t)(H5C_t *cache_ptr, haddr_t addr,
 #define H5C_RING_UNDEFINED	0 /* shouldn't appear in the cache */
 #define H5C_RING_USER		1 /* outermost ring */
 #define H5C_RING_FSM		2
-#define H5C_RING_SBE		4 /* temporarily merged with H5C_RING_SB */
+#define H5C_RING_SBE		3 
 #define H5C_RING_SB		4 /* innermost ring */
 #define H5C_RING_NTYPES		5 
 
@@ -1779,7 +1771,7 @@ typedef struct H5C_cache_entry_t {
     struct H5C_cache_entry_t  *	prev;
     struct H5C_cache_entry_t  *	aux_next;
     struct H5C_cache_entry_t  *	aux_prev;
-#if 1 /* new code */ /* JRM */
+
     /* fields supporting cache image */
     hbool_t			include_in_image;
     int32_t			lru_rank;
@@ -1789,7 +1781,7 @@ typedef struct H5C_cache_entry_t {
     uint64_t			fd_child_count;
     hbool_t			prefetched;
     int				prefetch_type_id;
-#endif /* new code */ /* JRM */
+
 #if H5C_COLLECT_CACHE_ENTRY_STATS
     /* cache entry stats fields */
     int32_t			accesses;
@@ -2270,6 +2262,7 @@ H5_DLL herr_t H5C_get_evictions_enabled(const H5C_t *cache_ptr, hbool_t *evictio
 H5_DLL void * H5C_get_aux_ptr(const H5C_t *cache_ptr);
 H5_DLL FILE *H5C_get_trace_file_ptr(const H5C_t *cache_ptr);
 H5_DLL FILE *H5C_get_trace_file_ptr_from_entry(const H5C_cache_entry_t *entry_ptr);
+H5_DLL herr_t H5C_image_stats(H5C_t * cache_ptr, hbool_t print_header);
 H5_DLL herr_t H5C_insert_entry(H5F_t *f, hid_t dxpl_id, const H5C_class_t *type,
     haddr_t addr, void *thing, unsigned int flags);
 H5_DLL herr_t H5C_load_cache_image_on_next_protect(H5F_t *f, haddr_t addr, 

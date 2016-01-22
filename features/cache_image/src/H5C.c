@@ -262,9 +262,6 @@ H5FL_DEFINE_STATIC(H5C_t);
 
 /* H5C__MAX_EPOCH_MARKERS and H5C__EPOCH_MARKER_TYPE are defined in H5Cpkg.h. */
 
-#if 0 /* moved to H5Cprivate.h */ /* JRM */
-#define H5C__EPOCH_MARKER_TYPE	H5C__MAX_NUM_TYPE_IDS
-#endif /* moved to H5Cprivate.h */ /* JRM */
 
 static herr_t H5C__epoch_marker_get_load_size(const void *udata_ptr,
 		                            size_t *image_len_ptr);
@@ -600,6 +597,7 @@ H5C_create(size_t		      max_cache_size,
     cache_ptr->resize_enabled			= FALSE;
     cache_ptr->cache_full			= FALSE;
     cache_ptr->size_decreased			= FALSE;
+    cache_ptr->resize_in_progress		= FALSE;
 
     (cache_ptr->resize_ctl).version		= H5C__CURR_AUTO_SIZE_CTL_VER;
     (cache_ptr->resize_ctl).rpt_fcn		= NULL;
@@ -648,7 +646,6 @@ H5C_create(size_t		      max_cache_size,
         ((cache_ptr->epoch_markers)[i]).type		 = &epoch_marker_class;
     }
 
-#if 1 /* new code */ /* JRM */
     /* Initialize cache image generation on file close related fields.
      * Initial value of image_ctl must match H5C__DEFAULT_CACHE_IMAGE_CTL
      * in H5Cprivate.h.
@@ -673,7 +670,6 @@ H5C_create(size_t		      max_cache_size,
     cache_ptr->num_entries_in_image	= 0;
     cache_ptr->image_entries		= NULL;
     cache_ptr->image_buffer		= NULL;
-#endif /* new code */ /* JRM */
 
     if ( H5C_reset_cache_hit_rate_stats(cache_ptr) != SUCCEED ) {
 
@@ -937,11 +933,23 @@ H5C_dest(H5F_t * f, hid_t dxpl_id)
     HDassert(cache_ptr->magic == H5C__H5C_T_MAGIC);
     HDassert(cache_ptr->close_warning_received);
 
+#if H5AC_DUMP_IMAGE_STATS_ON_CLOSE
+    {
+        static hbool_t display_header = TRUE;
+
+        if ( H5C_image_stats(cache_ptr, display_header) < 0 )
+
+            HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, FAIL, \
+                        "Can't display cache image stats.")
+
+        display_header = FALSE;
+    }
+#endif /* H5AC_DUMP_IMAGE_STATS_ON_CLOSE */
+
     /* Flush and invalidate all cache entries */
     if(H5C_flush_invalidate_cache(f, dxpl_id, H5C__NO_FLAGS_SET) < 0 )
         HGOTO_ERROR(H5E_CACHE, H5E_CANTFLUSH, FAIL, "unable to flush cache")
 
-#if 1 /* new code */ /* JRM */
     if ( cache_ptr->close_warning_received && 
          cache_ptr->image_ctl.generate_image ) {
 
@@ -959,15 +967,10 @@ H5C_dest(H5F_t * f, hid_t dxpl_id)
 
 	/* write cache image block if so configured */
 	if ( cache_ptr->image_ctl.flags & H5C_CI__GEN_MDC_IMAGE_BLK ) {
-#if 0 
-	    if ( H5F_block_write(f, H5FD_MEM_SUPER, cache_ptr->image_addr,
-                                 cache_ptr->image_len, dxpl_id, 
-                                 cache_ptr->image_buffer) < 0 ) {
-#else
+
 	    if ( H5AC_write_cache_image(f, dxpl_id, cache_ptr->image_addr,
 					cache_ptr->image_len, 
                                         cache_ptr->image_buffer) < 0 ) {
-#endif
 
                 HGOTO_ERROR(H5E_CACHE, H5E_CANTFLUSH, FAIL, \
                            "Can't write metadata cache image block to file.")
@@ -980,7 +983,6 @@ H5C_dest(H5F_t * f, hid_t dxpl_id)
 	HDassert(cache_ptr->image_buffer);
         cache_ptr->image_buffer = H5MM_xfree(cache_ptr->image_buffer);
     }
-#endif /* new code */ /* JRM */
 
     if(cache_ptr->slist_ptr != NULL) {
         H5SL_close(cache_ptr->slist_ptr);
@@ -1683,12 +1685,11 @@ H5C_get_entry_status(const H5F_t *f,
 
             *is_flush_dep_child_ptr = (entry_ptr->flush_dep_parent != NULL);
         }
-#if 1 /* new code */ /* JRM */
+
 	if ( image_up_to_date_ptr != NULL ) {
 
 	    *image_up_to_date_ptr = entry_ptr->image_up_to_date;
         }
-#endif /* new code */ /* JRM */
     }
 
 done:
@@ -1886,10 +1887,8 @@ H5C_insert_entry(H5F_t *             f,
     HDassert( cache_ptr );
     HDassert( cache_ptr->magic == H5C__H5C_T_MAGIC );
     HDassert( type );
-#if 1 /* new code */ /* JRM */
     HDassert( ( type->flags & H5C__CLASS_SKIP_MEM_TYPE_CHECKS ) ||
               ( type->mem_type == class_mem_types[type->id] ) );
-#endif /* new code */ /* JRM */
     HDassert( H5F_addr_defined(addr) );
     HDassert( thing );
 
@@ -2016,7 +2015,7 @@ H5C_insert_entry(H5F_t *             f,
 
     entry_ptr->aux_next = NULL;
     entry_ptr->aux_prev = NULL;
-#if 1 /* new code */ /* JRM */
+
     /* initialize cache image related fields */
     entry_ptr->include_in_image = FALSE;
     entry_ptr->lru_rank         = 0;
@@ -2026,7 +2025,7 @@ H5C_insert_entry(H5F_t *             f,
     entry_ptr->fd_child_count	= 0;
     entry_ptr->prefetched	= FALSE;
     entry_ptr->prefetch_type_id	= 0;
-#endif /* new code */ /* JRM */
+
     H5C__RESET_CACHE_ENTRY_STATS(entry_ptr)
 
     if ( ( cache_ptr->flash_size_increase_possible ) &&
@@ -2130,9 +2129,9 @@ H5C_insert_entry(H5F_t *             f,
         HGOTO_ERROR(H5E_CACHE, H5E_CANTNOTIFY, FAIL, "can't notify client about entry inserted into cache")
 
     H5C__UPDATE_STATS_FOR_INSERTION(cache_ptr, entry_ptr)
-#if 1 /* new code */ /* JRM */
+
     cache_ptr->entries_inserted_counter++;
-#endif /* new code */ /* JRM */
+
 done:
 
 #if H5C_DO_EXTREME_SANITY_CHECKS
@@ -2199,10 +2198,8 @@ H5C_mark_entry_dirty(void *thing)
         /* set the dirtied flag */
         entry_ptr->dirtied = TRUE;
 
-#if 1 /* new code */ /* JRM */
 	/* reset image_up_to_date */
         entry_ptr->image_up_to_date = FALSE;
-#endif /* new code */ /* JRM */
 
     } else if ( entry_ptr->is_pinned ) {
         hbool_t		was_pinned_unprotected_and_clean;
@@ -2392,9 +2389,9 @@ H5C_move_entry(H5C_t *	     cache_ptr,
     }
 
     H5C__UPDATE_STATS_FOR_MOVE(cache_ptr, entry_ptr)
-#if 1 /* new code */ /* JRM */
+
     cache_ptr->entries_relocated_counter++;
-#endif /* new code */ /* JRM */
+
 done:
 
 #if H5C_DO_EXTREME_SANITY_CHECKS
@@ -2755,10 +2752,8 @@ H5C_protect(H5F_t *		f,
     HDassert( cache_ptr );
     HDassert( cache_ptr->magic == H5C__H5C_T_MAGIC );
     HDassert( type );
-#if 1 /* new code */ /* JRM */
     HDassert( ( type->flags & H5C__CLASS_SKIP_MEM_TYPE_CHECKS ) ||
               ( type->mem_type == class_mem_types[type->id] ) );
-#endif /* new code */ /* JRM */
     HDassert( H5F_addr_defined(addr) );
 
 #if H5C_DO_EXTREME_SANITY_CHECKS
@@ -2771,7 +2766,6 @@ H5C_protect(H5F_t *		f,
     }
 #endif /* H5C_DO_EXTREME_SANITY_CHECKS */
 
-#if 1 /* new code */ /* JRM */
     if ( cache_ptr->load_image ) {
 
         cache_ptr->load_image = FALSE;
@@ -2780,7 +2774,6 @@ H5C_protect(H5F_t *		f,
 
 	    HGOTO_ERROR(H5E_CACHE, H5E_CANTLOAD, NULL, "Can't load cache image")
     }
-#endif /* new code */ /* JRM */
 
     read_only          = ( (flags & H5C__READ_ONLY_FLAG) != 0 );
     flush_last         = ( (flags & H5C__FLUSH_LAST_FLAG) != 0 );
@@ -2803,7 +2796,6 @@ H5C_protect(H5F_t *		f,
         if(entry_ptr->ring != ring)
             HGOTO_ERROR(H5E_CACHE, H5E_SYSTEM, NULL, "ring type mismatch occured for cache entry\n");
 
-#if 1 /* new code */ /* JRM */
 	HDassert(entry_ptr->magic == H5C__H5C_CACHE_ENTRY_T_MAGIC);
 
         if ( entry_ptr->prefetched ) {
@@ -2823,7 +2815,6 @@ H5C_protect(H5F_t *		f,
 	    HDassert(!entry_ptr->prefetched);
             HDassert(entry_ptr->addr == addr);
         }
-#endif /* new code */ /* JRM */
 
         /* Check for trying to load the wrong type of entry from an address */
         if(entry_ptr->type != type)
@@ -2870,9 +2861,8 @@ H5C_protect(H5F_t *		f,
         } 
 
         entry_ptr = (H5C_cache_entry_t *)thing;
-#if 1 /* new code */ /* JRM */
+
 	cache_ptr->entries_loaded_counter++;
-#endif /* new code */ /* JRM */
 
         entry_ptr->ring  = ring;
 
@@ -3923,13 +3913,6 @@ H5C_stats(H5C_t * cache_ptr,
                             cache_ptr->entries_scanned_to_make_space));
 
     HDfprintf(stdout, 
-#if 0 /* old code */ /* JRM */
-              "%s  slist/LRU/hash bkt scan restarts   = %lld / %lld / %lld.\n",
-              cache_ptr->prefix, 
-              (long long)(cache_ptr->slist_scan_restarts),
-              (long long)(cache_ptr->LRU_scan_restarts),
-              (long long)(cache_ptr->hash_bucket_scan_restarts));
-#else /* new code */ /* JRM */
         "%s  slist/LRU/bkt/index scan restarts  = %lld / %lld / %lld / %lld.\n",
               cache_ptr->prefix, 
               (long long)(cache_ptr->slist_scan_restarts),
@@ -3938,10 +3921,11 @@ H5C_stats(H5C_t * cache_ptr,
               (long long)(cache_ptr->index_scan_restarts));
 
     HDfprintf(stdout,
-	      "%s  cache image creations/loads        = %d / %d\n",
+	      "%s  cache image creations/loads/size   = %d / %d / %lld\n",
 	      cache_ptr->prefix,
               cache_ptr->images_created,
-              cache_ptr->images_loaded);
+              cache_ptr->images_loaded,
+              (long long)cache_ptr->last_image_size);
 
     HDfprintf(stdout,
 	      "%s  prefetches / dirty prefetches      = %lld / %lld\n",
@@ -3968,8 +3952,6 @@ H5C_stats(H5C_t * cache_ptr,
     HDfprintf(stdout,
 	      "%s  prefetched entry use rate          = %lf\n",
 	      cache_ptr->prefix, prefetch_use_rate);
-
-#endif /* new code */ /* JRM */
 
 #if H5C_COLLECT_CACHE_ENTRY_STATS
 
@@ -4220,16 +4202,16 @@ H5C_stats__reset(H5C_t H5_ATTR_UNUSED * cache_ptr)
     cache_ptr->slist_scan_restarts		= 0;
     cache_ptr->LRU_scan_restarts		= 0;
     cache_ptr->hash_bucket_scan_restarts	= 0;
-#if 1 /* new code */ /* JRM */
+
     cache_ptr->index_scan_restarts		= 0;
 
     cache_ptr->images_created			= 0;
     cache_ptr->images_loaded			= 0;
+    cache_ptr->last_image_size                  = (size_t)0;
 
     cache_ptr->prefetches			= 0;
     cache_ptr->dirty_prefetches			= 0;
     cache_ptr->prefetch_hits			= 0;
-#endif /* new_code */ /* JRM */
 
 #if H5C_COLLECT_CACHE_ENTRY_STATS
 
@@ -4762,25 +4744,10 @@ H5C_unprotect(H5F_t *		  f,
         /* Mark the entry as dirty if appropriate */
         entry_ptr->is_dirty = (entry_ptr->is_dirty || dirtied);
 
-        /* the image_up_to_date field was introduced to support 
-         * journaling.  Until we re-introduce journaling, this 
-         * field should be equal to !entry_ptr->is_dirty.  
-         *
-         * When journaling is re-enabled it should be set 
-         * to FALSE if dirtied is TRUE.
-         */
-#if 0 /* original code */ /* JRM */
-#if 1 /* JRM */
-	entry_ptr->image_up_to_date = FALSE;
-#else /* JRM */
-	entry_ptr->image_up_to_date = !entry_ptr->is_dirty;
-#endif /* JRM */
-#else /* modified code */ /* JRM */
 	if ( dirtied ) {
 
 	    entry_ptr->image_up_to_date = FALSE;
         } 
-#endif /* modified code */ /* JRM */
 
 
         /* Update index for newly dirtied entry */
@@ -4848,11 +4815,13 @@ H5C_unprotect(H5F_t *		  f,
             /* Delete the entry from the skip list on destroy */
             flush_flags |= H5C__DEL_FROM_SLIST_ON_DESTROY_FLAG;
 
+	    HDassert(((!was_clean) || dirtied) == entry_ptr->in_slist);
+
             if(H5C__flush_single_entry(f, dxpl_id, entry_ptr, flush_flags, NULL) < 0)
                 HGOTO_ERROR(H5E_CACHE, H5E_CANTUNPROTECT, FAIL, "Can't flush entry")
 
 #if H5C_DO_SANITY_CHECKS
-	    if ( ( take_ownership ) && ( ! was_clean ) )
+	    if ( ( take_ownership ) && ( ( ! was_clean ) || ( dirtied ) ) )
             {
                 /* we have just removed an entry from the skip list.  Thus 
                  * we must touch up cache_ptr->slist_len_increase and
@@ -5190,11 +5159,9 @@ H5C_adjust_flush_dependency_rc(H5C_cache_entry_t * cache_entry,
     HDassert(old_child_height < H5C__NUM_FLUSH_DEP_HEIGHTS);
     HDassert(old_child_height != new_child_height);
     HDassert(new_child_height < H5C__NUM_FLUSH_DEP_HEIGHTS);
-#if 1 /* new code */ /* JRM */
     HDassert(cache_entry->magic == H5C__H5C_CACHE_ENTRY_T_MAGIC);
     HDassert(cache_entry->cache_ptr);
     HDassert(cache_entry->cache_ptr->magic == H5C__H5C_T_MAGIC);
-#endif /* new code */ /* JRM */
 
     /* Adjust ref. counts for entry's flush dependency children heights */
     cache_entry->child_flush_dep_height_rc[new_child_height]++;
@@ -5212,9 +5179,8 @@ H5C_adjust_flush_dependency_rc(H5C_cache_entry_t * cache_entry,
         /* Set new flush dependency height of entry */
         cache_entry->flush_dep_height = new_child_height + 1;
 
-#if 1 /* new code */ /* JRM */
 	cache_entry->cache_ptr->entry_fd_height_change_counter++;
-#endif /* new code */ /* JRM */
+
     } /* end if */
     else {
         /* Check for child's flush dep. height decreasing and ref. count of
@@ -5226,9 +5192,7 @@ H5C_adjust_flush_dependency_rc(H5C_cache_entry_t * cache_entry,
                 && (0 == cache_entry->child_flush_dep_height_rc[old_child_height])) {
             int i;                      /* Local index variable */
 
-#if 1 /* new code */ /* JRM */
 	    cache_entry->cache_ptr->entry_fd_height_change_counter++;
-#endif /* new code */ /* JRM */
 
             /* Re-scan child flush dependency height ref. counts to determine
              *  this entry's height.
@@ -5374,9 +5338,7 @@ H5C_create_flush_dependency(void * parent_thing, void * child_thing)
 
         /* Increase flush dependency height of parent entry */
         parent_entry->flush_dep_height = child_entry->flush_dep_height + 1;
-#if 1 /* new code */ /* JRM */
 	cache_ptr->entry_fd_height_change_counter++;
-#endif /* new code */ /* JRM */
     } /* end if */
 
     /* Set parent for child entry */
@@ -5466,9 +5428,7 @@ H5C_destroy_flush_dependency(void *parent_thing, void * child_thing)
             HDassert(0 == parent_entry->child_flush_dep_height_rc[i]);
 #endif /* NDEBUG */
 
-#if 1 /* new code */ /* JRM */
 	cache_ptr->entry_fd_height_change_counter++;
-#endif /* new code */ /* JRM */
 
         for(i = (int)child_entry->flush_dep_height; i >= 0; i--)
             /* Check for child flush dependencies of this height */
@@ -5555,6 +5515,7 @@ H5C__auto_adjust_cache_size(H5F_t * f,
 {
     H5C_t *			cache_ptr = f->shared->cache;
     herr_t			result;
+    hbool_t			reentrant_call = FALSE;
     hbool_t			inserted_epoch_marker = FALSE;
     size_t			new_max_cache_size = 0;
     size_t			old_max_cache_size = 0;
@@ -5573,6 +5534,19 @@ H5C__auto_adjust_cache_size(H5F_t * f,
               (cache_ptr->resize_ctl).epoch_length );
     HDassert( (double)0.0f <= (cache_ptr->resize_ctl).min_clean_fraction );
     HDassert( (cache_ptr->resize_ctl).min_clean_fraction <= (double)100.0f );
+
+    /* check to see if cache_ptr->resize_in_progress is TRUE.  If it, this
+     * is a re-entrant call via a client callback called in the resize 
+     * process.  To avoid an infinite recursion, set reentrant_call to 
+     * TRUE, and goto done.
+     */
+    if ( cache_ptr->resize_in_progress ) {
+
+        reentrant_call = TRUE;
+        HGOTO_DONE(SUCCEED);
+    }
+
+    cache_ptr->resize_in_progress = TRUE;
 
     if ( !cache_ptr->resize_enabled ) {
 
@@ -5872,6 +5846,14 @@ H5C__auto_adjust_cache_size(H5F_t * f,
     }
 
 done:
+
+    HDassert(cache_ptr->resize_in_progress);
+
+    if ( ! reentrant_call )
+
+        cache_ptr->resize_in_progress = FALSE;
+
+    HDassert((!reentrant_call) || (cache_ptr->resize_in_progress));
 
     FUNC_LEAVE_NOAPI(ret_value)
 
@@ -7941,10 +7923,8 @@ H5C__flush_single_entry(const H5F_t *f, hid_t dxpl_id, H5C_cache_entry_t *entry_
     hbool_t		write_entry;		/* internal flag */
     hbool_t		destroy_entry;		/* internal flag */
     hbool_t		was_dirty;
-#if 1 /* new code */ /* JRM */ 
     hbool_t		suppress_image_entry_writes = FALSE;
     hbool_t		suppress_image_entry_frees = FALSE;
-#endif /* new code */ /* JRM */
     haddr_t		new_addr = HADDR_UNDEF;
     haddr_t		old_addr = HADDR_UNDEF;
     size_t		new_len = 0;
@@ -7988,7 +7968,6 @@ H5C__flush_single_entry(const H5F_t *f, hid_t dxpl_id, H5C_cache_entry_t *entry_
     else
         write_entry = FALSE;
 
-#if 1 /* new code */ /* JRM */
     /* if we have received close warning, and we have been instructed to 
      * generate a metadata cache image, and we have actually constructed
      * the entry images, set suppress_image_entry_frees to TRUE.
@@ -8013,8 +7992,6 @@ H5C__flush_single_entry(const H5F_t *f, hid_t dxpl_id, H5C_cache_entry_t *entry_
 
 	    suppress_image_entry_writes = TRUE;
     }
-
-#endif /* new code */ /* JRM */
 
     /* run initial sanity checks */
 #if H5C_DO_SANITY_CHECKS
@@ -8125,9 +8102,9 @@ H5C__flush_single_entry(const H5F_t *f, hid_t dxpl_id, H5C_cache_entry_t *entry_
         } /* end if */
 
         if(!(entry_ptr->image_up_to_date)) {
-#if 1 /* new code */ /* JRM */
+
 	    HDassert(!entry_ptr->prefetched);
-#endif /* new code */ /* JRM */
+
             /* reset cache_ptr->slist_changed so we can detect slist
              * modifications in the pre_serialize call.
              */
@@ -8266,19 +8243,14 @@ H5C__flush_single_entry(const H5F_t *f, hid_t dxpl_id, H5C_cache_entry_t *entry_
                     int64_t saved_slist_size_increase;
 #endif /* H5C_DO_SANITY_CHECKS */
 
-#if 0 /* delete this if all goes well */ /* JRM */
-                    H5C__UPDATE_STATS_FOR_MOVE(cache_ptr, entry_ptr)
-#endif /* delete this if all goes well */ /* JRM */
-
                     if(entry_ptr->addr == old_addr) {
                         /* we must update cache data structures for the 
                          * change in address.
                          */
-#if 1 /* new code */ /* JRM */
+
 			/* update stats and entries relocated counter */
                         H5C__UPDATE_STATS_FOR_MOVE(cache_ptr, entry_ptr)
 		        cache_ptr->entries_relocated_counter++;
-#endif /* new code */ /* JRM */
 
                         /* delete the entry from the hash table and the slist */
                         H5C__DELETE_FROM_INDEX(cache_ptr, entry_ptr, FAIL)
@@ -8356,17 +8328,6 @@ H5C__flush_single_entry(const H5F_t *f, hid_t dxpl_id, H5C_cache_entry_t *entry_
             }
         } /* end if ( ! (entry_ptr->image_up_to_date) ) */
 
-#if 0 /* old code */ /* JRM */
-        /* Finally, write the image to disk.  
-         * 
-         * Note that if either the H5C__CLASS_NO_IO_FLAG or the 
-         * the H5AC__CLASS_SKIP_WRITES flag is set in the 
-         * in the entry's type, we silently skip the write.  This
-         * flag should only be used in test code. 
-         */
-        if ( ( ((entry_ptr->type->flags) & H5C__CLASS_NO_IO_FLAG) == 0 ) &&
-             ( ((entry_ptr->type->flags) & H5C__CLASS_SKIP_WRITES) == 0 ) )
-#else /* new code */ /* JRM */
 	/* Finally, write the image to disk unless the write is suppressed.
          *
          * This happens if both suppress_image_entry_writes and 
@@ -8380,23 +8341,19 @@ H5C__flush_single_entry(const H5F_t *f, hid_t dxpl_id, H5C_cache_entry_t *entry_
              ( ((entry_ptr->type->flags) & H5C__CLASS_NO_IO_FLAG) == 0 ) 
              &&
              ( ((entry_ptr->type->flags) & H5C__CLASS_SKIP_WRITES) == 0 ) )
-#endif /* new code */ /* JRM */
         {
 	    /* If compression is not enabled, the size of the entry on 
              * disk is entry_prt->size.  However if entry_ptr->compressed
              * is TRUE, the on disk size is entry_ptr->compressed_size.
              */
             size_t image_size;
-#if 1 /* new code */ /* JRM */
 	    H5FD_mem_t mem_type;
-#endif /* new code */ /* JRM */
 
             if(entry_ptr->compressed)
                 image_size = entry_ptr->compressed_size;
             else
                 image_size = entry_ptr->size;
 
-#if 1 /* new code */ /* JRM */
 	    if ( entry_ptr->prefetched ) {
 
 		HDassert(entry_ptr->type->id == H5AC_PREFETCHED_ENTRY_ID);
@@ -8412,12 +8369,6 @@ H5C__flush_single_entry(const H5F_t *f, hid_t dxpl_id, H5C_cache_entry_t *entry_
                 HGOTO_ERROR(H5E_CACHE, H5E_CANTFLUSH, FAIL, \
                             "Can't write image to file.")
 
-#else /* old code */ /* JRM */
-
-            if(H5F_block_write(f, entry_ptr->type->mem_type, entry_ptr->addr,
-                    image_size, dxpl_id, entry_ptr->image_ptr) < 0)
-                HGOTO_ERROR(H5E_CACHE, H5E_CANTFLUSH, FAIL, "Can't write image to file.")
-#endif /* old code */ /* JRM */
         }
 
         /* if the entry has a notify callback, notify it that we have 
@@ -8527,10 +8478,7 @@ H5C__flush_single_entry(const H5F_t *f, hid_t dxpl_id, H5C_cache_entry_t *entry_
      * Now discard the entry if appropriate.
      */
     if(destroy) {
-#if 0 /* old code */ /* JRM */
-        /* start by freeing the buffer for the on disk image */
-        if(entry_ptr->image_ptr != NULL)
-#else /* new code */ /* JRM */
+
         /* if both suppress_image_entry_frees and entry_ptr->include_in_image
          * are true, simple set entry_ptr->image_ptr to NULL, as we have 
          * another pointer to the buffer in an instance of H5C_image_entry_t
@@ -8543,7 +8491,7 @@ H5C__flush_single_entry(const H5F_t *f, hid_t dxpl_id, H5C_cache_entry_t *entry_
 	    entry_ptr->image_ptr = NULL;
 
 	else if ( entry_ptr->image_ptr != NULL )
-#endif /* new code */
+
             entry_ptr->image_ptr = H5MM_xfree(entry_ptr->image_ptr);
 
         /* Check whether we should free the space in the file that 
@@ -8739,64 +8687,6 @@ H5C_load_entry(H5F_t *             f,
     /* Check for possible speculative read off the end of the file */
     if(type->flags & H5C__CLASS_SPECULATIVE_LOAD_FLAG) {
 
-/* Quincey has added patches for eoa calculations -- leave the original
- * code around until we see the effect of these patches.
- *                                         JRM -- 1/1/15
- */
-#if 0 /* original code */ /* JRM */
-	/* the original version of this code has several problems:
-         *
-         * First, the sblock is not available until the sblock 
-         * has been read in, which causes a seg fault.  This is 
-         * dealt with easily enough by testing to see if 
-         * f->shared->sblock is NULL, and calling H5FD_get_base_addr()
-         * to obtain the base addr when it is.
-         *
-         * The second issue is more subtle.  H5F_get_eoa() calls 
-         * H5FD_get_eoa().  However, this function returns the EOA as 
-         * a relative address -- i.e. relative to the base address.
-         * This means that the base addr + addr < eoa sanity check will
-         * fail whenever the super block is not at address 0 when 
-         * reading in the first chunk of the super block.
-         * 
-         * To address these issues, I have rewritten the code to 
-         * simply verify that the address plus length is less than 
-         * the eoa.  I think this is sufficient, but further testing
-         * should tell me if it isn't.
-         *                                      JRM -- 8/29/14
-         */
-        haddr_t eoa;                /* End-of-allocation in the file */
-        haddr_t base_addr;          /* Base address of file data */
-
-        /* Get the file's end-of-allocation value */
-        eoa = H5F_get_eoa(f, type->mem_type);
-        HDassert(H5F_addr_defined(eoa));
-
-        /* Get the file's base address */
-	if ( f->shared->sblock ) 
-
-            base_addr = H5F_BASE_ADDR(f);
-
-	else { /* sblock not loaded yet -- use file driver info */
-
-	    HDassert(f->shared->lf);
-	    base_addr = H5FD_get_base_addr(f->shared->lf);
-
-	}
-        HDassert(H5F_addr_defined(base_addr));
-
-        /* Check for bad address in general */
-        if((addr + base_addr) > eoa)
-            HGOTO_ERROR(H5E_CACHE, H5E_BADVALUE, NULL, \
-	                "address of object past end of allocation")
-
-        /* Check if the amount of data to read will be past the eoa */
-        if((addr + base_addr + len) > eoa)
-            /* Trim down the length of the metadata */
-            len = (size_t)(eoa - (addr + base_addr));
-
-#else /* modified code */ /* JRM */
-
         haddr_t eoa;                /* End-of-allocation in the file */
         H5FD_mem_t  cooked_type;
 
@@ -8834,7 +8724,6 @@ H5C_load_entry(H5F_t *             f,
             HGOTO_ERROR(H5E_CACHE, H5E_BADVALUE, NULL, \
 	                "len not positive after adjustment for EOA.")
 
-#endif /* modified code */ /* JRM */
     }
     /* Allocate the buffer for reading the on-disk entry image */
     if(NULL == (image = H5MM_malloc(len + H5C_IMAGE_EXTRA_SPACE)))
@@ -9044,11 +8933,7 @@ H5C_load_entry(H5F_t *             f,
     entry->compressed		= compressed;
     entry->compressed_size	= compressed_size;
     entry->image_ptr            = image;
-#if 0 /* old code */ /* JRM */
-    entry->image_up_to_date     = TRUE;
-#else /* new code */ /* JRM */
     entry->image_up_to_date     = !dirty;
-#endif /* new code */ /* JRM */
     entry->type                 = type;
     entry->is_dirty	        = dirty;
     entry->dirtied              = FALSE;
@@ -9082,7 +8967,7 @@ H5C_load_entry(H5F_t *             f,
 
     entry->aux_next             = NULL;
     entry->aux_prev             = NULL;
-#if 1 /* new code */ /* JRM */
+
     /* initialize cache image related fields */
     entry->include_in_image     = FALSE;
     entry->lru_rank		= 0;
@@ -9092,7 +8977,7 @@ H5C_load_entry(H5F_t *             f,
     entry->fd_child_count	= 0;
     entry->prefetched		= FALSE;
     entry->prefetch_type_id	= 0;
-#endif /* new code */ /* JRM */
+
     H5C__RESET_CACHE_ENTRY_STATS(entry);
 
     ret_value = thing;
@@ -10086,13 +9971,10 @@ H5C_verify_entry_type(const H5F_t *f,
     } else {
 
         *in_cache_ptr = TRUE;
-#if 0 /* old code */ /* JRM */
-	*type_ok_ptr = (expected_type == entry_ptr->type);
-#else /* new code */ /* JRM */
+
 	*type_ok_ptr = ((expected_type == entry_ptr->type) ||
                         ((entry_ptr->prefetched) &&
                          (entry_ptr->prefetch_type_id == expected_type->id)));
-#endif /* new code */ /* JRM */
     }
 
 done:

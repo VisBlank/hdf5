@@ -104,14 +104,22 @@ typedef enum {
  *	 use the dump_stats parameter to takedown_cache(), or call 
  *	 H5C_stats() directly.
  *					JRM -- 4/12/15
+ *
+ * Added the H5AC_DUMP_IMAGE_STATS_ON_CLOSE #define, which works much 
+ * the same way as H5AC_DUMP_STATS_ON_CLOSE.  However, the set of stats
+ * displayed is much smaller, and directed purely at the cache image feature.
+ *
+ *					JRM -- 11/1/15
  */
 #if H5C_COLLECT_CACHE_STATS
 
 #define H5AC_DUMP_STATS_ON_CLOSE	0
+#define H5AC_DUMP_IMAGE_STATS_ON_CLOSE  0
 
 #else /* H5C_COLLECT_CACHE_STATS */
 
 #define H5AC_DUMP_STATS_ON_CLOSE	0
+#define H5AC_DUMP_IMAGE_STATS_ON_CLOSE  0
 
 #endif /* H5C_COLLECT_CACHE_STATS */
 

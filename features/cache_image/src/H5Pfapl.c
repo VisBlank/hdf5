@@ -224,11 +224,9 @@ static herr_t H5P__facc_file_image_info_close(const char *name, size_t size, voi
 /* encode & decode callbacks */
 static herr_t H5P__facc_cache_config_enc(const void *value, void **_pp, size_t *size);
 static herr_t H5P__facc_cache_config_dec(const void **_pp, void *value);
-#if 1 /* new code */ /* JRM */
 static int H5P__facc_cache_image_config_cmp(const void *_config1, const void *_config2, size_t H5_ATTR_UNUSED size);
 static herr_t H5P__facc_cache_image_config_enc(const void *value, void **_pp, size_t *size);
 static herr_t H5P__facc_cache_image_config_dec(const void **_pp, void *_value);
-#endif /* new code */ /* JRM */
 static int H5P__facc_cache_config_cmp(const void *value1, const void *value2, size_t size);
 static herr_t H5P__facc_fclose_degree_enc(const void *value, void **_pp, size_t *size);
 static herr_t H5P__facc_fclose_degree_dec(const void **pp, void *value);
@@ -314,15 +312,11 @@ H5P__facc_reg_prop(H5P_genclass_t *pclass)
 
     FUNC_ENTER_STATIC
 
-#if 1 /* new code */ /* JRM */
-
     /* Register the initial metadata cache resize configuration */
     if(H5P_register_real(pclass, H5F_ACS_META_CACHE_INIT_IMAGE_CONFIG_NAME, H5F_ACS_META_CACHE_INIT_IMAGE_CONFIG_SIZE, &H5F_def_mdc_initCacheImageCfg_g, 
             NULL, NULL, NULL, H5F_ACS_META_CACHE_INIT_IMAGE_CONFIG_ENC, H5F_ACS_META_CACHE_INIT_IMAGE_CONFIG_DEC, 
             NULL, NULL, H5F_ACS_META_CACHE_INIT_IMAGE_CONFIG_CMP, NULL) < 0)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTINSERT, FAIL, "can't insert property into class")
-
-#endif /* new code */ /* JRM */
 
     /* Register the initial metadata cache resize configuration */
     if(H5P_register_real(pclass, H5F_ACS_META_CACHE_INIT_CONFIG_NAME, H5F_ACS_META_CACHE_INIT_CONFIG_SIZE, &H5F_def_mdc_initCacheCfg_g, 
@@ -1446,7 +1440,6 @@ done:
 } /* end H5Pget_cache() */
 
 
-#if 1 /* new code */ /* JRM */
 /*-------------------------------------------------------------------------
  * Function:	H5Pset_mdc_image_config
  *
@@ -1540,7 +1533,6 @@ H5Pget_mdc_image_config(hid_t plist_id, H5AC_cache_image_config_t *config_ptr)
 done:
     FUNC_LEAVE_API(ret_value)
 } /* H5Pget_mdc_image_config() */
-#endif /* new code */ /* JRM */
 
 
 /*-------------------------------------------------------------------------
