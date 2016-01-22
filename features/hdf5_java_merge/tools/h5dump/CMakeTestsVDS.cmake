@@ -248,7 +248,7 @@
     ADD_H5_VDS_TEST (tvds-3_2 0 --enable-error-stack 3_2_vds.h5)
     ADD_H5_VDS_TEST (tvds-4 0 --enable-error-stack 4_vds.h5)
     ADD_H5_VDS_TEST (tvds-5 0 --enable-error-stack 5_vds.h5)
-    ADD_H5_VDS_TEST (vds-first 0 --vds-view --enable-error-stack vds-percival-unlim-maxmin.h5)
+    ADD_H5_VDS_TEST (vds-first 0 --vds-view-first --enable-error-stack vds-percival-unlim-maxmin.h5)
     ADD_H5_VDS_TEST (vds-gap1 0 -d /VDS-Eiger --vds-gap-size=1 --enable-error-stack vds-eiger.h5)
     ADD_H5_VDS_TEST (vds-gap2 0 --vds-gap-size=2 --enable-error-stack vds-eiger.h5)
   endif (USE_FILTER_DEFLATE)
