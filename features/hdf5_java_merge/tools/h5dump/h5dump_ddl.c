@@ -185,7 +185,7 @@ static herr_t
 dump_all_cb(hid_t group, const char *name, const H5L_info_t *linfo, void H5_ATTR_UNUSED *op_data)
 {
     hid_t       obj;
-    hid_t       dapl_id = -1;  /* dataset access property list ID */
+    hid_t       dapl_id = H5P_DEFAULT;  /* dataset access property list ID */
     herr_t      ret = SUCCEED;
     char       *obj_path = NULL;    /* Full path of object */
     h5tools_str_t buffer;          /* string into which to render   */
@@ -322,7 +322,7 @@ dump_all_cb(hid_t group, const char *name, const H5L_info_t *linfo, void H5_ATTR
 
                         h5tools_setstatus(EXIT_FAILURE);
                         ret = FAIL;
-                        if (dapl_id)
+                        if (dapl_id && dapl_id != H5P_DEFAULT)
                             H5Pclose(dapl_id);
                         H5Dclose(obj);
                         goto done;
@@ -363,7 +363,7 @@ dump_all_cb(hid_t group, const char *name, const H5L_info_t *linfo, void H5_ATTR
                             h5tools_str_append(&buffer, "%s", h5tools_dump_header_format->datasetend);
                         h5tools_render_element(rawoutstream, outputformat, &ctx, &buffer, &curr_pos, (size_t)outputformat->line_ncols, (hsize_t)0, (hsize_t)0);
 
-                        if (dapl_id)
+                        if (dapl_id && dapl_id != H5P_DEFAULT)
                             H5Pclose(dapl_id);
                         H5Dclose(obj);
                         goto done;
@@ -374,13 +374,13 @@ dump_all_cb(hid_t group, const char *name, const H5L_info_t *linfo, void H5_ATTR
                 } /* end if */
 
                 dump_function_table->dump_dataset_function(obj, name, NULL);
-                if (dapl_id)
+                if (dapl_id && dapl_id != H5P_DEFAULT)
                     H5Pclose(dapl_id);
                 H5Dclose(obj);
             }
             else {
                 if (dapl_id)
-                    H5Pclose(dapl_id);
+                    H5Pclose(dapl_id && dapl_id != H5P_DEFAULT);
                 error_msg("unable to dump dataset \"%s\"\n", name);
                 h5tools_setstatus(EXIT_FAILURE);
                 ret = FAIL;
@@ -1695,7 +1695,7 @@ handle_datasets(hid_t fid, const char *dset, void *data, int pe, const char *dis
 {
     H5O_info_t       oinfo;
     hid_t            dsetid;
-    hid_t            dapl_id = -1;  /* dataset access property list ID */
+    hid_t            dapl_id = H5P_DEFAULT;  /* dataset access property list ID */
     struct subset_t *sset = (struct subset_t *)data;
     const char      *real_name = display_name ? display_name : dset;
 
@@ -1838,7 +1838,7 @@ handle_datasets(hid_t fid, const char *dset, void *data, int pe, const char *dis
         dump_dataset(dsetid, real_name, sset);
         dump_indent -= COL;
     }
-    if (dapl_id)
+    if (dapl_id && dapl_id != H5P_DEFAULT)
         H5Pclose(dapl_id);
     if(H5Dclose(dsetid) < 0)
         h5tools_setstatus(EXIT_FAILURE);
