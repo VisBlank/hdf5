@@ -64,6 +64,28 @@ typedef struct H5E_num_t {
     hid_t min_num;
 } H5E_num_t;
 
+/********************/
+/* Local Macros     */
+/********************/
+#define THROWEXCEPTION(className,args) {                                    \
+    jclass     jc;                                                          \
+    jmethodID  jm;                                                          \
+    jobject    ex;                                                          \
+    jc = ENVPTR->FindClass(ENVPAR (className));                             \
+    if (jc == NULL) {                                                       \
+        return JNI_FALSE;                                                   \
+    }                                                                       \
+    jm = ENVPTR->GetMethodID(ENVPAR jc, "<init>", "(Ljava/lang/String;)V"); \
+    if (jm == NULL) {                                                       \
+        return JNI_FALSE;                                                   \
+    }                                                                       \
+    ex = ENVPTR->NewObjectA (ENVPAR jc, jm, (jvalue*)(args));               \
+    if (ENVPTR->Throw(ENVPAR (jthrowable)ex) < 0) {                         \
+        printf("FATAL ERROR:  %s: Throw failed\n", (className));            \
+        return JNI_FALSE;                                                   \
+    }                                                                       \
+    return JNI_TRUE;                                                        \
+}
 
 /********************/
 /* Local Prototypes */
