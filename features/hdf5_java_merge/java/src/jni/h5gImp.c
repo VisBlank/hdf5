@@ -560,9 +560,7 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Gcreate2
 JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Gcreate_1anon
   (JNIEnv *env, jclass cls, jlong loc_id, jlong gcpl_id, jlong gapl_id)
 {
-    hid_t ret_val;
-
-    ret_val = H5Gcreate_anon((hid_t)loc_id, (hid_t)gcpl_id, (hid_t)gapl_id);
+    hid_t ret_val = H5Gcreate_anon((hid_t)loc_id, (hid_t)gcpl_id, (hid_t)gapl_id);
 
     if (ret_val < 0) {
         h5libraryError(env);
@@ -601,9 +599,7 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Gopen2
 JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5_H5Gget_1create_1plist
 (JNIEnv *env, jclass cls, jlong loc_id)
 {
-  hid_t ret_val;
-
-  ret_val = H5Gget_create_plist((hid_t)loc_id);
+  hid_t ret_val = H5Gget_create_plist((hid_t)loc_id);
 
   if (ret_val < 0) {
       h5libraryError(env);
@@ -621,11 +617,8 @@ JNIEXPORT jobject JNICALL Java_hdf_hdf5lib_H5_H5Gget_1info
   (JNIEnv *env, jclass cls, jlong loc_id)
 {
     H5G_info_t group_info;
-    herr_t     ret_val = -1;
 
-    ret_val = H5Gget_info((hid_t)loc_id, &group_info);
-
-    if (ret_val < 0) {
+    if (H5Gget_info((hid_t)loc_id, &group_info) < 0) {
         h5libraryError(env);
         return NULL;
     }

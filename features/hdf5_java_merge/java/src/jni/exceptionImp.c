@@ -193,11 +193,7 @@ static
 jboolean H5JNIErrorClass(JNIEnv *env, const char *message, const char *className)
 {
     char *args[2];
-    jstring str;
-    int rval;
-
-
-    str = ENVPTR->NewStringUTF(ENVPAR message);
+    jstring str = ENVPTR->NewStringUTF(ENVPAR message);
     args[0] = (char *)str;
     args[1] = 0;
 

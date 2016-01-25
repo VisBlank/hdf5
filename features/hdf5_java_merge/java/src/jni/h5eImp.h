@@ -91,14 +91,6 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Eclose_1stack
 
 /*
  * Class:     hdf_hdf5lib_H5
- * Method:    H5Eprint1
- * Signature: (Ljava/lang/Object;)V
- */
-JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Eprint1
-  (JNIEnv *, jclass, jobject);
-
-/*
- * Class:     hdf_hdf5lib_H5
  * Method:    H5Eprint2
  * Signature: (JLjava/lang/Object;)V
  */

@@ -2296,20 +2296,6 @@ public class H5 implements java.io.Serializable {
     public synchronized static native long H5Eget_num(long stack_id) throws HDF5LibraryException, NullPointerException;
 
     /**
-     * H5Eprint1 prints the error stack specified by estack_id on the specified stream, stream.
-     *
-     * @param stream
-     *            IN: File pointer, or stderr if null.
-     *
-     * @exception HDF5LibraryException
-     *                - Error from the HDF-5 Library.
-     *
-     * @deprecated As of HDF5 1.8, replaced by {@link #H5Eprint2(long, Object)}
-     **/
-    @Deprecated
-    public synchronized static native void H5Eprint1(Object stream) throws HDF5LibraryException;
-
-    /**
      * H5Eprint2 prints the error stack specified by estack_id on the specified stream, stream.
      *
      * @param stack_id

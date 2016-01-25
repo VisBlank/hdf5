@@ -267,9 +267,7 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Dopen
 JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Dget_1space
   (JNIEnv *env, jclass clss, jlong dataset_id)
 {
-    hid_t retVal = -1;
-
-    retVal = H5Dget_space((hid_t)dataset_id);
+    hid_t retVal = H5Dget_space((hid_t)dataset_id);
     if (retVal < 0) {
         h5libraryError(env);
     }
@@ -285,9 +283,7 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Dget_1space
 JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Dget_1type
   (JNIEnv *env, jclass clss, jlong dataset_id)
 {
-    hid_t retVal = -1;
-
-    retVal = H5Dget_type((hid_t)dataset_id);
+    hid_t retVal = H5Dget_type((hid_t)dataset_id);
     if (retVal < 0) {
         h5libraryError(env);
     }
@@ -303,9 +299,7 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Dget_1type
 JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Dget_1create_1plist
   (JNIEnv *env, jclass clss, jlong dataset_id)
 {
-    hid_t retVal = -1;
-
-    retVal = H5Dget_create_plist((hid_t)dataset_id);
+    hid_t retVal = H5Dget_create_plist((hid_t)dataset_id);
     if (retVal < 0) {
         h5libraryError(env);
     }
@@ -483,9 +477,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Dextend
 JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5__1H5Dclose
   (JNIEnv *env, jclass clss, jlong dataset_id)
 {
-    herr_t retVal = 0;
-
-    retVal = H5Dclose((hid_t)dataset_id);
+    herr_t retVal = H5Dclose((hid_t)dataset_id);
 
     if (retVal < 0) {
         h5libraryError(env);
@@ -1395,7 +1387,6 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5DreadVL
                                      (hid_t)xfer_plist_id, buf);
     }
 
-
     return -1;
 }
 
@@ -1689,9 +1680,7 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Dopen2
 JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Dcreate_1anon
   (JNIEnv *env, jclass clss, jlong loc_id, jlong type_id, jlong space_id, jlong dcpl_id, jlong dapl_id)
 {
-    hid_t status;
-
-    status = H5Dcreate_anon((hid_t)loc_id, (hid_t)type_id, (hid_t)space_id, (hid_t)dcpl_id, (hid_t)dapl_id);
+    hid_t status = H5Dcreate_anon((hid_t)loc_id, (hid_t)type_id, (hid_t)space_id, (hid_t)dcpl_id, (hid_t)dapl_id);
     if (status < 0) {
         h5libraryError(env);
     }
@@ -1706,11 +1695,8 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Dcreate_1anon
 JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Dget_1space_1status
   (JNIEnv *env, jclass clss, jlong loc_id)
 {
-    herr_t             status;
     H5D_space_status_t space_status;
-
-    status = H5Dget_space_status((hid_t)loc_id, &space_status);
-    if (status < 0) {
+    if (H5Dget_space_status((hid_t)loc_id, &space_status) < 0) {
         h5libraryError(env);
     }
     return (jint)space_status;
@@ -1724,9 +1710,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Dget_1space_1status
 JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5_H5Dget_1access_1plist
   (JNIEnv *env, jclass clss, jlong loc_id)
 {
-    hid_t status;
-
-    status = H5Dget_access_plist((hid_t)loc_id);
+    hid_t status = H5Dget_access_plist((hid_t)loc_id);
     if (status < 0) {
         h5libraryError(env);
     }
@@ -1741,9 +1725,7 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5_H5Dget_1access_1plist
 JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5_H5Dget_1offset
   (JNIEnv *env, jclass clss, jlong loc_id)
 {
-    haddr_t offset;
-
-    offset = H5Dget_offset((hid_t)loc_id);
+    haddr_t offset = H5Dget_offset((hid_t)loc_id);
     if (offset == HADDR_UNDEF) {
         h5libraryError(env);
     }
@@ -1758,14 +1740,10 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5_H5Dget_1offset
 JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5_H5Dvlen_1get_1buf_1size_1long
 (JNIEnv *env, jclass clss, jlong dataset_id, jlong type_id, jlong space_id)
 {
-  herr_t  status;
-  hsize_t sz;
+  hsize_t sz = 0;
 
-  status = H5Dvlen_get_buf_size((hid_t)dataset_id, (hid_t)type_id, (hid_t)space_id, &sz);
-
-  if (status < 0) {
+  if (H5Dvlen_get_buf_size((hid_t)dataset_id, (hid_t)type_id, (hid_t)space_id, &sz) < 0) {
       h5libraryError(env);
-      return -1;
   }
 
   return (jlong)sz;

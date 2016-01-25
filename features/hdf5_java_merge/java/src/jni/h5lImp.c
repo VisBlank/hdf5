@@ -66,10 +66,7 @@ static herr_t H5L_iterate_cb(hid_t g_id, const char *name, const H5L_info_t *inf
 
         if (status < 0) {
            h5libraryError(env);
-           return;
         }
-
-        return;
     }
 
     /*
@@ -95,10 +92,7 @@ static herr_t H5L_iterate_cb(hid_t g_id, const char *name, const H5L_info_t *inf
 
         if (status < 0) {
             h5libraryError(env);
-            return;
         }
-
-        return;
     }
 
     /*
@@ -122,10 +116,7 @@ static herr_t H5L_iterate_cb(hid_t g_id, const char *name, const H5L_info_t *inf
 
         if (status < 0) {
             h5libraryError(env);
-            return;
         }
-
-        return;
     }
 
     /*
@@ -149,10 +140,7 @@ static herr_t H5L_iterate_cb(hid_t g_id, const char *name, const H5L_info_t *inf
 
         if (status < 0) {
            h5libraryError(env);
-           return;
         }
-
-        return;
     }
 
     /*
@@ -174,7 +162,6 @@ static herr_t H5L_iterate_cb(hid_t g_id, const char *name, const H5L_info_t *inf
 
         if (status < 0) {
             h5libraryError(env);
-            return;
         }
     }
 
@@ -198,7 +185,6 @@ static herr_t H5L_iterate_cb(hid_t g_id, const char *name, const H5L_info_t *inf
 
         if (status < 0) {
            h5libraryError(env);
-           return;
         }
     }
 
@@ -222,13 +208,10 @@ static herr_t H5L_iterate_cb(hid_t g_id, const char *name, const H5L_info_t *inf
         if (bval > 0) {
             return JNI_TRUE;
         }
-        else if (bval == 0) {
-            return JNI_FALSE;
-        }
-        else {
+        else if (bval < 0) {
             h5libraryError(env);
-            return JNI_FALSE;
         }
+        return JNI_FALSE;
     }
 
     /*
@@ -239,8 +222,8 @@ static herr_t H5L_iterate_cb(hid_t g_id, const char *name, const H5L_info_t *inf
     JNIEXPORT jobject JNICALL Java_hdf_hdf5lib_H5_H5Lget_1info
     (JNIEnv *env, jclass clss, jlong loc_id, jstring name, jlong access_id)
     {
-        jvalue      args[5];
         jobject     ret_obj = NULL;
+        jvalue      args[5];
         herr_t      status;
         H5L_info_t  infobuf;
         const char *lName;
@@ -265,6 +248,7 @@ static herr_t H5L_iterate_cb(hid_t g_id, const char *name, const H5L_info_t *inf
         else
             args[4].j = (jlong)infobuf.u.val_size;
         CALL_CONSTRUCTOR("hdf/hdf5lib/structs/H5L_info_t", "(IZJIJ)V", args);
+
         return ret_obj;
     }
 
@@ -276,8 +260,8 @@ static herr_t H5L_iterate_cb(hid_t g_id, const char *name, const H5L_info_t *inf
     JNIEXPORT jobject JNICALL Java_hdf_hdf5lib_H5_H5Lget_1info_1by_1idx
     (JNIEnv *env, jclass clss, jlong loc_id, jstring name, jint index_field, jint order, jlong link_n, jlong access_id)
     {
-        jvalue      args[5];
         jobject     ret_obj = NULL;
+        jvalue      args[5];
         herr_t      status;
         H5L_info_t  infobuf;
         const char *lName;
@@ -302,6 +286,7 @@ static herr_t H5L_iterate_cb(hid_t g_id, const char *name, const H5L_info_t *inf
         else
             args[4].j = (jlong)infobuf.u.val_size;
         CALL_CONSTRUCTOR("hdf/hdf5lib/structs/H5L_info_t", "(IZJIJ)V", args);
+
         return ret_obj;
     }
 
@@ -564,10 +549,7 @@ static herr_t H5L_iterate_cb(hid_t g_id, const char *name, const H5L_info_t *inf
 
         if (status < 0) {
            h5libraryError(env);
-           return;
         }
-
-        return;
     }
 
     static
@@ -639,7 +621,7 @@ static herr_t H5L_iterate_cb(hid_t g_id, const char *name, const H5L_info_t *inf
       (JNIEnv *env, jclass clss, jlong grp_id, jint idx_type, jint order,
               jobject callback_op, jobject op_data)
     {
-        herr_t        status = -1;
+        herr_t status = -1;
 
         ENVPTR->GetJavaVM(ENVPAR &jvm);
         visit_callback = callback_op;
@@ -657,7 +639,6 @@ static herr_t H5L_iterate_cb(hid_t g_id, const char *name, const H5L_info_t *inf
 
         if (status < 0) {
            h5libraryError(env);
-           return status;
         }
 
         return status;
@@ -695,7 +676,6 @@ static herr_t H5L_iterate_cb(hid_t g_id, const char *name, const H5L_info_t *inf
 
         if (status < 0) {
            h5libraryError(env);
-           return status;
         }
 
         return status;
@@ -729,7 +709,6 @@ static herr_t H5L_iterate_cb(hid_t g_id, const char *name, const H5L_info_t *inf
 
         if (status < 0) {
            h5libraryError(env);
-           return status;
         }
 
         return status;
@@ -768,7 +747,6 @@ static herr_t H5L_iterate_cb(hid_t g_id, const char *name, const H5L_info_t *inf
 
         if (status < 0) {
            h5libraryError(env);
-           return status;
         }
 
         return status;
@@ -782,13 +760,10 @@ static herr_t H5L_iterate_cb(hid_t g_id, const char *name, const H5L_info_t *inf
     JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Lis_1registered
       (JNIEnv *env, jclass clss, jint link_cls_id)
     {
-        htri_t ret_val = -1;
-
-        ret_val = H5Lis_registered((H5L_type_t)link_cls_id);
+        htri_t ret_val = H5Lis_registered((H5L_type_t)link_cls_id);
 
         if (ret_val < 0) {
            h5libraryError(env);
-           return ret_val;
         }
         return (int)ret_val;
     }
@@ -801,13 +776,8 @@ static herr_t H5L_iterate_cb(hid_t g_id, const char *name, const H5L_info_t *inf
     JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Lunregister
       (JNIEnv *env, jclass clss, jint link_cls_id)
     {
-        herr_t  status = -1;
-
-        status = H5Lunregister((H5L_type_t)link_cls_id);
-
-        if (status < 0) {
+        if (H5Lunregister((H5L_type_t)link_cls_id) < 0) {
            h5libraryError(env);
-           return;
         }
     }
 

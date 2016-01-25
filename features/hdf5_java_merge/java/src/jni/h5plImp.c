@@ -38,10 +38,7 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5PLset_1loading_1state
   (JNIEnv *env, jclass clss, jint plugin_flags)
 {
     herr_t retValue;
-
-    retValue = H5PLset_loading_state((unsigned int)plugin_flags);
-
-    if (retValue < 0) {
+    if (H5PLset_loading_state((unsigned int)plugin_flags) < 0) {
         h5libraryError(env);
     }
 }
@@ -54,15 +51,10 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5PLset_1loading_1state
 JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5PLget_1loading_1state
   (JNIEnv *env, jclass clss)
 {
-    herr_t retValue;
     unsigned int plugin_type = 0;
-
-    retValue = H5PLget_loading_state(&plugin_type);
-
-    if (retValue < 0) {
+    if (H5PLget_loading_state(&plugin_type) < 0) {
         h5libraryError(env);
     }
-
     return (jint)plugin_type;
 }
 

@@ -87,14 +87,10 @@ JNIEXPORT jboolean JNICALL Java_hdf_hdf5lib_H5_H5Tcommitted
     if (bval > 0) {
         return JNI_TRUE;
     }
-    else if (bval == 0) {
-        return JNI_FALSE;
-    }
-    else {
-        /* raise exception -- return value is irrelevant */
+    else if (bval < 0) {
         h5libraryError(env);
-        return JNI_FALSE;
     }
+    return JNI_FALSE;
 }
 
 /*
@@ -139,14 +135,10 @@ JNIEXPORT jboolean JNICALL Java_hdf_hdf5lib_H5_H5Tequal
     if (bval > 0) {
         return JNI_TRUE;
     }
-    else if (bval == 0) {
-        return JNI_FALSE;
-    }
-    else {
-        /* raise exception -- return value is irrelevant */
+    else if (bval < 0) {
         h5libraryError(env);
-        return JNI_FALSE;
     }
+    return JNI_FALSE;
 }
 
 /*
@@ -518,8 +510,7 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Tset_1fields
   (JNIEnv *env, jclass clss, jlong type_id, jlong spos, jlong epos,
   jlong esize, jlong mpos, jlong msize)
 {
-    herr_t retVal =  H5Tset_fields((hid_t)type_id, (size_t)spos, (size_t)epos, (size_t)esize, (size_t)mpos, (size_t)msize);
-    if (retVal < 0) {
+    if (H5Tset_fields((hid_t)type_id, (size_t)spos, (size_t)epos, (size_t)esize, (size_t)mpos, (size_t)msize) < 0) {
         h5libraryError(env);
     }
 }
@@ -727,7 +718,6 @@ JNIEXPORT jstring JNICALL Java_hdf_hdf5lib_H5_H5Tget_1member_1name
 
     if (str == NULL)  {
         h5JNIFatalError(env,  "H5Tget_member_name:  returned string not created");
-        return NULL;
     }
 
     return str;
@@ -780,8 +770,7 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Tget_1member_1type
 JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5_H5Tget_1member_1offset
   (JNIEnv *env, jclass clss, jlong type_id, jint memno)
 {
-    size_t retVal = H5Tget_member_offset((hid_t)type_id, (unsigned)memno);
-    return (jlong)retVal;
+    return (jlong)H5Tget_member_offset((hid_t)type_id, (unsigned)memno);
 }
 
 /*
@@ -847,11 +836,9 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5__1H5Tclose
   (JNIEnv *env, jclass clss, jlong type_id)
 {
     herr_t retVal = H5Tclose((hid_t)type_id);
-
     if (retVal < 0) {
         h5libraryError(env);
     }
-
     return (jint)retVal;
 }
 
@@ -866,7 +853,6 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Tvlen_1create
     hid_t status = H5Tvlen_create((hid_t)base_id);
     if (status < 0)
         h5libraryError(env);
-
     return (jlong)status;
 }
 
@@ -915,7 +901,6 @@ JNIEXPORT jstring JNICALL Java_hdf_hdf5lib_H5_H5Tget_1tag
 
     if (str == NULL)  {
         h5JNIFatalError(env,  "H5Tget_tag:  returned string not created");
-        return NULL;
     }
 
     return str;
@@ -932,7 +917,6 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Tget_1super
     hid_t status = H5Tget_super((hid_t)type_id);
     if (status < 0)
         h5libraryError(env);
-
     return (jlong)status;
 }
 
@@ -947,7 +931,6 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Tenum_1create
     hid_t status = H5Tenum_create((hid_t)base_id);
     if (status < 0)
         h5libraryError(env);
-
     return (jlong)status;
 }
 
@@ -1381,7 +1364,6 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Tget_1array_1ndims
     int status = H5Tget_array_ndims((hid_t)type_id);
     if (status < 0)
         h5libraryError(env);
-
     return (jint)status;
 }
 
@@ -1444,13 +1426,10 @@ JNIEXPORT jboolean JNICALL Java_hdf_hdf5lib_H5_H5Tis_1variable_1str
     if (bval > 0) {
         return JNI_TRUE;
     }
-    else if (bval == 0) {
-        return JNI_FALSE;
-    }
-    else {
+    else if (bval < 0) {
         h5libraryError(env);
-        return JNI_FALSE;
     }
+    return JNI_FALSE;
 }
 
 /*
@@ -1483,13 +1462,10 @@ JNIEXPORT jboolean JNICALL Java_hdf_hdf5lib_H5_H5Tdetect_1class
     if (bval > 0) {
         return JNI_TRUE;
     }
-    else if (bval == 0) {
-        return JNI_FALSE;
-    }
-    else {
+    else if (bval < 0) {
         h5libraryError(env);
-        return JNI_FALSE;
     }
+    return JNI_FALSE;
 }
 
 /*
@@ -1509,10 +1485,10 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Tcommit
     status = H5Tcommit2((hid_t)loc_id, tName, (hid_t)type, (hid_t)link_plist_id, (hid_t)create_plist_id, (hid_t)access_plist_id);
 
     ENVPTR->ReleaseStringUTFChars(ENVPAR name, tName);
+
     if (status < 0) {
         h5libraryError(env);
     }
-    return;
 }
 
 /*

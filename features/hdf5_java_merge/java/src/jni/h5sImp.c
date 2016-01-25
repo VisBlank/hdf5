@@ -36,9 +36,7 @@ extern "C" {
  */
 JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Screate(JNIEnv *env, jclass clss, jint type)
 {
-    hid_t retVal = -1;
-
-    retVal = H5Screate((H5S_class_t) type);
+    hid_t retVal = H5Screate((H5S_class_t) type);
 
     if (retVal < 0)
         h5libraryError(env);
@@ -157,9 +155,7 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Screate_1simple(JNIEnv *env, jcl
  */
 JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Scopy(JNIEnv *env, jclass clss, jlong space_id)
 {
-    hid_t retVal = -1;
-
-    retVal = H5Scopy(space_id);
+    hid_t retVal = H5Scopy(space_id);
 
     if (retVal < 0)
         h5libraryError(env);
@@ -216,7 +212,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Sselect_1elements
     free(sa);
 
     if (status < 0)
-    h5libraryError(env);
+        h5libraryError(env);
 
     return (jint)status;
 }
@@ -281,9 +277,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Sselect_1elements(JNIEnv *env, jcla
  */
 JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Sselect_1all(JNIEnv *env, jclass clss, jlong space_id)
 {
-    herr_t retVal = -1;
-
-    retVal = H5Sselect_all(space_id);
+    herr_t retVal = H5Sselect_all(space_id);
 
     if (retVal < 0)
         h5libraryError(env);
@@ -298,9 +292,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Sselect_1all(JNIEnv *env, jclass cl
  */
 JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Sselect_1none(JNIEnv *env, jclass clss, jlong space_id)
 {
-    herr_t retVal = -1;
-
-    retVal = H5Sselect_none(space_id);
+    herr_t retVal = H5Sselect_none(space_id);
 
     if (retVal < 0)
         h5libraryError(env);
@@ -320,13 +312,10 @@ JNIEXPORT jboolean JNICALL Java_hdf_hdf5lib_H5_H5Sselect_1valid(JNIEnv *env, jcl
     if (bval > 0) {
         return JNI_TRUE;
     }
-    else if (bval == 0) {
-        return JNI_FALSE;
-    }
-    else {
+    else if (bval < 0) {
         h5libraryError(env);
-        return JNI_FALSE;
     }
+    return JNI_FALSE;
 }
 
 /*
@@ -337,9 +326,7 @@ JNIEXPORT jboolean JNICALL Java_hdf_hdf5lib_H5_H5Sselect_1valid(JNIEnv *env, jcl
 JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5_H5Sget_1simple_1extent_1npoints(JNIEnv *env, jclass clss,
         jlong space_id)
 {
-    hssize_t retVal = -1;
-
-    retVal = H5Sget_simple_extent_npoints(space_id);
+    hssize_t retVal = H5Sget_simple_extent_npoints(space_id);
 
     if (retVal < 0)
         h5libraryError(env);
@@ -354,9 +341,7 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5_H5Sget_1simple_1extent_1npoints(JNIE
  */
 JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5_H5Sget_1select_1npoints(JNIEnv *env, jclass clss, jlong space_id)
 {
-    hssize_t retVal = -1;
-
-    retVal = H5Sget_select_npoints(space_id);
+    hssize_t retVal = H5Sget_select_npoints(space_id);
 
     if (retVal < 0)
         h5libraryError(env);
@@ -371,9 +356,7 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5_H5Sget_1select_1npoints(JNIEnv *env,
  */
 JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Sget_1select_1type(JNIEnv *env, jclass clss, jlong space_id)
 {
-    int retVal = -1;
-
-    retVal = H5Sget_select_type(space_id);
+    int retVal = H5Sget_select_type(space_id);
 
     if (retVal < 0)
         h5libraryError(env);
@@ -388,9 +371,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Sget_1select_1type(JNIEnv *env, jcl
  */
 JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Sget_1simple_1extent_1ndims(JNIEnv *env, jclass clss, jlong space_id)
 {
-    int retVal = -1;
-
-    retVal = H5Sget_simple_extent_ndims(space_id);
+    int retVal = H5Sget_simple_extent_ndims(space_id);
 
     if (retVal < 0)
         h5libraryError(env);
@@ -515,6 +496,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Sget_1simple_1extent_1type(JNIEnv *
 
     if (space_id < 0)
         h5libraryError(env);
+
     retVal = H5Sget_simple_extent_type(space_id);
 
     return (jint) retVal;
@@ -620,18 +602,14 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Sset_1extent_1simple(JNIEnv *env, j
  */
 JNIEXPORT jboolean JNICALL Java_hdf_hdf5lib_H5_H5Sis_1simple(JNIEnv *env, jclass clss, jlong space_id)
 {
-    htri_t bval;
-    bval = H5Sis_simple(space_id);
+    htri_t bval = H5Sis_simple(space_id);
     if (bval > 0) {
         return JNI_TRUE;
     }
-    else if (bval == 0) {
-        return JNI_FALSE;
-    }
-    else {
+    else if (bval < 0) {
         h5libraryError(env);
-        return JNI_FALSE;
     }
+    return JNI_FALSE;
 }
 
 /*
@@ -696,11 +674,9 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Soffset_1simple(JNIEnv *env, jclass
  */
 JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Sextent_1copy(JNIEnv *env, jclass clss, jlong space_id, jlong src_id)
 {
-    herr_t retVal = -1;
-    retVal = H5Sextent_copy(space_id, src_id);
+    herr_t retVal = H5Sextent_copy(space_id, src_id);
     if (retVal < 0)
         h5libraryError(env);
-
     return (jint) retVal;
 }
 
@@ -712,18 +688,14 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Sextent_1copy(JNIEnv *env, jclass c
 JNIEXPORT jboolean JNICALL Java_hdf_hdf5lib_H5_H5Sextent_1equal(JNIEnv *env, jclass clss, jlong space_id,
         jlong src_id)
 {
-    htri_t bval;
-    bval = H5Sextent_equal(space_id, src_id);
+    htri_t bval = H5Sextent_equal(space_id, src_id);
     if (bval > 0) {
         return JNI_TRUE;
     }
-    else if (bval == 0) {
-        return JNI_FALSE;
-    }
-    else {
+    else if (bval < 0) {
         h5libraryError(env);
-        return JNI_FALSE;
     }
+    return JNI_FALSE;
 }
 
 /*
@@ -733,11 +705,9 @@ JNIEXPORT jboolean JNICALL Java_hdf_hdf5lib_H5_H5Sextent_1equal(JNIEnv *env, jcl
  */
 JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Sset_1extent_1none(JNIEnv *env, jclass clss, jlong space_id)
 {
-    herr_t retVal = -1;
-    retVal = H5Sset_extent_none(space_id);
+    herr_t retVal = H5Sset_extent_none(space_id);
     if (retVal < 0)
         h5libraryError(env);
-
     return (jint) retVal;
 }
 
@@ -917,9 +887,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Sselect_1hyperslab(JNIEnv *env, jcl
  */
 JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5__1H5Sclose(JNIEnv *env, jclass clss, jlong space_id)
 {
-    herr_t retVal = -1;
-
-    retVal = H5Sclose(space_id);
+    herr_t retVal = H5Sclose(space_id);
 
     if (retVal < 0) {
         h5libraryError(env);
@@ -935,9 +903,8 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5__1H5Sclose(JNIEnv *env, jclass clss, 
  */
 JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5_H5Sget_1select_1hyper_1nblocks(JNIEnv *env, jclass clss, jlong spaceid)
 {
-    hssize_t status;
+    hssize_t status = H5Sget_select_hyper_nblocks((hid_t) spaceid);
 
-    status = H5Sget_select_hyper_nblocks((hid_t) spaceid);
     if (status < 0)
         h5libraryError(env);
 
@@ -951,9 +918,8 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5_H5Sget_1select_1hyper_1nblocks(JNIEn
  */
 JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5_H5Sget_1select_1elem_1npoints(JNIEnv *env, jclass clss, jlong spaceid)
 {
-    hssize_t status;
+    hssize_t status = H5Sget_select_elem_npoints((hid_t) spaceid);
 
-    status = H5Sget_select_elem_npoints((hid_t) spaceid);
     if (status < 0)
         h5libraryError(env);
 
@@ -1245,18 +1211,14 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5_H5Sdecode(JNIEnv *env, jclass cls, j
 JNIEXPORT jboolean JNICALL Java_hdf_hdf5lib_H5_H5Sis_1regular_1hyperslab
   (JNIEnv *env, jclass cls, jlong obj_id)
 {
-    htri_t bval;
-    bval = H5Sis_regular_hyperslab((hid_t)obj_id);
+    htri_t bval = H5Sis_regular_hyperslab((hid_t)obj_id);
     if (bval > 0) {
         return JNI_TRUE;
     }
-    else if (bval == 0) {
-        return JNI_FALSE;
-    }
-    else {
+    else if (bval < 0) {
         h5libraryError(env);
-        return JNI_FALSE;
     }
+    return JNI_FALSE;
 }
 
 /*

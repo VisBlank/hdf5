@@ -118,8 +118,7 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Aopen_1name
 JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Aopen_1idx
   (JNIEnv *env, jclass clss, jlong loc_id, jint idx)
 {
-    hid_t retVal = -1;
-    retVal =  H5Aopen_idx((hid_t)loc_id, (unsigned int) idx);
+    hid_t retVal =  H5Aopen_idx((hid_t)loc_id, (unsigned int) idx);
     if (retVal < 0) {
         h5libraryError(env);
     }
@@ -134,7 +133,7 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Aopen_1idx
 JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Awrite
   (JNIEnv *env, jclass clss, jlong attr_id, jlong mem_type_id, jbyteArray buf)
 {
-    herr_t   status;
+    herr_t   status = -1;
     jbyte   *byteP;
     jboolean isCopy;
 
@@ -791,7 +790,7 @@ herr_t H5AwriteVL_str (JNIEnv *env, hid_t aid, hid_t tid, jobjectArray buf)
 JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Aread
   (JNIEnv *env, jclass clss, jlong attr_id, jlong mem_type_id, jbyteArray buf)
 {
-    herr_t   status;
+    herr_t   status = -1;
     jbyte   *byteP;
     jboolean isCopy;
 
@@ -829,8 +828,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Aread
 JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Aget_1space
   (JNIEnv *env, jclass clss, jlong attr_id)
 {
-    hid_t retVal = -1;
-    retVal = H5Aget_space((hid_t)attr_id);
+    hid_t retVal = H5Aget_space((hid_t)attr_id);
     if (retVal < 0) {
         /* throw exception */
         h5libraryError(env);
@@ -846,8 +844,7 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Aget_1space
 JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Aget_1type
   (JNIEnv *env, jclass clss, jlong attr_id)
 {
-    hid_t retVal = -1;
-    retVal = H5Aget_type((hid_t)attr_id);
+    hid_t retVal = H5Aget_type((hid_t)attr_id);
     if (retVal < 0) {
         h5libraryError(env);
     }
@@ -864,7 +861,7 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5_H5Aget_1name
 {
     char    *aName;
     jstring  str;
-    hssize_t size;
+    hssize_t size = -1;
     ssize_t  bs;
 
     if (buf_size == 0 && name == NULL)
@@ -913,8 +910,7 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5_H5Aget_1name
 JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Aget_1num_1attrs
   (JNIEnv *env, jclass clss, jlong loc_id)
 {
-    int retVal = -1;
-    retVal = H5Aget_num_attrs((hid_t)loc_id);
+    int retVal = H5Aget_num_attrs((hid_t)loc_id);
     if (retVal < 0) {
         h5libraryError(env);
     }
@@ -1662,7 +1658,6 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Adelete_1by_1idx
 
     if (status < 0) {
         h5libraryError(env);
-        return;
     }
 }
 
@@ -1700,8 +1695,7 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Aopen_1by_1name
 JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Aget_1create_1plist
   (JNIEnv *env, jclass clss, jlong attr_id)
 {
-    hid_t retVal = -1;
-    retVal = H5Aget_create_plist((hid_t)attr_id);
+    hid_t retVal = H5Aget_create_plist((hid_t)attr_id);
     if (retVal < 0) {
         /* throw exception */
         h5libraryError(env);
@@ -1712,7 +1706,7 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Aget_1create_1plist
 static
 herr_t H5A_iterate_cb(hid_t g_id, const char *name, const H5A_info_t *info, void *op_data) {
     JNIEnv    *cbenv;
-    jint       status;
+    jint       status = -1;
     jclass     cls;
     jmethodID  mid;
     jstring    str;
@@ -1793,7 +1787,6 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Aiterate
 
     if (status < 0) {
        h5libraryError(env);
-       return status;
     }
 
     return status;
@@ -1832,7 +1825,6 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Aiterate_1by_1name
 
     if (status < 0) {
        h5libraryError(env);
-       return status;
     }
 
     return status;
