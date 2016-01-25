@@ -506,8 +506,8 @@ if test $USE_FILTER_DEFLATE = "yes" ; then
     TOOLTEST tvds_layout-3_2.ddl -p --enable-error-stack 3_2_vds.h5
     TOOLTEST tvds_layout-4.ddl -p --enable-error-stack 4_vds.h5
     TOOLTEST tvds_layout-5.ddl -p --enable-error-stack 5_vds.h5
-    TOOLTEST vds_layout-eiger.ddl --enable-error-stack vds-eiger.h5
-    TOOLTEST vds_layout-maxmin.ddl --enable-error-stack vds-percival-unlim-maxmin.h5
+    TOOLTEST vds_layout-eiger.ddl -p --enable-error-stack vds-eiger.h5
+    TOOLTEST vds_layout-maxmin.ddl -p --enable-error-stack vds-percival-unlim-maxmin.h5
 fi
 
 # Clean up temporary files/directories
