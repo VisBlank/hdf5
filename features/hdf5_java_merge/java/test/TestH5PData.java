@@ -77,7 +77,7 @@ public class TestH5PData {
             err.printStackTrace();
             fail("H5.H5Dcreate: " + err);
         }
-        assertTrue("TestH5D._createFloatDataset: ", did > 0);
+        assertTrue("TestH5PData._createFloatDataset: ", did > 0);
 
         return did;
     }
@@ -97,11 +97,11 @@ public class TestH5PData {
         }
         catch (Throwable err) {
             err.printStackTrace();
-            fail("TestH5D.createH5file: " + err);
+            fail("TestH5PData.createH5file: " + err);
         }
-        assertTrue("TestH5D.createH5file: H5.H5Fcreate: ",H5fid > 0);
-        assertTrue("TestH5D.createH5file: H5.H5Screate_simple: ",H5dsid > 0);
-        assertTrue("TestH5D.createH5file: _createFloatDataset: ",H5did > 0);
+        assertTrue("TestH5PData.createH5file: H5.H5Fcreate: ",H5fid > 0);
+        assertTrue("TestH5PData.createH5file: H5.H5Screate_simple: ",H5dsid > 0);
+        assertTrue("TestH5PData.createH5file: _createFloatDataset: ",H5did > 0);
         assertTrue(plist_id > 0);
 
         H5.H5Fflush(H5fid, HDF5Constants.H5F_SCOPE_LOCAL);

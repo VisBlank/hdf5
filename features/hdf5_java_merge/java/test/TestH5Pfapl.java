@@ -139,7 +139,7 @@ public class TestH5Pfapl {
             err.printStackTrace();
             fail("H5.H5Dcreate: " + err);
         }
-        assertTrue("TestH5D._createDataset: ", did > 0);
+        assertTrue("TestH5Pfapl._createDataset: ", did > 0);
 
         return did;
     }
@@ -154,7 +154,7 @@ public class TestH5Pfapl {
             err.printStackTrace();
             fail("H5.H5Dcreate: " + err);
         }
-        assertTrue("TestH5D._createFloatDataset: ", H5Fdid > 0);
+        assertTrue("TestH5Pfapl._createFloatDataset: ", H5Fdid > 0);
 
         try {
             H5.H5Fflush(H5fid, HDF5Constants.H5F_SCOPE_LOCAL);
@@ -170,9 +170,9 @@ public class TestH5Pfapl {
         }
         catch (Throwable err) {
             err.printStackTrace();
-            fail("TestH5D.createH5file: " + err);
+            fail("TestH5Pfapl.createH5file: " + err);
         }
-        assertTrue("TestH5D.createH5file: _createDataset: ", H5did > 0);
+        assertTrue("TestH5Pfapl.createH5file: _createDataset: ", H5did > 0);
 
         try {
             H5.H5Fflush(H5fid, HDF5Constants.H5F_SCOPE_LOCAL);
@@ -191,11 +191,11 @@ public class TestH5Pfapl {
         }
         catch (Throwable err) {
             err.printStackTrace();
-            fail("TestH5D.createH5file: " + err);
+            fail("TestH5Pfapl.createH5file: " + err);
         }
-        assertTrue("TestH5D.createH5file: H5.H5Fcreate: ", H5fid > 0);
-        assertTrue("TestH5D.createH5file: H5.H5Screate_simple: ", H5dsid > 0);
-        assertTrue("TestH5D.createH5file: _createDataset: ", H5did > 0);
+        assertTrue("TestH5Pfapl.createH5file: H5.H5Fcreate: ", H5fid > 0);
+        assertTrue("TestH5Pfapl.createH5file: H5.H5Screate_simple: ", H5dsid > 0);
+        assertTrue("TestH5Pfapl.createH5file: _createDataset: ", H5did > 0);
 
         try {
             H5.H5Fflush(H5fid, HDF5Constants.H5F_SCOPE_LOCAL);
@@ -214,11 +214,11 @@ public class TestH5Pfapl {
         }
         catch (Throwable err) {
             err.printStackTrace();
-            fail("TestH5D.createH5file: " + err);
+            fail("TestH5Pfapl.createH5file: " + err);
         }
-        assertTrue("TestH5D.createH5file: H5.H5Fcreate: ", H5fid > 0);
-        assertTrue("TestH5D.createH5file: H5.H5Screate_simple: ", H5dsid > 0);
-        assertTrue("TestH5D.createH5file: _createDataset: ", H5did > 0);
+        assertTrue("TestH5Pfapl.createH5file: H5.H5Fcreate: ", H5fid > 0);
+        assertTrue("TestH5Pfapl.createH5file: H5.H5Screate_simple: ", H5dsid > 0);
+        assertTrue("TestH5Pfapl.createH5file: _createDataset: ", H5did > 0);
 
         try {
             H5.H5Fflush(H5fid, HDF5Constants.H5F_SCOPE_LOCAL);
@@ -236,10 +236,10 @@ public class TestH5Pfapl {
         }
         catch (Throwable err) {
             err.printStackTrace();
-            fail("TestH5D.createH5file: " + err);
+            fail("TestH5Pfapl.createH5file: " + err);
         }
-        assertTrue("TestH5D.createH5file: H5.H5Fcreate: ", H5fid > 0);
-        assertTrue("TestH5D.createH5file: H5.H5Screate_simple: ", H5dsid > 0);
+        assertTrue("TestH5Pfapl.createH5file: H5.H5Fcreate: ", H5fid > 0);
+        assertTrue("TestH5Pfapl.createH5file: H5.H5Screate_simple: ", H5dsid > 0);
 
         try {
             H5.H5Fflush(H5fid, HDF5Constants.H5F_SCOPE_LOCAL);
@@ -272,7 +272,7 @@ public class TestH5Pfapl {
         }
         catch (Throwable err) {
             err.printStackTrace();
-            fail("TestH5D.createFileAccess: " + err);
+            fail("TestH5Pfapl.createFileAccess: " + err);
         }
         assertTrue(fapl_id > 0);
         try {
@@ -280,7 +280,7 @@ public class TestH5Pfapl {
         }
         catch (Throwable err) {
             err.printStackTrace();
-            fail("TestH5D.createFileAccess: " + err);
+            fail("TestH5Pfapl.createFileAccess: " + err);
         }
         assertTrue(plapl_id > 0);
         try {
@@ -290,7 +290,7 @@ public class TestH5Pfapl {
         }
         catch (Throwable err) {
             err.printStackTrace();
-            fail("TestH5D.createFileAccess: " + err);
+            fail("TestH5Pfapl.createFileAccess: " + err);
         }
         assertTrue(plist_id > 0);
         assertTrue(btplist_id > 0);

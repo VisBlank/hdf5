@@ -71,7 +71,7 @@ public class TestH5A {
             err.printStackTrace();
             fail("H5.H5Dcreate: " + err);
         }
-        assertTrue("TestH5D._createDataset: ", did > 0);
+        assertTrue("TestH5A._createDataset: ", did > 0);
 
         return did;
     }
@@ -84,12 +84,12 @@ public class TestH5A {
         try {
             H5fid = H5.H5Fcreate(H5_FILE, HDF5Constants.H5F_ACC_TRUNC,
                     HDF5Constants.H5P_DEFAULT, HDF5Constants.H5P_DEFAULT);
-            assertTrue("TestH5D.createH5file: H5.H5Fcreate: ", H5fid > 0);
+            assertTrue("TestH5A.createH5file: H5.H5Fcreate: ", H5fid > 0);
             H5dsid = H5.H5Screate_simple(2, H5dims, null);
-            assertTrue("TestH5D.createH5file: H5.H5Screate_simple: ", H5dsid > 0);
+            assertTrue("TestH5A.createH5file: H5.H5Screate_simple: ", H5dsid > 0);
             H5did = _createDataset(H5fid, H5dsid, "dset",
                     HDF5Constants.H5P_DEFAULT);
-            assertTrue("TestH5D.createH5file: _createDataset: ", H5did > 0);
+            assertTrue("TestH5A.createH5file: _createDataset: ", H5did > 0);
             space_id = H5.H5Screate(HDF5Constants.H5S_NULL);
             assertTrue(space_id > 0);
             lapl_id = H5.H5Pcreate(HDF5Constants.H5P_ATTRIBUTE_ACCESS);
@@ -101,7 +101,7 @@ public class TestH5A {
         }
         catch (Throwable err) {
             err.printStackTrace();
-            fail("TestH5D.createH5file: " + err);
+            fail("TestH5A.createH5file: " + err);
         }
 
         H5.H5Fflush(H5fid, HDF5Constants.H5F_SCOPE_LOCAL);

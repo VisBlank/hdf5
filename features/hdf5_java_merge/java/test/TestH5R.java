@@ -105,11 +105,11 @@ public class TestH5R {
         }
         catch (Throwable err) {
             err.printStackTrace();
-            fail("TestH5D.createH5file: " + err);
+            fail("TestH5R.createH5file: " + err);
         }
-        assertTrue("TestH5D.createH5file: H5.H5Fcreate: ",H5fid > 0);
-        assertTrue("TestH5D.createH5file: H5.H5Screate_simple: ",H5dsid > 0);
-        assertTrue("TestH5D.createH5file: _createDataset: ",H5did > 0);
+        assertTrue("TestH5R.createH5file: H5.H5Fcreate: ",H5fid > 0);
+        assertTrue("TestH5R.createH5file: H5.H5Screate_simple: ",H5dsid > 0);
+        assertTrue("TestH5R.createH5file: _createDataset: ",H5did > 0);
 
         H5.H5Fflush(H5fid, HDF5Constants.H5F_SCOPE_LOCAL);
     }
