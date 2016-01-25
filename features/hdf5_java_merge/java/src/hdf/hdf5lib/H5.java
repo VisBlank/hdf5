@@ -1275,9 +1275,6 @@ public class H5 implements java.io.Serializable {
     // //
     // ////////////////////////////////////////////////////////////
 
-    public synchronized static native int H5Dchdir_ext(String dir_name) throws HDF5LibraryException,
-            NullPointerException;
-
     /**
      * H5Dcopy copies the content of one dataset to another dataset.
      *
@@ -1556,9 +1553,6 @@ public class H5 implements java.io.Serializable {
     }
 
     private synchronized static native long _H5Dget_type(long dataset_id) throws HDF5LibraryException;
-
-    public synchronized static native int H5Dgetdir_ext(String[] dir_name, int size) throws HDF5LibraryException,
-            NullPointerException;
 
     /**
      * H5Diterate iterates over all the data elements in the memory buffer buf, executing the callback function operator

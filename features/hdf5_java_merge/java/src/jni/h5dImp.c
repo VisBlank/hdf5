@@ -38,20 +38,6 @@ extern "C" {
   #endif
 #endif
 
-#ifdef _WINDOWS
-  #define JCHDIR(S) _chdir(S)
-  #define JGETCWD(S,R) _getcwd(S,R)
-#else
-  #define JCHDIR(S) chdir(S)
-  #define JGETCWD(S,R) getcwd(S,R)
-#endif
-
-#ifdef H5_HAVE_WIN32_API
-  #define strtoll(S,R,N)     _strtoi64(S,R,N)
-  #define strtoull(S,R,N)    _strtoui64(S,R,N)
-  #define strtof(S,R)    atof(S)
-#endif /* H5_HAVE_WIN32_API */
-
 #ifdef __cplusplus
   #define CBENVPTR (cbenv)
   #define CBENVPAR
@@ -179,65 +165,6 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Dcreate
 
 /*
  * Class:     hdf_hdf5lib_H5
- * Method:    H5Dchdir_ext
- * Signature: (Ljava/lang/String;)I
- */
-JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Dchdir_1ext
-  (JNIEnv *env, jclass clss, jstring dir_name)
-{
-    hid_t       status;
-    const char *fileName;
-
-    PIN_JAVA_STRING(dir_name, fileName, -1);
-
-    status = JCHDIR(fileName);
-
-    ENVPTR->ReleaseStringUTFChars(ENVPAR dir_name, fileName);
-    if (status < 0) {
-        h5libraryError(env);
-    }
-
-    return (jint)status;
-}
-
-/*
- * Class:     hdf_hdf5lib_H5
- * Method:    H5Dgetdir_1ext
- * Signature: ([Ljava/lang/String;I)I
- */
-JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Dgetdir_1ext
-  (JNIEnv *env, jclass clss, jobjectArray dir_name, jint buf_size)
-{
-    char   *aName;
-    jstring str;
-
-    if (buf_size <= 0) {
-        h5badArgument( env, "H5Dgetdir_ext:  buf_size <= 0");
-        return -1;
-    }
-    aName = (char*)HDmalloc(sizeof(char) * (size_t)buf_size);
-    if (aName == NULL) {
-        h5outOfMemory( env, "H5Dgetdir_ext:  malloc failed");
-        return -1;
-    }
-    JGETCWD(aName, (size_t)buf_size);
-
-    str = ENVPTR->NewStringUTF(ENVPAR aName);
-
-    HDfree(aName);
-
-    if (str == NULL) {
-         h5JNIFatalError( env,"H5Dgetdir_ext:  return string failed");
-         return -1;
-    }
-
-    ENVPTR->SetObjectArrayElement(ENVPAR dir_name, 0, str);
-
-    return 0;
-}
-
-/*
- * Class:     hdf_hdf5lib_H5
  * Method:    _H5Dopen
  * Signature: (JLjava/lang/String;)J
  */
@@ -312,9 +239,13 @@ htri_t H5Tdetect_variable_str(hid_t tid) {
     htri_t ret_val = 0;
 
     if (H5Tget_class(tid) == H5T_COMPOUND) {
-        hid_t mtid = H5Tget_member_type(tid, 0);
-        ret_val = H5Tdetect_variable_str(mtid);
-        H5Tclose (mtid);
+        unsigned i;
+        int nm = H5Tget_nmembers(tid);
+        for(i = 0; i <nm; i++) {
+            hid_t mtid = H5Tget_member_type(tid, i);
+            ret_val = H5Tdetect_variable_str(mtid);
+            H5Tclose (mtid);
+        }
     }
     else
         ret_val = H5Tis_variable_str(tid);
@@ -1366,10 +1297,14 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5DreadVL
     isStr = H5Tdetect_class((hid_t)mem_type_id, H5T_STRING);
 
     if (H5Tget_class((hid_t)mem_type_id) == H5T_COMPOUND) {
-        hid_t nested_tid = H5Tget_member_type((hid_t)mem_type_id, 0);
-        isComplex = H5Tdetect_class((hid_t)nested_tid, H5T_COMPOUND) ||
-                    H5Tdetect_class((hid_t)nested_tid, H5T_VLEN);
-        H5Tclose(nested_tid);
+        unsigned i;
+        int nm = H5Tget_nmembers(mem_type_id);
+        for(i = 0; i <nm; i++) {
+            hid_t nested_tid = H5Tget_member_type((hid_t)mem_type_id, i);
+            isComplex = H5Tdetect_class((hid_t)nested_tid, H5T_COMPOUND) ||
+                        H5Tdetect_class((hid_t)nested_tid, H5T_VLEN);
+            H5Tclose(nested_tid);
+        }
     }
     else if (H5Tget_class((hid_t)mem_type_id) == H5T_VLEN) {
       isVlenStr = 1; /* strings created by H5Tvlen_create( H5T_C_S1) */

@@ -36,22 +36,6 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Dcreate
 
 /*
  * Class:     hdf_hdf5lib_H5
- * Method:    H5Dchdir_ext
- * Signature: (Ljava/lang/String;)I
- */
-JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Dchdir_1ext
-  (JNIEnv*, jclass, jstring);
-
-/*
- * Class:     hdf_hdf5lib_H5
- * Method:    H5Dgetdir_1ext
- * Signature: ([Ljava/lang/String;I)I
- */
-JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Dgetdir_1ext
-  (JNIEnv*, jclass, jobjectArray, jint);
-
-/*
- * Class:     hdf_hdf5lib_H5
  * Method:    _H5Dopen
  * Signature: (JLjava/lang/String;)J
  */
