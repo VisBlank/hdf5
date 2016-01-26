@@ -3,10 +3,6 @@
 /* Define if building universal (internal helper macro) */
 #undef AC_APPLE_UNIVERSAL_BUILD
 
-/* Define if the memory buffers being written to disk should be cleared before
-   writing. */
-#undef CLEAR_MEMORY
-
 /* Define if C++ compiler recognizes offsetof */
 #undef CXX_HAVE_OFFSETOF
 
