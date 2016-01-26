@@ -1162,6 +1162,86 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Pget_1char_1encoding
 JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Pset_1char_1encoding
 (JNIEnv *, jclass, jlong, jint);
 
+/*
+ * Class:     hdf_hdf5lib_H5
+ * Method:    H5Pset_virtual
+ * Signature: (JJLjava/lang/String;Ljava/lang/String;J)V
+ */
+JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Pset_1virtual
+(JNIEnv *, jclass, jlong, jlong, jstring, jstring, jlong);
+
+/*
+ * Class:     hdf_hdf5lib_H5
+ * Method:    H5Pget_virtual_count
+ * Signature: (J)J
+ */
+JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5_H5Pget_1virtual_1count
+(JNIEnv *, jclass, jlong);
+
+/*
+ * Class:     hdf_hdf5lib_H5
+ * Method:    H5Pget_virtual_vspace
+ * Signature: (JJ)J
+ */
+JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5_H5Pget_1virtual_1vspace
+(JNIEnv *, jclass, jlong, jlong);
+
+/*
+ * Class:     hdf_hdf5lib_H5
+ * Method:    H5Pget_virtual_srcspace
+ * Signature: (JJ)J
+ */
+JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5_H5Pget_1virtual_1srcspace
+(JNIEnv *, jclass, jlong, jlong);
+
+/*
+ * Class:     hdf_hdf5lib_H5
+ * Method:    H5Pget_virtual_filename
+ * Signature: (JJ)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_hdf_hdf5lib_H5_H5Pget_1virtual_1filename
+(JNIEnv *, jclass, jlong, jlong);
+
+/*
+ * Class:     hdf_hdf5lib_H5
+ * Method:    H5Pget_virtual_dsetname
+ * Signature: (JJ)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_hdf_hdf5lib_H5_H5Pget_1virtual_1dsetname
+(JNIEnv *, jclass, jlong, jlong);
+
+/*
+ * Class:     hdf_hdf5lib_H5
+ * Method:    H5Pget_virtual_view
+ * Signature: (J)I
+ */
+JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Pget_1virtual_1view
+(JNIEnv *, jclass, jlong);
+
+/*
+ * Class:     hdf_hdf5lib_H5
+ * Method:    H5Pset_virtual_view
+ * Signature: (JI)V
+ */
+JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Pset_1virtual_1view
+(JNIEnv *, jclass, jlong, jint);
+
+/*
+ * Class:     hdf_hdf5lib_H5
+ * Method:    H5Pget_virtual_printf_gap
+ * Signature: (J)J
+ */
+JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5_H5Pget_1virtual_1printf_1gap
+(JNIEnv *, jclass, jlong);
+
+/*
+ * Class:     hdf_hdf5lib_H5
+ * Method:    H5Pset_virtual_printf_gap
+ * Signature: (JJ)V
+ */
+JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Pset_1virtual_1printf_1gap
+(JNIEnv *, jclass, jlong, jlong);
+
 #ifdef __cplusplus
 }
 #endif

@@ -81,11 +81,15 @@ public class HDF5Constants {
     public static final int H5D_CHUNKED = H5D_CHUNKED();
     public static final int H5D_COMPACT = H5D_COMPACT();
     public static final int H5D_CONTIGUOUS = H5D_CONTIGUOUS();
+    public static final int H5D_VIRTUAL = H5D_VIRTUAL();
     public static final int H5D_NLAYOUTS = H5D_NLAYOUTS();
     public static final int H5D_SPACE_STATUS_ALLOCATED = H5D_SPACE_STATUS_ALLOCATED();
     public static final int H5D_SPACE_STATUS_ERROR = H5D_SPACE_STATUS_ERROR();
     public static final int H5D_SPACE_STATUS_NOT_ALLOCATED = H5D_SPACE_STATUS_NOT_ALLOCATED();
     public static final int H5D_SPACE_STATUS_PART_ALLOCATED = H5D_SPACE_STATUS_PART_ALLOCATED();
+    public static final int H5D_VDS_ERROR = H5D_VDS_ERROR();
+    public static final int H5D_VDS_FIRST_MISSING = H5D_VDS_FIRST_MISSING();
+    public static final int H5D_VDS_LAST_AVAILABLE = H5D_VDS_LAST_AVAILABLE();
 
     public static final int H5E_MAJOR = H5E_MAJOR();
     public static final int H5E_MINOR = H5E_MINOR();
@@ -740,6 +744,8 @@ public class HDF5Constants {
 
     private static native final int H5D_CONTIGUOUS();
 
+    private static native final int H5D_VIRTUAL();
+
     private static native final int H5D_NLAYOUTS();
 
     private static native final int H5D_SPACE_STATUS_ALLOCATED();
@@ -749,6 +755,12 @@ public class HDF5Constants {
     private static native final int H5D_SPACE_STATUS_NOT_ALLOCATED();
 
     private static native final int H5D_SPACE_STATUS_PART_ALLOCATED();
+
+    private static native final int H5D_VDS_ERROR();
+
+    private static native final int H5D_VDS_FIRST_MISSING();
+
+    private static native final int H5D_VDS_LAST_AVAILABLE();
 
     private static native final long H5E_ALIGNMENT();
 

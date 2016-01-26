@@ -30,7 +30,7 @@ import org.junit.runners.Suite;
         TestH5Dparams.class, TestH5D.class, TestH5Dplist.class,
         TestH5Lparams.class, TestH5Lbasic.class, TestH5Lcreate.class,
         TestH5R.class,
-        TestH5P.class, TestH5PData.class, TestH5Pfapl.class,
+        TestH5P.class, TestH5PData.class, TestH5Pfapl.class, TestH5Pvirtual.class,
         TestH5A.class,
         TestH5Oparams.class, TestH5Obasic.class, TestH5Ocopy.class, TestH5Ocreate.class,
         TestH5PL.class, TestH5Z.class

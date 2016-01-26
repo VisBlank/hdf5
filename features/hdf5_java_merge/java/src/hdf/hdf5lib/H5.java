@@ -4388,82 +4388,19 @@ public class H5 implements java.io.Serializable {
     // //
     // ////////////////////////////////////////////////////////////
 
-    public synchronized static native boolean H5Pall_filters_avail(long dcpl_id) throws HDF5LibraryException,
-    NullPointerException;
+    // Generic property list routines
 
     /**
-     * H5Pclose terminates access to a property list.
-     *
-     * @param plist
-     *            IN: Identifier of the property list to terminate access to.
-     * @return a non-negative value if successful
-     *
-     * @exception HDF5LibraryException
-     *                - Error from the HDF-5 Library.
-     **/
-    public static int H5Pclose(long plist) throws HDF5LibraryException {
-        if (plist < 0)
-            return 0; // throw new HDF5LibraryException("Negative ID");;
-
-        log.trace("OPEN_IDS: H5Pclose remove {}", plist);
-        OPEN_IDS.remove(plist);
-        log.trace("OPEN_IDS: {}", OPEN_IDS.size());
-        return _H5Pclose(plist);
-    }
-
-    private synchronized static native int _H5Pclose(long plist) throws HDF5LibraryException;
-
-    /**
-     * Closes an existing property list class
+     * H5Pget_class_name retrieves the name of a generic property list class
      *
      * @param plid
-     *            IN: Property list class to close
-     * @return a non-negative value if successful; a negative value if failed
+     *            IN: Identifier of property object to query
+     * @return name of a property list if successful; null if failed
      *
      * @exception HDF5LibraryException
      *                - Error from the HDF-5 Library.
      */
-    public synchronized static native int H5Pclose_class(long plid) throws HDF5LibraryException;
-
-    /**
-     * H5Pcopy copies an existing property list to create a new property list.
-     *
-     * @param plist
-     *            IN: Identifier of property list to duplicate.
-     *
-     * @return a property list identifier if successful
-     *
-     * @exception HDF5LibraryException
-     *                - Error from the HDF-5 Library.
-     **/
-    public static long H5Pcopy(long plist) throws HDF5LibraryException {
-        long id = _H5Pcopy(plist);
-        if (id > 0) {
-            log.trace("OPEN_IDS: H5Pcopy add {}", id);
-            OPEN_IDS.add(id);
-            log.trace("OPEN_IDS: {}", OPEN_IDS.size());
-        }
-        return id;
-    }
-
-    private synchronized static native long _H5Pcopy(long plist) throws HDF5LibraryException;
-
-    /**
-     * H5Pcopy_prop copies a property from one property list or class to another
-     *
-     * @param dst_id
-     *            IN: Identifier of the destination property list or class
-     * @param src_id
-     *            IN: Identifier of the source property list or class
-     * @param name
-     *            IN: Name of the property to copy
-     * @return a non-negative value if successful; a negative value if failed
-     *
-     * @exception HDF5LibraryException
-     *                - Error from the HDF-5 Library.
-     */
-    public synchronized static native int H5Pcopy_prop(long dst_id, long src_id, String name)
-            throws HDF5LibraryException;
+    public synchronized static native String H5Pget_class_name(long plid) throws HDF5LibraryException;
 
     /**
      * H5Pcreate creates a new property as an instance of some property list class.
@@ -4489,6 +4426,101 @@ public class H5 implements java.io.Serializable {
     private synchronized static native long _H5Pcreate(long type) throws HDF5LibraryException;
 
     /**
+     * Sets a property list value (support integer only)
+     *
+     * @param plid
+     *            IN: Property list identifier to modify
+     * @param name
+     *            IN: Name of property to modify
+     * @param value
+     *            IN: value to set the property to
+     * @return a non-negative value if successful; a negative value if failed
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     */
+    public synchronized static native int H5Pset(long plid, String name, int value) throws HDF5LibraryException;
+
+    /**
+     * H5Pexist determines whether a property exists within a property list or class
+     *
+     * @param plid
+     *            IN: Identifier for the property to query
+     * @param name
+     *            IN: Name of property to check for
+     * @return a positive value if the property exists in the property object; zero if the property does not exist; a
+     *         negative value if failed
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     */
+    public synchronized static native int H5Pexist(long plid, String name) throws HDF5LibraryException;
+
+    /**
+     * H5Pget_size retrieves the size of a property's value in bytes
+     *
+     * @param plid
+     *            IN: Identifier of property object to query
+     * @param name
+     *            IN: Name of property to query
+     * @return size of a property's value if successful; a negative value if failed
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     */
+    public synchronized static native long H5Pget_size(long plid, String name) throws HDF5LibraryException;
+
+    /**
+     * H5Pget_nprops retrieves the number of properties in a property list or class
+     *
+     * @param plid
+     *            IN: Identifier of property object to query
+     * @return number of properties if successful; a negative value if failed
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     */
+    public synchronized static native long H5Pget_nprops(long plid) throws HDF5LibraryException;
+
+    /**
+     * H5Pget_class returns the property list class for the property list identified by the plist parameter.
+     *
+     * @param plist
+     *            IN: Identifier of property list to query.
+     * @return a property list class if successful. Otherwise returns H5P_ROOT (-1).
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     **/
+    public synchronized static native long H5Pget_class(long plist) throws HDF5LibraryException;
+
+    /**
+     * H5Pget_class_parent retrieves an identifier for the parent class of a property class
+     *
+     * @param plid
+     *            IN: Identifier of the property class to query
+     * @return a valid parent class object identifier if successful; a negative value if failed
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     */
+    public synchronized static native long H5Pget_class_parent(long plid) throws HDF5LibraryException;
+
+    /**
+     * H5Pget retrieves a copy of the value for a property in a property list (support integer only)
+     *
+     * @param plid
+     *            IN: Identifier of property object to query
+     * @param name
+     *            IN: Name of property to query
+     * @return value for a property if successful; a negative value if failed
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     */
+    public synchronized static native int H5Pget(long plid, String name) throws HDF5LibraryException;
+
+    /**
      * H5Pequal determines if two property lists or classes are equal
      *
      * @param plid1
@@ -4509,52 +4541,692 @@ public class H5 implements java.io.Serializable {
     }
 
     /**
-     * H5Pexist determines whether a property exists within a property list or class
+     * H5Pisa_class checks to determine whether a property list is a member of the specified class
      *
-     * @param plid
-     *            IN: Identifier for the property to query
-     * @param name
-     *            IN: Name of property to check for
-     * @return a positive value if the property exists in the property object; zero if the property does not exist; a
-     *         negative value if failed
-     *
-     * @exception HDF5LibraryException
-     *                - Error from the HDF-5 Library.
-     */
-    public synchronized static native int H5Pexist(long plid, String name) throws HDF5LibraryException;
-
-    public synchronized static native int H5Pfill_value_defined(long plist_id, int[] status)
-            throws HDF5LibraryException, NullPointerException;
-
-    /**
-     * H5Pget retrieves a copy of the value for a property in a property list (support integer only)
-     *
-     * @param plid
-     *            IN: Identifier of property object to query
-     * @param name
-     *            IN: Name of property to query
-     * @return value for a property if successful; a negative value if failed
+     * @param plist
+     *            IN: Identifier of the property list
+     * @param pclass
+     *            IN: Identifier of the property class
+     * @return a positive value if equal; zero if unequal; a negative value if failed
      *
      * @exception HDF5LibraryException
      *                - Error from the HDF-5 Library.
      */
-    public synchronized static native int H5Pget(long plid, String name) throws HDF5LibraryException;
+    public synchronized static native int H5Pisa_class(long plist, long pclass) throws HDF5LibraryException;
 
     /**
-     * Sets a property list value (support integer only)
+     * H5Pcopy_prop copies a property from one property list or class to another
      *
-     * @param plid
-     *            IN: Property list identifier to modify
+     * @param dst_id
+     *            IN: Identifier of the destination property list or class
+     * @param src_id
+     *            IN: Identifier of the source property list or class
      * @param name
-     *            IN: Name of property to modify
-     * @param value
-     *            IN: value to set the property to
+     *            IN: Name of the property to copy
      * @return a non-negative value if successful; a negative value if failed
      *
      * @exception HDF5LibraryException
      *                - Error from the HDF-5 Library.
      */
-    public synchronized static native int H5Pset(long plid, String name, int value) throws HDF5LibraryException;
+    public synchronized static native int H5Pcopy_prop(long dst_id, long src_id, String name)
+            throws HDF5LibraryException;
+
+    /**
+     * H5Premove removes a property from a property list
+     *
+     * @param plid
+     *            IN: Identifier of the property list to modify
+     * @param name
+     *            IN: Name of property to remove
+     * @return a non-negative value if successful; a negative value if failed
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     */
+    public synchronized static native int H5Premove(long plid, String name) throws HDF5LibraryException;
+
+    /**
+     * H5Punregister removes a property from a property list class
+     *
+     * @param plid
+     *            IN: Property list class from which to remove permanent property
+     * @param name
+     *            IN: Name of property to remove
+     * @return a non-negative value if successful; a negative value if failed
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     */
+    public synchronized static native int H5Punregister(long plid, String name) throws HDF5LibraryException;
+
+    /**
+     * Closes an existing property list class
+     *
+     * @param plid
+     *            IN: Property list class to close
+     * @return a non-negative value if successful; a negative value if failed
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     */
+    public synchronized static native int H5Pclose_class(long plid) throws HDF5LibraryException;
+
+    /**
+     * H5Pclose terminates access to a property list.
+     *
+     * @param plist
+     *            IN: Identifier of the property list to terminate access to.
+     * @return a non-negative value if successful
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     **/
+    public static int H5Pclose(long plist) throws HDF5LibraryException {
+        if (plist < 0)
+            return 0; // throw new HDF5LibraryException("Negative ID");;
+
+        log.trace("OPEN_IDS: H5Pclose remove {}", plist);
+        OPEN_IDS.remove(plist);
+        log.trace("OPEN_IDS: {}", OPEN_IDS.size());
+        return _H5Pclose(plist);
+    }
+
+    private synchronized static native int _H5Pclose(long plist) throws HDF5LibraryException;
+
+    /**
+     * H5Pcopy copies an existing property list to create a new property list.
+     *
+     * @param plist
+     *            IN: Identifier of property list to duplicate.
+     *
+     * @return a property list identifier if successful
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     **/
+    public static long H5Pcopy(long plist) throws HDF5LibraryException {
+        long id = _H5Pcopy(plist);
+        if (id > 0) {
+            log.trace("OPEN_IDS: H5Pcopy add {}", id);
+            OPEN_IDS.add(id);
+            log.trace("OPEN_IDS: {}", OPEN_IDS.size());
+        }
+        return id;
+    }
+
+    private synchronized static native long _H5Pcopy(long plist) throws HDF5LibraryException;
+
+    // Object creation property list (OCPL) routines
+
+    /**
+     * H5Pget_attr_phase_change retrieves attribute storage phase change thresholds.
+     *
+     * @param ocpl_id
+     *            IN: : Object (dataset or group) creation property list identifier
+     * @param attributes
+     *            The maximun and minimum no. of attributes to be stored.
+     *
+     *            <pre>
+     *      attributes[0] =  The maximum number of attributes to be stored in compact storage
+     *      attributes[1] =  The minimum number of attributes to be stored in dense storage
+     * </pre>
+     *
+     * @return Returns a non-negative value if successful; otherwise returns a negative value.
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     * @exception NullPointerException
+     *                - size is null.
+     *
+     **/
+    public synchronized static native int H5Pget_attr_phase_change(long ocpl_id, int[] attributes)
+            throws HDF5LibraryException, NullPointerException;
+
+    /**
+     * H5Pget_attr_creation_order retrieves the settings for tracking and indexing attribute creation order on an object
+     *
+     * @param ocpl_id
+     *            IN: Object (group or dataset) creation property list identifier
+     *
+     * @return Flags specifying whether to track and index attribute creation order
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     *
+     **/
+    public synchronized static native int H5Pget_attr_creation_order(long ocpl_id) throws HDF5LibraryException;
+
+    /**
+     * H5Pset_attr_creation_order sets flags specifying whether to track and index attribute creation order on an
+     * object.
+     *
+     * @param ocpl_id
+     *            IN: Object creation property list identifier
+     * @param crt_order_flags
+     *            IN: Flags specifying whether to track and index attribute creation order
+     *
+     * @return Returns a non-negative value if successful; otherwise returns a negative value.
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     *
+     **/
+    public synchronized static native int H5Pset_attr_creation_order(long ocpl_id, int crt_order_flags)
+            throws HDF5LibraryException;
+
+    /**
+     * H5Pget_obj_track_times queries the object creation property list, ocpl_id, to determine whether object times are
+     * being recorded.
+     *
+     * @param ocpl_id
+     *            IN: Object creation property list identifier
+     *
+     * @return TRUE or FALSE, specifying whether object times are being recorded
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     *
+     **/
+    public synchronized static native boolean H5Pget_obj_track_times(long ocpl_id) throws HDF5LibraryException;
+
+    /**
+     * H5Pset_obj_track_times sets a property in the object creation property list, ocpl_id, that governs the recording
+     * of times associated with an object.
+     *
+     * @param ocpl_id
+     *            IN: Object creation property list identifier
+     *
+     * @param track_times
+     *            IN: TRUE or FALSE, specifying whether object times are to be tracked
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     *
+     **/
+    public synchronized static native void H5Pset_obj_track_times(long ocpl_id, boolean track_times)
+            throws HDF5LibraryException;
+
+    public synchronized static native int H5Pmodify_filter(long plist, long filter, int flags, long cd_nelmts,
+            int[] cd_values) throws HDF5LibraryException, NullPointerException;
+
+    /**
+     * H5Pset_filter adds the specified filter and corresponding properties to the end of an output filter pipeline.
+     *
+     * @param plist
+     *            IN: Property list identifier.
+     * @param filter
+     *            IN: Filter to be added to the pipeline.
+     * @param flags
+     *            IN: Bit vector specifying certain general properties of the filter.
+     * @param cd_nelmts
+     *            IN: Number of elements in cd_values
+     * @param cd_values
+     *            IN: Auxiliary data for the filter.
+     *
+     * @return a non-negative value if successful
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     **/
+    public synchronized static native int H5Pset_filter(long plist, int filter, int flags, long cd_nelmts,
+            int[] cd_values) throws HDF5LibraryException;
+
+    /**
+     * H5Pget_nfilters returns the number of filters defined in the filter pipeline associated with the property list
+     * plist.
+     *
+     * @param plist
+     *            IN: Property list identifier.
+     *
+     * @return the number of filters in the pipeline if successful
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     **/
+    public synchronized static native int H5Pget_nfilters(long plist) throws HDF5LibraryException;
+
+    /**
+     * H5Pget_filter returns information about a filter, specified by its filter number, in a filter pipeline, specified
+     * by the property list with which it is associated.
+     *
+     * @param plist
+     *            IN: Property list identifier.
+     * @param filter_number
+     *            IN: Sequence number within the filter pipeline of the filter for which information is sought.
+     * @param flags
+     *            OUT: Bit vector specifying certain general properties of the filter.
+     * @param cd_nelmts
+     *            IN/OUT: Number of elements in cd_values
+     * @param cd_values
+     *            OUT: Auxiliary data for the filter.
+     * @param namelen
+     *            IN: Anticipated number of characters in name.
+     * @param name
+     *            OUT: Name of the filter.
+     * @param filter_config
+     *            OUT:A bit field encoding the returned filter information
+     *
+     * @return the filter identification number if successful. Otherwise returns H5Z_FILTER_ERROR (-1).
+     *
+     * @exception ArrayIndexOutOfBoundsException
+     *                Fatal error on Copyback
+     * @exception ArrayStoreException
+     *                Fatal error on Copyback
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     * @exception NullPointerException
+     *                - name or an array is null.
+     *
+     **/
+    public static int H5Pget_filter(long plist, int filter_number, int[] flags, long[] cd_nelmts, int[] cd_values,
+            long namelen, String[] name, int[] filter_config) throws ArrayIndexOutOfBoundsException,
+            ArrayStoreException, HDF5LibraryException, NullPointerException {
+        return H5Pget_filter2(plist, filter_number, flags, cd_nelmts, cd_values, namelen, name, filter_config);
+    }
+
+    /**
+     * H5Pget_filter2 returns information about a filter, specified by its filter number, in a filter pipeline,
+     * specified by the property list with which it is associated.
+     *
+     * @see public static int H5Pget_filter(int plist, int filter_number, int[] flags, int[] cd_nelmts, int[] cd_values,
+     *      int namelen, String[] name, int[] filter_config)
+     *
+     **/
+    private synchronized static native int H5Pget_filter2(long plist, int filter_number, int[] flags, long[] cd_nelmts,
+            int[] cd_values, long namelen, String[] name, int[] filter_config) throws ArrayIndexOutOfBoundsException,
+            ArrayStoreException, HDF5LibraryException, NullPointerException;
+
+    /**
+     * H5Pget_filter_by_id returns information about the filter specified in filter_id, a filter identifier. plist_id
+     * must be a dataset or group creation property list and filter_id must be in the associated filter pipeline. The
+     * filter_id and flags parameters are used in the same manner as described in the discussion of H5Pset_filter. Aside
+     * from the fact that they are used for output, the parameters cd_nelmts and cd_values[] are used in the same manner
+     * as described in the discussion of H5Pset_filter. On input, the cd_nelmts parameter indicates the number of
+     * entries in the cd_values[] array allocated by the calling program; on exit it contains the number of values
+     * defined by the filter. On input, the namelen parameter indicates the number of characters allocated for the
+     * filter name by the calling program in the array name[]. On exit name[] contains the name of the filter with one
+     * character of the name in each element of the array. If the filter specified in filter_id is not set for the
+     * property list, an error will be returned and H5Pget_filter_by_id1 will fail.
+     *
+     * @param plist_id
+     *            IN: Property list identifier.
+     * @param filter_id
+     *            IN: Filter identifier.
+     * @param flags
+     *            OUT: Bit vector specifying certain general properties of the filter.
+     * @param cd_nelmts
+     *            N/OUT: Number of elements in cd_values
+     * @param cd_values
+     *            OUT: Auxiliary data for the filter.
+     * @param namelen
+     *            IN: Anticipated number of characters in name.
+     * @param name
+     *            OUT: Name of the filter.
+     * @param filter_config
+     *            OUT: A bit field encoding the returned filter information
+     *
+     * @return the filter identification number if successful. Otherwise returns H5Z_FILTER_ERROR (-1).
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     * @exception ArrayIndexOutOfBoundsException
+     *                Fatal error on Copyback
+     * @exception ArrayStoreException
+     *                Fatal error on Copyback
+     * @exception NullPointerException
+     *                - name or an array is null.
+     *
+     **/
+    public static int H5Pget_filter_by_id(long plist_id, long filter_id, int[] flags, long[] cd_nelmts,
+            int[] cd_values, long namelen, String[] name, int[] filter_config) throws ArrayIndexOutOfBoundsException,
+            ArrayStoreException, HDF5LibraryException, NullPointerException {
+        return H5Pget_filter_by_id2(plist_id, filter_id, flags, cd_nelmts, cd_values, namelen, name, filter_config);
+    }
+
+    /**
+     * H5Pget_filter_by_id2 returns information about a filter, specified by its filter id, in a filter pipeline,
+     * specified by the property list with which it is associated.
+     *
+     * @param plist_id
+     *            IN: Property list identifier.
+     * @param filter_id
+     *            IN: Filter identifier.
+     * @param flags
+     *            OUT: Bit vector specifying certain general properties of the filter.
+     * @param cd_nelmts
+     *            N/OUT: Number of elements in cd_values
+     * @param cd_values
+     *            OUT: Auxiliary data for the filter.
+     * @param namelen
+     *            IN: Anticipated number of characters in name.
+     * @param name
+     *            OUT: Name of the filter.
+     * @param filter_config
+     *            OUT: A bit field encoding the returned filter information
+     *
+     * @return the filter identification number if successful. Otherwise returns H5Z_FILTER_ERROR (-1).
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     * @exception NullPointerException
+     *                - name or an array is null.
+     *
+     **/
+    public synchronized static native int H5Pget_filter_by_id2(long plist_id, long filter_id, int[] flags,
+            long[] cd_nelmts, int[] cd_values, long namelen, String[] name, int[] filter_config)
+                    throws HDF5LibraryException, NullPointerException;
+
+
+    public synchronized static native boolean H5Pall_filters_avail(long dcpl_id) throws HDF5LibraryException,
+    NullPointerException;
+
+    public synchronized static native int H5Premove_filter(long obj_id, long filter) throws HDF5LibraryException;
+
+    /**
+     * H5Pset_deflate sets the compression method for a dataset.
+     *
+     * @param plist
+     *            IN: Identifier for the dataset creation property list.
+     * @param level
+     *            IN: Compression level.
+     *
+     * @return non-negative if successful
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     **/
+    public synchronized static native int H5Pset_deflate(long plist, int level) throws HDF5LibraryException;
+
+    public synchronized static native int H5Pset_fletcher32(long plist) throws HDF5LibraryException,
+    NullPointerException;
+
+    // File creation property list (FCPL) routines
+
+    /**
+     * H5Pget_userblock retrieves the size of a user block in a file creation property list.
+     *
+     * @param plist
+     *            IN: Identifier for property list to query.
+     * @param size
+     *            OUT: Pointer to location to return user-block size.
+     *
+     * @return a non-negative value and the size of the user block; if successful
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     * @exception NullPointerException
+     *                - size is null.
+     **/
+    public synchronized static native int H5Pget_userblock(long plist, long[] size) throws HDF5LibraryException,
+    NullPointerException;
+
+    /**
+     * H5Pset_userblock sets the user block size of a file creation property list.
+     *
+     * @param plist
+     *            IN: Identifier of property list to modify.
+     * @param size
+     *            IN: Size of the user-block in bytes.
+     *
+     * @return a non-negative value if successful
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     **/
+    public synchronized static native int H5Pset_userblock(long plist, long size) throws HDF5LibraryException;
+
+    /**
+     * H5Pget_sizes retrieves the size of the offsets and lengths used in an HDF5 file. This function is only valid for
+     * file creation property lists.
+     *
+     * @param plist
+     *            IN: Identifier of property list to query.
+     * @param size
+     *            OUT: the size of the offsets and length.
+     *
+     *            <pre>
+     *      size[0] = sizeof_addr // offset size in bytes
+     *      size[1] = sizeof_size // length size in bytes
+     * </pre>
+     * @return a non-negative value with the sizes initialized; if successful;
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     * @exception NullPointerException
+     *                - size is null.
+     * @exception IllegalArgumentException
+     *                - size is invalid.
+     **/
+    public synchronized static native int H5Pget_sizes(long plist, long[] size) throws HDF5LibraryException,
+    NullPointerException, IllegalArgumentException;
+
+    /**
+     * H5Pset_sizes sets the byte size of the offsets and lengths used to address objects in an HDF5 file.
+     *
+     * @param plist
+     *            IN: Identifier of property list to modify.
+     * @param sizeof_addr
+     *            IN: Size of an object offset in bytes.
+     * @param sizeof_size
+     *            IN: Size of an object length in bytes.
+     *
+     * @return a non-negative value if successful
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     **/
+    public synchronized static native int H5Pset_sizes(long plist, int sizeof_addr, int sizeof_size)
+            throws HDF5LibraryException;
+
+    /**
+     * H5Pget_sym_k retrieves the size of the symbol table B-tree 1/2 rank and the symbol table leaf node 1/2 size.
+     *
+     * @param plist
+     *            IN: Property list to query.
+     * @param size
+     *            OUT: the symbol table's B-tree 1/2 rank and leaf node 1/2size.
+     *
+     *            <pre>
+     *      size[0] = ik // the symbol table's B-tree 1/2 rank
+     *      size[1] = lk // leaf node 1/2 size
+     * </pre>
+     *
+     * @return a non-negative value if successful
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     * @exception NullPointerException
+     *                - size is null.
+     * @exception IllegalArgumentException
+     *                - size is invalid.
+     **/
+    public synchronized static native int H5Pget_sym_k(long plist, int[] size) throws HDF5LibraryException,
+    NullPointerException, IllegalArgumentException;
+
+    /**
+     * H5Pset_sym_k sets the size of parameters used to control the symbol table nodes.
+     *
+     * @param plist
+     *            IN: Identifier for property list to query.
+     * @param ik
+     *            IN: Symbol table tree rank.
+     * @param lk
+     *            IN: Symbol table node size.
+     *
+     * @return a non-negative value if successful
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     **/
+    public synchronized static native int H5Pset_sym_k(long plist, int ik, int lk) throws HDF5LibraryException;
+
+    /**
+     * H5Pget_istore_k queries the 1/2 rank of an indexed storage B-tree.
+     *
+     * @param plist
+     *            IN: Identifier of property list to query.
+     * @param ik
+     *            OUT: Pointer to location to return the chunked storage B-tree 1/2 rank.
+     *
+     * @return a non-negative value if successful
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     * @exception NullPointerException
+     *                - ik array is null.
+     **/
+    public synchronized static native int H5Pget_istore_k(long plist, int[] ik) throws HDF5LibraryException,
+    NullPointerException;
+
+    /**
+     * H5Pset_istore_k sets the size of the parameter used to control the B-trees for indexing chunked datasets.
+     *
+     * @param plist
+     *            IN: Identifier of property list to query.
+     * @param ik
+     *            IN: 1/2 rank of chunked storage B-tree.
+     *
+     * @return a non-negative value if successful
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     **/
+    public synchronized static native int H5Pset_istore_k(long plist, int ik) throws HDF5LibraryException;
+
+    /**
+     * H5Pget_shared_mesg_nindexes retrieves number of shared object header message indexes in file creation property
+     * list.
+     *
+     * @param fcpl_id
+     *            IN: : File creation property list identifier
+     *
+     * @return nindexes, the number of shared object header message indexes available in files created with this
+     *         property list
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     *
+     **/
+    public synchronized static native int H5Pget_shared_mesg_nindexes(long fcpl_id) throws HDF5LibraryException;
+
+    /**
+     * H5Pset_shared_mesg_nindexes sets the number of shared object header message indexes in the specified file
+     * creation property list.
+     *
+     * @param plist_id
+     *            IN: File creation property list
+     * @param nindexes
+     *            IN: Number of shared object header message indexes to be available in files created with this property
+     *            list
+     *
+     * @return a non-negative value if successful; otherwise returns a negative value.
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     * @exception IllegalArgumentException
+     *                - Invalid value of nindexes
+     *
+     **/
+    public synchronized static native int H5Pset_shared_mesg_nindexes(long plist_id, int nindexes)
+            throws HDF5LibraryException, IllegalArgumentException;
+
+    /**
+     * H5Pget_shared_mesg_index Retrieves the configuration settings for a shared message index.
+     *
+     * @param fcpl_id
+     *            IN: File creation property list identifier
+     * @param index_num
+     *            IN: Index being configured.
+     * @param mesg_info
+     *            The message type and minimum message size
+     *
+     *            <pre>
+     *      mesg_info[0] =  Types of messages that may be stored in this index.
+     *      mesg_info[1] =  Minimum message size.
+     * </pre>
+     *
+     * @return Returns a non-negative value if successful; otherwise returns a negative value.
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     * @exception NullPointerException
+     *                - mesg_info is null.
+     * @exception IllegalArgumentException
+     *                - Invalid value of nindexes
+     *
+     **/
+    public synchronized static native int H5Pget_shared_mesg_index(long fcpl_id, int index_num, int[] mesg_info)
+            throws HDF5LibraryException, NullPointerException, IllegalArgumentException;
+
+    /**
+     * H5Pset_shared_mesg_index Configures the specified shared object header message index
+     *
+     * @param fcpl_id
+     *            IN: File creation property list identifier.
+     * @param index_num
+     *            IN: Index being configured.
+     * @param mesg_type_flags
+     *            IN: Types of messages that should be stored in this index.
+     * @param min_mesg_size
+     *            IN: Minimum message size.
+     *
+     * @return a non-negative value if successful; otherwise returns a negative value.
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     * @exception IllegalArgumentException
+     *                - Invalid value of nindexes
+     *
+     **/
+    public synchronized static native int H5Pset_shared_mesg_index(long fcpl_id, int index_num, int mesg_type_flags,
+            int min_mesg_size) throws HDF5LibraryException, IllegalArgumentException;
+
+    /**
+     * H5Pget_shared_mesg_phase_change retrieves shared object header message phase change information.
+     *
+     * @param fcpl_id
+     *            IN: : File creation property list identifier
+     * @param size
+     *            The threshold values for storage of shared object header message indexes in a file.
+     *
+     *            <pre>
+     *      size[0] =  Threshold above which storage of a shared object header message index shifts from list to B-tree
+     *      size[1] =  Threshold below which storage of a shared object header message index reverts to list format
+     * </pre>
+     *
+     * @return Returns a non-negative value if successful; otherwise returns a negative value.
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     * @exception NullPointerException
+     *                - size is null.
+     *
+     **/
+    public synchronized static native int H5Pget_shared_mesg_phase_change(long fcpl_id, int[] size)
+            throws HDF5LibraryException, NullPointerException;
+
+    /**
+     * H5Pset_shared_mesg_phase_change sets shared object header message storage phase change thresholds.
+     *
+     * @param fcpl_id
+     *            IN: File creation property list identifier
+     * @param max_list
+     *            IN: Threshold above which storage of a shared object header message index shifts from list to B-tree
+     * @param min_btree
+     *            IN: Threshold below which storage of a shared object header message index reverts to list format
+     *
+     * @return a non-negative value if successful; otherwise returns a negative value.
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     * @exception IllegalArgumentException
+     *                - Invalid values of max_list and min_btree.
+     *
+     **/
+    public synchronized static native int H5Pset_shared_mesg_phase_change(long fcpl_id, int max_list, int min_btree)
+            throws HDF5LibraryException, IllegalArgumentException;
+
+    // File access property list (FAPL) routines
 
     /**
      * H5Pget_alignment retrieves the current settings for alignment properties from a file access property list.
@@ -4599,161 +5271,24 @@ public class H5 implements java.io.Serializable {
     public synchronized static native int H5Pset_alignment(long plist, long threshold, long alignment)
             throws HDF5LibraryException;
 
-    public synchronized static native int H5Pget_alloc_time(long plist_id, int[] alloc_time)
-            throws HDF5LibraryException, NullPointerException;
+    /**
+     * H5Pget_driver returns the identifier of the low-level file driver associated with the file access property list
+     * or data transfer property list plid.
+     *
+     * @param plid
+     *            IN: File access or data transfer property list identifier.
+     * @return a valid low-level driver identifier if successful; a negative value if failed
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     */
+    public synchronized static native long H5Pget_driver(long plid) throws HDF5LibraryException;
 
-    public synchronized static native int H5Pset_alloc_time(long plist_id, int alloc_time) throws HDF5LibraryException,
+    public synchronized static native long H5Pget_family_offset(long fapl_id) throws HDF5LibraryException,
     NullPointerException;
 
-    /**
-     * H5Pget_attr_creation_order retrieves the settings for tracking and indexing attribute creation order on an object
-     *
-     * @param ocpl_id
-     *            IN: Object (group or dataset) creation property list identifier
-     *
-     * @return Flags specifying whether to track and index attribute creation order
-     *
-     * @exception HDF5LibraryException
-     *                - Error from the HDF-5 Library.
-     *
-     **/
-    public synchronized static native int H5Pget_attr_creation_order(long ocpl_id) throws HDF5LibraryException;
-
-    /**
-     * H5Pset_attr_creation_order sets flags specifying whether to track and index attribute creation order on an
-     * object.
-     *
-     * @param ocpl_id
-     *            IN: Object creation property list identifier
-     * @param crt_order_flags
-     *            IN: Flags specifying whether to track and index attribute creation order
-     *
-     * @return Returns a non-negative value if successful; otherwise returns a negative value.
-     *
-     * @exception HDF5LibraryException
-     *                - Error from the HDF-5 Library.
-     *
-     **/
-    public synchronized static native int H5Pset_attr_creation_order(long ocpl_id, int crt_order_flags)
-            throws HDF5LibraryException;
-
-    /**
-     * H5Pget_attr_phase_change retrieves attribute storage phase change thresholds.
-     *
-     * @param ocpl_id
-     *            IN: : Object (dataset or group) creation property list identifier
-     * @param attributes
-     *            The maximun and minimum no. of attributes to be stored.
-     *
-     *            <pre>
-     *      attributes[0] =  The maximum number of attributes to be stored in compact storage
-     *      attributes[1] =  The minimum number of attributes to be stored in dense storage
-     * </pre>
-     *
-     * @return Returns a non-negative value if successful; otherwise returns a negative value.
-     *
-     * @exception HDF5LibraryException
-     *                - Error from the HDF-5 Library.
-     * @exception NullPointerException
-     *                - size is null.
-     *
-     **/
-    public synchronized static native int H5Pget_attr_phase_change(long ocpl_id, int[] attributes)
-            throws HDF5LibraryException, NullPointerException;
-
-    /**
-     * H5Pget_btree_ratio Get the B-tree split ratios for a dataset transfer property list.
-     *
-     * @param plist_id
-     *            IN Dataset transfer property list
-     * @param left
-     *            OUT split ratio for leftmost nodes
-     * @param right
-     *            OUT split ratio for righttmost nodes
-     * @param middle
-     *            OUT split ratio for all other nodes
-     *
-     * @return non-negative if succeed
-     *
-     * @exception HDF5LibraryException
-     *                - Error from the HDF-5 Library.
-     * @exception NullPointerException
-     *                - an input array is null.
-     **/
-    public synchronized static native int H5Pget_btree_ratios(long plist_id, double[] left, double[] middle,
-            double[] right) throws HDF5LibraryException, NullPointerException;
-
-    /**
-     * H5Pset_btree_ratio Sets B-tree split ratios for a dataset transfer property list. The split ratios determine what
-     * percent of children go in the first node when a node splits.
-     *
-     * @param plist_id
-     *            IN Dataset transfer property list
-     * @param left
-     *            IN split ratio for leftmost nodes
-     * @param right
-     *            IN split ratio for righttmost nodes
-     * @param middle
-     *            IN split ratio for all other nodes
-     *
-     * @return non-negative if succeed
-     *
-     * @exception HDF5LibraryException
-     *                - Error from the HDF-5 Library.
-     **/
-    public synchronized static native int H5Pset_btree_ratios(long plist_id, double left, double middle, double right)
-            throws HDF5LibraryException;
-
-    /**
-     * HH5Pget_buffer gets type conversion and background buffers. Returns buffer size, in bytes, if successful;
-     * otherwise 0 on failure.
-     *
-     * @param plist
-     *            Identifier for the dataset transfer property list.
-     * @param tconv
-     *            byte array of application-allocated type conversion buffer.
-     * @param bkg
-     *            byte array of application-allocated background buffer.
-     *
-     * @return buffer size, in bytes, if successful; otherwise 0 on failure
-     *
-     * @exception HDF5LibraryException
-     *                - Error from the HDF-5 Library.
-     * @exception IllegalArgumentException
-     *                - plist is invalid.
-     **/
-    public synchronized static native int H5Pget_buffer(long plist, byte[] tconv, byte[] bkg)
-            throws HDF5LibraryException, IllegalArgumentException;
-
-    public synchronized static native long H5Pget_buffer_size(long plist)
-            throws HDF5LibraryException, IllegalArgumentException;
-
-    /**
-     * H5Pset_buffer sets type conversion and background buffers. status to TRUE or FALSE.
-     *
-     * Given a dataset transfer property list, H5Pset_buffer sets the maximum size for the type conversion buffer and
-     * background buffer and optionally supplies pointers to application-allocated buffers. If the buffer size is
-     * smaller than the entire amount of data being transferred between the application and the file, and a type
-     * conversion buffer or background buffer is required, then strip mining will be used.
-     *
-     * Note that there are minimum size requirements for the buffer. Strip mining can only break the data up along the
-     * first dimension, so the buffer must be large enough to accommodate a complete slice that encompasses all of the
-     * remaining dimensions. For example, when strip mining a 100x200x300 hyperslab of a simple data space, the buffer
-     * must be large enough to hold 1x200x300 data elements. When strip mining a 100x200x300x150 hyperslab of a simple
-     * data space, the buffer must be large enough to hold 1x200x300x150 data elements.
-     *
-     * @param plist
-     *            Identifier for the dataset transfer property list.
-     * @param size
-     *            Size, in bytes, of the type conversion and background buffers.
-     *
-     * @exception HDF5LibraryException
-     *                - Error from the HDF-5 Library.
-     * @exception IllegalArgumentException
-     *                - plist is invalid.
-     **/
-    public synchronized static native void H5Pset_buffer_size(long plist, long size) throws HDF5LibraryException,
-    IllegalArgumentException;
+    public synchronized static native int H5Pset_family_offset(long fapl_id, long offset) throws HDF5LibraryException,
+    NullPointerException;
 
     /**
      * Retrieves the maximum possible number of elements in the meta data cache and the maximum possible number of bytes
@@ -4803,10 +5338,247 @@ public class H5 implements java.io.Serializable {
     public synchronized static native int H5Pset_cache(long plist, int mdc_nelmts, long rdcc_nelmts, long rdcc_nbytes,
             double rdcc_w0) throws HDF5LibraryException;
 
-    public synchronized static native int H5Pget_char_encoding(long plist_id) throws HDF5LibraryException;
+    /**
+     * H5Pget_mdc_config gets the initial metadata cache configuration contained in a file access property list and
+     * loads it into the instance of H5AC_cache_config_t pointed to by the config_ptr parameter. This configuration is
+     * used when the file is opened.
+     *
+     * @param plist_id
+     *            IN: Identifier of the file access property list.
+     *
+     * @return A buffer(H5AC_cache_config_t) for the current metadata cache configuration information
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     **/
+    public synchronized static native H5AC_cache_config_t H5Pget_mdc_config(long plist_id) throws HDF5LibraryException;
 
-    public synchronized static native void H5Pset_char_encoding(long plist_id, int encoding)
+    public synchronized static native void H5Pset_mdc_config(long plist_id, H5AC_cache_config_t config_ptr)
             throws HDF5LibraryException;
+
+    /**
+     * H5Pget_gc_references Returns the current setting for the garbage collection refernces property from a file access
+     * property list.
+     * <p>
+     * Note: this routine changed name with HDF5.1.2.2. If using an earlier version, use 'configure --enable-hdf5_1_2_1'
+     * so this routine will link to the old name.
+     *
+     * @param fapl_id
+     *            IN File access property list
+     * @param gc_ref
+     *            OUT GC is on (true) or off (false)
+     *
+     * @return non-negative if succeed
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     * @exception NullPointerException
+     *                - array is null.
+     **/
+    public synchronized static native int H5Pget_gc_references(long fapl_id, boolean[] gc_ref)
+            throws HDF5LibraryException, NullPointerException;
+
+    public synchronized static native boolean H5Pget_gcreferences(long fapl_id) throws HDF5LibraryException;
+
+    /**
+     * H5Pset_gc_references Sets the flag for garbage collecting references for the file. Default value for garbage
+     * collecting references is off.
+     *
+     * @param fapl_id
+     *            IN File access property list
+     * @param gc_ref
+     *            IN set GC on (true) or off (false)
+     *
+     * @return non-negative if successful
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     **/
+    public synchronized static native int H5Pset_gc_references(long fapl_id, boolean gc_ref)
+            throws HDF5LibraryException;
+
+    public synchronized static native int H5Pget_fclose_degree(long plist_id) throws HDF5LibraryException,
+    NullPointerException;
+
+    public synchronized static native int H5Pset_fclose_degree(long plist, int degree) throws HDF5LibraryException,
+    NullPointerException;
+
+    /**
+     * H5Pget_meta_block_size the current metadata block size setting.
+     *
+     * @param fapl_id
+     *            IN: File access property list identifier
+     *
+     * @return the minimum size, in bytes, of metadata block allocations.
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     *
+     **/
+    public synchronized static native long H5Pget_meta_block_size(long fapl_id) throws HDF5LibraryException;
+
+    /**
+     * H5Pset_meta_block_size sets the minimum metadata block size.
+     *
+     * @param fapl_id
+     *            IN: File access property list identifier
+     * @param size
+     *            IN: Minimum size, in bytes, of metadata block allocations.
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     *
+     **/
+    public synchronized static native void H5Pset_meta_block_size(long fapl_id, long size) throws HDF5LibraryException;
+
+    public synchronized static native long H5Pget_sieve_buf_size(long fapl_id) throws HDF5LibraryException;
+
+    public synchronized static native void H5Pset_sieve_buf_size(long fapl_id, long size) throws HDF5LibraryException;
+
+    /**
+     * H5Pget_small_data_block_size retrieves the size of a block of small data in a file creation property list.
+     *
+     * @param plist
+     *            IN: Identifier for property list to query.
+     * @param size
+     *            OUT: Pointer to location to return block size.
+     *
+     * @return a non-negative value and the size of the user block; if successful
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     * @exception NullPointerException
+     *                - size is null.
+     **/
+    public synchronized static native int H5Pget_small_data_block_size(long plist, long[] size)
+            throws HDF5LibraryException, NullPointerException;
+
+    public synchronized static native long H5Pget_small_data_block_size_long(long plist) throws HDF5LibraryException;
+
+    /**
+     * H5Pset_small_data_block_size reserves blocks of size bytes for the contiguous storage of the raw data portion of
+     * small datasets.
+     *
+     * @param plist
+     *            IN: Identifier of property list to modify.
+     * @param size
+     *            IN: Size of the blocks in bytes.
+     *
+     * @return a non-negative value if successful
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     **/
+    public synchronized static native int H5Pset_small_data_block_size(long plist, long size)
+            throws HDF5LibraryException;
+
+    /**
+     * H5Pget_libver_bounds retrieves the lower and upper bounds on the HDF5 Library versions that indirectly determine
+     * the object formats versions used when creating objects in the file.
+     *
+     * @param fapl_id
+     *            IN: File access property list identifier
+     * @param libver
+     *            The earliest/latest version of the library that will be used for writing objects.
+     *
+     *            <pre>
+     *      libver[0] =  The earliest version of the library that will be used for writing objects
+     *      libver[1] =  The latest version of the library that will be used for writing objects.
+     * </pre>
+     *
+     * @return Returns a non-negative value if successful; otherwise returns a negative value.
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     * @exception NullPointerException
+     *                - size is null.
+     *
+     **/
+    public synchronized static native int H5Pget_libver_bounds(long fapl_id, int[] libver) throws HDF5LibraryException,
+    NullPointerException;
+
+    /**
+     * H5Pset_libver_bounds Sets bounds on library versions, and indirectly format versions, to be used when creating
+     * objects
+     *
+     * @param fapl_id
+     *            IN: File access property list identifier
+     * @param low
+     *            IN: The earliest version of the library that will be used for writing objects
+     * @param high
+     *            IN: The latest version of the library that will be used for writing objects.
+     *
+     *
+     * @return Returns a non-negative value if successful; otherwise returns a negative value.
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     * @exception IllegalArgumentException
+     *                - Argument is Illegal
+     *
+     **/
+    public synchronized static native int H5Pset_libver_bounds(long fapl_id, int low, int high)
+            throws HDF5LibraryException, IllegalArgumentException;
+
+    /**
+     * H5Pget_elink_file_cache_size retrieves the size of the external link open file cache.
+     *
+     * @param fapl_id
+     *            IN: File access property list identifier
+     *
+     * @return External link open file cache size in number of files.
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     *
+     **/
+    public synchronized static native int H5Pget_elink_file_cache_size(long fapl_id) throws HDF5LibraryException;
+
+    /**
+     * H5Pset_elink_file_cache_size sets the number of files that can be held open in an external link open file cache.
+     *
+     * @param fapl_id
+     *            IN: File access property list identifier
+     * @param efc_size
+     *            IN: External link open file cache size in number of files.
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     *
+     **/
+    public synchronized static native void H5Pset_elink_file_cache_size(long fapl_id, int efc_size)
+            throws HDF5LibraryException;
+
+    // Dataset creation property list (DCPL) routines //
+
+    /**
+     * H5Pget_layout returns the layout of the raw data for a dataset.
+     *
+     * @param plist
+     *            IN: Identifier for property list to query.
+     *
+     * @return the layout type of a dataset creation property list if successful. Otherwise returns H5D_LAYOUT_ERROR
+     *         (-1).
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     **/
+    public synchronized static native int H5Pget_layout(long plist) throws HDF5LibraryException;
+
+    /**
+     * H5Pset_layout sets the type of storage used store the raw data for a dataset.
+     *
+     * @param plist
+     *            IN: Identifier of property list to query.
+     * @param layout
+     *            IN: Type of storage layout for raw data.
+     *
+     * @return a non-negative value if successful
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     **/
+    public synchronized static native int H5Pset_layout(long plist, int layout) throws HDF5LibraryException;
 
     /**
      * H5Pget_chunk retrieves the size of chunks for the raw data of a chunked layout dataset.
@@ -4869,392 +5641,119 @@ public class H5 implements java.io.Serializable {
     }
 
     /**
-     * Retrieves the maximum possible number of elements in the meta data cache and the maximum possible number of bytes
-     * and the RDCC_W0 value in the raw data chunk cache on a per-datset basis.
+     * H5Pset_virtual maps elements of the virtual dataset (VDS) described by the
+     * virtual dataspace identifier vspace_id to the elements of the source dataset
+     * described by the source dataset dataspace identifier src_space_id. The source
+     * dataset is identified by the name of the file where it is located, src_file_name,
+     * and the name of the dataset, src_dset_name.
      *
-     * @param dapl_id
-     *            IN: Identifier of the dataset access property list.
-     * @param rdcc_nslots
-     *            IN/OUT: Number of elements (objects) in the raw data chunk cache.
-     * @param rdcc_nbytes
-     *            IN/OUT: Total size of the raw data chunk cache, in bytes.
-     * @param rdcc_w0
-     *            IN/OUT: Preemption policy.
+     * @param dcpl_id
+     *            IN: The identifier of the dataset creation property list that will be used when creating the virtual dataset.
+     * @param vspace_id
+     *            IN: The dataspace identifier with the selection within the virtual dataset applied, possibly an unlimited selection.
+     * @param src_file_name
+     *            IN: The name of the HDF5 file where the source dataset is located. The file might not exist yet. The name can be specified using a C-style printf statement.
+     * @param src_dset_name
+     *            IN: The path to the HDF5 dataset in the file specified by src_file_name. The dataset might not exist yet. The dataset name can be specified using a C-style printf statement.
+     * @param src_space_id
+     *            IN: The source dataset’s dataspace identifier with a selection applied, possibly an unlimited selection.
      *
      * @exception HDF5LibraryException
      *                - Error from the HDF-5 Library.
      * @exception NullPointerException
-     *                - an array is null.
+     *                - an name string is null.
+     * @exception IllegalArgumentException
+     *                - An id is &lt;=0
      **/
-    public synchronized static native void H5Pget_chunk_cache(long dapl_id, long[] rdcc_nslots, long[] rdcc_nbytes,
-            double[] rdcc_w0) throws HDF5LibraryException, NullPointerException;
+    public synchronized static native void H5Pset_virtual(long dcpl_id, long vspace_id, String src_file_name, String src_dset_name, long src_space_id) throws HDF5LibraryException,
+    NullPointerException, IllegalArgumentException;
 
     /**
-     * H5Pset_chunk_cache sets the number of elements (objects) in the meta data cache and the total number of bytes in
-     * the raw data chunk cache on a per-datset basis.
+     * H5Pget_virtual_count gets the number of mappings for a virtual dataset that has the creation property list specified by dcpl_id.
      *
-     * @param dapl_id
-     *            IN: Identifier of the datset access property list.
-     * @param rdcc_nslots
-     *            IN: Number of elements (objects) in the raw data chunk cache.
-     * @param rdcc_nbytes
-     *            IN: Total size of the raw data chunk cache, in bytes.
-     * @param rdcc_w0
-     *            IN: Preemption policy.
+     * @param dcpl_id
+     *            IN: The identifier of the virtual dataset creation property list.
      *
-     * @exception HDF5LibraryException
-     *                - Error from the HDF-5 Library.
-     **/
-    public synchronized static native void H5Pset_chunk_cache(long dapl_id, long rdcc_nslots, long rdcc_nbytes,
-            double rdcc_w0) throws HDF5LibraryException;
-
-    /**
-     * H5Pget_class returns the property list class for the property list identified by the plist parameter.
-     *
-     * @param plist
-     *            IN: Identifier of property list to query.
-     * @return a property list class if successful. Otherwise returns H5P_ROOT (-1).
-     *
-     * @exception HDF5LibraryException
-     *                - Error from the HDF-5 Library.
-     **/
-    public synchronized static native long H5Pget_class(long plist) throws HDF5LibraryException;
-
-    /**
-     * H5Pget_class_name retrieves the name of a generic property list class
-     *
-     * @param plid
-     *            IN: Identifier of property object to query
-     * @return name of a property list if successful; null if failed
-     *
-     * @exception HDF5LibraryException
-     *                - Error from the HDF-5 Library.
-     */
-    public synchronized static native String H5Pget_class_name(long plid) throws HDF5LibraryException;
-
-    /**
-     * H5Pget_class_parent retrieves an identifier for the parent class of a property class
-     *
-     * @param plid
-     *            IN: Identifier of the property class to query
-     * @return a valid parent class object identifier if successful; a negative value if failed
-     *
-     * @exception HDF5LibraryException
-     *                - Error from the HDF-5 Library.
-     */
-    public synchronized static native long H5Pget_class_parent(long plid) throws HDF5LibraryException;
-
-    /**
-     * H5Pget_copy_object retrieves the properties to be used when an object is copied.
-     *
-     * @param ocp_plist_id
-     *            IN: Object copy property list identifier
-     *
-     * @return Copy option(s) set in the object copy property list
-     *
-     * @exception HDF5LibraryException
-     *                - Error from the HDF-5 Library.
-     *
-     **/
-    public synchronized static native int H5Pget_copy_object(long ocp_plist_id) throws HDF5LibraryException;
-
-    /**
-     * H5Pset_copy_object Sets properties to be used when an object is copied.
-     *
-     * @param ocp_plist_id
-     *            IN: Object copy property list identifier
-     * @param copy_options
-     *            IN: Copy option(s) to be set
-     *
-     * @exception HDF5LibraryException
-     *                - Error from the HDF-5 Library.
-     *
-     **/
-    public synchronized static native void H5Pset_copy_object(long ocp_plist_id, int copy_options)
-            throws HDF5LibraryException;
-
-    /**
-     * H5Pget_create_intermediate_group determines whether property is set to enable creating missing intermediate
-     * groups.
-     *
-     * @param lcpl_id
-     *            IN: Link creation property list identifier
-     *
-     * @return Boolean true or false
-     *
-     * @exception HDF5LibraryException
-     *                - Error from the HDF-5 Library.
-     *
-     **/
-    public synchronized static native boolean H5Pget_create_intermediate_group(long lcpl_id)
-            throws HDF5LibraryException;
-
-    /**
-     * H5Pset_create_intermediate_group specifies in property list whether to create missing intermediate groups
-     *
-     * @param lcpl_id
-     *            IN: Link creation property list identifier
-     * @param crt_intermed_group
-     *            IN: Flag specifying whether to create intermediate groups upon the creation of an object
-     *
-     * @return a non-negative valule if successful; otherwise returns a negative value.
-     *
-     * @exception HDF5LibraryException
-     *                - Error from the HDF-5 Library.
-     *
-     **/
-    public synchronized static native int H5Pset_create_intermediate_group(long lcpl_id, boolean crt_intermed_group)
-            throws HDF5LibraryException;
-
-    /**
-     * H5Pget_data_transform retrieves the data transform expression previously set in the dataset transfer property
-     * list plist_id by H5Pset_data_transform.
-     *
-     * @param plist_id
-     *            IN: Identifier of the property list or class
-     * @param size
-     *            IN: Number of bytes of the transform expression to copy to
-     * @param expression
-     *            OUT: A data transform expression
-     *
-     * @return The size of the transform expression if successful; 0(zero) if no transform expression exists. Otherwise
-     *         returns a negative value.
-     *
+     * @return a non-negative number of mappings if successful
      *
      * @exception HDF5LibraryException
      *                - Error from the HDF-5 Library.
      * @exception IllegalArgumentException
-     *                - Size is &lt;= 0.
-     *
+     *                - An id is &lt;=0
      **/
-    public synchronized static native long H5Pget_data_transform(long plist_id, String[] expression, long size)
-            throws HDF5LibraryException, IllegalArgumentException;
+    public synchronized static native long H5Pget_virtual_count(long dcpl_id) throws HDF5LibraryException, IllegalArgumentException;
 
     /**
-     * H5Pset_data_transform sets a data transform expression
+     * H5Pget_virtual_vspace takes the dataset creation property list for the virtual dataset, dcpl_id, and the mapping index, index,
+     *     and returns a dataspace identifier for the selection within the virtual dataset used in the mapping.
      *
-     * @param plist_id
-     *            IN: Identifier of the property list or class
-     * @param expression
-     *            IN: Pointer to the null-terminated data transform expression
+     * @param dcpl_id
+     *            IN: The identifier of the virtual dataset creation property list.
+     * @param index
+     *            IN: Mapping index.
      *
-     * @return a non-negative valule if successful; otherwise returns a negative value.
-     *
-     * @exception HDF5LibraryException
-     *                - Error from the HDF-5 Library.
-     * @exception NullPointerException
-     *                - expression is null.
-     *
-     **/
-    public synchronized static native int H5Pset_data_transform(long plist_id, String expression)
-            throws HDF5LibraryException, NullPointerException;
-
-    /**
-     * H5Pget_driver returns the identifier of the low-level file driver associated with the file access property list
-     * or data transfer property list plid.
-     *
-     * @param plid
-     *            IN: File access or data transfer property list identifier.
-     * @return a valid low-level driver identifier if successful; a negative value if failed
-     *
-     * @exception HDF5LibraryException
-     *                - Error from the HDF-5 Library.
-     */
-    public synchronized static native long H5Pget_driver(long plid) throws HDF5LibraryException;
-
-    public synchronized static native int H5Pget_edc_check(long plist) throws HDF5LibraryException,
-    NullPointerException;
-
-    public synchronized static native int H5Pset_edc_check(long plist, int check) throws HDF5LibraryException,
-    NullPointerException;
-
-    /**
-     * H5Pget_elink_acc_flags retrieves the external link traversal file access flag from the specified link access
-     * property list.
-     *
-     * @param lapl_id
-     *            IN: Link access property list identifier
-     *
-     * @return File access flag for link traversal.
-     *
-     * @exception HDF5LibraryException
-     *                - Error from the HDF-5 Library.
-     *
-     **/
-    public synchronized static native int H5Pget_elink_acc_flags(long lapl_id) throws HDF5LibraryException;
-
-    /**
-     * H5Pset_elink_acc_flags Sets the external link traversal file access flag in a link access property list.
-     *
-     * @param lapl_id
-     *            IN: Link access property list identifier
-     * @param flags
-     *            IN: The access flag for external link traversal.
-     *
-     * @return a non-negative value if successful; otherwise returns a negative value.
+     * @return a valid dataspace identifier if successful
      *
      * @exception HDF5LibraryException
      *                - Error from the HDF-5 Library.
      * @exception IllegalArgumentException
-     *                - Invalid Flag values.
-     *
+     *                - An id is &lt;=0
      **/
-    public synchronized static native int H5Pset_elink_acc_flags(long lapl_id, int flags) throws HDF5LibraryException,
-    IllegalArgumentException;
+    public synchronized static native long H5Pget_virtual_vspace(long dcpl_id, long index) throws HDF5LibraryException, IllegalArgumentException;
 
     /**
-     * H5Pget_elink_fapl Retrieves the file access property list identifier associated with the link access property
-     * list.
+     * H5Pget_virtual_srcspace takes the dataset creation property list for the virtual dataset, dcpl_id, and the mapping index, index,
+     *    and returns a dataspace identifier for the selection within the source dataset used in the mapping.
      *
-     * @param lapl_id
-     *            IN: Link access property list identifier
+     * @param dcpl_id
+     *            IN: The identifier of the virtual dataset creation property list.
+     * @param index
+     *            IN: Mapping index.
      *
-     * @return a non-negative value if successful; otherwise returns a negative value.
-     *
-     * @exception HDF5LibraryException
-     *                - Error from the HDF-5 Library.
-     *
-     **/
-    public static long H5Pget_elink_fapl(long lapl_id) throws HDF5LibraryException {
-        long id = _H5Pget_elink_fapl(lapl_id);
-        if (id > 0) {
-            log.trace("OPEN_IDS: H5Pget_elink_fapl add {}", id);
-            OPEN_IDS.add(id);
-            log.trace("OPEN_IDS: {}", OPEN_IDS.size());
-        }
-        return id;
-    }
-
-    private synchronized static native long _H5Pget_elink_fapl(long lapl_id) throws HDF5LibraryException;
-
-    /**
-     * H5Pset_elink_fapl sets a file access property list for use in accessing a file pointed to by an external link.
-     *
-     * @param lapl_id
-     *            IN: Link access property list identifier
-     * @param fapl_id
-     *            IN: File access property list identifier
-     *
-     * @return a non-negative value if successful; otherwise returns a negative value.
-     *
-     * @exception HDF5LibraryException
-     *                - Error from the HDF-5 Library.
-     *
-     **/
-    public synchronized static native int H5Pset_elink_fapl(long lapl_id, long fapl_id) throws HDF5LibraryException;
-
-    /**
-     * H5Pget_elink_file_cache_size retrieves the size of the external link open file cache.
-     *
-     * @param fapl_id
-     *            IN: File access property list identifier
-     *
-     * @return External link open file cache size in number of files.
-     *
-     * @exception HDF5LibraryException
-     *                - Error from the HDF-5 Library.
-     *
-     **/
-    public synchronized static native int H5Pget_elink_file_cache_size(long fapl_id) throws HDF5LibraryException;
-
-    /**
-     * H5Pset_elink_file_cache_size sets the number of files that can be held open in an external link open file cache.
-     *
-     * @param fapl_id
-     *            IN: File access property list identifier
-     * @param efc_size
-     *            IN: External link open file cache size in number of files.
-     *
-     * @exception HDF5LibraryException
-     *                - Error from the HDF-5 Library.
-     *
-     **/
-    public synchronized static native void H5Pset_elink_file_cache_size(long fapl_id, int efc_size)
-            throws HDF5LibraryException;
-
-    /**
-     * H5Pget_elink_prefix Retrieves prefix applied to external link paths.
-     *
-     * @param lapl_id
-     *            IN: Link access property list identifier
-     * @param prefix
-     *            OUT: Prefix applied to external link paths
-     *
-     * @return If successful, returns a non-negative value specifying the size in bytes of the prefix without the NULL
-     *         terminator; otherwise returns a negative value.
-     *
-     * @exception HDF5LibraryException
-     *                - Error from the HDF-5 Library.
-     * @exception NullPointerException
-     *                - prefix is null.
-     *
-     **/
-    public synchronized static native long H5Pget_elink_prefix(long lapl_id, String[] prefix)
-            throws HDF5LibraryException, NullPointerException;
-
-    /**
-     * H5Pset_elink_prefix Sets prefix to be applied to external link paths.
-     *
-     * @param lapl_id
-     *            IN: Link access property list identifier
-     * @param prefix
-     *            IN: Prefix to be applied to external link paths
-     *
-     * @return a non-negative value if successful; otherwise returns a negative value.
-     *
-     * @exception HDF5LibraryException
-     *                - Error from the HDF-5 Library.
-     * @exception NullPointerException
-     *                - prefix is null.
-     *
-     **/
-    public synchronized static native int H5Pset_elink_prefix(long lapl_id, String prefix) throws HDF5LibraryException,
-    NullPointerException;
-
-    /**
-     * H5Pget_est_link_info Queries data required to estimate required local heap or object header size.
-     *
-     * @param gcpl_id
-     *            IN: Group creation property list identifier
-     * @param link_info
-     *            Estimated number of links to be inserted into group And the estimated average length of link names
-     *
-     *            <pre>
-     *      link_info[0] =  Estimated number of links to be inserted into group
-     *      link_info[1] =  Estimated average length of link names
-     * </pre>
-     *
-     * @return Returns a non-negative value if successful; otherwise returns a negative value.
-     *
-     * @exception HDF5LibraryException
-     *                - Error from the HDF-5 Library.
-     * @exception NullPointerException
-     *                - link_info is null.
-     *
-     **/
-    public synchronized static native int H5Pget_est_link_info(long gcpl_id, int[] link_info)
-            throws HDF5LibraryException, NullPointerException;
-
-    /**
-     * H5Pset_est_link_info Sets estimated number of links and length of link names in a group.
-     *
-     * @param gcpl_id
-     *            IN: Group creation property list identifier
-     * @param est_num_entries
-     *            IN: Estimated number of links to be inserted into group
-     * @param est_name_len
-     *            IN: Estimated average length of link names
-     *
-     * @return a non-negative value if successful; otherwise returns a negative value.
+     * @return a valid dataspace identifier if successful
      *
      * @exception HDF5LibraryException
      *                - Error from the HDF-5 Library.
      * @exception IllegalArgumentException
-     *                - Invalid values to est_num_entries and est_name_len.
-     *
+     *                - An id is &lt;=0
      **/
-    public synchronized static native int H5Pset_est_link_info(long gcpl_id, int est_num_entries, int est_name_len)
-            throws HDF5LibraryException, IllegalArgumentException;
+    public synchronized static native long H5Pget_virtual_srcspace(long dcpl_id, long index) throws HDF5LibraryException, IllegalArgumentException;
+
+    /**
+     * H5Pget_virtual_filename takes the dataset creation property list for the virtual dataset, dcpl_id, the mapping index, index,
+     * the size of the filename for a source dataset, size, and retrieves the name of the file for a source dataset used in the mapping.
+     *
+     * @param dcpl_id
+     *            IN: The identifier of the virtual dataset creation property list.
+     * @param index
+     *            IN: Mapping index.
+     *
+     * @return the name of the file containing the source dataset if successful
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     * @exception IllegalArgumentException
+     *                - An id is &lt;=0
+     **/
+    public synchronized static native String H5Pget_virtual_filename(long dcpl_id, long index) throws HDF5LibraryException, IllegalArgumentException;
+
+    /**
+     * H5Pget_virtual_dsetname takes the dataset creation property list for the virtual dataset, dcpl_id, the mapping index, index, the
+     * size of the dataset name for a source dataset, size, and retrieves the name of the source dataset used in the mapping.
+     *
+     * @param dcpl_id
+     *            IN: The identifier of the virtual dataset creation property list.
+     * @param index
+     *            IN: Mapping index.
+     *
+     * @return the name of the source dataset if successful
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     * @exception IllegalArgumentException
+     *                - An id is &lt;=0
+     **/
+    public synchronized static native String H5Pget_virtual_dsetname(long dcpl_id, long index) throws HDF5LibraryException, IllegalArgumentException;
 
     /**
      * H5Pget_external returns information about an external file.
@@ -5330,26 +5829,17 @@ public class H5 implements java.io.Serializable {
      **/
     public synchronized static native int H5Pget_external_count(long plist) throws HDF5LibraryException;
 
-    public synchronized static native long H5Pget_family_offset(long fapl_id) throws HDF5LibraryException,
-    NullPointerException;
-
-    public synchronized static native int H5Pset_family_offset(long fapl_id, long offset) throws HDF5LibraryException,
-    NullPointerException;
-
-    public synchronized static native void H5Pget_fapl_core(long fapl_id, long[] increment, boolean[] backing_store)
+    public synchronized static native int H5Pset_szip(long plist, int options_mask, int pixels_per_block)
             throws HDF5LibraryException, NullPointerException;
 
-    public synchronized static native int H5Pset_fapl_core(long fapl_id, long increment, boolean backing_store)
-            throws HDF5LibraryException, NullPointerException;
+    public synchronized static native int H5Pset_shuffle(long plist_id) throws HDF5LibraryException,
+    NullPointerException;
 
     /**
-     * H5Pget_fapl_direct Retrieve direct I/O settings.
+     * H5Pset_nbit Sets up the use of the N-Bit filter.
      *
-     * @param fapl_id
-     *            IN: File access property list identifier
-     * @param info
-     *            OUT: Returned property list information info[0] = alignment Required memory alignment boundary info[1]
-     *            = block_size File system block size info[2] = cbuf_size Copy buffer size
+     * @param plist_id
+     *            IN: Dataset creation property list identifier.
      *
      * @return a non-negative value if successful; otherwise returns a negative value.
      *
@@ -5357,104 +5847,28 @@ public class H5 implements java.io.Serializable {
      *                - Error from the HDF-5 Library.
      *
      **/
-    public synchronized static native int H5Pget_fapl_direct(long fapl_id, long[] info) throws HDF5LibraryException;
+    public synchronized static native int H5Pset_nbit(long plist_id) throws HDF5LibraryException;
 
     /**
-     * H5Pset_fapl_direct Sets up use of the direct I/O driver.
+     * H5Pset_scaleoffset sets the Scale-Offset filter for a dataset.
      *
-     * @param fapl_id
-     *            IN: File access property list identifier
-     * @param alignment
-     *            IN: Required memory alignment boundary
-     * @param block_size
-     *            IN: File system block size
-     * @param cbuf_size
-     *            IN: Copy buffer size
+     * @param plist_id
+     *            IN: Dataset creation property list identifier.
+     * @param scale_type
+     *            IN: Flag indicating compression method.
+     * @param scale_factor
+     *            IN: Parameter related to scale.
      *
      * @return a non-negative value if successful; otherwise returns a negative value.
      *
      * @exception HDF5LibraryException
      *                - Error from the HDF-5 Library.
+     * @exception IllegalArgumentException
+     *                - Invalid arguments
      *
      **/
-    public synchronized static native int H5Pset_fapl_direct(long fapl_id, long alignment, long block_size,
-            long cbuf_size) throws HDF5LibraryException;
-
-    public synchronized static native int H5Pget_fapl_family(long fapl_id, long[] memb_size, long[] memb_fapl_id)
-            throws HDF5LibraryException, NullPointerException;
-
-    public synchronized static native int H5Pset_fapl_family(long fapl_id, long memb_size, long memb_fapl_id)
-            throws HDF5LibraryException, NullPointerException;
-
-    // herr_t H5Pget_fapl_mpio( int fapl_id, MPI_Comm *comm, MPI_Info *info )
-    // herr_t H5Pset_fapl_mpio( int fapl_id, MPI_Comm comm, MPI_Info info )
-
-    // herr_t H5Pget_fapl_mpiposix( int fapl_id, MPI_Comm *comm, hbool_t *use_gpfs_hints )
-    // herr_t H5Pset_fapl_mpiposix( int fapl_id, MPI_Comm comm, hbool_t use_gpfs_hints )
-
-    /**
-     * H5Pget_fapl_multi Sets up use of the multi I/O driver.
-     *
-     * @param fapl_id
-     *            IN: File access property list identifier
-     * @param memb_map
-     *            IN: Maps memory usage types to other memory usage types.
-     * @param memb_fapl
-     *            IN: Property list for each memory usage type.
-     * @param memb_name
-     *            IN: Name generator for names of member files.
-     * @param memb_addr
-     *            IN: The offsets within the virtual address space, from 0 (zero) to HADDR_MAX, at which each type of
-     *            data storage begins.
-     *
-     * @return a boolean value; Allows read-only access to incomplete file sets when TRUE.
-     *
-     * @exception HDF5LibraryException
-     *                - Error from the HDF-5 Library.
-     * @exception NullPointerException
-     *                - an array is null.
-     *
-     **/
-    public synchronized static native boolean H5Pget_fapl_multi(long fapl_id, int[] memb_map, long[] memb_fapl,
-            String[] memb_name, long[] memb_addr) throws HDF5LibraryException, NullPointerException;
-
-    /**
-     * H5Pset_fapl_multi Sets up use of the multi I/O driver.
-     *
-     * @param fapl_id
-     *            IN: File access property list identifier
-     * @param memb_map
-     *            IN: Maps memory usage types to other memory usage types.
-     * @param memb_fapl
-     *            IN: Property list for each memory usage type.
-     * @param memb_name
-     *            IN: Name generator for names of member files.
-     * @param memb_addr
-     *            IN: The offsets within the virtual address space, from 0 (zero) to HADDR_MAX, at which each type of
-     *            data storage begins.
-     * @param relax
-     *            IN: Allows read-only access to incomplete file sets when TRUE.
-     *
-     * @exception HDF5LibraryException
-     *                - Error from the HDF-5 Library.
-     * @exception NullPointerException
-     *                - an array is null.
-     *
-     **/
-    public synchronized static native void H5Pset_fapl_multi(long fapl_id, int[] memb_map, long[] memb_fapl,
-            String[] memb_name, long[] memb_addr, boolean relax) throws HDF5LibraryException, NullPointerException;
-
-    public synchronized static native int H5Pget_fclose_degree(long plist_id) throws HDF5LibraryException,
-    NullPointerException;
-
-    public synchronized static native int H5Pset_fclose_degree(long plist, int degree) throws HDF5LibraryException,
-    NullPointerException;
-
-    public synchronized static native int H5Pget_fill_time(long plist_id, int[] fill_time) throws HDF5LibraryException,
-    NullPointerException;
-
-    public synchronized static native int H5Pset_fill_time(long plist_id, int fill_time) throws HDF5LibraryException,
-    NullPointerException;
+    public synchronized static native int H5Pset_scaleoffset(long plist_id, int scale_type, int scale_factor)
+            throws HDF5LibraryException, IllegalArgumentException;
 
     /**
      * H5Pget_fill_value queries the fill value property of a dataset creation property list.
@@ -5545,206 +5959,267 @@ public class H5 implements java.io.Serializable {
         return retVal;
     }
 
+    public synchronized static native int H5Pfill_value_defined(long plist_id, int[] status)
+            throws HDF5LibraryException, NullPointerException;
+
+    public synchronized static native int H5Pget_alloc_time(long plist_id, int[] alloc_time)
+            throws HDF5LibraryException, NullPointerException;
+
+    public synchronized static native int H5Pset_alloc_time(long plist_id, int alloc_time) throws HDF5LibraryException,
+    NullPointerException;
+
+    public synchronized static native int H5Pget_fill_time(long plist_id, int[] fill_time) throws HDF5LibraryException,
+    NullPointerException;
+
+    public synchronized static native int H5Pset_fill_time(long plist_id, int fill_time) throws HDF5LibraryException,
+    NullPointerException;
+
+    // Dataset access property list (DAPL) routines //
+
     /**
-     * H5Pget_filter returns information about a filter, specified by its filter number, in a filter pipeline, specified
-     * by the property list with which it is associated.
+     * Retrieves the maximum possible number of elements in the meta data cache and the maximum possible number of bytes
+     * and the RDCC_W0 value in the raw data chunk cache on a per-datset basis.
      *
-     * @param plist
-     *            IN: Property list identifier.
-     * @param filter_number
-     *            IN: Sequence number within the filter pipeline of the filter for which information is sought.
-     * @param flags
-     *            OUT: Bit vector specifying certain general properties of the filter.
-     * @param cd_nelmts
-     *            IN/OUT: Number of elements in cd_values
-     * @param cd_values
-     *            OUT: Auxiliary data for the filter.
-     * @param namelen
-     *            IN: Anticipated number of characters in name.
-     * @param name
-     *            OUT: Name of the filter.
-     * @param filter_config
-     *            OUT:A bit field encoding the returned filter information
+     * @param dapl_id
+     *            IN: Identifier of the dataset access property list.
+     * @param rdcc_nslots
+     *            IN/OUT: Number of elements (objects) in the raw data chunk cache.
+     * @param rdcc_nbytes
+     *            IN/OUT: Total size of the raw data chunk cache, in bytes.
+     * @param rdcc_w0
+     *            IN/OUT: Preemption policy.
      *
-     * @return the filter identification number if successful. Otherwise returns H5Z_FILTER_ERROR (-1).
-     *
-     * @exception ArrayIndexOutOfBoundsException
-     *                Fatal error on Copyback
-     * @exception ArrayStoreException
-     *                Fatal error on Copyback
      * @exception HDF5LibraryException
      *                - Error from the HDF-5 Library.
      * @exception NullPointerException
-     *                - name or an array is null.
-     *
+     *                - an array is null.
      **/
-    public static int H5Pget_filter(long plist, int filter_number, int[] flags, long[] cd_nelmts, int[] cd_values,
-            long namelen, String[] name, int[] filter_config) throws ArrayIndexOutOfBoundsException,
-            ArrayStoreException, HDF5LibraryException, NullPointerException {
-        return H5Pget_filter2(plist, filter_number, flags, cd_nelmts, cd_values, namelen, name, filter_config);
-    }
+    public synchronized static native void H5Pget_chunk_cache(long dapl_id, long[] rdcc_nslots, long[] rdcc_nbytes,
+            double[] rdcc_w0) throws HDF5LibraryException, NullPointerException;
 
     /**
-     * H5Pget_filter2 returns information about a filter, specified by its filter number, in a filter pipeline,
-     * specified by the property list with which it is associated.
+     * H5Pset_chunk_cache sets the number of elements (objects) in the meta data cache and the total number of bytes in
+     * the raw data chunk cache on a per-datset basis.
      *
-     * @see public static int H5Pget_filter(int plist, int filter_number, int[] flags, int[] cd_nelmts, int[] cd_values,
-     *      int namelen, String[] name, int[] filter_config)
-     *
-     **/
-    private synchronized static native int H5Pget_filter2(long plist, int filter_number, int[] flags, long[] cd_nelmts,
-            int[] cd_values, long namelen, String[] name, int[] filter_config) throws ArrayIndexOutOfBoundsException,
-            ArrayStoreException, HDF5LibraryException, NullPointerException;
-
-    /**
-     * H5Pset_filter adds the specified filter and corresponding properties to the end of an output filter pipeline.
-     *
-     * @param plist
-     *            IN: Property list identifier.
-     * @param filter
-     *            IN: Filter to be added to the pipeline.
-     * @param flags
-     *            IN: Bit vector specifying certain general properties of the filter.
-     * @param cd_nelmts
-     *            IN: Number of elements in cd_values
-     * @param cd_values
-     *            IN: Auxiliary data for the filter.
-     *
-     * @return a non-negative value if successful
+     * @param dapl_id
+     *            IN: Identifier of the datset access property list.
+     * @param rdcc_nslots
+     *            IN: Number of elements (objects) in the raw data chunk cache.
+     * @param rdcc_nbytes
+     *            IN: Total size of the raw data chunk cache, in bytes.
+     * @param rdcc_w0
+     *            IN: Preemption policy.
      *
      * @exception HDF5LibraryException
      *                - Error from the HDF-5 Library.
      **/
-    public synchronized static native int H5Pset_filter(long plist, int filter, int flags, long cd_nelmts,
-            int[] cd_values) throws HDF5LibraryException;
+    public synchronized static native void H5Pset_chunk_cache(long dapl_id, long rdcc_nslots, long rdcc_nbytes,
+            double rdcc_w0) throws HDF5LibraryException;
 
     /**
-     * H5Pget_filter_by_id returns information about the filter specified in filter_id, a filter identifier. plist_id
-     * must be a dataset or group creation property list and filter_id must be in the associated filter pipeline. The
-     * filter_id and flags parameters are used in the same manner as described in the discussion of H5Pset_filter. Aside
-     * from the fact that they are used for output, the parameters cd_nelmts and cd_values[] are used in the same manner
-     * as described in the discussion of H5Pset_filter. On input, the cd_nelmts parameter indicates the number of
-     * entries in the cd_values[] array allocated by the calling program; on exit it contains the number of values
-     * defined by the filter. On input, the namelen parameter indicates the number of characters allocated for the
-     * filter name by the calling program in the array name[]. On exit name[] contains the name of the filter with one
-     * character of the name in each element of the array. If the filter specified in filter_id is not set for the
-     * property list, an error will be returned and H5Pget_filter_by_id1 will fail.
+     * H5Pset_virtual_view takes the access property list for the virtual dataset, dapl_id, and the flag,
+     * view, and sets the VDS view according to the flag value.
+     *
+     * @param dapl_id
+     *            IN: Dataset access property list identifier for the virtual dataset
+     * @param view
+     *            IN: Flag specifying the extent of the data to be included in the view.
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library
+     **/
+    public synchronized static native void H5Pset_virtual_view(long dapl_id, int view) throws HDF5LibraryException;
+
+    /**
+     * H5Pget_virtual_view takes the virtual dataset access property list, dapl_id, and retrieves the flag,
+     * view, set by the H5Pset_virtual_view call.
+     *
+     * @param dapl_id
+     *            IN: Dataset access property list identifier for the virtual dataset
+
+     * @return The flag specifying the view of the virtual dataset.
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library
+     **/
+    public synchronized static native int H5Pget_virtual_view(long dapl_id) throws HDF5LibraryException;
+
+    /**
+     * H5Pset_virtual_printf_gap sets the access property list for the virtual dataset, dapl_id, to instruct the
+     * library to stop looking for the mapped data stored in the files and/or datasets with the printf-style names
+     * after not finding gap_size files and/or datasets. The found source files and datasets will determine the
+     * extent of the unlimited virtual dataset with the printf-style mappings.
+     *
+     * @param dapl_id
+     *            IN: Dataset access property list identifier for the virtual dataset
+     * @param gap_size
+     *            IN: Maximum number of files and/or datasets allowed to be missing for determining
+     *            the extent of an unlimited virtual dataset with printf-style mappings.
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library
+     **/
+    public synchronized static native void H5Pset_virtual_printf_gap(long dapl_id, long gap_size) throws HDF5LibraryException;
+
+    /**
+     * H5Pget_virtual_printf_gap returns the maximum number of missing printf-style files and/or datasets for
+     * determining the extent of an unlimited virtual dataaset, gap_size, using the access property list for
+     * the virtual dataset, dapl_id.
+     *
+     * @param dapl_id
+     *            IN: Dataset access property list identifier for the virtual dataset
+
+     * @return Maximum number of files and/or datasets allowed to be missing for determining
+     *            the extent of an unlimited virtual dataset with printf-style mappings.
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library
+     **/
+    public synchronized static native long H5Pget_virtual_printf_gap(long dapl_id) throws HDF5LibraryException;
+
+    // Dataset xfer property list (DXPL) routines //
+
+    /**
+     * H5Pget_data_transform retrieves the data transform expression previously set in the dataset transfer property
+     * list plist_id by H5Pset_data_transform.
      *
      * @param plist_id
-     *            IN: Property list identifier.
-     * @param filter_id
-     *            IN: Filter identifier.
-     * @param flags
-     *            OUT: Bit vector specifying certain general properties of the filter.
-     * @param cd_nelmts
-     *            N/OUT: Number of elements in cd_values
-     * @param cd_values
-     *            OUT: Auxiliary data for the filter.
-     * @param namelen
-     *            IN: Anticipated number of characters in name.
-     * @param name
-     *            OUT: Name of the filter.
-     * @param filter_config
-     *            OUT: A bit field encoding the returned filter information
+     *            IN: Identifier of the property list or class
+     * @param size
+     *            IN: Number of bytes of the transform expression to copy to
+     * @param expression
+     *            OUT: A data transform expression
      *
-     * @return the filter identification number if successful. Otherwise returns H5Z_FILTER_ERROR (-1).
+     * @return The size of the transform expression if successful; 0(zero) if no transform expression exists. Otherwise
+     *         returns a negative value.
+     *
      *
      * @exception HDF5LibraryException
      *                - Error from the HDF-5 Library.
-     * @exception ArrayIndexOutOfBoundsException
-     *                Fatal error on Copyback
-     * @exception ArrayStoreException
-     *                Fatal error on Copyback
-     * @exception NullPointerException
-     *                - name or an array is null.
+     * @exception IllegalArgumentException
+     *                - Size is &lt;= 0.
      *
      **/
-    public static int H5Pget_filter_by_id(long plist_id, long filter_id, int[] flags, long[] cd_nelmts,
-            int[] cd_values, long namelen, String[] name, int[] filter_config) throws ArrayIndexOutOfBoundsException,
-            ArrayStoreException, HDF5LibraryException, NullPointerException {
-        return H5Pget_filter_by_id2(plist_id, filter_id, flags, cd_nelmts, cd_values, namelen, name, filter_config);
-    }
+    public synchronized static native long H5Pget_data_transform(long plist_id, String[] expression, long size)
+            throws HDF5LibraryException, IllegalArgumentException;
 
     /**
-     * H5Pget_filter_by_id2 returns information about a filter, specified by its filter id, in a filter pipeline,
-     * specified by the property list with which it is associated.
+     * H5Pset_data_transform sets a data transform expression
      *
      * @param plist_id
-     *            IN: Property list identifier.
-     * @param filter_id
-     *            IN: Filter identifier.
-     * @param flags
-     *            OUT: Bit vector specifying certain general properties of the filter.
-     * @param cd_nelmts
-     *            N/OUT: Number of elements in cd_values
-     * @param cd_values
-     *            OUT: Auxiliary data for the filter.
-     * @param namelen
-     *            IN: Anticipated number of characters in name.
-     * @param name
-     *            OUT: Name of the filter.
-     * @param filter_config
-     *            OUT: A bit field encoding the returned filter information
+     *            IN: Identifier of the property list or class
+     * @param expression
+     *            IN: Pointer to the null-terminated data transform expression
      *
-     * @return the filter identification number if successful. Otherwise returns H5Z_FILTER_ERROR (-1).
+     * @return a non-negative valule if successful; otherwise returns a negative value.
      *
      * @exception HDF5LibraryException
      *                - Error from the HDF-5 Library.
      * @exception NullPointerException
-     *                - name or an array is null.
+     *                - expression is null.
      *
      **/
-    public synchronized static native int H5Pget_filter_by_id2(long plist_id, long filter_id, int[] flags,
-            long[] cd_nelmts, int[] cd_values, long namelen, String[] name, int[] filter_config)
-                    throws HDF5LibraryException, NullPointerException;
+    public synchronized static native int H5Pset_data_transform(long plist_id, String expression)
+            throws HDF5LibraryException, NullPointerException;
 
     /**
-     * H5Pget_gc_references Returns the current setting for the garbage collection refernces property from a file access
-     * property list.
-     * <p>
-     * Note: this routine changed name with HDF5.1.2.2. If using an earlier version, use 'configure --enable-hdf5_1_2_1'
-     * so this routine will link to the old name.
+     * HH5Pget_buffer gets type conversion and background buffers. Returns buffer size, in bytes, if successful;
+     * otherwise 0 on failure.
      *
-     * @param fapl_id
-     *            IN File access property list
-     * @param gc_ref
-     *            OUT GC is on (true) or off (false)
+     * @param plist
+     *            Identifier for the dataset transfer property list.
+     * @param tconv
+     *            byte array of application-allocated type conversion buffer.
+     * @param bkg
+     *            byte array of application-allocated background buffer.
+     *
+     * @return buffer size, in bytes, if successful; otherwise 0 on failure
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     * @exception IllegalArgumentException
+     *                - plist is invalid.
+     **/
+    public synchronized static native int H5Pget_buffer(long plist, byte[] tconv, byte[] bkg)
+            throws HDF5LibraryException, IllegalArgumentException;
+
+    public synchronized static native long H5Pget_buffer_size(long plist)
+            throws HDF5LibraryException, IllegalArgumentException;
+
+    /**
+     * H5Pset_buffer sets type conversion and background buffers. status to TRUE or FALSE.
+     *
+     * Given a dataset transfer property list, H5Pset_buffer sets the maximum size for the type conversion buffer and
+     * background buffer and optionally supplies pointers to application-allocated buffers. If the buffer size is
+     * smaller than the entire amount of data being transferred between the application and the file, and a type
+     * conversion buffer or background buffer is required, then strip mining will be used.
+     *
+     * Note that there are minimum size requirements for the buffer. Strip mining can only break the data up along the
+     * first dimension, so the buffer must be large enough to accommodate a complete slice that encompasses all of the
+     * remaining dimensions. For example, when strip mining a 100x200x300 hyperslab of a simple data space, the buffer
+     * must be large enough to hold 1x200x300 data elements. When strip mining a 100x200x300x150 hyperslab of a simple
+     * data space, the buffer must be large enough to hold 1x200x300x150 data elements.
+     *
+     * @param plist
+     *            Identifier for the dataset transfer property list.
+     * @param size
+     *            Size, in bytes, of the type conversion and background buffers.
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     * @exception IllegalArgumentException
+     *                - plist is invalid.
+     **/
+    public synchronized static native void H5Pset_buffer_size(long plist, long size) throws HDF5LibraryException,
+    IllegalArgumentException;
+
+    public synchronized static native int H5Pget_edc_check(long plist) throws HDF5LibraryException,
+    NullPointerException;
+
+    public synchronized static native int H5Pset_edc_check(long plist, int check) throws HDF5LibraryException,
+    NullPointerException;
+
+    /**
+     * H5Pget_btree_ratio Get the B-tree split ratios for a dataset transfer property list.
+     *
+     * @param plist_id
+     *            IN Dataset transfer property list
+     * @param left
+     *            OUT split ratio for leftmost nodes
+     * @param right
+     *            OUT split ratio for righttmost nodes
+     * @param middle
+     *            OUT split ratio for all other nodes
      *
      * @return non-negative if succeed
      *
      * @exception HDF5LibraryException
      *                - Error from the HDF-5 Library.
      * @exception NullPointerException
-     *                - array is null.
+     *                - an input array is null.
      **/
-    public synchronized static native int H5Pget_gc_references(long fapl_id, boolean[] gc_ref)
-            throws HDF5LibraryException, NullPointerException;
-
-    public synchronized static native boolean H5Pget_gcreferences(long fapl_id) throws HDF5LibraryException;
-
-    /*
-     * Earlier versions of the HDF5 library had a different name. This is included as an alias.
-     */
-    public synchronized static int H5Pget_gc_reference(long fapl_id, boolean[] gc_ref) throws HDF5LibraryException,
-    NullPointerException {
-        return H5Pget_gc_references(fapl_id, gc_ref);
-    }
+    public synchronized static native int H5Pget_btree_ratios(long plist_id, double[] left, double[] middle,
+            double[] right) throws HDF5LibraryException, NullPointerException;
 
     /**
-     * H5Pset_gc_references Sets the flag for garbage collecting references for the file. Default value for garbage
-     * collecting references is off.
+     * H5Pset_btree_ratio Sets B-tree split ratios for a dataset transfer property list. The split ratios determine what
+     * percent of children go in the first node when a node splits.
      *
-     * @param fapl_id
-     *            IN File access property list
-     * @param gc_ref
-     *            IN set GC on (true) or off (false)
+     * @param plist_id
+     *            IN Dataset transfer property list
+     * @param left
+     *            IN split ratio for leftmost nodes
+     * @param right
+     *            IN split ratio for righttmost nodes
+     * @param middle
+     *            IN split ratio for all other nodes
      *
-     * @return non-negative if successful
+     * @return non-negative if succeed
      *
      * @exception HDF5LibraryException
      *                - Error from the HDF-5 Library.
      **/
-    public synchronized static native int H5Pset_gc_references(long fapl_id, boolean gc_ref)
+    public synchronized static native int H5Pset_btree_ratios(long plist_id, double left, double middle, double right)
             throws HDF5LibraryException;
 
     public synchronized static native int H5Pget_hyper_vector_size(long dxpl_id, long[] vector_size)
@@ -5753,148 +6228,72 @@ public class H5 implements java.io.Serializable {
     public synchronized static native int H5Pset_hyper_vector_size(long dxpl_id, long vector_size)
             throws HDF5LibraryException, NullPointerException;
 
+    // Link creation property list (LCPL) routines //
+
     /**
-     * H5Pget_istore_k queries the 1/2 rank of an indexed storage B-tree.
+     * H5Pget_create_intermediate_group determines whether property is set to enable creating missing intermediate
+     * groups.
      *
-     * @param plist
-     *            IN: Identifier of property list to query.
-     * @param ik
-     *            OUT: Pointer to location to return the chunked storage B-tree 1/2 rank.
+     * @param lcpl_id
+     *            IN: Link creation property list identifier
      *
-     * @return a non-negative value if successful
+     * @return Boolean true or false
      *
      * @exception HDF5LibraryException
      *                - Error from the HDF-5 Library.
-     * @exception NullPointerException
-     *                - ik array is null.
+     *
      **/
-    public synchronized static native int H5Pget_istore_k(long plist, int[] ik) throws HDF5LibraryException,
-    NullPointerException;
+    public synchronized static native boolean H5Pget_create_intermediate_group(long lcpl_id)
+            throws HDF5LibraryException;
 
     /**
-     * H5Pset_istore_k sets the size of the parameter used to control the B-trees for indexing chunked datasets.
+     * H5Pset_create_intermediate_group specifies in property list whether to create missing intermediate groups
      *
-     * @param plist
-     *            IN: Identifier of property list to query.
-     * @param ik
-     *            IN: 1/2 rank of chunked storage B-tree.
+     * @param lcpl_id
+     *            IN: Link creation property list identifier
+     * @param crt_intermed_group
+     *            IN: Flag specifying whether to create intermediate groups upon the creation of an object
      *
-     * @return a non-negative value if successful
+     * @return a non-negative valule if successful; otherwise returns a negative value.
      *
      * @exception HDF5LibraryException
      *                - Error from the HDF-5 Library.
-     **/
-    public synchronized static native int H5Pset_istore_k(long plist, int ik) throws HDF5LibraryException;
-
-    /**
-     * H5Pget_layout returns the layout of the raw data for a dataset.
-     *
-     * @param plist
-     *            IN: Identifier for property list to query.
-     *
-     * @return the layout type of a dataset creation property list if successful. Otherwise returns H5D_LAYOUT_ERROR
-     *         (-1).
-     *
-     * @exception HDF5LibraryException
-     *                - Error from the HDF-5 Library.
-     **/
-    public synchronized static native int H5Pget_layout(long plist) throws HDF5LibraryException;
-
-    /**
-     * H5Pset_layout sets the type of storage used store the raw data for a dataset.
-     *
-     * @param plist
-     *            IN: Identifier of property list to query.
-     * @param layout
-     *            IN: Type of storage layout for raw data.
-     *
-     * @return a non-negative value if successful
-     *
-     * @exception HDF5LibraryException
-     *                - Error from the HDF-5 Library.
-     **/
-    public synchronized static native int H5Pset_layout(long plist, int layout) throws HDF5LibraryException;
-
-    /**
-     * H5Pget_libver_bounds retrieves the lower and upper bounds on the HDF5 Library versions that indirectly determine
-     * the object formats versions used when creating objects in the file.
-     *
-     * @param fapl_id
-     *            IN: File access property list identifier
-     * @param libver
-     *            The earliest/latest version of the library that will be used for writing objects.
-     *
-     *            <pre>
-     *      libver[0] =  The earliest version of the library that will be used for writing objects
-     *      libver[1] =  The latest version of the library that will be used for writing objects.
-     * </pre>
-     *
-     * @return Returns a non-negative value if successful; otherwise returns a negative value.
-     *
-     * @exception HDF5LibraryException
-     *                - Error from the HDF-5 Library.
-     * @exception NullPointerException
-     *                - size is null.
      *
      **/
-    public synchronized static native int H5Pget_libver_bounds(long fapl_id, int[] libver) throws HDF5LibraryException,
-    NullPointerException;
+    public synchronized static native int H5Pset_create_intermediate_group(long lcpl_id, boolean crt_intermed_group)
+            throws HDF5LibraryException;
+
+    // Group creation property list (GCPL) routines //
 
     /**
-     * H5Pset_libver_bounds Sets bounds on library versions, and indirectly format versions, to be used when creating
-     * objects
-     *
-     * @param fapl_id
-     *            IN: File access property list identifier
-     * @param low
-     *            IN: The earliest version of the library that will be used for writing objects
-     * @param high
-     *            IN: The latest version of the library that will be used for writing objects.
-     *
-     *
-     * @return Returns a non-negative value if successful; otherwise returns a negative value.
-     *
-     * @exception HDF5LibraryException
-     *                - Error from the HDF-5 Library.
-     * @exception IllegalArgumentException
-     *                - Argument is Illegal
-     *
-     **/
-    public synchronized static native int H5Pset_libver_bounds(long fapl_id, int low, int high)
-            throws HDF5LibraryException, IllegalArgumentException;
-
-    /**
-     * H5Pget_link_creation_order queries the group creation property list, gcpl_id, and returns a flag indicating
-     * whether link creation order is tracked and/or indexed in a group.
+     * H5Pget_local_heap_size_hint Retrieves the anticipated size of the local heap for original-style groups.
      *
      * @param gcpl_id
      *            IN: Group creation property list identifier
      *
-     * @return crt_order_flags -Creation order flag(s)
+     * @return size_hint, the anticipated size of local heap
      *
      * @exception HDF5LibraryException
      *                - Error from the HDF-5 Library.
      *
      **/
-    public synchronized static native int H5Pget_link_creation_order(long gcpl_id) throws HDF5LibraryException;
+    public synchronized static native long H5Pget_local_heap_size_hint(long gcpl_id) throws HDF5LibraryException;
 
     /**
-     * H5Pset_link_creation_order Sets flags in a group creation property list, gcpl_id, for tracking and/or indexing
-     * links on creation order.
+     * H5Pset_local_heap_size_hint Specifies the anticipated maximum size of a local heap.
      *
      * @param gcpl_id
      *            IN: Group creation property list identifier
-     * @param crt_order_flags
-     *            IN: Creation order flag(s)
+     * @param size_hint
+     *            IN: Anticipated maximum size in bytes of local heap
      *
-     *
-     * @return Returns a non-negative value if successful; otherwise returns a negative value.
+     * @return a non-negative value if successful; otherwise returns a negative value.
      *
      * @exception HDF5LibraryException
      *                - Error from the HDF-5 Library.
      *
      **/
-    public synchronized static native int H5Pset_link_creation_order(long gcpl_id, int crt_order_flags)
+    public synchronized static native int H5Pset_local_heap_size_hint(long gcpl_id, long size_hint)
             throws HDF5LibraryException;
 
     /**
@@ -5943,95 +6342,92 @@ public class H5 implements java.io.Serializable {
             throws HDF5LibraryException, IllegalArgumentException;
 
     /**
-     * H5Pget_local_heap_size_hint Retrieves the anticipated size of the local heap for original-style groups.
+     * H5Pget_est_link_info Queries data required to estimate required local heap or object header size.
      *
      * @param gcpl_id
      *            IN: Group creation property list identifier
+     * @param link_info
+     *            Estimated number of links to be inserted into group And the estimated average length of link names
      *
-     * @return size_hint, the anticipated size of local heap
+     *            <pre>
+     *      link_info[0] =  Estimated number of links to be inserted into group
+     *      link_info[1] =  Estimated average length of link names
+     * </pre>
+     *
+     * @return Returns a non-negative value if successful; otherwise returns a negative value.
      *
      * @exception HDF5LibraryException
      *                - Error from the HDF-5 Library.
+     * @exception NullPointerException
+     *                - link_info is null.
      *
      **/
-    public synchronized static native long H5Pget_local_heap_size_hint(long gcpl_id) throws HDF5LibraryException;
+    public synchronized static native int H5Pget_est_link_info(long gcpl_id, int[] link_info)
+            throws HDF5LibraryException, NullPointerException;
 
     /**
-     * H5Pset_local_heap_size_hint Specifies the anticipated maximum size of a local heap.
+     * H5Pset_est_link_info Sets estimated number of links and length of link names in a group.
      *
      * @param gcpl_id
      *            IN: Group creation property list identifier
-     * @param size_hint
-     *            IN: Anticipated maximum size in bytes of local heap
+     * @param est_num_entries
+     *            IN: Estimated number of links to be inserted into group
+     * @param est_name_len
+     *            IN: Estimated average length of link names
      *
      * @return a non-negative value if successful; otherwise returns a negative value.
      *
      * @exception HDF5LibraryException
      *                - Error from the HDF-5 Library.
+     * @exception IllegalArgumentException
+     *                - Invalid values to est_num_entries and est_name_len.
      *
      **/
-    public synchronized static native int H5Pset_local_heap_size_hint(long gcpl_id, long size_hint)
+    public synchronized static native int H5Pset_est_link_info(long gcpl_id, int est_num_entries, int est_name_len)
+            throws HDF5LibraryException, IllegalArgumentException;
+
+    /**
+     * H5Pget_link_creation_order queries the group creation property list, gcpl_id, and returns a flag indicating
+     * whether link creation order is tracked and/or indexed in a group.
+     *
+     * @param gcpl_id
+     *            IN: Group creation property list identifier
+     *
+     * @return crt_order_flags -Creation order flag(s)
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     *
+     **/
+    public synchronized static native int H5Pget_link_creation_order(long gcpl_id) throws HDF5LibraryException;
+
+    /**
+     * H5Pset_link_creation_order Sets flags in a group creation property list, gcpl_id, for tracking and/or indexing
+     * links on creation order.
+     *
+     * @param gcpl_id
+     *            IN: Group creation property list identifier
+     * @param crt_order_flags
+     *            IN: Creation order flag(s)
+     *
+     *
+     * @return Returns a non-negative value if successful; otherwise returns a negative value.
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     *
+     **/
+    public synchronized static native int H5Pset_link_creation_order(long gcpl_id, int crt_order_flags)
             throws HDF5LibraryException;
 
-    /**
-     * H5Pget_mdc_config gets the initial metadata cache configuration contained in a file access property list and
-     * loads it into the instance of H5AC_cache_config_t pointed to by the config_ptr parameter. This configuration is
-     * used when the file is opened.
-     *
-     * @param plist_id
-     *            IN: Identifier of the file access property list.
-     *
-     * @return A buffer(H5AC_cache_config_t) for the current metadata cache configuration information
-     *
-     * @exception HDF5LibraryException
-     *                - Error from the HDF-5 Library.
-     **/
-    public synchronized static native H5AC_cache_config_t H5Pget_mdc_config(long plist_id) throws HDF5LibraryException;
+    // String creation property list (STRCPL) routines //
 
-    public synchronized static native void H5Pset_mdc_config(long plist_id, H5AC_cache_config_t config_ptr)
+    public synchronized static native int H5Pget_char_encoding(long plist_id) throws HDF5LibraryException;
+
+    public synchronized static native void H5Pset_char_encoding(long plist_id, int encoding)
             throws HDF5LibraryException;
 
-    /**
-     * H5Pget_meta_block_size the current metadata block size setting.
-     *
-     * @param fapl_id
-     *            IN: File access property list identifier
-     *
-     * @return the minimum size, in bytes, of metadata block allocations.
-     *
-     * @exception HDF5LibraryException
-     *                - Error from the HDF-5 Library.
-     *
-     **/
-    public synchronized static native long H5Pget_meta_block_size(long fapl_id) throws HDF5LibraryException;
-
-    /**
-     * H5Pset_meta_block_size sets the minimum metadata block size.
-     *
-     * @param fapl_id
-     *            IN: File access property list identifier
-     * @param size
-     *            IN: Minimum size, in bytes, of metadata block allocations.
-     *
-     * @exception HDF5LibraryException
-     *                - Error from the HDF-5 Library.
-     *
-     **/
-    public synchronized static native void H5Pset_meta_block_size(long fapl_id, long size) throws HDF5LibraryException;
-
-    /**
-     * H5Pget_nfilters returns the number of filters defined in the filter pipeline associated with the property list
-     * plist.
-     *
-     * @param plist
-     *            IN: Property list identifier.
-     *
-     * @return the number of filters in the pipeline if successful
-     *
-     * @exception HDF5LibraryException
-     *                - Error from the HDF-5 Library.
-     **/
-    public synchronized static native int H5Pget_nfilters(long plist) throws HDF5LibraryException;
+    // Link access property list (LAPL) routines //
 
     /**
      * H5Pget_nlinks retrieves the maximum number of soft or user-defined link traversals allowed, nlinks, before the
@@ -6071,354 +6467,151 @@ public class H5 implements java.io.Serializable {
     IllegalArgumentException;
 
     /**
-     * H5Pget_nprops retrieves the number of properties in a property list or class
+     * H5Pget_elink_prefix Retrieves prefix applied to external link paths.
      *
-     * @param plid
-     *            IN: Identifier of property object to query
-     * @return number of properties if successful; a negative value if failed
+     * @param lapl_id
+     *            IN: Link access property list identifier
+     * @param prefix
+     *            OUT: Prefix applied to external link paths
      *
-     * @exception HDF5LibraryException
-     *                - Error from the HDF-5 Library.
-     */
-    public synchronized static native long H5Pget_nprops(long plid) throws HDF5LibraryException;
-
-    /**
-     * H5Pget_obj_track_times queries the object creation property list, ocpl_id, to determine whether object times are
-     * being recorded.
-     *
-     * @param ocpl_id
-     *            IN: Object creation property list identifier
-     *
-     * @return TRUE or FALSE, specifying whether object times are being recorded
-     *
-     * @exception HDF5LibraryException
-     *                - Error from the HDF-5 Library.
-     *
-     **/
-    public synchronized static native boolean H5Pget_obj_track_times(long ocpl_id) throws HDF5LibraryException;
-
-    /**
-     * H5Pset_obj_track_times sets a property in the object creation property list, ocpl_id, that governs the recording
-     * of times associated with an object.
-     *
-     * @param ocpl_id
-     *            IN: Object creation property list identifier
-     *
-     * @param track_times
-     *            IN: TRUE or FALSE, specifying whether object times are to be tracked
-     *
-     * @exception HDF5LibraryException
-     *                - Error from the HDF-5 Library.
-     *
-     **/
-    public synchronized static native void H5Pset_obj_track_times(long ocpl_id, boolean track_times)
-            throws HDF5LibraryException;
-
-    /**
-     * H5Pget_shared_mesg_index Retrieves the configuration settings for a shared message index.
-     *
-     * @param fcpl_id
-     *            IN: File creation property list identifier
-     * @param index_num
-     *            IN: Index being configured.
-     * @param mesg_info
-     *            The message type and minimum message size
-     *
-     *            <pre>
-     *      mesg_info[0] =  Types of messages that may be stored in this index.
-     *      mesg_info[1] =  Minimum message size.
-     * </pre>
-     *
-     * @return Returns a non-negative value if successful; otherwise returns a negative value.
+     * @return If successful, returns a non-negative value specifying the size in bytes of the prefix without the NULL
+     *         terminator; otherwise returns a negative value.
      *
      * @exception HDF5LibraryException
      *                - Error from the HDF-5 Library.
      * @exception NullPointerException
-     *                - mesg_info is null.
-     * @exception IllegalArgumentException
-     *                - Invalid value of nindexes
+     *                - prefix is null.
      *
      **/
-    public synchronized static native int H5Pget_shared_mesg_index(long fcpl_id, int index_num, int[] mesg_info)
-            throws HDF5LibraryException, NullPointerException, IllegalArgumentException;
-
-    /**
-     * H5Pset_shared_mesg_index Configures the specified shared object header message index
-     *
-     * @param fcpl_id
-     *            IN: File creation property list identifier.
-     * @param index_num
-     *            IN: Index being configured.
-     * @param mesg_type_flags
-     *            IN: Types of messages that should be stored in this index.
-     * @param min_mesg_size
-     *            IN: Minimum message size.
-     *
-     * @return a non-negative value if successful; otherwise returns a negative value.
-     *
-     * @exception HDF5LibraryException
-     *                - Error from the HDF-5 Library.
-     * @exception IllegalArgumentException
-     *                - Invalid value of nindexes
-     *
-     **/
-    public synchronized static native int H5Pset_shared_mesg_index(long fcpl_id, int index_num, int mesg_type_flags,
-            int min_mesg_size) throws HDF5LibraryException, IllegalArgumentException;
-
-    /**
-     * H5Pget_shared_mesg_nindexes retrieves number of shared object header message indexes in file creation property
-     * list.
-     *
-     * @param fcpl_id
-     *            IN: : File creation property list identifier
-     *
-     * @return nindexes, the number of shared object header message indexes available in files created with this
-     *         property list
-     *
-     * @exception HDF5LibraryException
-     *                - Error from the HDF-5 Library.
-     *
-     **/
-    public synchronized static native int H5Pget_shared_mesg_nindexes(long fcpl_id) throws HDF5LibraryException;
-
-    /**
-     * H5Pset_shared_mesg_nindexes sets the number of shared object header message indexes in the specified file
-     * creation property list.
-     *
-     * @param plist_id
-     *            IN: File creation property list
-     * @param nindexes
-     *            IN: Number of shared object header message indexes to be available in files created with this property
-     *            list
-     *
-     * @return a non-negative value if successful; otherwise returns a negative value.
-     *
-     * @exception HDF5LibraryException
-     *                - Error from the HDF-5 Library.
-     * @exception IllegalArgumentException
-     *                - Invalid value of nindexes
-     *
-     **/
-    public synchronized static native int H5Pset_shared_mesg_nindexes(long plist_id, int nindexes)
-            throws HDF5LibraryException, IllegalArgumentException;
-
-    /**
-     * H5Pget_shared_mesg_phase_change retrieves shared object header message phase change information.
-     *
-     * @param fcpl_id
-     *            IN: : File creation property list identifier
-     * @param size
-     *            The threshold values for storage of shared object header message indexes in a file.
-     *
-     *            <pre>
-     *      size[0] =  Threshold above which storage of a shared object header message index shifts from list to B-tree
-     *      size[1] =  Threshold below which storage of a shared object header message index reverts to list format
-     * </pre>
-     *
-     * @return Returns a non-negative value if successful; otherwise returns a negative value.
-     *
-     * @exception HDF5LibraryException
-     *                - Error from the HDF-5 Library.
-     * @exception NullPointerException
-     *                - size is null.
-     *
-     **/
-    public synchronized static native int H5Pget_shared_mesg_phase_change(long fcpl_id, int[] size)
+    public synchronized static native long H5Pget_elink_prefix(long lapl_id, String[] prefix)
             throws HDF5LibraryException, NullPointerException;
 
     /**
-     * H5Pset_shared_mesg_phase_change sets shared object header message storage phase change thresholds.
+     * H5Pset_elink_prefix Sets prefix to be applied to external link paths.
      *
-     * @param fcpl_id
-     *            IN: File creation property list identifier
-     * @param max_list
-     *            IN: Threshold above which storage of a shared object header message index shifts from list to B-tree
-     * @param min_btree
-     *            IN: Threshold below which storage of a shared object header message index reverts to list format
+     * @param lapl_id
+     *            IN: Link access property list identifier
+     * @param prefix
+     *            IN: Prefix to be applied to external link paths
      *
      * @return a non-negative value if successful; otherwise returns a negative value.
      *
      * @exception HDF5LibraryException
      *                - Error from the HDF-5 Library.
-     * @exception IllegalArgumentException
-     *                - Invalid values of max_list and min_btree.
-     *
-     **/
-    public synchronized static native int H5Pset_shared_mesg_phase_change(long fcpl_id, int max_list, int min_btree)
-            throws HDF5LibraryException, IllegalArgumentException;
-
-    public synchronized static native long H5Pget_sieve_buf_size(long fapl_id) throws HDF5LibraryException;
-
-    public synchronized static native void H5Pset_sieve_buf_size(long fapl_id, long size) throws HDF5LibraryException;
-
-    /**
-     * H5Pget_size retrieves the size of a property's value in bytes
-     *
-     * @param plid
-     *            IN: Identifier of property object to query
-     * @param name
-     *            IN: Name of property to query
-     * @return size of a property's value if successful; a negative value if failed
-     *
-     * @exception HDF5LibraryException
-     *                - Error from the HDF-5 Library.
-     */
-    public synchronized static native long H5Pget_size(long plid, String name) throws HDF5LibraryException;
-
-    /**
-     * H5Pget_sizes retrieves the size of the offsets and lengths used in an HDF5 file. This function is only valid for
-     * file creation property lists.
-     *
-     * @param plist
-     *            IN: Identifier of property list to query.
-     * @param size
-     *            OUT: the size of the offsets and length.
-     *
-     *            <pre>
-     *      size[0] = sizeof_addr // offset size in bytes
-     *      size[1] = sizeof_size // length size in bytes
-     * </pre>
-     * @return a non-negative value with the sizes initialized; if successful;
-     *
-     * @exception HDF5LibraryException
-     *                - Error from the HDF-5 Library.
      * @exception NullPointerException
-     *                - size is null.
-     * @exception IllegalArgumentException
-     *                - size is invalid.
+     *                - prefix is null.
+     *
      **/
-    public synchronized static native int H5Pget_sizes(long plist, long[] size) throws HDF5LibraryException,
-    NullPointerException, IllegalArgumentException;
-
-    /**
-     * H5Pset_sizes sets the byte size of the offsets and lengths used to address objects in an HDF5 file.
-     *
-     * @param plist
-     *            IN: Identifier of property list to modify.
-     * @param sizeof_addr
-     *            IN: Size of an object offset in bytes.
-     * @param sizeof_size
-     *            IN: Size of an object length in bytes.
-     *
-     * @return a non-negative value if successful
-     *
-     * @exception HDF5LibraryException
-     *                - Error from the HDF-5 Library.
-     **/
-    public synchronized static native int H5Pset_sizes(long plist, int sizeof_addr, int sizeof_size)
-            throws HDF5LibraryException;
-
-    /**
-     * H5Pget_small_data_block_size retrieves the size of a block of small data in a file creation property list.
-     *
-     * @param plist
-     *            IN: Identifier for property list to query.
-     * @param size
-     *            OUT: Pointer to location to return block size.
-     *
-     * @return a non-negative value and the size of the user block; if successful
-     *
-     * @exception HDF5LibraryException
-     *                - Error from the HDF-5 Library.
-     * @exception NullPointerException
-     *                - size is null.
-     **/
-    public synchronized static native int H5Pget_small_data_block_size(long plist, long[] size)
-            throws HDF5LibraryException, NullPointerException;
-
-    public synchronized static native long H5Pget_small_data_block_size_long(long plist) throws HDF5LibraryException;
-
-    /**
-     * H5Pset_small_data_block_size reserves blocks of size bytes for the contiguous storage of the raw data portion of
-     * small datasets.
-     *
-     * @param plist
-     *            IN: Identifier of property list to modify.
-     * @param size
-     *            IN: Size of the blocks in bytes.
-     *
-     * @return a non-negative value if successful
-     *
-     * @exception HDF5LibraryException
-     *                - Error from the HDF-5 Library.
-     **/
-    public synchronized static native int H5Pset_small_data_block_size(long plist, long size)
-            throws HDF5LibraryException;
-
-    /**
-     * H5Pget_sym_k retrieves the size of the symbol table B-tree 1/2 rank and the symbol table leaf node 1/2 size.
-     *
-     * @param plist
-     *            IN: Property list to query.
-     * @param size
-     *            OUT: the symbol table's B-tree 1/2 rank and leaf node 1/2size.
-     *
-     *            <pre>
-     *      size[0] = ik // the symbol table's B-tree 1/2 rank
-     *      size[1] = lk // leaf node 1/2 size
-     * </pre>
-     *
-     * @return a non-negative value if successful
-     *
-     * @exception HDF5LibraryException
-     *                - Error from the HDF-5 Library.
-     * @exception NullPointerException
-     *                - size is null.
-     * @exception IllegalArgumentException
-     *                - size is invalid.
-     **/
-    public synchronized static native int H5Pget_sym_k(long plist, int[] size) throws HDF5LibraryException,
-    NullPointerException, IllegalArgumentException;
-
-    /**
-     * H5Pset_sym_k sets the size of parameters used to control the symbol table nodes.
-     *
-     * @param plist
-     *            IN: Identifier for property list to query.
-     * @param ik
-     *            IN: Symbol table tree rank.
-     * @param lk
-     *            IN: Symbol table node size.
-     *
-     * @return a non-negative value if successful
-     *
-     * @exception HDF5LibraryException
-     *                - Error from the HDF-5 Library.
-     **/
-    public synchronized static native int H5Pset_sym_k(long plist, int ik, int lk) throws HDF5LibraryException;
-
-    /**
-     * H5Pget_userblock retrieves the size of a user block in a file creation property list.
-     *
-     * @param plist
-     *            IN: Identifier for property list to query.
-     * @param size
-     *            OUT: Pointer to location to return user-block size.
-     *
-     * @return a non-negative value and the size of the user block; if successful
-     *
-     * @exception HDF5LibraryException
-     *                - Error from the HDF-5 Library.
-     * @exception NullPointerException
-     *                - size is null.
-     **/
-    public synchronized static native int H5Pget_userblock(long plist, long[] size) throws HDF5LibraryException,
+    public synchronized static native int H5Pset_elink_prefix(long lapl_id, String prefix) throws HDF5LibraryException,
     NullPointerException;
 
     /**
-     * H5Pset_userblock sets the user block size of a file creation property list.
+     * H5Pget_elink_fapl Retrieves the file access property list identifier associated with the link access property
+     * list.
      *
-     * @param plist
-     *            IN: Identifier of property list to modify.
-     * @param size
-     *            IN: Size of the user-block in bytes.
+     * @param lapl_id
+     *            IN: Link access property list identifier
      *
-     * @return a non-negative value if successful
+     * @return a non-negative value if successful; otherwise returns a negative value.
      *
      * @exception HDF5LibraryException
      *                - Error from the HDF-5 Library.
+     *
      **/
-    public synchronized static native int H5Pset_userblock(long plist, long size) throws HDF5LibraryException;
+    public static long H5Pget_elink_fapl(long lapl_id) throws HDF5LibraryException {
+        long id = _H5Pget_elink_fapl(lapl_id);
+        if (id > 0) {
+            log.trace("OPEN_IDS: H5Pget_elink_fapl add {}", id);
+            OPEN_IDS.add(id);
+            log.trace("OPEN_IDS: {}", OPEN_IDS.size());
+        }
+        return id;
+    }
+
+    private synchronized static native long _H5Pget_elink_fapl(long lapl_id) throws HDF5LibraryException;
+
+    /**
+     * H5Pset_elink_fapl sets a file access property list for use in accessing a file pointed to by an external link.
+     *
+     * @param lapl_id
+     *            IN: Link access property list identifier
+     * @param fapl_id
+     *            IN: File access property list identifier
+     *
+     * @return a non-negative value if successful; otherwise returns a negative value.
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     *
+     **/
+    public synchronized static native int H5Pset_elink_fapl(long lapl_id, long fapl_id) throws HDF5LibraryException;
+
+    /**
+     * H5Pget_elink_acc_flags retrieves the external link traversal file access flag from the specified link access
+     * property list.
+     *
+     * @param lapl_id
+     *            IN: Link access property list identifier
+     *
+     * @return File access flag for link traversal.
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     *
+     **/
+    public synchronized static native int H5Pget_elink_acc_flags(long lapl_id) throws HDF5LibraryException;
+
+    /**
+     * H5Pset_elink_acc_flags Sets the external link traversal file access flag in a link access property list.
+     *
+     * @param lapl_id
+     *            IN: Link access property list identifier
+     * @param flags
+     *            IN: The access flag for external link traversal.
+     *
+     * @return a non-negative value if successful; otherwise returns a negative value.
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     * @exception IllegalArgumentException
+     *                - Invalid Flag values.
+     *
+     **/
+    public synchronized static native int H5Pset_elink_acc_flags(long lapl_id, int flags) throws HDF5LibraryException,
+    IllegalArgumentException;
+
+    // Object copy property list (OCPYPL) routines //
+
+    /**
+     * H5Pget_copy_object retrieves the properties to be used when an object is copied.
+     *
+     * @param ocp_plist_id
+     *            IN: Object copy property list identifier
+     *
+     * @return Copy option(s) set in the object copy property list
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     *
+     **/
+    public synchronized static native int H5Pget_copy_object(long ocp_plist_id) throws HDF5LibraryException;
+
+    /**
+     * H5Pset_copy_object Sets properties to be used when an object is copied.
+     *
+     * @param ocp_plist_id
+     *            IN: Object copy property list identifier
+     * @param copy_options
+     *            IN: Copy option(s) to be set
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     *
+     **/
+    public synchronized static native void H5Pset_copy_object(long ocp_plist_id, int copy_options)
+            throws HDF5LibraryException;
+
+    // Other/Older property list routines //
 
     /**
      * H5Pget_version retrieves the version information of various objects for a file creation property list.
@@ -6446,67 +6639,110 @@ public class H5 implements java.io.Serializable {
     public synchronized static native int H5Pget_version(long plist, int[] version_info) throws HDF5LibraryException,
     NullPointerException, IllegalArgumentException;
 
+    // file drivers property list routines //
+
+    public synchronized static native void H5Pget_fapl_core(long fapl_id, long[] increment, boolean[] backing_store)
+            throws HDF5LibraryException, NullPointerException;
+
+    public synchronized static native int H5Pset_fapl_core(long fapl_id, long increment, boolean backing_store)
+            throws HDF5LibraryException, NullPointerException;
+
     /**
-     * H5Pisa_class checks to determine whether a property list is a member of the specified class
+     * H5Pget_fapl_direct Retrieve direct I/O settings.
      *
-     * @param plist
-     *            IN: Identifier of the property list
-     * @param pclass
-     *            IN: Identifier of the property class
-     * @return a positive value if equal; zero if unequal; a negative value if failed
+     * @param fapl_id
+     *            IN: File access property list identifier
+     * @param info
+     *            OUT: Returned property list information info[0] = alignment Required memory alignment boundary info[1]
+     *            = block_size File system block size info[2] = cbuf_size Copy buffer size
+     *
+     * @return a non-negative value if successful; otherwise returns a negative value.
      *
      * @exception HDF5LibraryException
      *                - Error from the HDF-5 Library.
-     */
-    public synchronized static native int H5Pisa_class(long plist, long pclass) throws HDF5LibraryException;
-
-    public synchronized static native int H5Pmodify_filter(long plist, long filter, int flags, long cd_nelmts,
-            int[] cd_values) throws HDF5LibraryException, NullPointerException;
-
-    /**
-     * H5Punregister removes a property from a property list class
      *
-     * @param plid
-     *            IN: Property list class from which to remove permanent property
-     * @param name
-     *            IN: Name of property to remove
-     * @return a non-negative value if successful; a negative value if failed
-     *
-     * @exception HDF5LibraryException
-     *                - Error from the HDF-5 Library.
-     */
-    public synchronized static native int H5Punregister(long plid, String name) throws HDF5LibraryException;
-
-    /**
-     * H5Premove removes a property from a property list
-     *
-     * @param plid
-     *            IN: Identifier of the property list to modify
-     * @param name
-     *            IN: Name of property to remove
-     * @return a non-negative value if successful; a negative value if failed
-     *
-     * @exception HDF5LibraryException
-     *                - Error from the HDF-5 Library.
-     */
-    public synchronized static native int H5Premove(long plid, String name) throws HDF5LibraryException;
-
-    public synchronized static native int H5Premove_filter(long obj_id, long filter) throws HDF5LibraryException;
-
-    /**
-     * H5Pset_deflate sets the compression method for a dataset.
-     *
-     * @param plist
-     *            IN: Identifier for the dataset creation property list.
-     * @param level
-     *            IN: Compression level.
-     *
-     * @return non-negative if successful
-     *
-     * @exception HDF5LibraryException
-     *                - Error from the HDF-5 Library.
      **/
-    public synchronized static native int H5Pset_deflate(long plist, int level) throws HDF5LibraryException;
+    public synchronized static native int H5Pget_fapl_direct(long fapl_id, long[] info) throws HDF5LibraryException;
+
+    /**
+     * H5Pset_fapl_direct Sets up use of the direct I/O driver.
+     *
+     * @param fapl_id
+     *            IN: File access property list identifier
+     * @param alignment
+     *            IN: Required memory alignment boundary
+     * @param block_size
+     *            IN: File system block size
+     * @param cbuf_size
+     *            IN: Copy buffer size
+     *
+     * @return a non-negative value if successful; otherwise returns a negative value.
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     *
+     **/
+    public synchronized static native int H5Pset_fapl_direct(long fapl_id, long alignment, long block_size,
+            long cbuf_size) throws HDF5LibraryException;
+
+    public synchronized static native int H5Pget_fapl_family(long fapl_id, long[] memb_size, long[] memb_fapl_id)
+            throws HDF5LibraryException, NullPointerException;
+
+    public synchronized static native int H5Pset_fapl_family(long fapl_id, long memb_size, long memb_fapl_id)
+            throws HDF5LibraryException, NullPointerException;
+
+    /**
+     * H5Pget_fapl_multi Sets up use of the multi I/O driver.
+     *
+     * @param fapl_id
+     *            IN: File access property list identifier
+     * @param memb_map
+     *            IN: Maps memory usage types to other memory usage types.
+     * @param memb_fapl
+     *            IN: Property list for each memory usage type.
+     * @param memb_name
+     *            IN: Name generator for names of member files.
+     * @param memb_addr
+     *            IN: The offsets within the virtual address space, from 0 (zero) to HADDR_MAX, at which each type of
+     *            data storage begins.
+     *
+     * @return a boolean value; Allows read-only access to incomplete file sets when TRUE.
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     * @exception NullPointerException
+     *                - an array is null.
+     *
+     **/
+    public synchronized static native boolean H5Pget_fapl_multi(long fapl_id, int[] memb_map, long[] memb_fapl,
+            String[] memb_name, long[] memb_addr) throws HDF5LibraryException, NullPointerException;
+
+    /**
+     * H5Pset_fapl_multi Sets up use of the multi I/O driver.
+     *
+     * @param fapl_id
+     *            IN: File access property list identifier
+     * @param memb_map
+     *            IN: Maps memory usage types to other memory usage types.
+     * @param memb_fapl
+     *            IN: Property list for each memory usage type.
+     * @param memb_name
+     *            IN: Name generator for names of member files.
+     * @param memb_addr
+     *            IN: The offsets within the virtual address space, from 0 (zero) to HADDR_MAX, at which each type of
+     *            data storage begins.
+     * @param relax
+     *            IN: Allows read-only access to incomplete file sets when TRUE.
+     *
+     * @exception HDF5LibraryException
+     *                - Error from the HDF-5 Library.
+     * @exception NullPointerException
+     *                - an array is null.
+     *
+     **/
+    public synchronized static native void H5Pset_fapl_multi(long fapl_id, int[] memb_map, long[] memb_fapl,
+            String[] memb_name, long[] memb_addr, boolean relax) throws HDF5LibraryException, NullPointerException;
+
 
     /**
      * H5Pset_fapl_log Sets up the logging virtual file driver (H5FD_LOG) for use. H5Pset_fapl_log modifies the file
@@ -6542,109 +6778,85 @@ public class H5 implements java.io.Serializable {
     public synchronized static native int H5Pset_fapl_windows(long fapl_id) throws HDF5LibraryException,
     NullPointerException;
 
-    public synchronized static native int H5Pset_fletcher32(long plist) throws HDF5LibraryException,
-    NullPointerException;
-
-    /**
-     * H5Pset_nbit Sets up the use of the N-Bit filter.
-     *
-     * @param plist_id
-     *            IN: Dataset creation property list identifier.
-     *
-     * @return a non-negative value if successful; otherwise returns a negative value.
-     *
-     * @exception HDF5LibraryException
-     *                - Error from the HDF-5 Library.
-     *
-     **/
-    public synchronized static native int H5Pset_nbit(long plist_id) throws HDF5LibraryException;
-
-    /**
-     * H5Pset_scaleoffset sets the Scale-Offset filter for a dataset.
-     *
-     * @param plist_id
-     *            IN: Dataset creation property list identifier.
-     * @param scale_type
-     *            IN: Flag indicating compression method.
-     * @param scale_factor
-     *            IN: Parameter related to scale.
-     *
-     * @return a non-negative value if successful; otherwise returns a negative value.
-     *
-     * @exception HDF5LibraryException
-     *                - Error from the HDF-5 Library.
-     * @exception IllegalArgumentException
-     *                - Invalid arguments
-     *
-     **/
-    public synchronized static native int H5Pset_scaleoffset(long plist_id, int scale_type, int scale_factor)
-            throws HDF5LibraryException, IllegalArgumentException;
-
-    public synchronized static native int H5Pset_shuffle(long plist_id) throws HDF5LibraryException,
-    NullPointerException;
-
-    public synchronized static native int H5Pset_szip(long plist, int options_mask, int pixels_per_block)
-            throws HDF5LibraryException, NullPointerException;
-
     // /////// unimplemented ////////
 
-    // herr_t H5Padd_merge_committed_dtype_path(hid_t plist_id, const char *path);
-
+    // Generic property list routines //
     // hid_t H5Pcreate_class( hid_t parent_class, const char *name, H5P_cls_create_func_t create, void *create_data,
-    // H5P_cls_copy_func_t copy, void *copy_data, H5P_cls_close_func_t close, void *close_data )
+    // herr_t H5Pregister2( hid_t class, const char * name, size_t size, void * default, H5P_prp_create_func_t create,
+    // herr_t H5Pinsert2( hid_t plid, const char *name, size_t size, void *value, H5P_prp_set_func_t set,
+    // herr_t H5Pencode(hid_t plist_id, void *buf, size_t *nalloc);
+    // hid_t  H5Pdecode(const void *buf);
+    // int H5Piterate( hid_t id, int * idx, H5P_iterate_t iter_func, void * iter_data )
 
-    // herr_t H5Pfree_merge_committed_dtype_paths(hid_t plist_id);
+    // Object creation property list (OCPL) routines //
+    // herr_t H5Pset_attr_phase_change( hid_t ocpl_id, unsigned max_compact, unsigned min_dense )
 
+    // File creation property list (FCPL) routines //
+    // herr_t H5Pset_file_space(hid_t plist_id, H5F_file_space_type_t strategy, hsize_t threshold);
+    // herr_t H5Pget_file_space(hid_t plist_id, H5F_file_space_type_t *strategy, hsize_t *threshold);
+
+    // File access property list (FAPL) routines //
+    // herr_t H5Pset_driver( hid_t plist_id, hid_t new_driver_id, const void *new_driver_info )
     // void *H5Pget_driver_info( hid_t plist_id )
-
-    // herr_t H5Pget_elink_cb( hid_t lapl_id, H5L_elink_traverse_t *func, void **op_data )
-    // herr_t H5Pset_elink_cb( hid_t lapl_id, H5L_elink_traverse_t func, void *op_data )
-
-    // herr_t H5Pget_file_image(hid_t fapl_id, void **buf_ptr_ptr, size_t *buf_len_ptr);
-    // herr_t H5Pset_file_image(hid_t fapl_id, void *buf_ptr, size_t buf_len);
-
-    // herr_t H5Pget_file_image_callbacks(hid_t fapl_id,
-    // H5FD_file_image_callbacks_t *callbacks_ptr);
-    // herr_t H5Pset_file_image_callbacks(hid_t fapl_id,
-    // H5FD_file_image_callbacks_t *callbacks_ptr);
-
-    // herr_t H5Pget_mcdt_search_cb(hid_t plist_id, H5O_mcdt_search_cb_t *func, void **op_data);
-    // herr_t H5Pset_mcdt_search_cb(hid_t plist_id, H5O_mcdt_search_cb_t func, void *op_data);
-
     // herr_t H5Pget_multi_type ( hid_t fapl_id, H5FD_mem_t *type )
     // herr_t H5Pset_multi_type ( hid_t fapl_id, H5FD_mem_t type )
+    // herr_t H5Pget_file_image(hid_t fapl_id, void **buf_ptr_ptr, size_t *buf_len_ptr);
+    // herr_t H5Pset_file_image(hid_t fapl_id, void *buf_ptr, size_t buf_len);
+    // herr_t H5Pget_file_image_callbacks(hid_t fapl_id, H5FD_file_image_callbacks_t *callbacks_ptr);
+    // herr_t H5Pset_file_image_callbacks(hid_t fapl_id, H5FD_file_image_callbacks_t *callbacks_ptr);
+    // herr_t H5Pset_core_write_tracking(hid_t fapl_id, hbool_t is_enabled, size_t page_size);
+    // herr_t H5Pget_core_write_tracking(hid_t fapl_id, hbool_t *is_enabled, size_t *page_size);
 
-    // herr_t H5Pget_type_conv_cb(hid_t plist, H5T_conv_except_func_t *func, void **op_data)
-    // herr_t H5Pset_type_conv_cb( hid_t plist, H5T_conv_except_func_t func, void *op_data)
+    // Dataset creation property list (DCPL) routines //
 
+    // Dataset access property list (DAPL) routines //
+
+    // Dataset xfer property list (DXPL) routines //
+    // herr_t H5Pset_buffer(hid_t plist_id, size_t size, void *tconv, void *bkg);
+    // herr_t H5Pset_preserve(hid_t plist_id, hbool_t status);
+    // int H5Pget_preserve(hid_t plist_id);
+    // herr_t H5Pset_filter_callback(hid_t plist, H5Z_filter_func_t func, void *op_data)
     // herr_t H5Pget_vlen_mem_manager(hid_t plist, H5MM_allocate_t *alloc, void **alloc_info, H5MM_free_t *free, void
     // **free_info )
     // herr_t H5Pset_vlen_mem_manager(hid_t plist, H5MM_allocate_t alloc, void *alloc_info, H5MM_free_t free, void
     // *free_info )
+    // herr_t H5Pget_type_conv_cb(hid_t plist, H5T_conv_except_func_t *func, void **op_data)
+    // herr_t H5Pset_type_conv_cb( hid_t plist, H5T_conv_except_func_t func, void *op_data)
 
-    // herr_t H5Pinsert( hid_t plid, const char *name, size_t size, void *value, H5P_prp_set_func_t set,
+    // Link creation property list (LCPL) routines //
+
+    // Group creation property list (GCPL) routines //
+
+    // String creation property list (STRCPL) routines //
+
+    // Link access property list (LAPL) routines //
+    // herr_t H5Pget_elink_cb( hid_t lapl_id, H5L_elink_traverse_t *func, void **op_data )
+    // herr_t H5Pset_elink_cb( hid_t lapl_id, H5L_elink_traverse_t func, void *op_data )
+
+    // Object copy property list (OCPYPL) routines //
+    // herr_t H5Padd_merge_committed_dtype_path(hid_t plist_id, const char *path);
+    // herr_t H5Pfree_merge_committed_dtype_paths(hid_t plist_id);
+    // herr_t H5Pget_mcdt_search_cb(hid_t plist_id, H5O_mcdt_search_cb_t *func, void **op_data);
+    // herr_t H5Pset_mcdt_search_cb(hid_t plist_id, H5O_mcdt_search_cb_t func, void *op_data);
+
+
+    // Other/Older property list routines //
+    // H5P_cls_copy_func_t copy, void *copy_data, H5P_cls_close_func_t close, void *close_data )
+
     // H5P_prp_get_func_t get, H5P_prp_delete_func_t delete, H5P_prp_copy_func_t copy, H5P_prp_compare_func_t compare,
     // H5P_prp_close_func_t close )]
-    // herr_t H5Pinsert2( hid_t plid, const char *name, size_t size, void *value, H5P_prp_set_func_t set,
     // H5P_prp_get_func_t get, H5P_prp_delete_func_t delete, H5P_prp_copy_func_t copy, H5P_prp_compare_func_t compare,
     // H5P_prp_close_func_t close )
-
-    // int H5Piterate( hid_t id, int * idx, H5P_iterate_t iter_func, void * iter_data )
-
-    // herr_t H5Pregister( hid_t class, const char * name, size_t size, void * default, H5P_prp_create_func_t create,
     // H5P_prp_set_func_t set, H5P_prp_get_func_t get, H5P_prp_delete_func_t delete, H5P_prp_copy_func_t copy,
     // H5P_prp_compare_func_t compare, H5P_prp_close_func_t close )
-    // herr_t H5Pregister2( hid_t class, const char * name, size_t size, void * default, H5P_prp_create_func_t create,
     // H5P_prp_set_func_t set, H5P_prp_get_func_t get, H5P_prp_delete_func_t delete, H5P_prp_copy_func_t copy,
     // H5P_prp_compare_func_t compare, H5P_prp_close_func_t close )
 
-    // herr_t H5Pset_attr_phase_change( hid_t ocpl_id, unsigned max_compact, unsigned min_dense )
+    // herr_t H5Pget_fapl_mpio( int fapl_id, MPI_Comm *comm, MPI_Info *info )
+    // herr_t H5Pset_fapl_mpio( int fapl_id, MPI_Comm comm, MPI_Info info )
 
-    // herr_t H5Pset_buffer(hid_t plist_id, size_t size, void *tconv, void *bkg);
-
-    // herr_t H5Pset_driver( hid_t plist_id, hid_t new_driver_id, const void *new_driver_info )
-
-    // herr_t H5Pset_filter_callback(hid_t plist, H5Z_filter_func_t func, void *op_data)
+    // herr_t H5Pget_fapl_mpiposix( int fapl_id, MPI_Comm *comm, hbool_t *use_gpfs_hints )
+    // herr_t H5Pset_fapl_mpiposix( int fapl_id, MPI_Comm comm, hbool_t use_gpfs_hints )
 
     // herr_t H5Pget_dxpl_mpio( hid_t dxpl_id, H5FD_mpio_xfer_t *xfer_mode )
     // herr_t H5Pset_dxpl_mpio( hid_t dxpl_id, H5FD_mpio_xfer_t xfer_mode )

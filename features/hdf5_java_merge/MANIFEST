@@ -2689,6 +2689,7 @@
 ./java/test/TestH5P.java
 ./java/test/TestH5PData.java
 ./java/test/TestH5Pfapl.java
+./java/test/TestH5Pvirtual.java
 ./java/test/TestH5PL.java
 ./java/test/TestH5R.java
 ./java/test/TestH5Sbasic.java

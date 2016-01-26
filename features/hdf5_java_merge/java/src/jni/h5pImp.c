@@ -3852,7 +3852,6 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Pset_1fapl_1split
 
     PIN_JAVA_STRING_TWO0(metaext, mstr, rawext, rstr);
 
-
     retVal = H5Pset_fapl_split((hid_t)fapl_id, mstr, (hid_t)meta_pl_id, rstr, (hid_t)raw_pl_id);
 
     ENVPTR->ReleaseStringUTFChars(ENVPAR metaext, mstr);
@@ -4549,6 +4548,230 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Pset_1char_1encoding
   (JNIEnv *env, jclass clss, jlong acpl, jint encoding)
 {
     if (H5Pset_char_encoding((hid_t)acpl, (H5T_cset_t)encoding) < 0) {
+        h5libraryError(env);
+    }
+}
+
+/*
+ * Class:     hdf_hdf5lib_H5
+ * Method:    H5Pset_virtual
+ * Signature: (JJLjava/lang/String;Ljava/lang/String;J)V
+ */
+JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Pset_1virtual
+(JNIEnv *env, jclass clss, jlong dcpl_id, jlong vspace_id,
+        jstring src_file_name, jstring src_dset_name, jlong src_space_id)
+{
+    herr_t      retVal = -1;
+    const char *fstr;
+    const char *dstr;
+
+    PIN_JAVA_STRING_TWO0(src_file_name, fstr, src_dset_name, dstr);
+
+    retVal = H5Pset_virtual((hid_t)dcpl_id, (hid_t)vspace_id, fstr, dstr, (hid_t)src_space_id);
+
+    ENVPTR->ReleaseStringUTFChars(ENVPAR src_file_name, fstr);
+    ENVPTR->ReleaseStringUTFChars(ENVPAR src_dset_name, dstr);
+
+    if (retVal < 0) {
+        h5libraryError(env);
+    }
+}
+
+/*
+ * Class:     hdf_hdf5lib_H5
+ * Method:    H5Pget_virtual_count
+ * Signature: (J)J
+ */
+JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5_H5Pget_1virtual_1count
+(JNIEnv *env, jclass clss, jlong dcpl_id)
+{
+    size_t  s;
+    if (H5Pget_virtual_count((hid_t)dcpl_id, &s) < 0) {
+        h5libraryError(env);
+    }
+    return (jlong)s;
+}
+
+/*
+ * Class:     hdf_hdf5lib_H5
+ * Method:    H5Pget_virtual_vspace
+ * Signature: (JJ)J
+ */
+JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5_H5Pget_1virtual_1vspace
+(JNIEnv *env, jclass clss, jlong dcpl_id, jlong index)
+{
+    hid_t space_id = H5Pget_virtual_vspace((hid_t)dcpl_id, (size_t)index);
+    if (space_id < 0) {
+        h5libraryError(env);
+    }
+    return (jlong)space_id;
+}
+
+/*
+ * Class:     hdf_hdf5lib_H5
+ * Method:    H5Pget_virtual_srcspace
+ * Signature: (JJ)J
+ */
+JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5_H5Pget_1virtual_1srcspace
+(JNIEnv *env, jclass clss, jlong dcpl_id, jlong index)
+{
+    hid_t space_id = H5Pget_virtual_srcspace((hid_t)dcpl_id, (size_t)index);
+    if (space_id < 0) {
+        h5libraryError(env);
+    }
+    return (jlong)space_id;
+}
+
+/*
+ * Class:     hdf_hdf5lib_H5
+ * Method:    H5Pget_virtual_filename
+ * Signature: (JJ)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_hdf_hdf5lib_H5_H5Pget_1virtual_1filename
+(JNIEnv *env, jclass clss, jlong dcpl_id, jlong index)
+{
+    char    *fname;
+    ssize_t  buf_size;
+    ssize_t  status;
+    jstring  str;
+
+    /* get the length of the filename */
+    buf_size = H5Pget_virtual_filename((hid_t)dcpl_id, (size_t)index, NULL, 0);
+    if (buf_size < 0) {
+        h5badArgument( env, "H5Pget_virtual_filename:  buf_size < 0");
+        return NULL;
+    }
+    if (buf_size == 0) {
+        return NULL;
+    }
+
+    buf_size++; /* add extra space for the null terminator */
+    fname = (char *)HDmalloc(sizeof(char) * (size_t)buf_size);
+    if (fname == NULL) {
+        h5outOfMemory( env, "H5Pget_virtual_filename:  malloc failed");
+        return NULL;
+    }
+
+    status = H5Pget_virtual_filename((hid_t)dcpl_id, (size_t)index, fname, (size_t)buf_size);
+
+    if (status >= 0) {
+        str = ENVPTR->NewStringUTF(ENVPAR fname);
+        HDfree(fname);
+        if (str == NULL) {
+            h5JNIFatalError( env, "H5Pget_virtual_filename:  return string not allocated");
+            return NULL;
+        }
+    }
+    else {
+        HDfree(fname);
+        h5libraryError(env);
+        return NULL;
+    }
+
+    return (jstring)str;
+}
+
+/*
+ * Class:     hdf_hdf5lib_H5
+ * Method:    H5Pget_virtual_dsetname
+ * Signature: (JJ)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_hdf_hdf5lib_H5_H5Pget_1virtual_1dsetname
+(JNIEnv *env, jclass clss, jlong dcpl_id, jlong index)
+{
+    char    *dname;
+    ssize_t  buf_size;
+    ssize_t  status;
+    jstring  str;
+
+    /* get the length of the filename */
+    buf_size = H5Pget_virtual_dsetname((hid_t)dcpl_id, (size_t)index, NULL, 0);
+    if (buf_size < 0) {
+        h5badArgument( env, "H5Pget_virtual_dsetname:  buf_size < 0");
+        return NULL;
+    }
+    if (buf_size == 0) {
+        return NULL;
+    }
+
+    buf_size++; /* add extra space for the null terminator */
+    dname = (char *)HDmalloc(sizeof(char) * (size_t)buf_size);
+    if (dname == NULL) {
+        h5outOfMemory( env, "H5Pget_virtual_dsetname:  malloc failed");
+        return NULL;
+    }
+
+    status = H5Pget_virtual_dsetname((hid_t)dcpl_id, (size_t)index, dname, (size_t)buf_size);
+
+    if (status >= 0) {
+        str = ENVPTR->NewStringUTF(ENVPAR dname);
+        HDfree(dname);
+        if (str == NULL) {
+            h5JNIFatalError( env, "H5Pget_virtual_dsetname:  return string not allocated");
+            return NULL;
+        }
+    }
+    else {
+        HDfree(dname);
+        h5libraryError(env);
+        return NULL;
+    }
+
+    return (jstring)str;
+}
+
+/*
+ * Class:     hdf_hdf5lib_H5
+ * Method:    H5Pget_virtual_view
+ * Signature: (J)I
+ */
+JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Pget_1virtual_1view
+(JNIEnv *env, jclass clss, jlong dapl_id)
+{
+    H5D_vds_view_t virtual_view;
+    if (H5Pget_virtual_view((hid_t)dapl_id, &virtual_view) < 0) {
+        h5libraryError(env);
+    }
+    return (jint)virtual_view;
+}
+
+/*
+ * Class:     hdf_hdf5lib_H5
+ * Method:    H5Pset_virtual_view
+ * Signature: (JI)V
+ */
+JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Pset_1virtual_1view
+(JNIEnv *env, jclass clss, jlong dapl_id, jint view)
+{
+    if (H5Pset_virtual_view((hid_t)dapl_id, (H5D_vds_view_t)view) < 0) {
+        h5libraryError(env);
+    }
+}
+
+/*
+ * Class:     hdf_hdf5lib_H5
+ * Method:    H5Pget_virtual_printf_gap
+ * Signature: (J)J
+ */
+JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5_H5Pget_1virtual_1printf_1gap
+(JNIEnv *env, jclass clss, jlong dapl_id)
+{
+    hsize_t gap_size;
+    if (H5Pget_virtual_printf_gap((hid_t)dapl_id, &gap_size) < 0) {
+        h5libraryError(env);
+    }
+    return (jlong)gap_size;
+}
+
+/*
+ * Class:     hdf_hdf5lib_H5
+ * Method:    H5Pset_virtual_printf_gap
+ * Signature: (JJ)V
+ */
+JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Pset_1virtual_1printf_1gap
+(JNIEnv *env, jclass clss, jlong dapl_id, jlong gap_size)
+{
+    if (H5Pset_virtual_printf_gap((hid_t)dapl_id, (hsize_t)gap_size) < 0) {
         h5libraryError(env);
     }
 }
