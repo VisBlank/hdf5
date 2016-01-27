@@ -177,7 +177,7 @@
 /* Define if the compiler understands inline */
 #undef HAVE_INLINE
 
-/* Define if library will contain instrumentation to detect correct
+/* Define if parallel library will contain instrumentation to detect correct
    optimization operation */
 #undef HAVE_INSTRUMENTED_LIBRARY
 
@@ -400,7 +400,7 @@
 /* Define if the compiler understands __inline__ */
 #undef HAVE___INLINE__
 
-/* Define if HDF5's high-level library headers should be included in hdf5.h */
+/* Define if the high-level library headers should be included in hdf5.h */
 #undef INCLUDE_HL
 
 /* Define if your system can convert long double to (unsigned) long long

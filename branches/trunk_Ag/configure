@@ -640,6 +640,9 @@ LTLIBOBJS
 LIBOBJS
 HAVE_SHARED_CONDITIONAL_FALSE
 HAVE_SHARED_CONDITIONAL_TRUE
+enable_static
+enable_shared
+STATIC_SHARED
 SEARCH
 BUILD_HDF5_HL_CONDITIONAL_FALSE
 BUILD_HDF5_HL_CONDITIONAL_TRUE
@@ -666,21 +669,33 @@ CONFIG_DATE
 H5_VERSION
 DIRECT_VFD_CONDITIONAL_FALSE
 DIRECT_VFD_CONDITIONAL_TRUE
+DIRECT_VFD
+INSTRUMENT_LIBRARY
+MPE
 ADD_PARALLEL_FILES
 MEMORYALLOCSANITYCHECK
 USINGMEMCHECKER
-INSTRUMENT_LIBRARY
 TRACE_API
-DEBUG_PKG
+METADATATRACEFILE
+CODESTACK
+INTERNAL_DEBUG_OUTPUT
+OPTIMIZATION
+PROFILING
+ASSERTS
+SYMBOLS
 HAVE_PTHREAD
+THREADSAFE
 BUILD_SHARED_SZIP_CONDITIONAL_FALSE
 BUILD_SHARED_SZIP_CONDITIONAL_TRUE
 LL_PATH
 USE_FILTER_SZIP
 USE_FILTER_DEFLATE
+EXTERNAL_FILTERS
+HAVE_DMALLOC
 LT_STATIC_EXEC
 USE_PLUGINS_CONDITIONAL_FALSE
 USE_PLUGINS_CONDITIONAL_TRUE
+STATIC_EXEC
 LT_SYS_LIBRARY_PATH
 OTOOL64
 OTOOL
@@ -712,12 +727,16 @@ TR
 AR
 HL_FOR
 HL
+HDF5_HL
 CXXCPP
 am__fastdepCXX_FALSE
 am__fastdepCXX_TRUE
 CXXDEPMODE
 ac_ct_CXX
 CXXFLAGS
+CXX
+HDF_CXX
+Fortran_COMPILER_ID
 H5CONFIG_F_IKIND
 H5CONFIG_F_NUM_IKIND
 H5CONFIG_F_RKIND_SIZEOF
@@ -754,7 +773,10 @@ HSIZE_T
 HADDR_T
 R_INTEGER
 R_LARGE
+FC
 HDF5_INTERFACES
+HDF_FORTRAN
+PAC_C_MAX_REAL_PRECISION
 EGREP
 GREP
 CPP
@@ -774,25 +796,8 @@ ac_ct_CC
 LDFLAGS
 CFLAGS
 CC
-Fortran_COMPILER_ID
-PAC_C_MAX_REAL_PRECISION
+BUILD_MODE
 UNAME_INFO
-enable_static
-enable_shared
-STATIC_SHARED
-THREADSAFE
-DIRECT_VFD
-HAVE_DMALLOC
-CODESTACK
-INSTRUMENT
-HDF5_HL
-CXX
-HDF_CXX
-FC
-HDF_FORTRAN
-STATIC_EXEC
-MPE
-EXTERNAL_FILTERS
 AM_LDFLAGS
 AM_CPPFLAGS
 AM_CXXFLAGS
@@ -885,6 +890,7 @@ ac_user_opts='
 enable_option_checking
 enable_silent_rules
 enable_maintainer_mode
+enable_build_mode
 enable_dependency_tracking
 enable_unsupported
 enable_fortran
@@ -900,7 +906,6 @@ with_sysroot
 enable_libtool_lock
 enable_static_exec
 enable_sharedlib_rpath
-enable_production
 with_fnord
 with_dmalloc
 with_zlib
@@ -908,13 +913,19 @@ with_szlib
 enable_threadsafe
 with_pthread
 enable_debug
+enable_production
+enable_symbols
+enable_asserts
+enable_profiling
+enable_optimization
+enable_internal_debug
 enable_codestack
 enable_metadata_trace_file
 enable_trace
-enable_instrument
 enable_using_memchecker
 enable_memory_alloc_sanity_check
 enable_parallel
+enable_instrument
 with_mpe
 enable_direct_vfd
 with_default_plugindir
@@ -1565,6 +1576,15 @@ Optional Features:
   --enable-maintainer-mode
                           enable make rules and dependencies not useful (and
                           sometimes confusing) to the casual installer
+  --enable-build-mode=(debug|production|clean)
+                          Sets the build mode. Debug turns on symbols, API
+                          tracing, asserts, and debug optimization, as well as
+                          several other minor configure options that aid in
+                          debugging. Production turns high optimizations on.
+                          Clean turns nothing on and disables optimization
+                          (i.e.: a 'clean slate' configuration). All these
+                          settings can be overridden by using specific
+                          configure flags. [default=debug]
   --enable-dependency-tracking
                           do not reject slow dependency extractors
   --disable-dependency-tracking
@@ -1572,7 +1592,8 @@ Optional Features:
   --enable-unsupported    Allow unsupported combinations of configure options
   --enable-fortran        Compile the Fortran interface [default=no]
   --enable-cxx            Compile the C++ interface [default=no]
-  --enable-hl             Enable the high level library [default=yes]
+  --enable-hl             Enable the high-level library. [default=yes (unless
+                          build mode = clean)]
   --enable-shared[=PKGS]  build shared libraries [default=yes]
   --enable-static[=PKGS]  build static libraries [default=yes]
   --enable-fast-install[=PKGS]
@@ -1582,39 +1603,77 @@ Optional Features:
                           [default=no]
   --disable-sharedlib-rpath
                           Disable use of the '=Wl,-rpath' linker option
-  --enable-production     Determines how to run the compiler.
   --enable-threadsafe     Enable thread-safe capability. Not compatible with
                           the high-level library, Fortran, or C++ wrappers.
                           [default=no]
-  --enable-debug=all      Turn on debugging in all packages. One may also
-                          specify a comma-separated list of package names
-                          without the leading H5 or the word no. The default
-                          is most packages if production is disabled; no if it
-                          is enabled.
+  --enable-debug          DEPRECATED: use --enable-build-mode=debug
+  --enable-production     DEPRECATED: use --enable-build-mode=production
+  --enable-symbols=(yes|no|<custom>)
+                          Add debug symbols to the library (e.g.: build with
+                          -g). This is independent of the build mode and
+                          optimization level. The custom string allows special
+                          settings like -ggdb, etc. to be used. [default=yes
+                          if debug build, otherwise no]
+  --enable-asserts        Determines whether NDEBUG is defined or not, which
+                          controls assertions. This is independent of the
+                          build mode and presence of debugging symbols.
+                          [default=yes if debug build, otherwise no]
+  --enable-profiling=(yes|no|<custom>)
+                          Enable profiling flags (e.g.: -pg). This can be set
+                          independently from the build mode. The custom
+                          setting can be used to pass alternative profiling
+                          flags (e.g.: -P for using Prof with gcc).
+                          [default=no]
+  --enable-optimization=(high|debug|none|<custom>)
+                          Enable optimization flags/settings (e.g.: -O3). This
+                          can be set independently from the build mode.
+                          Optimizations for a given compiler can be specified
+                          at several levels: High, with aggressive
+                          optimizations turned on; debug, with optimizations
+                          that are unlikely to interfere with debugging or
+                          profiling; and none, with no optimizations at all.
+                          See the compiler-specific config/*-flags file for
+                          more details. Alternatively, optimization options
+                          can be specified directly by specifying them as a
+                          string value. These custom optimzation flags will
+                          completely replace all other optimization flags.
+                          [default depends on build mode: debug=debug,
+                          production=high, clean=none]
+  --enable-internal-debug=(yes|all|no|none|<pkg list>)
+                          Enable extra debugging output on HDF5 library
+                          errors. One may also specify a comma-separated list
+                          of package names without the leading H5. This is
+                          independent of the build mode and is mainly of
+                          interest to HDF Group developers. Yes/all and
+                          no/none are synonymous. [default=all if debug build,
+                          otherwise none]
   --enable-codestack      Enable the function stack tracing (for developer
-                          debugging).
+                          debugging). [default=no]
   --enable-metadata-trace-file
-                          Enable metadata trace file collection.
-  --enable-trace          Enable API tracing capability. Default=no if debug
-                          is disabled.
-  --enable-instrument     Enable library instrumentation of optimization
-                          tracing. Default=no if debug is disabled.
+                          Enable metadata trace file collection. [default=no]
+  --enable-trace          Enable HDF5 API tracing capability. [default=yes if
+                          debug build, otherwise no]
   --enable-using-memchecker
                           Enable this option if a memory allocation and/or
                           bounds checking tool will be used on the HDF5
                           library. Enabling this causes the library to be more
-                          picky about it's memory operations and also disables
+                          picky about its memory operations and also disables
                           the library's free space manager code. This option
                           is orthogonal to the
                           --enable-memory-alloc-sanity-check option.
-                          Default=no.
+                          [default=no]
   --enable-memory-alloc-sanity-check
                           Enable this option to turn on internal memory
                           allocation sanity checking. This could cause more
                           memory use and somewhat slower allocation. This
                           option is orthogonal to the
-                          --enable-using-memchecker option. Default=no.
+                          --enable-using-memchecker option. [default=yes if
+                          debug build, otherwise no]
   --enable-parallel       Search for MPI-IO and MPI support files
+  --enable-instrument     Enable library instrumentation of optimization
+                          tracing (only used with parallel builds).
+                          [default=yes if a parallel debug build, otherwise
+                          no]
   --enable-direct-vfd     Build the direct I/O virtual file driver (VFD). This
                           is based on the POSIX (sec2) VFD and requires the
                           open() call to take the O_DIRECT flag. [default=no]
@@ -1626,10 +1685,11 @@ Optional Features:
   --enable-build-all      Build helper programs that only developers should
                           need [default=no]
   --enable-deprecated-symbols
-                          Enable deprecated public API symbols [default=yes]
+                          Enable deprecated public API symbols. [default=yes
+                          (unless build mode = clean)]
   --enable-strict-format-checks
-                          Enable strict file format checks, default=yes if
-                          debug flag is enabled, no otherwise
+                          Enable strict file format checks. [default=yes if
+                          debug build, otherwise no]
   --enable-embedded-libinfo
                           Enable embedded library information [default=yes]
 
@@ -3862,46 +3922,59 @@ set >&5
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: done" >&5
 $as_echo "done" >&6; }
 
-## Define all symbol variables used for configure summary.
-## EXTERNAL_FILTERS equals all external filters. Default none.
-## MPE: whether MPE option is enabled. Default no.
-## STATIC_EXEC: whether static-exec is enabled. Default no.
-## HDF_FORTRAN: whether Fortran is enabled. Default no.
-## FC: Fortran compiler.
-## HDF_CXX: whether C++ is enabled. Default no.
-## CXX: C++ compiler.
-## HDF5_HL: whether high-level library is enabled. Default is yes.
-## INSTRUMENT: whether INSTRUMENT is enabled. No default set here.
-## CODESTACK: whether CODESTACK is enabled. Default no.
-## HAVE_DMALLOC: whether system has dmalloc support. Default no.
-## HAVE_FLOAT128: whether system has Quad-Precision Math Library. Default no.
-## DIRECT_VFD: whether DIRECT_VFD is enabled. Default no.
-## THREADSAFE: whether THREADSAFE is enabled. Default no.
-## STATIC_SHARED: whether static and/or shared libraries are requested.
-## enable_shared: whether shared lib is enabled.
-## enable_static: whether static lib is enabled.
-## UNAME_INFO: System information.
+## ----------------------------------------------------------------------
+## Save system information for the library settings file.
+##
+
+UNAME_INFO=`uname -a`
+
+## ----------------------------------------------------------------------
+## Determine build mode (debug, production, clean).
+## This has to be done early since the build mode is referred to
+## frequently.
+##
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking build mode" >&5
+$as_echo_n "checking build mode... " >&6; }
+# Check whether --enable-build-mode was given.
+if test "${enable_build_mode+set}" = set; then :
+  enableval=$enable_build_mode; BUILD_MODE=$enableval
+fi
 
 
- MPE=no
- STATIC_EXEC=no
- HDF_FORTRAN=no
- HDF_FORTRAN=no
- HDF_CXX=no
- HDF_CXX=no
- HDF5_HL=yes
+## Set the default
+## Depends on branch, set via script at branch creation time
+if test "X-$BUILD_MODE" = X- ; then
+    BUILD_MODE=debug
+fi
 
- CODESTACK=no
- HAVE_DMALLOC=no
- DIRECT_VFD=no
- THREADSAFE=no
+## Allow this variable to be substituted in
+## other files (src/libhdf5.settings.in, etc.)
 
 
-
- UNAME_INFO=`uname -a`
-
-
-Fortran_COMPILER_ID=none
+case "X-$BUILD_MODE" in
+  X-clean)
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: clean" >&5
+$as_echo "clean" >&6; }
+    ;;
+  X-debug)
+    H5_CFLAGS="$H5_CFLAGS $DEBUG_CFLAGS"
+    H5_CPPFLAGS="$H5_CPPFLAGS $DEBUG_CPPFLAGS"
+    H5_CXXFLAGS="$H5_CXXFLAGS $DEBUG_CXXFLAGS"
+    H5_FCFLAGS="$H5_FCFLAGS $DEBUG_FCFLAGS"
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: debug" >&5
+$as_echo "debug" >&6; }
+    ;;
+  X-production)
+    H5_CFLAGS="$H5_CFLAGS $PROD_CFLAGS"
+    H5_CPPFLAGS="$H5_CPPFLAGS $PROD_CPPFLAGS"
+    H5_CXXFLAGS="$H5_CXXFLAGS $PROD_CXXFLAGS"
+    H5_FCFLAGS="$H5_FCFLAGS $PROD_FCFLAGS"
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: production" >&5
+$as_echo "production" >&6; }
+    ;;
+  *)
+    as_fn_error $? "Unrecognized build mode: $BUILD_MODE. Use debug, production, or clean." "$LINENO" 5
+esac
 
 ## ----------------------------------------------------------------------
 ## Some platforms have broken basename, and/or xargs programs. Check
@@ -6119,7 +6192,9 @@ _ACEOF
 
 
 
+## ----------------------------------------------------------------------
 ## Check for non-standard extenstion __FLOAT128
+##
 HAVE_FLOAT128=0
 HAVE_QUADMATH=0
 FLT128_DIG=0
@@ -6273,6 +6348,8 @@ fi
 
 
 
+
+
 if test "$ac_cv_sizeof___float128" != 0 && test "$FLT128_DIG" != 0 ; then
 
 $as_echo "#define HAVE_FLOAT128 1" >>confdefs.h
@@ -6288,9 +6365,17 @@ _ACEOF
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $PAC_C_MAX_REAL_PRECISION" >&5
 $as_echo "$PAC_C_MAX_REAL_PRECISION" >&6; }
+
 ## ----------------------------------------------------------------------
 ## Check if they would like the Fortran interface compiled
 ##
+
+## This needs to be exposed for the library info file even if Fortran is disabled.
+
+
+## Default is no Fortran
+HDF_FORTRAN=no
+
  HDF5_INTERFACES=""
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking if Fortran interface enabled" >&5
 $as_echo_n "checking if Fortran interface enabled... " >&6; }
@@ -6315,7 +6400,7 @@ if test "X$HDF_FORTRAN" = "Xyes"; then
   ac_config_headers="$ac_config_headers fortran/src/H5config_f.inc"
 
 
-   HDF_FORTRAN=yes
+
 
   HDF5_INTERFACES="$HDF5_INTERFACES fortran"
 
@@ -8279,6 +8364,8 @@ ac_compiler_gnu=$ac_cv_fc_compiler_gnu
 
 
 
+  Fortran_COMPILER_ID=none
+
 cat >>confdefs.h <<_ACEOF
 #define Fortran_COMPILER_ID $Fortran_COMPILER_ID
 _ACEOF
@@ -8468,10 +8555,16 @@ fi
 ## ----------------------------------------------------------------------
 ## Check if they would like the C++ interface compiled
 ##
+## This needs to be exposed for the library info file even if C++ is disabled.
+
+
+## Default is no C++
+HDF_CXX=no
+
 ## We need to check for a C++ compiler unconditionally, since
 ## AC_PROG_CXX defines some macros that Automake 1.9.x uses and will
 ## miss even if c++ is not enabled.
-  ac_ext=cpp
+ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
@@ -8888,7 +8981,7 @@ else
 fi
 
 
-  ac_ext=cpp
+ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
@@ -9035,6 +9128,9 @@ if test "X$HDF_CXX" = "Xyes"; then
   echo "yes"
   HDF5_INTERFACES="$HDF5_INTERFACES c++"
 
+  ## Expose the compiler for *.in files
+
+
   ## Change to the C++ language
   ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
@@ -9043,7 +9139,7 @@ ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ex
 ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
 
-  # Checking if C++ needs old style header files in includes
+  ## Checking if C++ needs old style header files in includes
 
 
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking if $CXX needs old style header files in includes" >&5
@@ -9069,7 +9165,7 @@ rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
 
 
-  # Checking if C++ can handle namespaces
+  ## Checking if C++ can handle namespaces
 
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking if $CXX can handle namespaces" >&5
 $as_echo_n "checking if $CXX can handle namespaces... " >&6; }
@@ -9100,7 +9196,7 @@ rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
 
 
-  # Checking if C++ has offsetof extension
+  ## Checking if C++ has offsetof extension
 
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking if $CXX has offsetof extension" >&5
 $as_echo_n "checking if $CXX has offsetof extension... " >&6; }
@@ -9151,7 +9247,7 @@ rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
 
 
-  # if C++ can handle static cast
+  ## if C++ can handle static cast
 
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking if $CXX can handle static cast" >&5
 $as_echo_n "checking if $CXX can handle static cast... " >&6; }
@@ -9199,27 +9295,44 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 ## Check if they would like the High Level library  compiled
 ##
 
- HL=""
-## name of fortran folder inside "hl", if FORTRAN compile is requested
- HL_FOR=""
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking if high level library is enabled" >&5
-$as_echo_n "checking if high level library is enabled... " >&6; }
-# Check whether --enable-hl was given.
-if test "${enable_hl+set}" = set; then :
-  enableval=$enable_hl; HDF5_HL=$enableval
+## This needs to be exposed for the library info file even if the HL
+## library is disabled.
+
+
+## The high-level library is enabled unless the build mode is clean.
+if test "X-$BUILD_MODE" = "X-clean" ; then
+  HDF5_HL=no
 else
   HDF5_HL=yes
 fi
 
+## high-level library directories (set when needed, blank until then)
+##
+## main high-level library
 
-if test "X$HDF5_HL" = "Xyes"; then
- echo "yes"
+HL=""
+## Fortran high-level library
+
+HL_FOR=""
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking if the high-level library is enabled" >&5
+$as_echo_n "checking if the high-level library is enabled... " >&6; }
+# Check whether --enable-hl was given.
+if test "${enable_hl+set}" = set; then :
+  enableval=$enable_hl; HDF5_HL=$enableval
+fi
+
+
+if test "X-$HDF5_HL" = "X-yes"; then
+ { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
  HL="hl"
 
 $as_echo "#define INCLUDE_HL 1" >>confdefs.h
 
 else
- echo "no"
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
 fi
 
 
@@ -9314,7 +9427,8 @@ fi
 
 
 ## ----------------------------------------------------------------------
-## Set up ${TR} which is used to process DEBUG_PKG.
+## Set up ${TR} which is used to process the package list for extra
+## debugging output in the C library.
 
 # Extract the first word of "tr", so it can be a program name with args.
 set dummy tr; ac_word=$2
@@ -23619,6 +23733,11 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 ##   This check needs to occur after libtool is initialized because
 ##   we check a libtool cache value and may issue a warning based
 ##   on its result.
+
+
+## Default is no
+STATIC_EXEC=no
+
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking if we should install only statically linked executables" >&5
 $as_echo_n "checking if we should install only statically linked executables... " >&6; }
 # Check whether --enable-static_exec was given.
@@ -23631,8 +23750,8 @@ if test "X$STATIC_EXEC" = "Xyes"; then
   echo "yes"
   ## Issue a warning if -static flag is not supported.
   if test "X$lt_cv_prog_compiler_static_works" = "Xno"; then
-      echo "    warning: -static flag not supported on this system; executable won't statically link shared system libraries."
-      LT_STATIC_EXEC=""
+    echo "    warning: -static flag not supported on this system; executable won't statically link shared system libraries."
+    LT_STATIC_EXEC=""
   else
     LT_STATIC_EXEC="-all-static"
   fi
@@ -23689,57 +23808,6 @@ $as_echo "yes" >&6; }
     { $as_echo "$as_me:${as_lineno-$LINENO}: result: error" >&5
 $as_echo "error" >&6; }
     as_fn_error $? "\'$enableval\' is not a valid rpath type" "$LINENO" 5
-    ;;
-esac
-
-## ----------------------------------------------------------------------
-## Production flags?  Save the value in $CONFIG_MODE so we have it for
-## the record.
-##
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for production mode" >&5
-$as_echo_n "checking for production mode... " >&6; }
-# Check whether --enable-production was given.
-if test "${enable_production+set}" = set; then :
-  enableval=$enable_production;
-fi
-
-
-case "X-$enable_production" in
-  X-yes)
-    enable_production="yes"
-    { $as_echo "$as_me:${as_lineno-$LINENO}: result: production" >&5
-$as_echo "production" >&6; }
-    CONFIG_MODE=production
-    H5_CFLAGS="$H5_CFLAGS $PROD_CFLAGS"
-    H5_CPPFLAGS="$H5_CPPFLAGS $PROD_CPPFLAGS"
-    H5_CXXFLAGS="$H5_CXXFLAGS $PROD_CXXFLAGS"
-    H5_FCFLAGS="$H5_FCFLAGS $PROD_FCFLAGS"
-    ;;
-  X-|X-no)
-    enable_production="no"
-    { $as_echo "$as_me:${as_lineno-$LINENO}: result: development" >&5
-$as_echo "development" >&6; }
-    CONFIG_MODE=development
-    H5_CFLAGS="$H5_CFLAGS $DEBUG_CFLAGS"
-    H5_CPPFLAGS="$H5_CPPFLAGS $DEBUG_CPPFLAGS"
-    H5_CXXFLAGS="$H5_CXXFLAGS $DEBUG_CXXFLAGS"
-    H5_FCFLAGS="$H5_FCFLAGS $DEBUG_FCFLAGS"
-    ;;
-  X-pg|X-profile)
-    enable_production="profile"
-    { $as_echo "$as_me:${as_lineno-$LINENO}: result: profile" >&5
-$as_echo "profile" >&6; }
-    CONFIG_MODE=profile
-    H5_CFLAGS="$H5_CFLAGS $PROFILE_CFLAGS"
-    H5_CPPFLAGS="$H5_CPPFLAGS $PROFILE_CPPFLAGS"
-    H5_CXXFLAGS="$H5_CXXFLAGS $PROFILE_CXXFLAGS"
-    H5_FCFLAGS="$H5_FCFLAGS $PROFILE_FCFLAGS"
-    ;;
-  *)
-    enable_production="user-defined"
-    { $as_echo "$as_me:${as_lineno-$LINENO}: result: user-defined" >&5
-$as_echo "user-defined" >&6; }
-    CONFIG_MODE="$enableval"
     ;;
 esac
 
@@ -25814,6 +25882,11 @@ fi
 ## If the library path is specified then it must be preceded by a comma.
 ##
 
+
+## Default is not present
+HAVE_DMALLOC=no
+
+
 # Check whether --with-dmalloc was given.
 if test "${with_dmalloc+set}" = set; then :
   withval=$with_dmalloc;
@@ -26015,6 +26088,14 @@ fi
     fi
     ;;
 esac
+
+## ----------------------------------------------------------------------
+## Make the external filters list available to *.in files
+## At this point it's unset (no external filters by default) but it
+## will be filled in during the deflate (zlib) and szip processing
+## below.
+##
+
 
 ## ----------------------------------------------------------------------
 ## Is the GNU zlib present? It has a header file `zlib.h' and a library
@@ -26252,7 +26333,7 @@ $as_echo "#define HAVE_FILTER_DEFLATE 1" >>confdefs.h
   if test "X$EXTERNAL_FILTERS" != "X"; then
     EXTERNAL_FILTERS="${EXTERNAL_FILTERS},"
   fi
-  EXTERNAL_FILTERS="${EXTERNAL_FILTERS}deflate(zlib)"
+    EXTERNAL_FILTERS="${EXTERNAL_FILTERS}deflate(zlib)"
 fi
 
 
@@ -26551,13 +26632,13 @@ $as_echo "no" >&6; }
     if test "X$EXTERNAL_FILTERS" != "X"; then
       EXTERNAL_FILTERS="${EXTERNAL_FILTERS},"
     fi
-    EXTERNAL_FILTERS="${EXTERNAL_FILTERS}szip(encoder)"
+      EXTERNAL_FILTERS="${EXTERNAL_FILTERS}szip(encoder)"
   fi
   if test ${hdf5_cv_szlib_can_encode} = "no"; then
     if test "X$EXTERNAL_FILTERS" != "X"; then
       EXTERNAL_FILTERS="${EXTERNAL_FILTERS},"
     fi
-    EXTERNAL_FILTERS="${EXTERNAL_FILTERS}szip(no encoder)"
+      EXTERNAL_FILTERS="${EXTERNAL_FILTERS}szip(no encoder)"
   fi
 fi
 
@@ -26661,6 +26742,11 @@ rm -f confcache
 ## Enable thread-safe version of library.  It requires Pthreads support
 ## on POSIX systems.
 ##
+
+
+## Default is no thread-safety
+THREADSAFE=no
+
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for thread safe support" >&5
 $as_echo_n "checking for thread safe support... " >&6; }
 # Check whether --enable-threadsafe was given.
@@ -26669,7 +26755,7 @@ if test "${enable_threadsafe+set}" = set; then :
 fi
 
 
-## NOTE: The high-level, C++, and Fortran interfaces are not compatible
+## The high-level, C++, and Fortran interfaces are not compatible
 ## with the thread-safety option because the lock is not hoisted
 ## into the higher-level API calls.
 
@@ -27882,57 +27968,265 @@ cat >>confdefs.h <<_ACEOF
 _ACEOF
 
 
-
 ## ----------------------------------------------------------------------
-## Turn on debugging by setting compiler flags
-## This must come after the enable-production since it depends on production.
+## Deprecate old ways of determining debug/production build
+## These can probably be removed in the future (1.10.1?)
 ##
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for debug flags" >&5
-$as_echo_n "checking for debug flags... " >&6; }
 # Check whether --enable-debug was given.
 if test "${enable_debug+set}" = set; then :
-  enableval=$enable_debug; DEBUG_PKG=$enableval
+  enableval=$enable_debug; DEPRECATED_DEBUG=$enableval
 fi
 
 
-## Default to no if producton is enabled
-if test "X-$DEBUG_PKG" = X- ; then
-    if test "$enable_production" = yes ; then
-	DEBUG_PKG=no
-    else
-	DEBUG_PKG=yes
-    fi
+if test "X-$DEPRECATED_DEBUG" != "X-" ; then
+    as_fn_error $? "--enable-debug is deprecated, use --enable-build-mode=debug instead." "$LINENO" 5
+fi
+
+# Check whether --enable-production was given.
+if test "${enable_production+set}" = set; then :
+  enableval=$enable_production; DEPRECATED_PRODUCTION=$enableval
 fi
 
 
-all_packages="AC,B,B2,D,F,I,HL,O,S,ST,T,Z"
-case "X-$DEBUG_PKG" in
+if test "X-$DEPRECATED_PRODUCTION" != "X-" ; then
+    as_fn_error $? "--enable-production is deprecated, use --enable-build-mode=production instead." "$LINENO" 5
+fi
+
+
+## ----------------------------------------------------------------------
+## Check if the compiler should include symbols
+##
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking enable debugging symbols" >&5
+$as_echo_n "checking enable debugging symbols... " >&6; }
+# Check whether --enable-symbols was given.
+if test "${enable_symbols+set}" = set; then :
+  enableval=$enable_symbols; SYMBOLS=$enableval
+fi
+
+
+## Set default
+if test "X-$SYMBOLS" = X- ; then
+  if test "X-$BUILD_MODE" = "X-debug" ; then
+    SYMBOLS=yes
+  else
+    SYMBOLS=no
+  fi
+fi
+
+## Allow this variable to be substituted in
+## other files (src/libhdf5.settings.in, etc.)
+
+
+case "X-$SYMBOLS" in
   X-yes)
-    DEBUG_PKG="D,F,I,O,S,T,Z"
-##    H5_CPPFLAGS="$H5_CPPFLAGS -UNDEBUG"
-    { $as_echo "$as_me:${as_lineno-$LINENO}: result: default ($DEBUG_PKG)" >&5
-$as_echo "default ($DEBUG_PKG)" >&6; }
+    H5_CFLAGS="$H5_CFLAGS $SYMBOLS_CFLAGS"
+    H5_CXXFLAGS="$H5_CXXFLAGS $SYMBOLS_CXXFLAGS"
+    H5_FCFLAGS="$H5_FCFLAGS $SYMBOLS_FCFLAGS"
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
     ;;
-  X-all)
-    DEBUG_PKG=$all_packages
-##    H5_CPPFLAGS="$H5_CPPFLAGS -UNDEBUG"
-    { $as_echo "$as_me:${as_lineno-$LINENO}: result: all ($DEBUG_PKG)" >&5
-$as_echo "all ($DEBUG_PKG)" >&6; }
-    ;;
-  X-no|X-none)
-    { $as_echo "$as_me:${as_lineno-$LINENO}: result: none" >&5
-$as_echo "none" >&6; }
-    DEBUG_PKG=
-##    H5_CPPFLAGS="$H5_CPPFLAGS -DNDEBUG"
+  X-no)
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
     ;;
   *)
-    { $as_echo "$as_me:${as_lineno-$LINENO}: result: $DEBUG_PKG" >&5
-$as_echo "$DEBUG_PKG" >&6; }
+    H5_CFLAGS="$H5_CFLAGS $SYMBOLS"
+    H5_CXXFLAGS="$H5_CXXFLAGS $SYMBOLS"
+    H5_FCFLAGS="$H5_FCFLAGS $SYMBOLS"
+    SYMBOLS="custom ($SYMBOLS)"
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: $SYMBOLS" >&5
+$as_echo "$SYMBOLS" >&6; }
     ;;
 esac
 
-if test -n "$DEBUG_PKG"; then
-  for pkg in `echo $DEBUG_PKG | ${TR} ${as_cr_letters}"," ${as_cr_LETTERS}" "`; do
+## ----------------------------------------------------------------------
+## Check if the assert macro should be enabled
+##
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking enable asserts" >&5
+$as_echo_n "checking enable asserts... " >&6; }
+# Check whether --enable-asserts was given.
+if test "${enable_asserts+set}" = set; then :
+  enableval=$enable_asserts; ASSERTS=$enableval
+fi
+
+
+## Set default
+if test "X-$ASSERTS" = X- ; then
+  if test "X-$BUILD_MODE" = "X-debug" ; then
+    ASSERTS=yes
+  else
+    ASSERTS=no
+  fi
+fi
+
+## Allow this variable to be substituted in
+## other files (src/libhdf5.settings.in, etc.)
+
+
+case "X-$ASSERTS" in
+  X-yes)
+    H5_CPPFLAGS="$H5_CPPFLAGS -UNDEBUG"
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+    ;;
+  X-no)
+    H5_CPPFLAGS="$H5_CPPFLAGS -DNDEBUG"
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+    ;;
+  *)
+    as_fn_error $? "Unrecognized value: $ASSERTS" "$LINENO" 5
+    ;;
+esac
+
+## ----------------------------------------------------------------------
+## Check if the compiler should use profiling flags/settings
+##
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking profiling" >&5
+$as_echo_n "checking profiling... " >&6; }
+# Check whether --enable-profiling was given.
+if test "${enable_profiling+set}" = set; then :
+  enableval=$enable_profiling; PROFILING=$enableval
+fi
+
+
+## Default is no profiling
+if test "X-$PROFILING" = X- ; then
+    PROFILING=no
+fi
+
+## Allow this variable to be substituted in
+## other files (src/libhdf5.settings.in, etc.)
+
+
+case "X-$PROFILING" in
+  X-yes)
+    H5_CFLAGS="$H5_CFLAGS $PROFILE_CFLAGS"
+    H5_CXXFLAGS="$H5_CXXFLAGS $PROFILE_CXXFLAGS"
+    H5_FCFLAGS="$H5_FCFLAGS $PROFILE_FCFLAGS"
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+    ;;
+  X-no)
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+    ;;
+  *)
+    H5_CFLAGS="$H5_CFLAGS $PROFILING"
+    H5_CXXFLAGS="$H5_CXXFLAGS $PROFILING"
+    H5_FCFLAGS="$H5_FCFLAGS $PROFILING"
+    PROFILING="custom ($PROFILING)"
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: $PROFILING" >&5
+$as_echo "$PROFILING" >&6; }
+    ;;
+esac
+
+## ----------------------------------------------------------------------
+## Check if the compiler should use a particular optimization setting
+##
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking optimization level" >&5
+$as_echo_n "checking optimization level... " >&6; }
+# Check whether --enable-optimization was given.
+if test "${enable_optimization+set}" = set; then :
+  enableval=$enable_optimization; OPTIMIZATION=$enableval
+fi
+
+
+## Set the default optimization level. This depends on the compiler mode.
+if test "X-$OPTIMIZATION" = X- ; then
+  case "X-$BUILD_MODE" in
+  X-debug)
+    OPTIMIZATION=debug
+    ;;
+  X-production)
+    OPTIMIZATION=high
+    ;;
+  X-clean)
+    OPTIMIZATION=none
+    ;;
+  esac
+fi
+
+## Allow this variable to be substituted in
+## other files (src/libhdf5.settings.in, etc.)
+
+
+case "X-$OPTIMIZATION" in
+  X-high)
+    H5_CFLAGS="$H5_CFLAGS $HIGH_OPT_CFLAGS"
+    H5_FCFLAGS="$H5_FCFLAGS $HIGH_OPT_FCFLAGS"
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: high" >&5
+$as_echo "high" >&6; }
+    ;;
+  X-debug)
+    H5_CFLAGS="$H5_CFLAGS $DEBUG_OPT_CFLAGS"
+    H5_FCFLAGS="$H5_FCFLAGS $DEBUG_OPT_FCFLAGS"
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: debug" >&5
+$as_echo "debug" >&6; }
+    ;;
+  X-none)
+    H5_CFLAGS="$H5_CFLAGS $NO_OPT_CFLAGS"
+    H5_FCFLAGS="$H5_FCFLAGS $NO_OPT_FCFLAGS"
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: none" >&5
+$as_echo "none" >&6; }
+    ;;
+  *)
+    H5_CFLAGS="$H5_CFLAGS $OPTIMIZATION"
+    H5_FCFLAGS="$H5_FCFLAGS $OPTIMIZATION"
+    OPTIMIZATION="custom ($OPTIMIZATION)"
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: $OPTIMIZATION" >&5
+$as_echo "$OPTIMIZATION" >&6; }
+    ;;
+esac
+
+## ----------------------------------------------------------------------
+## Enable/disable internal package-level debugging output
+##
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for internal debug output" >&5
+$as_echo_n "checking for internal debug output... " >&6; }
+# Check whether --enable-internal-debug was given.
+if test "${enable_internal_debug+set}" = set; then :
+  enableval=$enable_internal_debug; INTERNAL_DEBUG_OUTPUT=$enableval
+fi
+
+
+## Set default
+if test "X-$INTERNAL_DEBUG_OUTPUT" = X- ; then
+  if test "X-$BUILD_MODE" = "X-debug" ; then
+    INTERNAL_DEBUG_OUTPUT=all
+  else
+    INTERNAL_DEBUG_OUTPUT=none
+  fi
+fi
+
+
+
+## These are all the packages that use H5*_DEBUG.
+## There is no harm in specifying a package not in this list;
+## you'll just get an unused H5<pkg>_DEBUG symbol.
+## all_packages="AC,B,B2,D,F,FA,FL,FS,HL,I,O,S,ST,T,Z"
+all_packages="AC,B,B2,D,F,HL,I,O,S,ST,T,Z"
+
+case "X-$INTERNAL_DEBUG_OUTPUT" in
+  X-yes|X-all)
+    INTERNAL_DEBUG_OUTPUT=$all_packages
+    DEBUG_PKG_LIST=$all_packages
+    ;;
+  X-no|X-none)
+    INTERNAL_DEBUG_OUTPUT=none
+    DEBUG_PKG_LIST=
+    ;;
+  *)
+    DEBUG_PKG_LIST=$INTERNAL_DEBUG_OUTPUT
+    ;;
+esac
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $INTERNAL_DEBUG_OUTPUT" >&5
+$as_echo "$INTERNAL_DEBUG_OUTPUT" >&6; }
+
+## Define H5*_DEBUG symbols that control package output
+## NOTE: No sanity checking done here!
+if test -n "$DEBUG_PKG_LIST"; then
+  for pkg in `echo $DEBUG_PKG_LIST | ${TR} ${as_cr_letters}"," ${as_cr_LETTERS}" "`; do
     H5_CPPFLAGS="$H5_CPPFLAGS -DH5${pkg}_DEBUG"
   done
 fi
@@ -27948,19 +28242,29 @@ if test "${enable_codestack+set}" = set; then :
 fi
 
 
+## Set the default level.
+if test "X-$CODESTACK" = X- ; then
+  CODESTACK=no
+fi
+
+## Allow this variable to be substituted in
+## other files (src/libhdf5.settings.in, etc.)
+
+
 case "X-$CODESTACK" in
   X-yes)
-      CODESTACK=yes
       { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
 
 $as_echo "#define HAVE_CODESTACK 1" >>confdefs.h
 
     ;;
-  *)
-      CODESTACK=no
+  X-no)
       { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
+    ;;
+  *)
+      as_fn_error $? "Unrecognized value: $CODESTACK" "$LINENO" 5
     ;;
 esac
 
@@ -27975,94 +28279,69 @@ if test "${enable_metadata_trace_file+set}" = set; then :
 fi
 
 
+## Set the default level.
+if test "X-$METADATATRACEFILE" = X- ; then
+  METADATATRACEFILE=no
+fi
+
+## Allow this variable to be substituted in
+## other files (src/libhdf5.settings.in, etc.)
+
+
 case "X-$METADATATRACEFILE" in
   X-yes)
-      METADATATRACEFILE=yes
       { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
 
 $as_echo "#define METADATA_TRACE_FILE 1" >>confdefs.h
 
     ;;
-  *)
-      METADATATRACEFILE=no
+  X-no)
       { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
+    ;;
+  *)
+      as_fn_error $? "Unrecognized value: $METADATATRACEFILE" "$LINENO" 5
     ;;
 esac
 
 ## ----------------------------------------------------------------------
 ## Enable tracing of the API
-## This must come after the enable-debug since it depends on debug.
 ##
-
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for API tracing" >&5
 $as_echo_n "checking for API tracing... " >&6; };
 # Check whether --enable-trace was given.
 if test "${enable_trace+set}" = set; then :
-  enableval=$enable_trace; TRACE=$enableval
+  enableval=$enable_trace; TRACE_API=$enableval
 fi
 
 
-## Default to no if debug is disabled
-if test "X-$TRACE" = X- ; then
-  if test -z "$DEBUG_PKG" ; then
-    TRACE=no
+## Set the default level.
+if test "X-$TRACE_API" = X- ; then
+  if test "X-$BUILD_MODE" = "X-debug" ; then
+    TRACE_API=yes
   else
-    TRACE=yes
+    TRACE_API=no
   fi
 fi
 
-case "X-$TRACE" in
+## Allow this variable to be substituted in
+## other files (src/libhdf5.settings.in, etc.)
+
+
+case "X-$TRACE_API" in
   X-yes)
     { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
-    TRACE_API=yes
     H5_CPPFLAGS="$H5_CPPFLAGS -DH5_DEBUG_API"
     ;;
-  X-no|*)
+  X-no)
     { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
-    TRACE_API=no
     H5_CPPFLAGS="$H5_CPPFLAGS -UH5_DEBUG_API"
     ;;
-esac
-
-## ----------------------------------------------------------------------
-## Enable instrumenting of the library's internal operations
-## This must come after the enable-debug since it depends on debug.
-##
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for instrumented library" >&5
-$as_echo_n "checking for instrumented library... " >&6; };
-# Check whether --enable-instrument was given.
-if test "${enable_instrument+set}" = set; then :
-  enableval=$enable_instrument; INSTRUMENT=$enableval
-fi
-
-
-## Default to no if debug is disabled
-if test "X-$INSTRUMENT" = X- ; then
-  if test -z "$DEBUG_PKG" ; then
-    INSTRUMENT=no
-  else
-    INSTRUMENT=yes
-  fi
-fi
-
-case "X-$INSTRUMENT" in
-  X-yes)
-    { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-    INSTRUMENT_LIBRARY=yes
-
-$as_echo "#define HAVE_INSTRUMENTED_LIBRARY 1" >>confdefs.h
-
-    ;;
-  X-no|*)
-    { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-    INSTRUMENT_LIBRARY=no
+  *)
+    as_fn_error $? "Unrecognized value: $TRACE_API" "$LINENO" 5
     ;;
 esac
 
@@ -28072,7 +28351,6 @@ esac
 ##     more scrupulous with it's memory operations.  Enabling this also
 ##     disables the library's free space manager code.
 ##
-
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether a memory checking tool will be used" >&5
 $as_echo_n "checking whether a memory checking tool will be used... " >&6; }
 # Check whether --enable-using-memchecker was given.
@@ -28081,19 +28359,29 @@ if test "${enable_using_memchecker+set}" = set; then :
 fi
 
 
+## Allow this variable to be substituted in
+## other files (src/libhdf5.settings.in, etc.)
+
+
+## Set the default level.
+if test "X-$USINGMEMCHECKER" = X- ; then
+  USINGMEMCHECKER=no
+fi
+
 case "X-$USINGMEMCHECKER" in
   X-yes)
-      USINGMEMCHECKER=yes
-      { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
 
 $as_echo "#define USING_MEMCHECKER 1" >>confdefs.h
 
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
     ;;
-  *)
-      USINGMEMCHECKER=no
+  X-no)
       { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
+    ;;
+  *)
+      as_fn_error $? "Unrecognized value: $USINGMEMCHECKER" "$LINENO" 5
     ;;
 esac
 
@@ -28101,7 +28389,6 @@ esac
 ## Check if they would like to enable the internal memory allocation sanity
 ##     checking code.
 ##
-
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether internal memory allocation sanity checking is used" >&5
 $as_echo_n "checking whether internal memory allocation sanity checking is used... " >&6; }
 # Check whether --enable-memory-alloc-sanity-check was given.
@@ -28110,19 +28397,33 @@ if test "${enable_memory_alloc_sanity_check+set}" = set; then :
 fi
 
 
+## Allow this variable to be substituted in
+## other files (src/libhdf5.settings.in, etc.)
+
+
+## Set default
+if test "X-$MEMORYALLOCSANITYCHECK" = X- ; then
+  if test "X-$BUILD_MODE" = "X-debug" ; then
+    MEMORYALLOCSANITYCHECK=yes
+  else
+    MEMORYALLOCSANITYCHECK=no
+  fi
+fi
+
 case "X-$MEMORYALLOCSANITYCHECK" in
   X-yes)
-      MEMORYALLOCSANITYCHECK=yes
-      { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
 
 $as_echo "#define MEMORY_ALLOC_SANITY_CHECK 1" >>confdefs.h
 
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
     ;;
-  *)
-      MEMORYALLOCSANITYCHECK=no
+  X-no)
       { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
+    ;;
+  *)
+      as_fn_error $? "Unrecognized value: $MEMORYALLOCSANITYCHECK" "$LINENO" 5
     ;;
 esac
 
@@ -28345,8 +28646,12 @@ esac
 
 ## ----------------------------------------------------------------------
 ## Print some other parallel information and do some sanity checks.
+## Needs to be done outside of the PARALLEL block since the serial
+## build also needs to have values defined.
 ##
  ADD_PARALLEL_FILES="no"
+ MPE=no
+ INSTRUMENT_LIBRARY=no
 
 if test -n "$PARALLEL"; then
   ## The 'testpar' directory should participate in the build
@@ -28458,6 +28763,47 @@ fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
   fi
+
+  ## ----------------------------------------------------------------------
+  ## Enable instrumenting of the library's internal operations
+  ## in parallel builds.
+  ##
+
+  ## Set default
+  if test "X-$BUILD_MODE" = "X-debug" ; then
+    INSTRUMENT_LIBRARY=yes
+  else
+    INSTRUMENT_LIBRARY=no
+  fi
+
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for instrumented library" >&5
+$as_echo_n "checking for instrumented library... " >&6; };
+  # Check whether --enable-instrument was given.
+if test "${enable_instrument+set}" = set; then :
+  enableval=$enable_instrument; INSTRUMENT_LIBRARY=$enableval
+fi
+
+
+  ## Allow this variable to be substituted in
+  ## other files (src/libhdf5.settings.in, etc.)
+
+
+  case "X-$INSTRUMENT_LIBRARY" in
+    X-yes)
+
+$as_echo "#define HAVE_INSTRUMENTED_LIBRARY 1" >>confdefs.h
+
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+      ;;
+    X-no)
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+      ;;
+    *)
+      as_fn_error $? "Unrecognized value: $INSTRUMENT_LIBRARY" "$LINENO" 5
+      ;;
+  esac
 
   ## --------------------------------------------------------------------
   ## Do we want MPE instrumentation feature on?
@@ -28734,6 +29080,11 @@ fi
 ## ----------------------------------------------------------------------
 ## Check if Direct I/O driver is enabled by --enable-direct-vfd
 ##
+
+
+## Default is no direct VFD
+DIRECT_VFD=no
+
 if ${hdf5_cv_direct_io+:} false; then :
   $as_echo_n "(cached) " >&6
 else
@@ -28792,6 +29143,7 @@ else
 $as_echo "no" >&6; }
 fi
 
+## Direct VFD files are not built if not required.
  if test "X$DIRECT_VFD" = "Xyes"; then
   DIRECT_VFD_CONDITIONAL_TRUE=
   DIRECT_VFD_CONDITIONAL_FALSE='#'
@@ -29350,7 +29702,7 @@ if test -n "$ORGANIZATION"; then
   CONFIG_USER="$CONFIG_USER at $ORGANIZATION"
 fi
 
-## Configuration mode (production, development, profile, etc) saved above.
+## Configuration mode (production, debug, etc.) saved above.
 
 
 ## Byte sex from the AC_C_BIGENDIAN macro.
@@ -29477,13 +29829,19 @@ fi
 ## Enable deprecated public API symbols
 ##
 
+## Enabled unless the build mode is clean.
+if test "X-$BUILD_MODE" = "X-clean" ; then
+  DEPREC_SYMBOLS=no
+else
+  DEPREC_SYMBOLS=yes
+fi
+
+
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking if deprecated public symbols are available" >&5
 $as_echo_n "checking if deprecated public symbols are available... " >&6; };
 # Check whether --enable-deprecated-symbols was given.
 if test "${enable_deprecated_symbols+set}" = set; then :
   enableval=$enable_deprecated_symbols; DEPREC_SYMBOLS=$enableval
-else
-  DEPREC_SYMBOLS=yes
 fi
 
 
@@ -29556,32 +29914,33 @@ fi
 $as_echo_n "checking whether to perform strict file format checks... " >&6; };
 # Check whether --enable-strict-format-checks was given.
 if test "${enable_strict_format_checks+set}" = set; then :
-  enableval=$enable_strict_format_checks; STRICT_CHECKS=$enableval
+  enableval=$enable_strict_format_checks; STRICT_FORMAT_CHECKS=$enableval
 fi
 
 
-## Default to yes if debug is enabled
-if test "X-$STRICT_CHECKS" = X- ; then
-  if test -z "$DEBUG_PKG" ; then
-    STRICT_CHECKS=no
+## Set the default level. This depends on the compiler mode.
+if test "X-$STRICT_FORMAT_CHECKS" = X- ; then
+  if test "X-$BUILD_MODE" = "X-debug" ; then
+    STRICT_FORMAT_CHECKS=yes
   else
-    STRICT_CHECKS=yes
+    STRICT_FORMAT_CHECKS=no
   fi
 fi
 
-case "X-$STRICT_CHECKS" in
+case "X-$STRICT_FORMAT_CHECKS" in
   X-yes)
     { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
-    STRICT_FORMAT_CHECKS=yes
 
 $as_echo "#define STRICT_FORMAT_CHECKS 1" >>confdefs.h
 
     ;;
-  X-no|*)
+  X-no)
     { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
-    STRICT_FORMAT_CHECKS=no
+    ;;
+  *)
+    as_fn_error $? "Unrecognized value: $STRICT_FORMAT_CHECKS" "$LINENO" 5
     ;;
 esac
 
@@ -31592,6 +31951,11 @@ if (./libtool --features | grep '^enable static libraries' > /dev/null); then
 else
   enable_static=no
 fi
+
+## Expose things for *.in markup
+
+
+
 
 if test "X$enable_static" = "Xyes" && test "X$enable_shared" = "Xyes"; then
   STATIC_SHARED="static, shared"
