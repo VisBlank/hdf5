@@ -5656,7 +5656,7 @@ public class H5 implements java.io.Serializable {
      * @param src_dset_name
      *            IN: The path to the HDF5 dataset in the file specified by src_file_name. The dataset might not exist yet. The dataset name can be specified using a C-style printf statement.
      * @param src_space_id
-     *            IN: The source dataset’s dataspace identifier with a selection applied, possibly an unlimited selection.
+     *            IN: The source dataset dataspace identifier with a selection applied, possibly an unlimited selection.
      *
      * @exception HDF5LibraryException
      *                - Error from the HDF-5 Library.
