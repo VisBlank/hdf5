@@ -1242,6 +1242,24 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5_H5Pget_1virtual_1printf_1gap
 JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Pset_1virtual_1printf_1gap
 (JNIEnv *, jclass, jlong, jlong);
 
+/*
+ * Class:     hdf_hdf5lib_H5
+ * Method:    H5Pget_file_space
+ * Signature: (J[I[J)V
+ */
+JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Pget_1file_1space
+(JNIEnv *, jclass, jlong, jintArray, jlongArray);
+
+
+/*
+ * Class:     hdf_hdf5lib_H5
+ * Method:    H5Pset_file_space
+ * Signature: (JIJ)V
+ */
+JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Pset_1file_1space
+(JNIEnv *, jclass, jlong, jint, jlong);
+
+
 #ifdef __cplusplus
 }
 #endif

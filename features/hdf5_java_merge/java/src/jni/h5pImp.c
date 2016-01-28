@@ -4777,6 +4777,65 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Pset_1virtual_1printf_1gap
     }
 }
 
+/*
+ * Class:     hdf_hdf5lib_H5
+ * Method:    H5Pget_file_space
+ * Signature: (J[I[J)V
+ */
+JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Pget_1file_1space
+(JNIEnv *env, jclass clss, jlong fcpl_id, jintArray strategy, jlongArray threshold)
+{
+    herr_t   status;
+    jint    *thestrategyArray = NULL;
+    jlong   *thethresholdArray = NULL;
+    jboolean isCopy;
+
+    if (strategy) {
+        thestrategyArray = (jint*)ENVPTR->GetIntArrayElements(ENVPAR strategy, &isCopy);
+        if (thestrategyArray == NULL) {
+            h5JNIFatalError(env, "H5Pget_file_space:  strategy not pinned");
+            return;
+        }
+    }
+
+    if (threshold) {
+        thethresholdArray = (jlong*)ENVPTR->GetLongArrayElements(ENVPAR threshold, &isCopy);
+        if (thethresholdArray == NULL) {
+            if (strategy) ENVPTR->ReleaseIntArrayElements(ENVPAR strategy, thestrategyArray, JNI_ABORT);
+            h5JNIFatalError(env, "H5Pget_file_space:  threshold not pinned");
+            return;
+        }
+    }
+    status = H5Pget_file_space((hid_t)fcpl_id, (H5F_file_space_type_t*)thestrategyArray, (hsize_t*)thethresholdArray);
+    if (status < 0) {
+        if (strategy) ENVPTR->ReleaseIntArrayElements(ENVPAR strategy, thestrategyArray, JNI_ABORT);
+        if (threshold) ENVPTR->ReleaseLongArrayElements(ENVPAR threshold, thethresholdArray, JNI_ABORT);
+        h5libraryError(env);
+        return;
+    }
+
+    if (strategy) {
+        ENVPTR->ReleaseIntArrayElements(ENVPAR strategy, thestrategyArray, 0);
+    }
+
+    if (threshold) {
+        ENVPTR->ReleaseLongArrayElements(ENVPAR threshold, thethresholdArray, 0);
+    }
+}
+
+/*
+ * Class:     hdf_hdf5lib_H5
+ * Method:    H5Pset_file_space
+ * Signature: (JIJ)V
+ */
+JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Pset_1file_1space
+(JNIEnv *env, jclass clss, jlong fcpl_id, jint strategy, jlong threshold)
+{
+    if (H5Pset_file_space((hid_t)fcpl_id, (H5F_file_space_type_t)strategy, (hsize_t)threshold) < 0) {
+        h5libraryError(env);
+    }
+}
+
 #ifdef __cplusplus
 }
 #endif
