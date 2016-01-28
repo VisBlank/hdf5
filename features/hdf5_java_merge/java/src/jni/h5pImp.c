@@ -2730,6 +2730,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Pget_1libver_1bounds
     theArray = (H5F_libver_t*)ENVPTR->GetIntArrayElements(ENVPAR libver, &isCopy);
     if (theArray == NULL) {
         h5JNIFatalError(env, "H5Pget_libver_bounds:  input not pinned");
+        return -1;
     }
 
     retVal = H5Pget_libver_bounds((hid_t)fapl_id, &(theArray[0]), &(theArray[1]));
