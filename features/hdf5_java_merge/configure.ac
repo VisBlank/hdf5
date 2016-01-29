@@ -203,7 +203,7 @@ fi
 ## other files (src/libhdf5.settings.in, etc.)
 AC_SUBST([BUILD_MODE])
 
-Acase "X-$BUILD_MODE" in
+case "X-$BUILD_MODE" in
   X-clean)
     AC_MSG_RESULT([clean])
     ;;
