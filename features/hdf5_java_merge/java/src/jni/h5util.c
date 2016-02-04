@@ -28,21 +28,6 @@ extern "C" {
 #include <stdlib.h>
 #include "hdf5.h"
 #include "h5util.h"
-#include "h5jni.h"
-
-#ifdef __cplusplus
-  #define CBENVPTR (cbenv)
-  #define CBENVPAR
-  #define JVMPTR (jvm)
-  #define JVMPAR
-  #define JVMPAR2
-#else
-  #define CBENVPTR (*cbenv)
-  #define CBENVPAR cbenv,
-  #define JVMPTR (*jvm)
-  #define JVMPAR jvm
-  #define JVMPAR2 jvm,
-#endif
 
 /* size of hyperslab buffer when a dataset is bigger than H5TOOLS_MALLOCSIZE */
 hsize_t H5TOOLS_BUFSIZE = (32 * 1024 * 1024);  /* 32 MB */
@@ -1649,7 +1634,7 @@ int render_bin_output_region_points(FILE *stream, hid_t region_space, hid_t regi
                     ret_value = -1;
 
                 HDfree(ptdata);
-            } /* end if(NULL != (ptdata = (hsize_t *)malloc((size_t) alloc_size))) */
+            } /* end if(NULL != (ptdata = (hsize_t *)HDmalloc((size_t) alloc_size))) */
             else
                 ret_value = -1;
         } /* end if((ndims = H5Sget_simple_extent_ndims(region_space)) >= 0) */
@@ -1991,22 +1976,6 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Gget_1obj_1info_1full
     int            indexType = indx_type;
     int            indexOrder = indx_order;
 
-    if (group_name != NULL) {
-        gName = ENVPTR->GetStringUTFChars(ENVPAR group_name,&isCopy);
-        if (gName == NULL) {
-            h5JNIFatalError(env, "H5Gget_obj_info_full:  name not pinned");
-            return -1;
-        }
-        gid = H5Gopen2((hid_t)loc_id, gName, H5P_DEFAULT);
-
-        ENVPTR->ReleaseStringUTFChars(ENVPAR group_name, gName);
-
-        if(gid < 0) {
-            h5JNIFatalError(env, "H5Gget_obj_info_full: could not get group identifier");
-            return -1;
-        }
-    }
-
     if (oType == NULL) {
         h5nullArgument(env, "H5Gget_obj_info_full:  oType is NULL");
         return -1;
@@ -2022,94 +1991,123 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Gget_1obj_1info_1full
         return -1;
     }
 
-    otarr = ENVPTR->GetIntArrayElements(ENVPAR oType,&isCopy);
+    if (fNo == NULL) {
+        h5nullArgument(env, "H5Gget_obj_info_full:  fNo is NULL");
+        return -1;
+    }
+
+    otarr = ENVPTR->GetIntArrayElements(ENVPAR oType, &isCopy);
     if (otarr == NULL) {
         h5JNIFatalError(env, "H5Gget_obj_info_full:  otype not pinned");
         return -1;
     }
-
     ltarr = ENVPTR->GetIntArrayElements(ENVPAR lType, &isCopy);
     if (ltarr == NULL) {
-        ENVPTR->ReleaseIntArrayElements(ENVPAR oType,otarr, JNI_ABORT);
+        ENVPTR->ReleaseIntArrayElements(ENVPAR oType, otarr, JNI_ABORT);
         h5JNIFatalError(env, "H5Gget_obj_info_full:  ltype not pinned");
         return -1;
     }
-
     refP = ENVPTR->GetLongArrayElements(ENVPAR oRef, &isCopy);
-    fnoP = ENVPTR->GetLongArrayElements(ENVPAR fNo, &isCopy);
     if (refP == NULL) {
-        ENVPTR->ReleaseIntArrayElements(ENVPAR lType,ltarr, JNI_ABORT);
-        ENVPTR->ReleaseIntArrayElements(ENVPAR oType,otarr, JNI_ABORT);
-        h5JNIFatalError(env, "H5Gget_obj_info_full:  type not pinned");
+        ENVPTR->ReleaseIntArrayElements(ENVPAR lType, ltarr, JNI_ABORT);
+        ENVPTR->ReleaseIntArrayElements(ENVPAR oType, otarr, JNI_ABORT);
+        h5JNIFatalError(env, "H5Gget_obj_info_full:  oRef not pinned");
+        return -1;
+    }
+    fnoP = ENVPTR->GetLongArrayElements(ENVPAR fNo, &isCopy);
+    if (fnoP == NULL) {
+        ENVPTR->ReleaseIntArrayElements(ENVPAR lType, ltarr, JNI_ABORT);
+        ENVPTR->ReleaseIntArrayElements(ENVPAR oType, otarr, JNI_ABORT);
+        ENVPTR->ReleaseLongArrayElements(ENVPAR oRef, refP, JNI_ABORT);
+        h5JNIFatalError(env, "H5Gget_obj_info_full:  fNo not pinned");
+        return -1;
+    }
+    oName = (char **)HDcalloc((size_t)n, sizeof(*oName));
+    if (!oName) {
+        ENVPTR->ReleaseIntArrayElements(ENVPAR lType, ltarr, JNI_ABORT);
+        ENVPTR->ReleaseIntArrayElements(ENVPAR oType, otarr, JNI_ABORT);
+        ENVPTR->ReleaseLongArrayElements(ENVPAR oRef, refP, JNI_ABORT);
+        ENVPTR->ReleaseLongArrayElements(ENVPAR fNo, fnoP, JNI_ABORT);
+        h5JNIFatalError(env, "H5Gget_obj_info_full:  oName not allocated");
         return -1;
     }
 
-    oName = (char **)HDcalloc((size_t)n, sizeof(*oName));
-    if (!oName)
-      goto error;
-
     refs = (unsigned long *)HDcalloc((size_t)n, sizeof(unsigned long));
     fnos = (unsigned long *)HDcalloc((size_t)n, sizeof(unsigned long));
-    if (!refs || !fnos)
-      goto error;
+    if (!refs || !fnos) {
+        ENVPTR->ReleaseIntArrayElements(ENVPAR lType, ltarr, JNI_ABORT);
+        ENVPTR->ReleaseIntArrayElements(ENVPAR oType, otarr, JNI_ABORT);
+        ENVPTR->ReleaseLongArrayElements(ENVPAR oRef, refP, JNI_ABORT);
+        ENVPTR->ReleaseLongArrayElements(ENVPAR fNo, fnoP, JNI_ABORT);
+        h5str_array_free(oName, (size_t)n);
+        if (refs)
+            HDfree(refs);
+        if (fnos)
+            HDfree(fnos);
+        h5JNIFatalError(env, "H5Gget_obj_info_full:  result arrays not allocated");
+        return -1;
+    }
+
+    if (group_name != NULL) {
+        gid = -1;
+        gName = ENVPTR->GetStringUTFChars(ENVPAR group_name, &isCopy);
+        if (gName != NULL) {
+            gid = H5Gopen2((hid_t)loc_id, gName, H5P_DEFAULT);
+
+            ENVPTR->ReleaseStringUTFChars(ENVPAR group_name, gName);
+        }
+        if(gid < 0) {
+            ENVPTR->ReleaseIntArrayElements(ENVPAR lType, ltarr, JNI_ABORT);
+            ENVPTR->ReleaseIntArrayElements(ENVPAR oType, otarr, JNI_ABORT);
+            ENVPTR->ReleaseLongArrayElements(ENVPAR oRef, refP, JNI_ABORT);
+            ENVPTR->ReleaseLongArrayElements(ENVPAR fNo, fnoP, JNI_ABORT);
+            h5str_array_free(oName, (size_t)n);
+            HDfree(refs);
+            HDfree(fnos);
+            h5JNIFatalError(env, "H5Gget_obj_info_full: could not get group identifier");
+            return -1;
+        }
+    }
 
     ret_val = H5Gget_obj_info_full(gid, oName, (int *)otarr, (int *)ltarr, fnos, refs, indexType, indexOrder);
 
-    if (ret_val < 0)
-        goto error;
+    ENVPTR->ReleaseIntArrayElements(ENVPAR lType, ltarr, 0);
+    ENVPTR->ReleaseIntArrayElements(ENVPAR oType, otarr, 0);
 
-    if (refs) {
+    if (group_name != NULL)
+        H5Gclose(gid);
+
+    if (ret_val < 0) {
+        ENVPTR->ReleaseLongArrayElements(ENVPAR oRef, refP, JNI_ABORT);
+        ENVPTR->ReleaseLongArrayElements(ENVPAR fNo, fnoP, JNI_ABORT);
+        h5str_array_free(oName, (size_t)n);
+        HDfree(refs);
+        HDfree(fnos);
+        h5libraryError(env);
+    }
+    else {
         for (i=0; i<n; i++) {
             refP[i] = (jlong)refs[i];
         }
-    }
+        HDfree(refs);
+        ENVPTR->ReleaseLongArrayElements(ENVPAR oRef, refP, 0);
 
-    if (fnos) {
         for (i=0; i<n; i++) {
             fnoP[i] = (jlong)fnos[i];
         }
-    }
+        HDfree(fnos);
+        ENVPTR->ReleaseLongArrayElements(ENVPAR fNo, fnoP, 0);
 
-    if (oName) {
         for (i=0; i<n; i++) {
             if (*(oName+i)) {
                 str = ENVPTR->NewStringUTF(ENVPAR *(oName+i));
                 ENVPTR->SetObjectArrayElement(ENVPAR objName, i, (jobject)str);
             }
         } /* for (i=0; i<n; i++)*/
+        h5str_array_free(oName, (size_t)n);
     }
 
-    if (group_name != NULL)
-        H5Gclose(gid);
-    ENVPTR->ReleaseIntArrayElements(ENVPAR lType, ltarr, 0);
-    ENVPTR->ReleaseIntArrayElements(ENVPAR oType, otarr, 0);
-    ENVPTR->ReleaseLongArrayElements(ENVPAR oRef, refP, 0);
-    ENVPTR->ReleaseLongArrayElements(ENVPAR fNo, fnoP, 0);
-    if (oName)
-        h5str_array_free(oName, (size_t)n);
-    if (refs)
-        HDfree(refs);
-    if (fnos)
-        HDfree(fnos);
-
     return ret_val;
-
-error:
-    if (group_name != NULL)
-        H5Gclose(gid);
-    ENVPTR->ReleaseIntArrayElements(ENVPAR lType, ltarr, JNI_ABORT);
-    ENVPTR->ReleaseIntArrayElements(ENVPAR oType,otarr, JNI_ABORT);
-    ENVPTR->ReleaseLongArrayElements(ENVPAR oRef,  refP, JNI_ABORT);
-    ENVPTR->ReleaseLongArrayElements(ENVPAR fNo, fnoP, JNI_ABORT);
-    if (oName)
-        h5str_array_free(oName, (size_t)n);
-    if (refs)
-        HDfree(refs);
-    if (fnos)
-        HDfree(fnos);
-    h5libraryError(env);
-
-    return -1;
 }
 
 /*
@@ -2164,47 +2162,54 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Gget_1obj_1info_1max
     if (refP == NULL) {
         ENVPTR->ReleaseIntArrayElements(ENVPAR oType, otarr, JNI_ABORT);
         ENVPTR->ReleaseIntArrayElements(ENVPAR lType, ltarr, JNI_ABORT);
-        h5JNIFatalError(env, "H5Gget_obj_info_max:  type not pinned");
+        h5JNIFatalError(env, "H5Gget_obj_info_max:  oRef not pinned");
         return -1;
     }
 
     oName = (char **)HDcalloc((size_t)n, sizeof(*oName));
+    if (!oName) {
+        ENVPTR->ReleaseIntArrayElements(ENVPAR lType, ltarr, JNI_ABORT);
+        ENVPTR->ReleaseIntArrayElements(ENVPAR oType, otarr, JNI_ABORT);
+        ENVPTR->ReleaseLongArrayElements(ENVPAR oRef, refP, JNI_ABORT);
+        h5JNIFatalError(env, "H5Gget_obj_info_max:  oName not allocated");
+        return -1;
+    }
     refs = (unsigned long *)HDcalloc((size_t)n, sizeof(unsigned long));
-
-    ret_val = H5Gget_obj_info_max((hid_t)loc_id, oName, (int*)otarr, (int*)ltarr, refs, maxnum );
-
-    if (ret_val < 0) {
+    if (!refs) {
         ENVPTR->ReleaseIntArrayElements(ENVPAR lType, ltarr, JNI_ABORT);
         ENVPTR->ReleaseIntArrayElements(ENVPAR oType, otarr, JNI_ABORT);
         ENVPTR->ReleaseLongArrayElements(ENVPAR oRef, refP, JNI_ABORT);
         h5str_array_free(oName, (size_t)n);
-        HDfree(refs);
-        h5libraryError(env);
+        h5JNIFatalError(env, "H5Gget_obj_info_max:  result array not allocated");
         return -1;
     }
 
+    ret_val = H5Gget_obj_info_max((hid_t)loc_id, oName, (int*)otarr, (int*)ltarr, refs, maxnum );
     ENVPTR->ReleaseIntArrayElements(ENVPAR lType, ltarr, 0);
     ENVPTR->ReleaseIntArrayElements(ENVPAR oType, otarr, 0);
 
-    if (refs) {
+    if (ret_val < 0) {
+        ENVPTR->ReleaseLongArrayElements(ENVPAR oRef, refP, JNI_ABORT);
+        h5str_array_free(oName, (size_t)n);
+        HDfree(refs);
+        h5libraryError(env);
+    }
+    else {
         for (i=0; i<n; i++) {
             refP[i] = (jlong) refs[i];
         }
-    }
-    HDfree(refs);
-    ENVPTR->ReleaseLongArrayElements(ENVPAR oRef, refP, 0);
+        HDfree(refs);
+        ENVPTR->ReleaseLongArrayElements(ENVPAR oRef, refP, 0);
 
-    if (oName) {
         for (i=0; i<n; i++) {
             if (*(oName+i)) {
                 str = ENVPTR->NewStringUTF(ENVPAR *(oName+i));
                 ENVPTR->SetObjectArrayElement(ENVPAR objName, i, (jobject)str);
             }
         } /* for (i=0; i<n; i++)*/
+
+        h5str_array_free(oName, (size_t)n);
     }
-
-    h5str_array_free(oName, (size_t)n);
-
     return ret_val;
 }
 
@@ -2313,6 +2318,80 @@ herr_t obj_info_max(hid_t loc_id, const char *name, const H5L_info_t *info, void
         return 0;
     else
         return 1;
+}
+
+/*
+ * Class:     hdf_hdf5lib_H5
+ * Method:    H5export_dataset
+ * Signature: (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;I)V
+ */
+JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5export_1dataset
+  (JNIEnv *env, jclass cls, jstring file_export_name, jstring file_name, jstring object_path, jint binary_order)
+{
+    herr_t      status = -1;
+    herr_t      ret_val = -1;
+    hid_t       file_id = -1;
+    hid_t       dataset_id = -1;
+    FILE       *stream;
+    const char *file_export;
+    const char *object_name;
+    const char *fileName;
+    jboolean    isCopy2;
+
+    if (file_export_name == NULL) {
+        h5nullArgument(env, "HDF5Library_export_data:  file_export_name is NULL");
+        return;
+    }
+    if (object_path == NULL) {
+        h5nullArgument(env, "HDF5Library_export_data:  object_path is NULL");
+        return;
+    }
+
+    PIN_JAVA_STRING0(file_name, fileName);
+
+    file_id = H5Fopen(fileName, (unsigned)H5F_ACC_RDWR, (hid_t)H5P_DEFAULT);
+
+    UNPIN_JAVA_STRING(file_name, fileName);
+
+    if (file_id < 0) {
+        /* throw exception */
+        h5libraryError(env);
+    }
+    else {
+        object_name = ENVPTR->GetStringUTFChars(ENVPAR object_path, &isCopy2);
+        if (object_name == NULL) {
+            h5JNIFatalError( env, "H5Dopen:  object name not pinned");
+            return;
+        }
+        else {
+            dataset_id = H5Dopen2(file_id, object_name, H5P_DEFAULT);
+
+            ENVPTR->ReleaseStringUTFChars(ENVPAR object_path, object_name);
+
+            if (dataset_id < 0) {
+                H5Fclose(file_id);
+                h5libraryError(env);
+            }
+            else {
+                file_export = ENVPTR->GetStringUTFChars(ENVPAR file_export_name, 0);
+                stream = HDfopen(file_export, "w+");
+                ENVPTR->ReleaseStringUTFChars(ENVPAR file_export_name, file_export);
+
+                ret_val = h5str_dump_simple_dset(stream, dataset_id, binary_order);
+
+                if (stream)
+                    HDfclose(stream);
+
+                H5Dclose(dataset_id);
+
+                H5Fclose(file_id);
+
+                if (ret_val < 0) {
+                    h5libraryError(env);
+                }
+            }
+        }
+    }
 }
 
 #ifdef __cplusplus

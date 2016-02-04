@@ -18,12 +18,11 @@
 
 #ifndef _Included_hdf_hdf5lib_H5_H5O
 #define _Included_hdf_hdf5lib_H5_H5O
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-    extern JavaVM *jvm;
-    extern jobject visit_callback;
 
     /*
      * Class:     hdf_hdf5lib_H5

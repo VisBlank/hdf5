@@ -27,9 +27,11 @@ extern "C" {
 #include <stdio.h>
 #include <stdlib.h>
 #include "hdf5.h"
-#include "h5jni.h"
 #include "h5fImp.h"
 #include "h5util.h"
+
+extern JavaVM *jvm;
+extern jobject visit_callback;
 
 /*
  * Class:     hdf_hdf5lib_H5
@@ -342,21 +344,22 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5_H5Fget_1obj_1ids_1long
         h5JNIFatalError(env, "H5Fget_obj_ids_long:  obj_id_list not converted to hid_t");
         return -1;
     }
+    else {
+        ret_val = H5Fget_obj_ids((hid_t)file_id, (unsigned int)types, (size_t)maxObjs, id_list);
 
-    ret_val = H5Fget_obj_ids((hid_t)file_id, (unsigned int)types, (size_t)maxObjs, id_list);
-
-    if (ret_val < 0) {
-        ENVPTR->ReleaseLongArrayElements(ENVPAR obj_id_list, obj_id_listP, JNI_ABORT);
-        HDfree(id_list);
-        h5libraryError(env);
-        return ret_val;
+        if (ret_val < 0) {
+            ENVPTR->ReleaseLongArrayElements(ENVPAR obj_id_list, obj_id_listP, JNI_ABORT);
+            HDfree(id_list);
+            h5libraryError(env);
+        }
+        else {
+            for (i = 0; i < rank; i++) {
+                obj_id_listP[i] = (jlong)id_list[i];
+            }
+            HDfree(id_list);
+            ENVPTR->ReleaseLongArrayElements(ENVPAR obj_id_list, obj_id_listP, 0);
+        }
     }
-
-    for (i = 0; i < rank; i++) {
-        obj_id_listP[i] = (jlong)id_list[i];
-    }
-    HDfree(id_list);
-    ENVPTR->ReleaseLongArrayElements(ENVPAR obj_id_list, obj_id_listP, 0);
 
     return (jlong)ret_val;
 }
@@ -440,7 +443,7 @@ JNIEXPORT jstring JNICALL Java_hdf_hdf5lib_H5_H5Fget_2name
   (JNIEnv *env, jclass clss, jlong obj_id, jstring name, jint buf_size)
 {
     char   *aName;
-    jstring str;
+    jstring str = NULL;
     ssize_t size;
 
     if (buf_size <= 0) {
@@ -450,18 +453,18 @@ JNIEXPORT jstring JNICALL Java_hdf_hdf5lib_H5_H5Fget_2name
     aName = (char*)HDmalloc(sizeof(char) * (size_t)buf_size);
     if (aName == NULL) {
         h5outOfMemory(env, "H5Fget_name:  malloc failed");
-        return NULL;
     }
-    size = H5Fget_name ((hid_t) obj_id, (char *)aName, (size_t)buf_size);
-    if (size < 0) {
-        HDfree(aName);
-        h5libraryError(env);
-        return NULL;
+    else {
+        size = H5Fget_name ((hid_t) obj_id, (char *)aName, (size_t)buf_size);
+        if (size < 0) {
+            HDfree(aName);
+            h5libraryError(env);
+        }
+        else {
+            str = ENVPTR->NewStringUTF(ENVPAR aName);
+            HDfree(aName);
+        }
     }
-
-    str = ENVPTR->NewStringUTF(ENVPAR aName);
-    HDfree(aName);
-
     return str;
 }
 
@@ -595,77 +598,6 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Fclear_1elink_1file_1cache
   (JNIEnv *env, jclass cls, jlong file_id)
 {
     if (H5Fclear_elink_file_cache((hid_t)file_id) < 0) {
-        h5libraryError(env);
-    }
-}
-
-/*
- * Class:     hdf_hdf5lib_H5
- * Method:    H5export_dataset
- * Signature: (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;I)V
- */
-JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5export_1dataset
-  (JNIEnv *env, jclass cls, jstring file_export_name, jstring file_name, jstring object_path, jint binary_order)
-{
-    herr_t      status = -1;
-    herr_t      ret_val = -1;
-    hid_t       file_id = -1;
-    hid_t       dataset_id = -1;
-    FILE       *stream;
-    const char *file_export;
-    const char *object_name;
-    const char *fileName;
-    jboolean    isCopy2;
-
-    if (file_export_name == NULL) {
-        h5nullArgument(env, "HDF5Library_export_data:  file_export_name is NULL");
-        return;
-    }
-    if (object_path == NULL) {
-        h5nullArgument(env, "HDF5Library_export_data:  object_path is NULL");
-        return;
-    }
-
-    PIN_JAVA_STRING0(file_name, fileName);
-
-    file_id = H5Fopen(fileName, (unsigned)H5F_ACC_RDWR, (hid_t)H5P_DEFAULT);
-
-    ENVPTR->ReleaseStringUTFChars(ENVPAR file_name, fileName);
-    if (file_id < 0) {
-        /* throw exception */
-        h5libraryError(env);
-        return;
-    }
-
-    object_name = ENVPTR->GetStringUTFChars(ENVPAR object_path, &isCopy2);
-    if (object_name == NULL) {
-        h5JNIFatalError( env, "H5Dopen:  object name not pinned");
-        return;
-    }
-
-    dataset_id = H5Dopen2(file_id, object_name, H5P_DEFAULT);
-
-    ENVPTR->ReleaseStringUTFChars(ENVPAR object_path, object_name);
-    if (dataset_id < 0) {
-        H5Fclose(file_id);
-        h5libraryError(env);
-        return;
-    }
-
-    file_export = ENVPTR->GetStringUTFChars(ENVPAR file_export_name, 0);
-    stream = HDfopen(file_export, "w+");
-    ENVPTR->ReleaseStringUTFChars(ENVPAR file_export_name, file_export);
-
-    ret_val = h5str_dump_simple_dset(stream, dataset_id, binary_order);
-
-    if (stream)
-        HDfclose(stream);
-
-    H5Dclose(dataset_id);
-
-    H5Fclose(file_id);
-
-    if (ret_val < 0) {
         h5libraryError(env);
     }
 }

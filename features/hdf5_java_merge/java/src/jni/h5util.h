@@ -22,9 +22,7 @@
 #ifndef H5UTIL_H__
 #define H5UTIL_H__
 
-#include <jni.h>
-
-extern JavaVM *jvm;
+#include "h5jni.h"
 
 #ifndef SUCCEED
 #define SUCCEED     0
@@ -73,5 +71,13 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Gget_1obj_1info_1full
  */
 JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Gget_1obj_1info_1max
   (JNIEnv*, jclass, jlong, jobjectArray, jintArray, jintArray, jlongArray, jlong, jint);
+
+/*
+ * Class:     hdf_hdf5lib_H5
+ * Method:    H5export_dataset
+ * Signature: (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;I)V
+ */
+JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5export_1dataset
+  (JNIEnv*, jclass, jstring, jstring, jstring, jint);
 
 #endif  /* H5UTIL_H__ */

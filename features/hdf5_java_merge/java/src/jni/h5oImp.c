@@ -23,25 +23,13 @@
 extern "C" {
 #endif
 
-#include <jni.h>
 #include <stdlib.h>
 #include "hdf5.h"
 #include "h5jni.h"
 #include "h5oImp.h"
 
-#ifdef __cplusplus
-#define CBENVPTR (cbenv)
-#define CBENVPAR
-#define JVMPTR (jvm)
-#define JVMPAR
-#define JVMPAR2
-#else
-#define CBENVPTR (*cbenv)
-#define CBENVPAR cbenv,
-#define JVMPTR (*jvm)
-#define JVMPAR jvm
-#define JVMPAR2 jvm,
-#endif
+extern JavaVM *jvm;
+extern jobject visit_callback;
 
 static herr_t H5O_iterate_cb(hid_t g_id, const char *name, const H5O_info_t *info, void *op_data);
 
@@ -60,7 +48,8 @@ static herr_t H5O_iterate_cb(hid_t g_id, const char *name, const H5O_info_t *inf
 
         status = H5Oopen((hid_t)loc_id, oName, (hid_t)access_plist_id );
 
-        ENVPTR->ReleaseStringUTFChars(ENVPAR name, oName);
+        UNPIN_JAVA_STRING(name, oName);
+
         if (status < 0) {
             h5libraryError(env);
         }
@@ -100,8 +89,7 @@ static herr_t H5O_iterate_cb(hid_t g_id, const char *name, const H5O_info_t *inf
 
         status = H5Ocopy((hid_t)cur_loc_id, lCurName, (hid_t)dst_loc_id, lDstName, (hid_t)create_id, (hid_t)access_id);
 
-        ENVPTR->ReleaseStringUTFChars(ENVPAR cur_name, lCurName);
-        ENVPTR->ReleaseStringUTFChars(ENVPAR dst_name, lDstName);
+        UNPIN_JAVA_STRING_TWO(cur_name, lCurName, dst_name, lDstName);
 
         if (status < 0) {
            h5libraryError(env);
@@ -191,7 +179,7 @@ static herr_t H5O_iterate_cb(hid_t g_id, const char *name, const H5O_info_t *inf
 
         status = H5Oget_info_by_name((hid_t)loc_id, lName, &infobuf, (hid_t)access_id);
 
-        ENVPTR->ReleaseStringUTFChars(ENVPAR name, lName);
+        UNPIN_JAVA_STRING(name, lName);
 
         if (status < 0) {
            h5libraryError(env);
@@ -258,7 +246,7 @@ static herr_t H5O_iterate_cb(hid_t g_id, const char *name, const H5O_info_t *inf
 
         status = H5Oget_info_by_idx((hid_t)loc_id, lName, (H5_index_t)index_field, (H5_iter_order_t)order, (hsize_t)link_n, &infobuf, (hid_t)access_id);
 
-        ENVPTR->ReleaseStringUTFChars(ENVPAR name, lName);
+        UNPIN_JAVA_STRING(name, lName);
 
         if (status < 0) {
            h5libraryError(env);
@@ -319,7 +307,7 @@ static herr_t H5O_iterate_cb(hid_t g_id, const char *name, const H5O_info_t *inf
 
         status = H5Olink((hid_t)cur_loc_id, (hid_t)dst_loc_id, lDstName, (hid_t)create_id, (hid_t)access_id);
 
-        ENVPTR->ReleaseStringUTFChars(ENVPAR dst_name, lDstName);
+        UNPIN_JAVA_STRING(dst_name, lDstName);
 
         if (status < 0) {
            h5libraryError(env);
@@ -481,8 +469,6 @@ static herr_t H5O_iterate_cb(hid_t g_id, const char *name, const H5O_info_t *inf
         ENVPTR->GetJavaVM(ENVPAR &jvm);
         visit_callback = callback_op;
 
-        PIN_JAVA_STRING(name, lName, -1);
-
         if (op_data == NULL) {
             h5nullArgument(env, "H5Ovisit_by_name:  op_data is NULL");
             return -1;
@@ -492,9 +478,11 @@ static herr_t H5O_iterate_cb(hid_t g_id, const char *name, const H5O_info_t *inf
             return -1;
         }
 
+        PIN_JAVA_STRING(name, lName, -1);
+
         status = H5Ovisit_by_name((hid_t)grp_id, lName, (H5_index_t)idx_type, (H5_iter_order_t)order, (H5O_iterate_t)H5O_iterate_cb, (void*)op_data, (hid_t)access_id);
 
-        ENVPTR->ReleaseStringUTFChars(ENVPAR name, lName);
+        UNPIN_JAVA_STRING(name, lName);
 
         if (status < 0) {
            h5libraryError(env);
@@ -557,7 +545,7 @@ static herr_t H5O_iterate_cb(hid_t g_id, const char *name, const H5O_info_t *inf
             jboolean    isCopy;
             oComment = ENVPTR->GetStringUTFChars(ENVPAR comment, &isCopy);
             if (oComment == NULL) {
-                ENVPTR->ReleaseStringUTFChars(ENVPAR name, oName);
+                UNPIN_JAVA_STRING(name, oName);
                 h5JNIFatalError( env, "H5Oset_comment_by_name:  comment not pinned");
                 return;
             }
@@ -567,7 +555,7 @@ static herr_t H5O_iterate_cb(hid_t g_id, const char *name, const H5O_info_t *inf
 
         if(oComment)
             ENVPTR->ReleaseStringUTFChars(ENVPAR comment, oComment);
-        ENVPTR->ReleaseStringUTFChars(ENVPAR name, oName);
+        UNPIN_JAVA_STRING(name, oName);
 
         if (status < 0) {
             h5libraryError(env);
@@ -613,13 +601,11 @@ static herr_t H5O_iterate_cb(hid_t g_id, const char *name, const H5O_info_t *inf
             HDfree(oComment);
             if (str == NULL) {
                 h5JNIFatalError( env, "H5Oget_comment:  return string not allocated");
-                return NULL;
             }
         }
         else {
             HDfree(oComment);
             h5libraryError(env);
-            return NULL;
         }
 
         return (jstring)str;
@@ -637,32 +623,32 @@ static herr_t H5O_iterate_cb(hid_t g_id, const char *name, const H5O_info_t *inf
         const char *oName;
         ssize_t     buf_size;
         ssize_t     status;
-        jstring     str;
+        jstring     str = NULL;
 
         PIN_JAVA_STRING(name, oName, NULL);
 
         /* get the length of the comment */
         buf_size = H5Oget_comment_by_name((hid_t)loc_id, oName, NULL, 0, (hid_t)access_id);
         if (buf_size < 0) {
-            ENVPTR->ReleaseStringUTFChars(ENVPAR name, oName);
+            UNPIN_JAVA_STRING(name, oName);
             h5badArgument( env, "H5Oget_comment_by_name:  buf_size < 0");
             return NULL;
         }
         if (buf_size == 0) {
-            ENVPTR->ReleaseStringUTFChars(ENVPAR name, oName);
+            UNPIN_JAVA_STRING(name, oName);
             return NULL;
         }
 
         buf_size++; /* add extra space for the null terminator */
         oComment = (char *)HDmalloc(sizeof(char) * (size_t)buf_size);
         if (oComment == NULL) {
-            ENVPTR->ReleaseStringUTFChars(ENVPAR name, oName);
+            UNPIN_JAVA_STRING(name, oName);
             h5outOfMemory( env, "H5Oget_comment_by_name:  malloc failed");
             return NULL;
         }
 
         status = H5Oget_comment_by_name((hid_t)loc_id, oName, oComment, (size_t)buf_size, (hid_t)access_id);
-        ENVPTR->ReleaseStringUTFChars(ENVPAR name, oName);
+        UNPIN_JAVA_STRING(name, oName);
 
         if (status >= 0) {
             /*  may throw OutOfMemoryError */
@@ -670,13 +656,11 @@ static herr_t H5O_iterate_cb(hid_t g_id, const char *name, const H5O_info_t *inf
             HDfree(oComment);
             if (str == NULL) {
                 h5JNIFatalError( env, "H5Oget_comment_by_name:  return string not allocated");
-                return NULL;
             }
         }
         else {
             HDfree(oComment);
             h5libraryError(env);
-            return NULL;
         }
 
         return (jstring)str;
@@ -697,7 +681,7 @@ static herr_t H5O_iterate_cb(hid_t g_id, const char *name, const H5O_info_t *inf
 
         bval = H5Oexists_by_name((hid_t)loc_id, oName, (hid_t)access_id);
 
-        ENVPTR->ReleaseStringUTFChars(ENVPAR name, oName);
+        UNPIN_JAVA_STRING(name, oName);
 
         if (bval > 0) {
             return JNI_TRUE;
@@ -765,7 +749,7 @@ static herr_t H5O_iterate_cb(hid_t g_id, const char *name, const H5O_info_t *inf
 
         status = H5Oopen_by_idx((hid_t)loc_id, oName, (H5_index_t)index_field, (H5_iter_order_t)order, (hsize_t)link_n, (hid_t)lapl_id );
 
-        ENVPTR->ReleaseStringUTFChars(ENVPAR name, oName);
+        UNPIN_JAVA_STRING(name, oName);
 
         if (status < 0) {
             h5libraryError(env);

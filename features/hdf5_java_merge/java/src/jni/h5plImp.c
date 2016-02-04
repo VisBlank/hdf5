@@ -24,10 +24,12 @@ extern "C" {
 #endif
 
 #include "hdf5.h"
-#include <jni.h>
 #include <stdlib.h>
 #include "h5jni.h"
 #include "h5plImp.h"
+
+extern JavaVM *jvm;
+extern jobject visit_callback;
 
 /*
  * Class:     hdf_hdf5lib_H5
@@ -37,7 +39,6 @@ extern "C" {
 JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5PLset_1loading_1state
   (JNIEnv *env, jclass clss, jint plugin_flags)
 {
-    herr_t retValue;
     if (H5PLset_loading_state((unsigned int)plugin_flags) < 0) {
         h5libraryError(env);
     }

@@ -28,8 +28,10 @@ extern "C" {
 #include <jni.h>
 #include <stdlib.h>
 #include <string.h>
-#include "h5jni.h"
 #include "h5aImp.h"
+
+extern JavaVM *jvm;
+extern jobject visit_callback;
 
 #ifdef __cplusplus
 #define CBENVPTR (cbenv)
@@ -136,6 +138,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Awrite
     }
     status = H5Awrite((hid_t)attr_id, (hid_t)mem_type_id, byteP);
 
+    /* free the buffer without copying back */
     ENVPTR->ReleaseByteArrayElements(ENVPAR buf, byteP, JNI_ABORT);
 
     if (status < 0) {

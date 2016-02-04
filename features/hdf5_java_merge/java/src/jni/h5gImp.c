@@ -28,9 +28,11 @@ extern "C" {
 #include <stdlib.h>
 #include <string.h>
 #include "hdf5.h"
-#include "h5jni.h"
 #include "h5util.h"
 #include "h5gImp.h"
+
+extern JavaVM *jvm;
+extern jobject visit_callback;
 
 /*
  * Class:     hdf_hdf5lib_H5
@@ -109,7 +111,7 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Gcreate2
 
     group_id = H5Gcreate2((hid_t)loc_id, gName, (hid_t)link_plist_id, (hid_t)create_plist_id, (hid_t)access_plist_id );
 
-    ENVPTR->ReleaseStringUTFChars(ENVPAR name, gName);
+    UNPIN_JAVA_STRING(name, gName);
     if (group_id < 0) {
         h5libraryError(env);
     }
@@ -147,7 +149,7 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Gopen2
 
     group_id = H5Gopen2((hid_t)loc_id, gName, (hid_t)access_plist_id );
 
-    ENVPTR->ReleaseStringUTFChars(ENVPAR name, gName);
+    UNPIN_JAVA_STRING(name, gName);
     if (group_id < 0) {
         h5libraryError(env);
     }
@@ -206,7 +208,7 @@ JNIEXPORT jobject JNICALL Java_hdf_hdf5lib_H5_H5Gget_1info_1by_1name
 
     ret_val = H5Gget_info_by_name((hid_t)loc_id, gName, &group_info, (hid_t)lapl_id);
 
-    ENVPTR->ReleaseStringUTFChars(ENVPAR name, gName);
+    UNPIN_JAVA_STRING(name, gName);
 
     if (ret_val < 0) {
         h5libraryError(env);
@@ -236,7 +238,7 @@ JNIEXPORT jobject JNICALL Java_hdf_hdf5lib_H5_H5Gget_1info_1by_1idx
     ret_val = H5Gget_info_by_idx((hid_t)loc_id, gName, cindex_type,
             corder, (hsize_t)n, &group_info, (hid_t)lapl_id);
 
-    ENVPTR->ReleaseStringUTFChars(ENVPAR name, gName);
+    UNPIN_JAVA_STRING(name, gName);
 
     if (ret_val < 0) {
         h5libraryError(env);

@@ -29,8 +29,10 @@ extern "C" {
 #include <string.h>
 #include "hdf5.h"
 #include "h5util.h"
-#include "h5jni.h"
 #include "h5dImp.h"
+
+extern JavaVM *jvm;
+extern jobject visit_callback;
 
 #ifdef __cplusplus
   #ifdef _WINDOWS
@@ -350,7 +352,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Dwrite
 JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Dextend
   (JNIEnv *env, jclass clss, jlong dataset_id, jbyteArray size)
 {
-    herr_t   status;
+    herr_t   status = -1;
     size_t   i;
     size_t   rank;
     size_t   n;
@@ -379,24 +381,25 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Dextend
     if (sa == NULL)  {
         ENVPTR->ReleaseByteArrayElements(ENVPAR size, P, JNI_ABORT);
         h5JNIFatalError(env,  "H5Dextend:  size array not allocated");
-        return -1;
     }
-    jlp = (jlong*)P;
-    for (i = 0; i < rank; i++) {
-        *lp = (hsize_t) *jlp;
-        lp++;
-        jlp++;
+    else {
+        jlp = (jlong*)P;
+        for (i = 0; i < rank; i++) {
+            *lp = (hsize_t) *jlp;
+            lp++;
+            jlp++;
+        }
+
+        status = H5Dextend((hid_t)dataset_id, sa);
+
+        /* free the buffer without copying back */
+        ENVPTR->ReleaseByteArrayElements(ENVPAR size, P, JNI_ABORT);
+        HDfree(sa);
+
+        if (status < 0) {
+            h5libraryError(env);
+        }
     }
-
-    status = H5Dextend((hid_t)dataset_id, sa);
-
-    ENVPTR->ReleaseByteArrayElements(ENVPAR size, P, JNI_ABORT);
-    HDfree(sa);
-
-    if (status < 0) {
-        h5libraryError(env);
-    }
-
     return (jint)status;
 }
 
@@ -429,7 +432,9 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5_H5Dget_1storage_1size
     if (dataset_id < 0) {
         h5badArgument(env, "H5Dget_storage_size: not a dataset");
     }
-    retVal = H5Dget_storage_size((hid_t)dataset_id );
+    else {
+        retVal = H5Dget_storage_size((hid_t)dataset_id);
+    }
     return (jlong)retVal;
 }
 
@@ -442,32 +447,32 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Dvlen_1get_1buf_1size
   (JNIEnv *env, jclass clss, jlong dataset_id, jlong type_id, jlong space_id,
           jintArray size)
 {
+    herr_t   status = -1;
     jint    *P;
     jboolean isCopy;
-    herr_t   status;
     hsize_t  sz;
 
-    if ( size == NULL ) {
+    if (size == NULL) {
         h5nullArgument(env, "H5Dvlen_get_buf_size:  size is NULL");
-        return -1;
     }
+    else {
+        P = ENVPTR->GetIntArrayElements(ENVPAR size, &isCopy);
+        if (P == NULL) {
+            h5JNIFatalError(env, "H5Dvlen_get_buf_size:  array not pinned");
+        }
+        else {
+            status = (jint)H5Dvlen_get_buf_size((hid_t)dataset_id, (hid_t)type_id, (hid_t)space_id, &sz);
 
-    P = ENVPTR->GetIntArrayElements(ENVPAR size, &isCopy);
-    if (P == NULL) {
-        h5JNIFatalError(env, "H5Dvlen_get_buf_size:  array not pinned");
-        return -1;
+            if (status < 0) {
+                ENVPTR->ReleaseIntArrayElements(ENVPAR size, P, JNI_ABORT);
+                h5libraryError(env);
+            }
+            else {
+                P[0] = (jint)sz;
+                ENVPTR->ReleaseIntArrayElements(ENVPAR size, P, 0);
+            }
+        }
     }
-
-    status = (jint)H5Dvlen_get_buf_size((hid_t)dataset_id, (hid_t)type_id, (hid_t)space_id, &sz);
-
-    if (status < 0) {
-        ENVPTR->ReleaseIntArrayElements(ENVPAR size, P, JNI_ABORT);
-        h5libraryError(env);
-        return -1;
-    }
-
-    P[0] = (jint)sz;
-    ENVPTR->ReleaseIntArrayElements(ENVPAR size, P, 0);
 
     return (jint)status;
 }
@@ -481,27 +486,27 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Dvlen_1reclaim
   (JNIEnv *env, jclass clss, jlong type_id, jlong space_id,
           jlong xfer_plist_id, jbyteArray buf)
 {
-    herr_t   status;
+    herr_t   status = -1;
     jbyte   *byteP;
     jboolean isCopy;
 
-    if ( buf == NULL ) {
+    if (buf == NULL) {
         h5nullArgument(env, "H5Dvlen_reclaim:  buf is NULL");
-        return -1;
     }
-    byteP = ENVPTR->GetByteArrayElements(ENVPAR buf, &isCopy);
-    if (byteP == NULL) {
-        h5JNIFatalError(env, "H5Dvlen_reclaim:  buf not pinned");
-        return -1;
-    }
+    else {
+        byteP = ENVPTR->GetByteArrayElements(ENVPAR buf, &isCopy);
+        if (byteP == NULL) {
+            h5JNIFatalError(env, "H5Dvlen_reclaim:  buf not pinned");
+        }
+        else {
+            status = H5Dvlen_reclaim((hid_t)type_id, (hid_t)space_id, (hid_t)xfer_plist_id, byteP);
 
-    status = H5Dvlen_reclaim((hid_t)type_id,
-        (hid_t)space_id, (hid_t)xfer_plist_id, byteP);
+            ENVPTR->ReleaseByteArrayElements(ENVPAR buf, byteP, JNI_ABORT);
 
-    ENVPTR->ReleaseByteArrayElements(ENVPAR buf, byteP, JNI_ABORT);
-
-    if (status < 0) {
-        h5libraryError(env);
+            if (status < 0) {
+                h5libraryError(env);
+            }
+        }
     }
     return (jint)status;
 }
@@ -514,31 +519,32 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Dvlen_1reclaim
 JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5__1H5Dget_1space_1status
   (JNIEnv *env, jclass clss, jlong dset_id, jintArray status)
 {
+    herr_t   retVal = -1;
     jint    *theArray;
     jboolean isCopy;
     H5D_space_status_t space_status;
-    herr_t   retVal = -1;
 
     if (status == NULL) {
         h5nullArgument(env, "H5Dget_space_status:  status is NULL");
-        return -1;
     }
-    theArray = (jint*)ENVPTR->GetIntArrayElements(ENVPAR status, &isCopy);
-    if (theArray == NULL) {
-        h5JNIFatalError(env, "H5Dget_space_status:  status not pinned");
-        return -1;
+    else {
+        theArray = (jint*)ENVPTR->GetIntArrayElements(ENVPAR status, &isCopy);
+        if (theArray == NULL) {
+            h5JNIFatalError(env, "H5Dget_space_status:  status not pinned");
+        }
+        else {
+            retVal = H5Dget_space_status((hid_t)dset_id, &space_status );
+
+            if (retVal < 0) {
+                ENVPTR->ReleaseIntArrayElements(ENVPAR status, theArray, JNI_ABORT);
+                h5libraryError(env);
+            }
+            else {
+                theArray[0] = space_status;
+                ENVPTR->ReleaseIntArrayElements(ENVPAR status, theArray, 0);
+            }
+        }
     }
-
-    retVal = H5Dget_space_status((hid_t)dset_id, &space_status );
-
-    if (retVal < 0) {
-        ENVPTR->ReleaseIntArrayElements(ENVPAR status, theArray, JNI_ABORT);
-        h5libraryError(env);
-        return -1;
-    }
-
-    theArray[0] = space_status;
-    ENVPTR->ReleaseIntArrayElements(ENVPAR status, theArray, 0);
 
     return (jint)retVal;
 }
@@ -564,7 +570,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Dread_1short
   (JNIEnv *env, jclass clss, jlong dataset_id, jlong mem_type_id, jlong mem_space_id,
           jlong file_space_id, jlong xfer_plist_id, jshortArray buf, jboolean isCriticalPinning)
 {
-    herr_t   status;
+    herr_t   status = -1;
     jshort  *buffP;
     jboolean isCopy;
     htri_t data_class;
@@ -584,25 +590,25 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Dread_1short
 
     if (buf == NULL) {
         h5nullArgument(env, "H5Dread_short:  buf is NULL");
-        return -1;
     }
+    else {
+        PIN_SHORT_ARRAY();
+        if (buffP == NULL) {
+            h5JNIFatalError(env, "H5Dread_short:  buf not pinned");
+            return -1;
+        }
 
-    PIN_SHORT_ARRAY();
-    if (buffP == NULL) {
-        h5JNIFatalError(env, "H5Dread_short:  buf not pinned");
-        return -1;
+        status = H5Dread((hid_t)dataset_id, (hid_t)mem_type_id, (hid_t)mem_space_id,
+                        (hid_t)file_space_id, (hid_t)xfer_plist_id, buffP);
+
+        if (status < 0) {
+            UNPIN_SHORT_ARRAY(JNI_ABORT);
+            h5libraryError(env);
+        }
+        else {
+            UNPIN_SHORT_ARRAY(0);
+        }
     }
-
-    status = H5Dread((hid_t)dataset_id, (hid_t)mem_type_id, (hid_t)mem_space_id,
-                     (hid_t)file_space_id, (hid_t)xfer_plist_id, buffP);
-
-    if (status < 0) {
-        UNPIN_SHORT_ARRAY(JNI_ABORT);
-        h5libraryError(env);
-        return -1;
-    }
-
-    UNPIN_SHORT_ARRAY(0);
 
     return (jint)status;
 }
@@ -616,7 +622,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Dread_1int
   (JNIEnv *env, jclass clss, jlong dataset_id, jlong mem_type_id, jlong mem_space_id,
           jlong file_space_id, jlong xfer_plist_id, jintArray buf, jboolean isCriticalPinning)
 {
-    herr_t   status;
+    herr_t   status = -1;
     jint    *buffP;
     jboolean isCopy;
     htri_t data_class;
@@ -636,26 +642,25 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Dread_1int
 
     if (buf == NULL) {
         h5nullArgument(env, "H5Dread_int:  buf is NULL");
-        return -1;
     }
+    else {
+        PIN_INT_ARRAY();
+        if (buffP == NULL) {
+            h5JNIFatalError(env, "H5Dread_int:  buf not pinned");
+        }
+        else {
+            status = H5Dread((hid_t)dataset_id, (hid_t)mem_type_id, (hid_t)mem_space_id,
+                            (hid_t)file_space_id, (hid_t)xfer_plist_id, buffP);
 
-    PIN_INT_ARRAY();
-    if (buffP == NULL) {
-        h5JNIFatalError(env, "H5Dread_int:  buf not pinned");
-        return -1;
+            if (status < 0) {
+                UNPIN_INT_ARRAY(JNI_ABORT);
+                h5libraryError(env);
+            }
+            else {
+                UNPIN_INT_ARRAY(0);
+            }
+        }
     }
-
-    status = H5Dread((hid_t)dataset_id, (hid_t)mem_type_id, (hid_t)mem_space_id,
-                     (hid_t)file_space_id, (hid_t)xfer_plist_id, buffP);
-
-    if (status < 0) {
-        UNPIN_INT_ARRAY(JNI_ABORT);
-        h5libraryError(env);
-        return -1;
-    }
-
-    UNPIN_INT_ARRAY(0);
-
     return (jint)status;
 }
 
@@ -668,7 +673,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Dread_1long
   (JNIEnv *env, jclass clss, jlong dataset_id, jlong mem_type_id, jlong mem_space_id,
           jlong file_space_id, jlong xfer_plist_id, jlongArray buf, jboolean isCriticalPinning)
 {
-    herr_t   status;
+    herr_t   status = -1;
     jlong   *buffP;
     jboolean isCopy;
     htri_t data_class;
@@ -688,26 +693,25 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Dread_1long
 
     if (buf == NULL) {
         h5nullArgument(env, "H5Dread_long:  buf is NULL");
-        return -1;
     }
+    else {
+        PIN_LONG_ARRAY();
+        if (buffP == NULL) {
+            h5JNIFatalError(env, "H5Dread_long:  buf not pinned");
+        }
+        else {
+            status = H5Dread((hid_t)dataset_id, (hid_t)mem_type_id, (hid_t)mem_space_id,
+                            (hid_t)file_space_id, (hid_t)xfer_plist_id, buffP);
 
-    PIN_LONG_ARRAY();
-    if (buffP == NULL) {
-        h5JNIFatalError(env, "H5Dread_long:  buf not pinned");
-        return -1;
+            if (status < 0) {
+                UNPIN_LONG_ARRAY(JNI_ABORT);
+                h5libraryError(env);
+            }
+            else {
+                UNPIN_LONG_ARRAY(0);
+            }
+        }
     }
-
-    status = H5Dread((hid_t)dataset_id, (hid_t)mem_type_id, (hid_t)mem_space_id,
-                     (hid_t)file_space_id, (hid_t)xfer_plist_id, buffP);
-
-    if (status < 0) {
-        UNPIN_LONG_ARRAY(JNI_ABORT);
-        h5libraryError(env);
-        return -1;
-    }
-
-    UNPIN_LONG_ARRAY(0);
-
     return (jint)status;
 }
 
@@ -720,7 +724,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Dread_1float
   (JNIEnv *env, jclass clss, jlong dataset_id, jlong mem_type_id, jlong mem_space_id,
           jlong file_space_id, jlong xfer_plist_id, jfloatArray buf, jboolean isCriticalPinning)
 {
-    herr_t   status;
+    herr_t   status = -1;
     jfloat  *buffP;
     jboolean isCopy;
     htri_t data_class;
@@ -740,26 +744,25 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Dread_1float
 
     if (buf == NULL) {
         h5nullArgument(env, "H5Dread_float:  buf is NULL");
-        return -1;
     }
+    else {
+        PIN_FLOAT_ARRAY();
+        if (buffP == NULL) {
+            h5JNIFatalError(env, "H5Dread_float:  buf not pinned");
+        }
+        else {
+            status = H5Dread((hid_t)dataset_id, (hid_t)mem_type_id, (hid_t)mem_space_id,
+                            (hid_t)file_space_id, (hid_t)xfer_plist_id, buffP);
 
-    PIN_FLOAT_ARRAY();
-    if (buffP == NULL) {
-        h5JNIFatalError(env, "H5Dread_float:  buf not pinned");
-        return -1;
+            if (status < 0) {
+                UNPIN_FLOAT_ARRAY(JNI_ABORT);
+                h5libraryError(env);
+            }
+            else {
+                UNPIN_FLOAT_ARRAY(0);
+            }
+        }
     }
-
-    status = H5Dread((hid_t)dataset_id, (hid_t)mem_type_id, (hid_t)mem_space_id,
-                     (hid_t)file_space_id, (hid_t)xfer_plist_id, buffP);
-
-    if (status < 0) {
-        UNPIN_FLOAT_ARRAY(JNI_ABORT);
-        h5libraryError(env);
-        return -1;
-    }
-
-    UNPIN_FLOAT_ARRAY(0);
-
     return (jint)status;
 }
 
@@ -772,7 +775,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Dread_1double
   (JNIEnv *env, jclass clss, jlong dataset_id, jlong mem_type_id, jlong mem_space_id,
           jlong file_space_id, jlong xfer_plist_id, jdoubleArray buf, jboolean isCriticalPinning)
 {
-    herr_t   status;
+    herr_t   status = -1;
     jdouble *buffP;
     jboolean isCopy;
     htri_t data_class;
@@ -792,25 +795,25 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Dread_1double
 
     if (buf == NULL) {
         h5nullArgument(env, "H5Dread_double:  buf is NULL");
-        return -1;
     }
+    else {
+        PIN_DOUBLE_ARRAY();
+        if (buffP == NULL) {
+            h5JNIFatalError(env, "H5Dread_double:  buf not pinned");
+        }
+        else {
+            status = H5Dread((hid_t)dataset_id, (hid_t)mem_type_id, (hid_t)mem_space_id,
+                            (hid_t)file_space_id, (hid_t)xfer_plist_id, buffP);
 
-    PIN_DOUBLE_ARRAY();
-    if (buffP == NULL) {
-        h5JNIFatalError(env, "H5Dread_double:  buf not pinned");
-        return -1;
+            if (status < 0) {
+                UNPIN_DOUBLE_ARRAY(JNI_ABORT);
+                h5libraryError(env);
+            }
+            else {
+                UNPIN_DOUBLE_ARRAY(0);
+            }
+        }
     }
-    status = H5Dread((hid_t)dataset_id, (hid_t)mem_type_id, (hid_t)mem_space_id,
-                     (hid_t)file_space_id, (hid_t)xfer_plist_id, buffP);
-
-    if (status < 0) {
-        UNPIN_DOUBLE_ARRAY(JNI_ABORT);
-        h5libraryError(env);
-        return -1;
-    }
-
-    UNPIN_DOUBLE_ARRAY(0);
-
     return (jint)status;
 }
 
@@ -823,7 +826,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Dread_1string
   (JNIEnv *env, jclass clss, jlong dataset_id, jlong mem_type_id, jlong mem_space_id,
           jlong file_space_id, jlong xfer_plist_id, jobjectArray j_buf)
 {
-    herr_t  status;
+    herr_t  status = -1;
     char   *c_buf;
     char   *cstr;
     size_t  str_len;
@@ -1626,9 +1629,21 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Dfill
     jboolean  isCopy1;
     jboolean  isCopy2;
 
+
+    if (buf == NULL) {
+        h5nullArgument(env, "H5Dfill:  buf is NULL");
+        return;
+    }
+    buffP = ENVPTR->GetByteArrayElements(ENVPAR buf, &isCopy2);
+    if (buffP == NULL) {
+        h5JNIFatalError(env, "H5Dfill:  buf not pinned");
+        return;
+    }
+
     if(fill) {
         fillP = ENVPTR->GetByteArrayElements(ENVPAR fill, &isCopy1);
         if (fillP == NULL) {
+            ENVPTR->ReleaseByteArrayElements(ENVPAR buf, buffP, JNI_ABORT);
             h5JNIFatalError( env, "H5Dfill:  fill not pinned");
             return;
         }
@@ -1636,32 +1651,19 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Dfill
     else
         fillP = NULL;
 
-    if (buf == NULL) {
-        h5nullArgument(env, "H5Dfill:  buf is NULL");
-        return;
-    }
-
-    buffP = ENVPTR->GetByteArrayElements(ENVPAR buf, &isCopy2);
-    if (buffP == NULL) {
-        h5JNIFatalError(env, "H5Dfill:  buf not pinned");
-        return;
-    }
-
     status = H5Dfill((const void*)fillP, (hid_t)fill_type_id, (void*)buffP, (hid_t)buf_type_id, (hid_t)space_id);
+    if(fillP) {
+        /* free the buffer without copying back */
+        ENVPTR->ReleaseByteArrayElements(ENVPAR fill, fillP, JNI_ABORT);
+    }
     if (status < 0) {
         ENVPTR->ReleaseByteArrayElements(ENVPAR buf, buffP, JNI_ABORT);
-        if(fillP) {
-            ENVPTR->ReleaseByteArrayElements(ENVPAR fill, fillP, JNI_ABORT);
-        }
         h5libraryError(env);
-        return;
     }
-
-    if (isCopy2 == JNI_TRUE) {
-        ENVPTR->ReleaseByteArrayElements(ENVPAR buf, buffP, 0);
-    }
-    if(fillP) {
-        ENVPTR->ReleaseByteArrayElements(ENVPAR fill, fillP, JNI_ABORT);
+    else {
+        if (isCopy2 == JNI_TRUE) {
+            ENVPTR->ReleaseByteArrayElements(ENVPAR buf, buffP, 0);
+        }
     }
 }
 
@@ -1688,27 +1690,28 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Dset_1extent
     rank = ENVPTR->GetArrayLength(ENVPAR buf);
     if (rank <= 0) {
         h5JNIFatalError(env, "H5Dset_extent:  rank <=0");
-        return;
     }
+    else {
+        buffP = ENVPTR->GetLongArrayElements(ENVPAR buf, &isCopy);
+        if (buffP == NULL) {
+            h5JNIFatalError( env, "H5Dset_extent:  buf not pinned");
+        }
+        else {
+            dims = (hsize_t*)HDmalloc((size_t)rank * sizeof(hsize_t));
+            for (i = 0; i< rank; i++)
+                dims[i] = (hsize_t)buffP[i];
 
-    buffP = ENVPTR->GetLongArrayElements(ENVPAR buf, &isCopy);
-    if (buffP == NULL) {
-        h5JNIFatalError( env, "H5Dset_extent:  buf not pinned");
-        return;
-    }
+            status = H5Dset_extent((hid_t)loc_id, (hsize_t*)dims);
 
-    dims = (hsize_t*) malloc((size_t)rank * sizeof(hsize_t));
-    for (i = 0; i< rank; i++)
-        dims[i] = (hsize_t)buffP[i];
+            HDfree (dims);
 
-    status = H5Dset_extent((hid_t)loc_id, (hsize_t*)dims);
+            /* free the buffer without copying back */
+            ENVPTR->ReleaseLongArrayElements(ENVPAR buf, buffP, JNI_ABORT);
 
-    free (dims);
-
-    ENVPTR->ReleaseLongArrayElements(ENVPAR buf, buffP, JNI_ABORT);
-
-    if (status < 0) {
-        h5libraryError(env);
+            if (status < 0) {
+                h5libraryError(env);
+            }
+        }
     }
 }
 
@@ -1778,9 +1781,9 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Diterate
   (JNIEnv *env, jclass clss, jbyteArray buf, jlong buf_type, jlong space,
           jobject callback_op, jobject op_data)
 {
+    herr_t        status = -1;
     jboolean      isCopy;
     jbyte        *buffP;
-    herr_t        status = -1;
 
     ENVPTR->GetJavaVM(ENVPAR &jvm);
     visit_callback = callback_op;
@@ -1801,19 +1804,19 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Diterate
     buffP = ENVPTR->GetByteArrayElements(ENVPAR buf, &isCopy);
     if (buffP == NULL) {
         h5JNIFatalError(env, "H5Diterate:  buf not pinned");
-        return -1;
     }
+    else {
+        status = H5Diterate((void*)buffP, (hid_t)buf_type, (hid_t)space, (H5D_operator_t)H5D_iterate_cb, (void*)op_data);
 
-    status = H5Diterate((void*)buffP, (hid_t)buf_type, (hid_t)space, (H5D_operator_t)H5D_iterate_cb, (void*)op_data);
-
-    if (status < 0) {
-       ENVPTR->ReleaseByteArrayElements(ENVPAR buf, buffP, JNI_ABORT);
-       h5libraryError(env);
-       return status;
-    }
-
-    if (isCopy == JNI_TRUE) {
-        ENVPTR->ReleaseByteArrayElements(ENVPAR buf, buffP, 0);
+        if (status < 0) {
+        ENVPTR->ReleaseByteArrayElements(ENVPAR buf, buffP, JNI_ABORT);
+        h5libraryError(env);
+        }
+        else {
+            if (isCopy == JNI_TRUE) {
+                ENVPTR->ReleaseByteArrayElements(ENVPAR buf, buffP, 0);
+            }
+        }
     }
 
     return status;

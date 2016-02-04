@@ -29,19 +29,8 @@ extern "C" {
 #include "h5jni.h"
 #include "h5lImp.h"
 
-#ifdef __cplusplus
-#define CBENVPTR (cbenv)
-#define CBENVPAR
-#define JVMPTR (jvm)
-#define JVMPAR
-#define JVMPAR2
-#else
-#define CBENVPTR (*cbenv)
-#define CBENVPAR cbenv,
-#define JVMPTR (*jvm)
-#define JVMPAR jvm
-#define JVMPAR2 jvm,
-#endif
+extern JavaVM *jvm;
+extern jobject visit_callback;
 
 static herr_t H5L_iterate_cb(hid_t g_id, const char *name, const H5L_info_t *info, void *op_data);
 
@@ -61,8 +50,7 @@ static herr_t H5L_iterate_cb(hid_t g_id, const char *name, const H5L_info_t *inf
 
         status = H5Lcopy((hid_t)cur_loc_id, lCurName, (hid_t)dst_loc_id, lDstName, (hid_t)create_id, (hid_t)access_id);
 
-        ENVPTR->ReleaseStringUTFChars(ENVPAR cur_name, lCurName);
-        ENVPTR->ReleaseStringUTFChars(ENVPAR dst_name, lDstName);
+        UNPIN_JAVA_STRING_TWO(cur_name, lCurName, dst_name, lDstName);
 
         if (status < 0) {
            h5libraryError(env);
@@ -86,9 +74,7 @@ static herr_t H5L_iterate_cb(hid_t g_id, const char *name, const H5L_info_t *inf
 
         status = H5Lcreate_external(lFileName, lCurName, (hid_t)dst_loc_id, lDstName, (hid_t)create_id, (hid_t)access_id);
 
-        ENVPTR->ReleaseStringUTFChars(ENVPAR file_name, lFileName);
-        ENVPTR->ReleaseStringUTFChars(ENVPAR cur_name, lCurName);
-        ENVPTR->ReleaseStringUTFChars(ENVPAR dst_name, lDstName);
+        UNPIN_JAVA_STRING_THREE(file_name, lFileName, cur_name, lCurName, dst_name, lDstName);
 
         if (status < 0) {
             h5libraryError(env);
@@ -111,8 +97,7 @@ static herr_t H5L_iterate_cb(hid_t g_id, const char *name, const H5L_info_t *inf
 
         status = H5Lcreate_hard((hid_t)cur_loc_id, lCurName, (hid_t)dst_loc_id, lDstName, (hid_t)create_id, (hid_t)access_id);
 
-        ENVPTR->ReleaseStringUTFChars(ENVPAR cur_name, lCurName);
-        ENVPTR->ReleaseStringUTFChars(ENVPAR dst_name, lDstName);
+        UNPIN_JAVA_STRING_TWO(cur_name, lCurName, dst_name, lDstName);
 
         if (status < 0) {
             h5libraryError(env);
@@ -135,8 +120,7 @@ static herr_t H5L_iterate_cb(hid_t g_id, const char *name, const H5L_info_t *inf
 
         status = H5Lcreate_soft(lCurName, (hid_t)dst_loc_id, lDstName, (hid_t)create_id, (hid_t)access_id);
 
-        ENVPTR->ReleaseStringUTFChars(ENVPAR cur_name, lCurName);
-        ENVPTR->ReleaseStringUTFChars(ENVPAR dst_name, lDstName);
+        UNPIN_JAVA_STRING_TWO(cur_name, lCurName, dst_name, lDstName);
 
         if (status < 0) {
            h5libraryError(env);
@@ -158,7 +142,7 @@ static herr_t H5L_iterate_cb(hid_t g_id, const char *name, const H5L_info_t *inf
 
         status = H5Ldelete((hid_t)loc_id, lName, (hid_t)access_id);
 
-        ENVPTR->ReleaseStringUTFChars(ENVPAR name, lName);
+        UNPIN_JAVA_STRING(name, lName);
 
         if (status < 0) {
             h5libraryError(env);
@@ -181,7 +165,7 @@ static herr_t H5L_iterate_cb(hid_t g_id, const char *name, const H5L_info_t *inf
 
         status = H5Ldelete_by_idx((hid_t)loc_id, lName, (H5_index_t)index_field, (H5_iter_order_t)order, n, (hid_t)access_id);
 
-        ENVPTR->ReleaseStringUTFChars(ENVPAR name, lName);
+        UNPIN_JAVA_STRING(name, lName);
 
         if (status < 0) {
            h5libraryError(env);
@@ -203,7 +187,7 @@ static herr_t H5L_iterate_cb(hid_t g_id, const char *name, const H5L_info_t *inf
 
         bval = H5Lexists((hid_t)loc_id, lName, (hid_t)access_id);
 
-        ENVPTR->ReleaseStringUTFChars(ENVPAR name, lName);
+        UNPIN_JAVA_STRING(name, lName);
 
         if (bval > 0) {
             return JNI_TRUE;
@@ -232,23 +216,22 @@ static herr_t H5L_iterate_cb(hid_t g_id, const char *name, const H5L_info_t *inf
 
         status = H5Lget_info((hid_t)loc_id, lName, &infobuf, (hid_t)access_id);
 
-        ENVPTR->ReleaseStringUTFChars(ENVPAR name, lName);
+        UNPIN_JAVA_STRING(name, lName);
 
         if (status < 0) {
            h5libraryError(env);
-           return NULL;
         }
-
-        args[0].i = infobuf.type;
-        args[1].z = infobuf.corder_valid;
-        args[2].j = infobuf.corder;
-        args[3].i = infobuf.cset;
-        if(infobuf.type==0)
-            args[4].j = (jlong)infobuf.u.address;
-        else
-            args[4].j = (jlong)infobuf.u.val_size;
-        CALL_CONSTRUCTOR("hdf/hdf5lib/structs/H5L_info_t", "(IZJIJ)V", args);
-
+        else {
+            args[0].i = infobuf.type;
+            args[1].z = infobuf.corder_valid;
+            args[2].j = infobuf.corder;
+            args[3].i = infobuf.cset;
+            if(infobuf.type==0)
+                args[4].j = (jlong)infobuf.u.address;
+            else
+                args[4].j = (jlong)infobuf.u.val_size;
+            CALL_CONSTRUCTOR("hdf/hdf5lib/structs/H5L_info_t", "(IZJIJ)V", args);
+        }
         return ret_obj;
     }
 
@@ -270,23 +253,22 @@ static herr_t H5L_iterate_cb(hid_t g_id, const char *name, const H5L_info_t *inf
 
         status = H5Lget_info_by_idx((hid_t)loc_id, lName, (H5_index_t)index_field, (H5_iter_order_t)order, (hsize_t)link_n, &infobuf, (hid_t)access_id);
 
-        ENVPTR->ReleaseStringUTFChars(ENVPAR name, lName);
+        UNPIN_JAVA_STRING(name, lName);
 
         if (status < 0) {
            h5libraryError(env);
-           return NULL;
         }
-
-        args[0].i = infobuf.type;
-        args[1].z = infobuf.corder_valid;
-        args[2].j = infobuf.corder;
-        args[3].i = infobuf.cset;
-        if(infobuf.type==0)
-            args[4].j = (jlong)infobuf.u.address;
-        else
-            args[4].j = (jlong)infobuf.u.val_size;
-        CALL_CONSTRUCTOR("hdf/hdf5lib/structs/H5L_info_t", "(IZJIJ)V", args);
-
+        else {
+            args[0].i = infobuf.type;
+            args[1].z = infobuf.corder_valid;
+            args[2].j = infobuf.corder;
+            args[3].i = infobuf.cset;
+            if(infobuf.type==0)
+                args[4].j = (jlong)infobuf.u.address;
+            else
+                args[4].j = (jlong)infobuf.u.val_size;
+            CALL_CONSTRUCTOR("hdf/hdf5lib/structs/H5L_info_t", "(IZJIJ)V", args);
+        }
         return ret_obj;
     }
 
@@ -309,7 +291,7 @@ static herr_t H5L_iterate_cb(hid_t g_id, const char *name, const H5L_info_t *inf
         /* get the length of the link name */
         status_size = H5Lget_name_by_idx((hid_t)loc_id, lName, (H5_index_t)index_field, (H5_iter_order_t)order, (hsize_t)link_n, (char*)NULL, (size_t)0, H5P_DEFAULT);
         if(status_size < 0) {
-            ENVPTR->ReleaseStringUTFChars(ENVPAR name, lName);
+            UNPIN_JAVA_STRING(name, lName);
             h5libraryError(env);
             return NULL;
         }
@@ -317,31 +299,28 @@ static herr_t H5L_iterate_cb(hid_t g_id, const char *name, const H5L_info_t *inf
 
         lValue = (char*)HDmalloc(sizeof(char) * buf_size);
         if (lValue == NULL) {
-            ENVPTR->ReleaseStringUTFChars(ENVPAR name, lName);
+            UNPIN_JAVA_STRING(name, lName);
             h5outOfMemory(env, "H5Lget_name_by_idx:  malloc failed ");
             return NULL;
         }
 
         status_size = H5Lget_name_by_idx((hid_t)loc_id, lName, (H5_index_t)index_field, (H5_iter_order_t)order, (hsize_t)link_n, (char*)lValue, (size_t)buf_size, (hid_t)access_id);
 
-        ENVPTR->ReleaseStringUTFChars(ENVPAR name, lName);
+        UNPIN_JAVA_STRING(name, lName);
 
         if (status_size < 0) {
             HDfree(lValue);
             h5libraryError(env);
-            return NULL;
         }
-        /* may throw OutOfMemoryError */
-        str = ENVPTR->NewStringUTF(ENVPAR lValue);
-        if (str == NULL) {
-            /* exception -- fatal JNI error */
+        else {
+            /* may throw OutOfMemoryError */
+            str = ENVPTR->NewStringUTF(ENVPAR lValue);
             HDfree(lValue);
-            h5JNIFatalError(env, "H5Lget_name_by_idx:  return string not created");
-            return NULL;
+            if (str == NULL) {
+                /* exception -- fatal JNI error */
+                h5JNIFatalError(env, "H5Lget_name_by_idx:  return string not created");
+            }
         }
-
-        HDfree(lValue);
-
         return str;
     }
 
@@ -367,72 +346,77 @@ static herr_t H5L_iterate_cb(hid_t g_id, const char *name, const H5L_info_t *inf
         /* get the length of the link val */
         status = H5Lget_info((hid_t)loc_id, lName, &infobuf, H5P_DEFAULT);
         if(status < 0) {
-            ENVPTR->ReleaseStringUTFChars(ENVPAR name, lName);
+            UNPIN_JAVA_STRING(name, lName);
             h5libraryError(env);
             return -1;
         }
         buf_size = infobuf.u.val_size + 1;/* add extra space for the null terminator */
 
         if(infobuf.type == H5L_TYPE_HARD) {
-            ENVPTR->ReleaseStringUTFChars(ENVPAR name, lName);
+            UNPIN_JAVA_STRING(name, lName);
             h5JNIFatalError(env, "H5Lget_val:  link is hard type");
             return -1;
         }
 
         lValue = (char*)HDmalloc(sizeof(char) * buf_size);
         if (lValue == NULL) {
-            ENVPTR->ReleaseStringUTFChars(ENVPAR name, lName);
+            UNPIN_JAVA_STRING(name, lName);
             h5outOfMemory(env, "H5Lget_val:  malloc failed");
             return -1;
         }
 
         status = H5Lget_val((hid_t)loc_id, lName, (void*)lValue, buf_size, (hid_t)access_id);
 
-        ENVPTR->ReleaseStringUTFChars(ENVPAR name, lName);
+        UNPIN_JAVA_STRING(name, lName);
+
         if (status < 0) {
            HDfree(lValue);
            h5libraryError(env);
-           return -1;
-        }
-        /* may throw OutOfMemoryError */
-        if(infobuf.type == H5L_TYPE_EXTERNAL) {
-            status = H5Lunpack_elink_val(lValue, (size_t)infobuf.u.val_size, (unsigned*)NULL, &file_name, &obj_name);
-            if (status < 0) {
-               HDfree(lValue);
-               h5libraryError(env);
-               return -1;
-            }
-
-            str = ENVPTR->NewStringUTF(ENVPAR obj_name);
-            if (str == NULL) {
-                /* exception -- fatal JNI error */
-                HDfree(lValue);
-                h5JNIFatalError(env, "H5Lget_val:  return string not created");
-                return -1;
-            }
-            ENVPTR->SetObjectArrayElement(ENVPAR link_value, 0, str);
-
-            str = ENVPTR->NewStringUTF(ENVPAR file_name);
-            if (str == NULL) {
-                /* exception -- fatal JNI error */
-                HDfree(lValue);
-                h5JNIFatalError(env, "H5Lget_val:  return string not created");
-                return -1;
-            }
-            ENVPTR->SetObjectArrayElement(ENVPAR link_value, 1, str);
         }
         else {
-            str = ENVPTR->NewStringUTF(ENVPAR lValue);
-            if (str == NULL) {
-                /* exception -- fatal JNI error */
-                HDfree(lValue);
-                h5JNIFatalError(env, "H5Lget_val:  return string not created");
-                return -1;
-            }
-            ENVPTR->SetObjectArrayElement(ENVPAR link_value, 0, str);
-        }
+            /* may throw OutOfMemoryError */
+            if(infobuf.type == H5L_TYPE_EXTERNAL) {
+                status = H5Lunpack_elink_val(lValue, (size_t)infobuf.u.val_size, (unsigned*)NULL, &file_name, &obj_name);
+                if (status < 0) {
+                    HDfree(lValue);
+                    h5libraryError(env);
+                }
+                else {
+                    str = ENVPTR->NewStringUTF(ENVPAR obj_name);
+                    if (str == NULL) {
+                        /* exception -- fatal JNI error */
+                        HDfree(lValue);
+                        h5JNIFatalError(env, "H5Lget_val:  return string not created");
+                    }
+                    else {
+                        ENVPTR->SetObjectArrayElement(ENVPAR link_value, 0, str);
 
-        HDfree(lValue);
+                        str = ENVPTR->NewStringUTF(ENVPAR file_name);
+                        if (str == NULL) {
+                            /* exception -- fatal JNI error */
+                            HDfree(lValue);
+                            h5JNIFatalError(env, "H5Lget_val:  return string not created");
+                        }
+                        else {
+                            ENVPTR->SetObjectArrayElement(ENVPAR link_value, 1, str);
+                            HDfree(lValue);
+                        }
+                    }
+                }
+            }
+            else {
+                str = ENVPTR->NewStringUTF(ENVPAR lValue);
+                if (str == NULL) {
+                    /* exception -- fatal JNI error */
+                    HDfree(lValue);
+                    h5JNIFatalError(env, "H5Lget_val:  return string not created");
+                }
+                else {
+                    ENVPTR->SetObjectArrayElement(ENVPAR link_value, 0, str);
+                    HDfree(lValue);
+                }
+            }
+        }
 
         return infobuf.type;
     }
@@ -460,71 +444,75 @@ static herr_t H5L_iterate_cb(hid_t g_id, const char *name, const H5L_info_t *inf
         /* get the length of the link valuee */
         status = H5Lget_info_by_idx((hid_t)loc_id, lName, (H5_index_t)index_field, (H5_iter_order_t)order, (hsize_t)link_n, &infobuf, (hid_t)access_id);
         if(status < 0) {
-            ENVPTR->ReleaseStringUTFChars(ENVPAR name, lName);
+            UNPIN_JAVA_STRING(name, lName);
             h5libraryError(env);
             return -1;
         }
         buf_size = infobuf.u.val_size;
         if(buf_size < 0) {
-            ENVPTR->ReleaseStringUTFChars(ENVPAR name, lName);
+            UNPIN_JAVA_STRING(name, lName);
             h5libraryError(env);
             return -1;
         }
         lValue = (void*)HDmalloc(buf_size);
         if (lValue == NULL) {
-            ENVPTR->ReleaseStringUTFChars(ENVPAR name, lName);
+            UNPIN_JAVA_STRING(name, lName);
             h5outOfMemory(env, "H5Lget_val_by_idx:  malloc failed ");
             return -1;
         }
 
         status = H5Lget_val_by_idx((hid_t)loc_id, lName, (H5_index_t)index_field, (H5_iter_order_t)order, (hsize_t)link_n, (void*)lValue, (size_t)buf_size, (hid_t)access_id);
 
-        ENVPTR->ReleaseStringUTFChars(ENVPAR name, lName);
+        UNPIN_JAVA_STRING(name, lName);
+
         if (status < 0) {
            HDfree(lValue);
            h5libraryError(env);
-           return -1;
-        }
-        /* may throw OutOfMemoryError */
-        if(infobuf.type == H5L_TYPE_EXTERNAL) {
-            status = H5Lunpack_elink_val((char*)lValue, (size_t)infobuf.u.val_size, (unsigned*)NULL, (const char**)&file_name, (const char**)&obj_name);
-            if (status < 0) {
-               HDfree(lValue);
-               h5libraryError(env);
-               return -1;
-            }
-
-            str = ENVPTR->NewStringUTF(ENVPAR obj_name);
-            if (str == NULL) {
-                /* exception -- fatal JNI error */
-                HDfree(lValue);
-                h5JNIFatalError(env, "H5Lget_val_by_idx:  return string not created");
-                return -1;
-            }
-            ENVPTR->SetObjectArrayElement(ENVPAR link_value, 0, str);
-
-            str = ENVPTR->NewStringUTF(ENVPAR file_name);
-            if (str == NULL) {
-                /* exception -- fatal JNI error */
-                HDfree(lValue);
-                h5JNIFatalError(env, "H5Lget_val_by_idx:  return string not created");
-                return -1;
-            }
-            ENVPTR->SetObjectArrayElement(ENVPAR link_value, 1, str);
         }
         else {
-            str = ENVPTR->NewStringUTF(ENVPAR (char *)lValue);
-            if (str == NULL) {
-                /* exception -- fatal JNI error */
-                HDfree(lValue);
-                h5JNIFatalError(env, "H5Lget_val_by_idx:  return string not created");
-                return -1;
+            /* may throw OutOfMemoryError */
+            if(infobuf.type == H5L_TYPE_EXTERNAL) {
+                status = H5Lunpack_elink_val((char*)lValue, (size_t)infobuf.u.val_size, (unsigned*)NULL, (const char**)&file_name, (const char**)&obj_name);
+                if (status < 0) {
+                    HDfree(lValue);
+                    h5libraryError(env);
+                }
+                else {
+                    str = ENVPTR->NewStringUTF(ENVPAR obj_name);
+                    if (str == NULL) {
+                        /* exception -- fatal JNI error */
+                        HDfree(lValue);
+                        h5JNIFatalError(env, "H5Lget_val_by_idx:  return string not created");
+                    }
+                    else {
+                        ENVPTR->SetObjectArrayElement(ENVPAR link_value, 0, str);
+
+                        str = ENVPTR->NewStringUTF(ENVPAR file_name);
+                        if (str == NULL) {
+                            /* exception -- fatal JNI error */
+                            HDfree(lValue);
+                            h5JNIFatalError(env, "H5Lget_val_by_idx:  return string not created");
+                        }
+                        else {
+                            ENVPTR->SetObjectArrayElement(ENVPAR link_value, 1, str);
+                            HDfree(lValue);
+                        }
+                    }
+                }
             }
-            ENVPTR->SetObjectArrayElement(ENVPAR link_value, 0, str);
+            else {
+                str = ENVPTR->NewStringUTF(ENVPAR (char *)lValue);
+                if (str == NULL) {
+                    /* exception -- fatal JNI error */
+                    HDfree(lValue);
+                    h5JNIFatalError(env, "H5Lget_val_by_idx:  return string not created");
+                }
+                else {
+                    ENVPTR->SetObjectArrayElement(ENVPAR link_value, 0, str);
+                    HDfree(lValue);
+                }
+            }
         }
-
-        HDfree(lValue);
-
         return infobuf.type;
     }
 
@@ -544,8 +532,7 @@ static herr_t H5L_iterate_cb(hid_t g_id, const char *name, const H5L_info_t *inf
 
         status = H5Lmove((hid_t)cur_loc_id, lCurName, (hid_t)dst_loc_id, lDstName, (hid_t)create_id, (hid_t)access_id);
 
-        ENVPTR->ReleaseStringUTFChars(ENVPAR cur_name, lCurName);
-        ENVPTR->ReleaseStringUTFChars(ENVPAR dst_name, lDstName);
+        UNPIN_JAVA_STRING_TWO(cur_name, lCurName, dst_name, lDstName);
 
         if (status < 0) {
            h5libraryError(env);
@@ -659,8 +646,6 @@ static herr_t H5L_iterate_cb(hid_t g_id, const char *name, const H5L_info_t *inf
         ENVPTR->GetJavaVM(ENVPAR &jvm);
         visit_callback = callback_op;
 
-        PIN_JAVA_STRING(name, lName, -1);
-
         if (op_data == NULL) {
             h5nullArgument(env, "H5Lvisit_by_name:  op_data is NULL");
             return -1;
@@ -670,9 +655,11 @@ static herr_t H5L_iterate_cb(hid_t g_id, const char *name, const H5L_info_t *inf
             return -1;
         }
 
+        PIN_JAVA_STRING(name, lName, -1);
+
         status = H5Lvisit_by_name((hid_t)grp_id, lName, (H5_index_t)idx_type, (H5_iter_order_t)order, (H5L_iterate_t)H5L_iterate_cb, (void*)op_data, (hid_t)access_id);
 
-        ENVPTR->ReleaseStringUTFChars(ENVPAR name, lName);
+        UNPIN_JAVA_STRING(name, lName);
 
         if (status < 0) {
            h5libraryError(env);
@@ -730,8 +717,6 @@ static herr_t H5L_iterate_cb(hid_t g_id, const char *name, const H5L_info_t *inf
         ENVPTR->GetJavaVM(ENVPAR &jvm);
         visit_callback = callback_op;
 
-        PIN_JAVA_STRING(name, lName, -1);
-
         if (op_data == NULL) {
             h5nullArgument(env,  "H5Literate_by_name:  op_data is NULL");
             return -1;
@@ -741,12 +726,14 @@ static herr_t H5L_iterate_cb(hid_t g_id, const char *name, const H5L_info_t *inf
             return -1;
         }
 
+        PIN_JAVA_STRING(name, lName, -1);
+
         status = H5Literate_by_name((hid_t)grp_id, lName, (H5_index_t)idx_type, (H5_iter_order_t)order, (hsize_t*)&start_idx, (H5L_iterate_t)H5L_iterate_cb, (void*)op_data, (hid_t)access_id);
 
-        ENVPTR->ReleaseStringUTFChars(ENVPAR name, lName);
+        UNPIN_JAVA_STRING(name, lName);
 
         if (status < 0) {
-           h5libraryError(env);
+        h5libraryError(env);
         }
 
         return status;

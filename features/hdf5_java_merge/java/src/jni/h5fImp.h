@@ -18,6 +18,7 @@
 
 #ifndef _Included_hdf_hdf5lib_H5_H5F
 #define _Included_hdf_hdf5lib_H5_H5F
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -213,13 +214,6 @@ JNIEXPORT jobject JNICALL Java_hdf_hdf5lib_H5_H5Fget_1info
  */
 JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Fclear_1elink_1file_1cache
   (JNIEnv *, jclass, jlong);
-/*
- * Class:     hdf_hdf5lib_H5
- * Method:    H5export_dataset
- * Signature: (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;I)V
- */
-JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5export_1dataset
-  (JNIEnv*, jclass, jstring, jstring, jstring, jint);
 
 #ifdef __cplusplus
 }

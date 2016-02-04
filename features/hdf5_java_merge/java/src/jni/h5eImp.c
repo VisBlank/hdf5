@@ -41,6 +41,9 @@ extern "C" {
 #include "h5jni.h"
 #include "h5eImp.h"
 
+extern JavaVM *jvm;
+extern jobject visit_callback;
+
 #ifdef __cplusplus
 #define CBENVPTR (cbenv)
 #define CBENVPAR
@@ -94,9 +97,8 @@ static herr_t H5E_walk_cb(int nindx, const H5E_error2_t *info, void *op_data);
 
         ret_val = H5Eregister_class(the_cls_name, the_lib_name, the_version);
 
-        ENVPTR->ReleaseStringUTFChars(ENVPAR cls_name, the_cls_name);
-        ENVPTR->ReleaseStringUTFChars(ENVPAR lib_name, the_lib_name);
-        ENVPTR->ReleaseStringUTFChars(ENVPAR version, the_version);
+        UNPIN_JAVA_STRING_THREE(cls_name, the_cls_name, lib_name, the_lib_name, version, the_version);
+
         if (ret_val < 0) {
             h5libraryError(env);
         }
@@ -113,10 +115,11 @@ static herr_t H5E_walk_cb(int nindx, const H5E_error2_t *info, void *op_data);
     {
         if (cls_id < 0) {
             h5badArgument(env, "H5Eunregister_class: invalid argument");
-            return;
         }
-        if (H5Eunregister_class((hid_t)cls_id) < 0) {
-            h5libraryError(env);
+        else {
+            if (H5Eunregister_class((hid_t)cls_id) < 0) {
+                h5libraryError(env);
+            }
         }
     }
 
@@ -130,10 +133,11 @@ static herr_t H5E_walk_cb(int nindx, const H5E_error2_t *info, void *op_data);
     {
         if (err_id < 0) {
             h5badArgument(env, "H5Eclose_msg: invalid argument");
-            return;
         }
-        if (H5Eclose_msg((hid_t)err_id) < 0) {
-            h5libraryError(env);
+        else {
+            if (H5Eclose_msg((hid_t)err_id) < 0) {
+                h5libraryError(env);
+            }
         }
     }
 
@@ -151,17 +155,17 @@ static herr_t H5E_walk_cb(int nindx, const H5E_error2_t *info, void *op_data);
 
         if (err_id < 0) {
             h5badArgument(env, "H5Ecreate_msg: invalid argument");
-            return ret_val;
         }
+        else {
+            PIN_JAVA_STRING(err_msg, the_err_msg, -1);
 
-        PIN_JAVA_STRING(err_msg, the_err_msg, -1);
+            ret_val = H5Ecreate_msg((hid_t)err_id, error_msg_type, the_err_msg);
 
-        ret_val = H5Ecreate_msg((hid_t)err_id, error_msg_type, the_err_msg);
+            UNPIN_JAVA_STRING(err_msg, the_err_msg);
 
-        ENVPTR->ReleaseStringUTFChars(ENVPAR err_msg, the_err_msg);
-
-        if (ret_val < 0) {
-            h5libraryError(env);
+            if (ret_val < 0) {
+                h5libraryError(env);
+            }
         }
         return (jlong)ret_val;
     }
@@ -206,10 +210,11 @@ static herr_t H5E_walk_cb(int nindx, const H5E_error2_t *info, void *op_data);
     {
         if (stk_id < 0) {
             h5badArgument(env, "H5Eclose_stack: invalid argument");
-            return;
         }
-        if (H5Eclose_stack((hid_t)stk_id) < 0) {
-            h5libraryError(env);
+        else {
+            if (H5Eclose_stack((hid_t)stk_id) < 0) {
+                h5libraryError(env);
+            }
         }
     }
 
@@ -225,14 +230,15 @@ static herr_t H5E_walk_cb(int nindx, const H5E_error2_t *info, void *op_data);
 
         if (stk_id < 0) {
             h5badArgument(env, "H5Eprint2: invalid argument");
-            return;
         }
-        if(!stream_obj)
-            ret_val = H5Eprint2((hid_t)stk_id, stdout);
-        else
-            ret_val = H5Eprint2((hid_t)stk_id, (FILE*)stream_obj);
-        if (ret_val < 0) {
-            h5libraryError(env);
+        else {
+            if(!stream_obj)
+                ret_val = H5Eprint2((hid_t)stk_id, stdout);
+            else
+                ret_val = H5Eprint2((hid_t)stk_id, (FILE*)stream_obj);
+            if (ret_val < 0) {
+                h5libraryError(env);
+            }
         }
     }
 
@@ -245,7 +251,7 @@ static herr_t H5E_walk_cb(int nindx, const H5E_error2_t *info, void *op_data);
       (JNIEnv *env, jclass cls, jlong cls_id)
     {
         char   *namePtr;
-        jstring str;
+        jstring str = NULL;
         ssize_t buf_size;
 
         if (cls_id < 0) {
@@ -268,19 +274,19 @@ static herr_t H5E_walk_cb(int nindx, const H5E_error2_t *info, void *op_data);
         namePtr = (char*)HDmalloc(sizeof(char) * (size_t)buf_size);
         if (namePtr == NULL) {
             h5outOfMemory( env, "H5Eget_class_name:  malloc failed");
-            return NULL;
         }
-        buf_size = H5Eget_class_name((hid_t)cls_id, (char *)namePtr, (size_t)buf_size);
+        else {
+            buf_size = H5Eget_class_name((hid_t)cls_id, (char *)namePtr, (size_t)buf_size);
 
-        if (buf_size < 0) {
-            HDfree(namePtr);
-            h5libraryError(env);
-            return NULL;
+            if (buf_size < 0) {
+                HDfree(namePtr);
+                h5libraryError(env);
+            }
+            else {
+                str = ENVPTR->NewStringUTF(ENVPAR namePtr);
+                HDfree(namePtr);
+            }
         }
-
-        str = ENVPTR->NewStringUTF(ENVPAR namePtr);
-        HDfree(namePtr);
-
         return str;
     }
 
@@ -294,10 +300,11 @@ static herr_t H5E_walk_cb(int nindx, const H5E_error2_t *info, void *op_data);
     {
         if (stk_id < 0) {
             h5badArgument(env, "H5Eset_current_stack: invalid argument");
-            return;
         }
-        if (H5Eset_current_stack((hid_t)stk_id) < 0) {
-            h5libraryError(env);
+        else {
+            if (H5Eset_current_stack((hid_t)stk_id) < 0) {
+                h5libraryError(env);
+            }
         }
     }
 
@@ -311,11 +318,11 @@ static herr_t H5E_walk_cb(int nindx, const H5E_error2_t *info, void *op_data);
     {
         if (stk_id < 0) {
             h5badArgument(env, "H5Epop: invalid argument");
-            return;
         }
-        if (H5Epop((hid_t)stk_id, (size_t)count) < 0) {
-            h5libraryError(env);
-            return;
+        else {
+            if (H5Epop((hid_t)stk_id, (size_t)count) < 0) {
+                h5libraryError(env);
+            }
         }
     }
 
@@ -355,9 +362,7 @@ static herr_t H5E_walk_cb(int nindx, const H5E_error2_t *info, void *op_data);
         ret_val = H5Epush2((hid_t)stk_id, fName, fncName, (unsigned)linenumber, (hid_t)class_id,
                 (hid_t)major_id, (hid_t)minor_id, errMsg);
 
-        ENVPTR->ReleaseStringUTFChars(ENVPAR err_desc, errMsg);
-        ENVPTR->ReleaseStringUTFChars(ENVPAR funcname, fncName);
-        ENVPTR->ReleaseStringUTFChars(ENVPAR filename, fName);
+        UNPIN_JAVA_STRING_THREE(filename, fName, funcname, fncName, err_desc, errMsg);
 
         if (ret_val < 0) {
             h5libraryError(env);
@@ -374,10 +379,11 @@ static herr_t H5E_walk_cb(int nindx, const H5E_error2_t *info, void *op_data);
     {
         if (stk_id < 0) {
             h5badArgument(env, "H5Eclear2: invalid argument");
-            return;
         }
-        if (H5Eclear2((hid_t)stk_id) < 0) {
-            h5libraryError(env);
+        else {
+            if (H5Eclear2((hid_t)stk_id) < 0) {
+                h5libraryError(env);
+            }
         }
     }
 
@@ -390,7 +396,7 @@ static herr_t H5E_walk_cb(int nindx, const H5E_error2_t *info, void *op_data);
       (JNIEnv *env, jclass cls, jlong msg_id, jintArray error_msg_type_list)
     {
         char      *namePtr;
-        jstring    str;
+        jstring    str = NULL;
         jboolean   isCopy;
         ssize_t    buf_size;
         jint      *theArray;
@@ -423,27 +429,27 @@ static herr_t H5E_walk_cb(int nindx, const H5E_error2_t *info, void *op_data);
             h5nullArgument(env, "H5Eget_msg:  error_msg_type_list is NULL");
             return NULL;
         }
-        theArray = (jint *)ENVPTR->GetIntArrayElements(ENVPAR error_msg_type_list, &isCopy);
+        theArray = (jint*)ENVPTR->GetIntArrayElements(ENVPAR error_msg_type_list, &isCopy);
         if (theArray == NULL) {
             HDfree(namePtr);
-            ENVPTR->ReleaseIntArrayElements(ENVPAR error_msg_type_list, theArray, JNI_ABORT);
             h5JNIFatalError(env, "H5Eget_msg:  error_msg_type_list not pinned");
-            return NULL;
         }
+        else {
+            buf_size = H5Eget_msg((hid_t)msg_id, &error_msg_type, (char *)namePtr, (size_t)buf_size);
 
-        buf_size = H5Eget_msg((hid_t)msg_id, &error_msg_type, (char *)namePtr, (size_t)buf_size);
+            if (buf_size < 0) {
+                HDfree(namePtr);
+                ENVPTR->ReleaseIntArrayElements(ENVPAR error_msg_type_list, theArray, JNI_ABORT);
+                h5libraryError(env);
+            }
+            else {
+                theArray[0] = error_msg_type;
+                ENVPTR->ReleaseIntArrayElements(ENVPAR error_msg_type_list, theArray, 0);
 
-        if (buf_size < 0) {
-            HDfree(namePtr);
-            ENVPTR->ReleaseIntArrayElements(ENVPAR error_msg_type_list, theArray, JNI_ABORT);
-            h5libraryError(env);
-            return NULL;
+                str = ENVPTR->NewStringUTF(ENVPAR namePtr);
+                HDfree(namePtr);
+            }
         }
-        theArray[0] = error_msg_type;
-        ENVPTR->ReleaseIntArrayElements(ENVPAR error_msg_type_list, theArray, 0);
-
-        str = ENVPTR->NewStringUTF(ENVPAR namePtr);
-        HDfree(namePtr);
 
         return str;
     }
@@ -460,11 +466,12 @@ static herr_t H5E_walk_cb(int nindx, const H5E_error2_t *info, void *op_data);
 
         if (stk_id < 0) {
             h5badArgument(env, "H5Eget_num: invalid argument");
-            return -1;
         }
-        ret_val = H5Eget_num((hid_t)stk_id);
-        if (ret_val < 0) {
-            h5libraryError(env);
+        else {
+            ret_val = H5Eget_num((hid_t)stk_id);
+            if (ret_val < 0) {
+                h5libraryError(env);
+            }
         }
         return ret_val;
     }

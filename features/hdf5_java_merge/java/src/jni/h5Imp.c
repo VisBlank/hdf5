@@ -36,9 +36,9 @@ extern "C" {
 #include <jni.h>
 #include "h5jni.h"
 #include "h5Imp.h"
-/*
-#include <signal.h>
-*/
+
+extern JavaVM *jvm;
+extern jobject visit_callback;
 
 /*
  * Class:     hdf_hdf5lib_H5

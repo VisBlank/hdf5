@@ -33,19 +33,11 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Topen2
 
 /*
  * Class:     hdf_hdf5lib_H5
- * Method:    H5Tcommit1
- * Signature: (JLjava/lang/String;I)I
- */
-JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Tcommit1
-  (JNIEnv *, jclass, jlong, jstring, jint);
-
-/*
- * Class:     hdf_hdf5lib_H5
  * Method:    H5Tcommitted
- * Signature: (I)Z
+ * Signature: (J)Z
  */
 JNIEXPORT jboolean JNICALL Java_hdf_hdf5lib_H5_H5Tcommitted
-  (JNIEnv *, jclass, jint);
+  (JNIEnv *, jclass, jlong);
 
 /*
  * Class:     hdf_hdf5lib_H5
@@ -486,14 +478,6 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Tget_1member_1value_1int
  */
 JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Tget_1member_1value
   (JNIEnv *, jclass, jlong, jint, jbyteArray);
-
-/*
- * Class:     hdf_hdf5lib_H5
- * Method:    _H5Tarray_create
- * Signature: (JI[I[I)J
- */
-JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Tarray_1create
-  (JNIEnv *, jclass, jlong, jint, jintArray, jintArray);
 
 /*
  * Class:     hdf_hdf5lib_H5

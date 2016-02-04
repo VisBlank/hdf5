@@ -19,6 +19,7 @@
  *
  */
 
+#include <jni.h>
 #include "H5version.h"
 #include <string.h>
 #include "H5private.h"
@@ -34,6 +35,20 @@
 #define ENVPTR (*env)
 #define ENVPAR env,
 #define ENVONLY env
+#endif
+
+#ifdef __cplusplus
+  #define CBENVPTR (cbenv)
+  #define CBENVPAR
+  #define JVMPTR (jvm)
+  #define JVMPAR
+  #define JVMPAR2
+#else
+  #define CBENVPTR (*cbenv)
+  #define CBENVPAR cbenv,
+  #define JVMPTR (*jvm)
+  #define JVMPAR jvm
+  #define JVMPAR2 jvm,
 #endif
 
 /* Macros for class access */
@@ -82,6 +97,10 @@
     }                                                                            \
 }
 
+#define UNPIN_JAVA_STRING(javastr,localstr) {                                      \
+     ENVPTR->ReleaseStringUTFChars(ENVPAR (javastr), (localstr));                \
+}
+
 #define PIN_JAVA_STRING_TWO(javastr,localstr,java2str,local2str,retdefault) {    \
     jboolean isCopy;                                                             \
     if ((javastr) == NULL) {                                                     \
@@ -126,6 +145,11 @@
         h5JNIFatalError(env, "second local c string is not pinned");             \
         return;                                                                  \
     }                                                                            \
+}
+
+#define UNPIN_JAVA_STRING_TWO(javastr,localstr,java2str,local2str) {             \
+     ENVPTR->ReleaseStringUTFChars(ENVPAR (javastr), (localstr));                \
+     ENVPTR->ReleaseStringUTFChars(ENVPAR (java2str), (local2str));              \
 }
 
 #define PIN_JAVA_STRING_THREE(javastr,localstr,java2str,local2str,java3str,local3str,retdefault) {       \
@@ -194,6 +218,12 @@
         h5JNIFatalError(env, "third local c string is not pinned");              \
         return;                                                                  \
     }                                                                            \
+}
+
+#define UNPIN_JAVA_STRING_THREE(javastr,localstr,java2str,local2str,java3str,local3str) {        \
+     ENVPTR->ReleaseStringUTFChars(ENVPAR (javastr), (localstr));                \
+     ENVPTR->ReleaseStringUTFChars(ENVPAR (java2str), (local2str));              \
+     ENVPTR->ReleaseStringUTFChars(ENVPAR (java3str), (local3str));              \
 }
 
 #ifdef __cplusplus
