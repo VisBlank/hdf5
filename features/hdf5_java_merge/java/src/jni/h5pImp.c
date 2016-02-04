@@ -30,14 +30,6 @@ extern "C" {
 #include "h5pImp.h"
 #include "h5util.h"
 
-#ifndef FALSE
-#define FALSE 0
-#endif
-
-#ifndef TRUE
-#define TRUE (!FALSE)
-#endif
-
 /*
  * Class:     hdf_hdf5lib_H5
  * Method:    H5Pcreate
@@ -1177,14 +1169,14 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Pset_1preserve
         st = TRUE;
     }
     else if (status == JNI_FALSE) {
-        st = FALSE;
+        st = false;
     }
     else {
         h5badArgument(env, "H5Pset_preserve:  status not TRUE or FALSE");
         return -1;
     }
 
-    retVal = H5Pset_preserve((hid_t)plist, (hbool_t)st);
+    retVal = H5Pset_preserve((hid_t)plist, st);
     if (retVal < 0) {
         h5libraryError(env);
     }

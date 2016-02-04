@@ -22,6 +22,10 @@
 #ifndef H5UTIL_H__
 #define H5UTIL_H__
 
+#include <jni.h>
+
+extern JavaVM *jvm;
+
 #ifndef SUCCEED
 #define SUCCEED     0
 #endif
@@ -44,5 +48,30 @@ extern void    h5str_array_free(char **strs, size_t len);
 extern int     h5str_dump_simple_dset(FILE *stream, hid_t dset, int binary_order);
 extern int     h5str_dump_region_blocks_data(h5str_t *str, hid_t region, hid_t region_obj);
 extern int     h5str_dump_region_points_data(h5str_t *str, hid_t region, hid_t region_obj);
+
+/*
+ * Copies the content of one dataset to another dataset
+ * Class:     hdf_hdf5lib_H5
+ * Method:    H5Dcopy
+ * Signature: (JJ)I
+ */
+JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Dcopy
+  (JNIEnv*, jclass, jlong, jlong);
+
+/*
+ * Class:     hdf_hdf5lib_H5
+ * Method:    H5Gget_obj_info_full
+ * Signature: (JLjava/lang/String;[Ljava/lang/String;[I[I[J[JIII)I
+ */
+JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Gget_1obj_1info_1full
+  (JNIEnv*, jclass, jlong, jstring, jobjectArray, jintArray, jintArray, jlongArray, jlongArray, jint, jint, jint);
+
+/*
+ * Class:     hdf_hdf5lib_H5
+ * Method:    H5Gget_obj_info_max
+ * Signature: (J[Ljava/lang/String;[I[I[JJI)I
+ */
+JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Gget_1obj_1info_1max
+  (JNIEnv*, jclass, jlong, jobjectArray, jintArray, jintArray, jlongArray, jlong, jint);
 
 #endif  /* H5UTIL_H__ */

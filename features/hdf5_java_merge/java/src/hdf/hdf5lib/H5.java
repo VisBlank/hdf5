@@ -3080,8 +3080,6 @@ public class H5 implements java.io.Serializable {
      **/
     public synchronized static native H5G_info_t H5Gget_info(long group_id) throws HDF5LibraryException;
 
-    // int H5Gget_info(int loc_id, H5G_info_t ginfo);
-
     /**
      * H5Gget_info_by_idx retrieves information about a group, according to the group's position within an index.
      *
@@ -3108,10 +3106,6 @@ public class H5 implements java.io.Serializable {
     public synchronized static native H5G_info_t H5Gget_info_by_idx(long group_id, String group_name, int idx_type,
             int order, long n, long lapl_id) throws HDF5LibraryException, NullPointerException;
 
-    // int H5Gget_info_by_idx(int group_id, String group_name,
-    // H5_index_t idx_type, H5_iter_order_t order, long n, H5G_info_t ginfo, int
-    // lapl_id);
-
     /**
      * H5Gget_info_by_name retrieves information about the group group_name located in the file or group specified by
      * loc_id.
@@ -3132,9 +3126,6 @@ public class H5 implements java.io.Serializable {
      **/
     public synchronized static native H5G_info_t H5Gget_info_by_name(long group_id, String name, long lapl_id)
             throws HDF5LibraryException, NullPointerException;
-
-    // int H5Gget_info_by_name(int group_id, String name, H5G_info_t ginfo, int
-    // lapl_id);
 
     /**
      * retrieves information of all objects under the group (name) located in the file or group specified by loc_id.
@@ -3255,10 +3246,9 @@ public class H5 implements java.io.Serializable {
     }
 
     /*
-     * ////////////////////////////////////////////////////////////////////////// /////// // // //Add these methods so
-     * that we don't need to call //in a loop to get information for all the object in a group, which takes //a lot of
-     * time to finish if the number of objects is more than 10,000 // ///////////////////////////////////////////
-     * //////////////////////////////////////
+     * Add these methods so that we don't need to call
+     * in a loop to get information for all the object in a group, which takes
+     * a lot of time to finish if the number of objects is more than 10,000
      */
     /**
      * retrieves information of all objects (recurvisely) under the group (name) located in the file or group specified
@@ -3356,8 +3346,7 @@ public class H5 implements java.io.Serializable {
      * @param name
      *            IN: Name of group to open.
      * @param gapl_id
-     *            IN: Identifier of group access property list. (No group access properties have been implemented at
-     *            this time; use H5P_DEFAULT.)
+     *            IN: Identifier of group access property list.
      *
      * @return a valid group identifier if successful
      *

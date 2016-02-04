@@ -378,12 +378,12 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Dextend
     sa = lp = (hsize_t*)HDmalloc(rank * sizeof(hsize_t));
     if (sa == NULL)  {
         ENVPTR->ReleaseByteArrayElements(ENVPAR size, P, JNI_ABORT);
-        h5JNIFatalError(env,  "H5Dextend:  size not converted to hsize_t");
+        h5JNIFatalError(env,  "H5Dextend:  size array not allocated");
         return -1;
     }
     jlp = (jlong*)P;
     for (i = 0; i < rank; i++) {
-        *lp = (hsize_t) * jlp;
+        *lp = (hsize_t) *jlp;
         lp++;
         jlp++;
     }
@@ -434,78 +434,6 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5_H5Dget_1storage_1size
 }
 
 /*
- * Copies the content of one dataset to another dataset
- * Class:     hdf_hdf5lib_H5
- * Method:    H5Dcopy
- * Signature: (JJ)I
- */
-JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Dcopy
-  (JNIEnv *env, jclass clss, jlong src_id, jlong dst_id)
-{
-    jbyte  *buf;
-    herr_t  retVal = -1;
-    hid_t   src_did = (hid_t)src_id;
-    hid_t   dst_did = (hid_t)dst_id;
-    hid_t   tid = -1;
-    hid_t   sid = -1;
-    hsize_t total_size = 0, total_allocated_size;
-
-    total_allocated_size = H5Dget_storage_size(src_did);
-    if (total_allocated_size <=0)
-      return 0; // nothing to write;
-
-    sid = H5Dget_space(src_did);
-    if (sid < 0) {
-        h5libraryError(env);
-        return -1;
-    }
-
-    tid = H5Dget_type(src_did);
-    if (tid < 0) {
-        H5Sclose(sid);
-        h5libraryError(env);
-        return -1;
-    }
-
-    total_size = (hsize_t)H5Sget_simple_extent_npoints(sid) * (hsize_t)H5Tget_size(tid);
-
-    H5Sclose(sid);
-
-    buf = (jbyte*)HDmalloc((size_t)total_size * sizeof(jbyte));
-    if (buf == NULL) {
-        H5Tclose(tid);
-        h5outOfMemory(env, "H5Dcopy:  malloc failed");
-        return -1;
-    }
-
-    retVal = H5Dread(src_did, tid, H5S_ALL, H5S_ALL, H5P_DEFAULT, buf);
-    H5Tclose(tid);
-
-    if (retVal < 0) {
-        HDfree(buf);
-        h5libraryError(env);
-        return (jint)retVal;
-    }
-
-    tid = H5Dget_type(dst_did);
-    if (tid < 0) {
-        HDfree(buf);
-        h5libraryError(env);
-        return -1;
-    }
-    retVal = H5Dwrite(dst_did, tid, H5S_ALL, H5S_ALL, H5P_DEFAULT, buf);
-    H5Tclose(tid);
-    HDfree(buf);
-
-    if (retVal < 0) {
-        h5libraryError(env);
-    }
-
-    return (jint)retVal;
-}
-
-/*
- * Copies the content of one dataset to another dataset
  * Class:     hdf_hdf5lib_H5
  * Method:    H5Dvlen_get_buf_size
  * Signature: (JJJ[I)I

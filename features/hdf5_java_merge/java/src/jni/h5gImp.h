@@ -18,25 +18,11 @@
 
 #ifndef _Included_hdf_hdf5lib_H5_H5G
 #define _Included_hdf_hdf5lib_H5_H5G
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/*
- * Class:     hdf_hdf5lib_H5
- * Method:    _H5Gcreate
- * Signature: (JLjava/lang/String;J)J
- */
-JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Gcreate
-  (JNIEnv*, jclass, jlong, jstring, jlong);
-
-/*
- * Class:     hdf_hdf5lib_H5
- * Method:    _H5Gopen
- * Signature: (JLjava/lang/String;)J
- */
-JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Gopen
-  (JNIEnv*, jclass, jlong, jstring);
 
 /*
  * Class:     hdf_hdf5lib_H5
@@ -45,22 +31,6 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Gopen
  */
 JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5__1H5Gclose
   (JNIEnv*, jclass, jlong);
-
-/*
- * Class:     hdf_hdf5lib_H5
- * Method:    H5Gget_obj_info_full
- * Signature: (JLjava/lang/String;[Ljava/lang/String;[I[I[J[JIII)I
- */
-JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Gget_1obj_1info_1full
-  (JNIEnv*, jclass, jlong, jstring, jobjectArray, jintArray, jintArray, jlongArray, jlongArray, jint, jint, jint);
-
-/*
- * Class:     hdf_hdf5lib_H5
- * Method:    H5Gget_obj_info_max
- * Signature: (J[Ljava/lang/String;[I[I[JJI)I
- */
-JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Gget_1obj_1info_1max
-  (JNIEnv*, jclass, jlong, jobjectArray, jintArray, jintArray, jlongArray, jlong, jint);
 
 /*
  * Class:     hdf_hdf5lib_H5

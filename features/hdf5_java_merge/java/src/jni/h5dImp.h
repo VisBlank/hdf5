@@ -109,15 +109,6 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5_H5Dget_1storage_1size
 /*
  * Copies the content of one dataset to another dataset
  * Class:     hdf_hdf5lib_H5
- * Method:    H5Dcopy
- * Signature: (JJ)I
- */
-JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Dcopy
-  (JNIEnv*, jclass, jlong, jlong);
-
-/*
- * Copies the content of one dataset to another dataset
- * Class:     hdf_hdf5lib_H5
  * Method:    H5Dvlen_get_buf_size
  * Signature: (JJJ[I)I
  */
