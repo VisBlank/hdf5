@@ -16,7 +16,7 @@
 ## ----------------------------------------------------------------------
 ## Initialize configure.
 ##
-AC_REVISION($Id: configure.ac 28970 2016-01-25 21:23:12Z hdftest $)
+AC_REVISION($Id: configure.ac 29038 2016-02-03 20:16:36Z derobins $)
 AC_PREREQ([2.69])
 
 ## AC_INIT takes the name of the package, the version number, and an
@@ -26,7 +26,7 @@ AC_PREREQ([2.69])
 ## NOTE: Do not forget to change the version number here when we do a
 ## release!!!
 ##
-AC_INIT([HDF5], [1.8.17-snap10], [help@hdfgroup.org])
+AC_INIT([HDF5], [1.8.17-snap11], [help@hdfgroup.org])
 AC_CONFIG_SRCDIR([src/H5.c])
 AC_CONFIG_HEADERS([src/H5config.h])
 
@@ -1897,16 +1897,16 @@ AC_ARG_ENABLE([clear-file-buffers],
               [CLEARFILEBUF=$enableval])
 
 case "X-$CLEARFILEBUF" in
+  X-no)
+      CLEARFILEBUF=no
+      AC_MSG_RESULT([no])
+    ;;
   *)
       CLEARFILEBUF=yes
       AC_MSG_RESULT([yes])
       AC_DEFINE([CLEAR_MEMORY], [1],
                 [Define if the memory buffers being written to disk should be
                 cleared before writing.])
-    ;;
-  X-no)
-      CLEARFILEBUF=no
-      AC_MSG_RESULT([no])
     ;;
 esac
 
