@@ -18,9 +18,10 @@
 
 #ifndef _Included_hdf_hdf5lib_H5_exception
 #define _Included_hdf_hdf5lib_H5_exception
+
 #ifdef __cplusplus
 extern "C" {
-#endif
+#endif /* __cplusplus */
 
 /*
  * Class:     hdf_hdf5lib_exceptions_HDF5Library
@@ -28,8 +29,8 @@ extern "C" {
  * Signature: ()I
  *
  */
-JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5error_1off
-  (JNIEnv *env, jclass clss );
+JNIEXPORT jint JNICALL
+Java_hdf_hdf5lib_H5_H5error_1off(JNIEnv *env, jclass clss );
 
 
 /*
@@ -39,8 +40,9 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5error_1off
  *
  *  Call the HDF-5 library to print the HDF-5 error stack to 'file_name'.
  */
-JNIEXPORT void JNICALL Java_hdf_hdf5lib_exceptions_HDF5LibraryException_printStackTrace0
-  (JNIEnv *env, jobject obj, jstring file_name);
+JNIEXPORT void JNICALL
+Java_hdf_hdf5lib_exceptions_HDF5LibraryException_printStackTrace0(JNIEnv *env,
+    jobject obj, jstring file_name);
 
 /*
  * Class:     hdf_hdf5lib_exceptions_HDFLibraryException
@@ -53,8 +55,8 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_exceptions_HDF5LibraryException_printSta
  *  library.  Later releases will have a public interface for this
  *  purpose.
  */
-JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_exceptions_HDF5LibraryException_getMajorErrorNumber
-  (JNIEnv *env, jobject obj);
+JNIEXPORT jlong JNICALL
+Java_hdf_hdf5lib_exceptions_HDF5LibraryException_getMajorErrorNumber(JNIEnv *env, jobject obj);
 
 /*
  * Class:     hdf_hdf5lib_exceptions_HDFLibraryException
@@ -67,10 +69,12 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_exceptions_HDF5LibraryException_getMajo
  *  library.  Later releases will have a public interface for this
  *  purpose.
  */
-JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_exceptions_HDF5LibraryException_getMinorErrorNumber
-  (JNIEnv *env, jobject obj);
+JNIEXPORT jlong JNICALL
+Java_hdf_hdf5lib_exceptions_HDF5LibraryException_getMinorErrorNumber(JNIEnv *env, jobject obj);
 
 #ifdef __cplusplus
-}
-#endif
-#endif
+} /* end extern "C" */
+#endif /* __cplusplus */
+
+#endif /* _Included_hdf_hdf5lib_H5_exception */
+

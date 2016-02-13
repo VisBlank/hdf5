@@ -21,12 +21,13 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif
+#endif /* __cplusplus */
 
 
 /***********/
 /* Headers */
 /***********/
+
 #include "hdf5.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -38,16 +39,19 @@ extern "C" {
 /*******************/
 /* Local Variables */
 /*******************/
+
 /*  These types are copied from H5Eprivate.h
  *  They should be moved to a public include file, and deleted from
  *  here.
  */
+
 #define H5E_NSLOTS      32      /*number of slots in an error stack */
+
 /*
-* The list of error messages in the system is kept as an array of
-* error_code/message pairs, one for major error numbers and another for
-* minor error numbers.
-*/
+ * The list of error messages in the system is kept as an array of
+ * error_code/message pairs, one for major error numbers and another for
+ * minor error numbers.
+ */
 typedef struct H5E_major_mesg_t {
     hid_t error_code;
     const char  *str;
@@ -67,6 +71,7 @@ typedef struct H5E_num_t {
 /********************/
 /* Local Macros     */
 /********************/
+
 #define THROWEXCEPTION(className,args) {                                    \
     jclass     jc;                                                          \
     jmethodID  jm;                                                          \
@@ -90,22 +95,23 @@ typedef struct H5E_num_t {
 /********************/
 /* Local Prototypes */
 /********************/
+
 static const char *defineHDF5LibraryException(hid_t maj_num);
 static jboolean H5JNIErrorClass(JNIEnv *env, const char *message, const char *className);
 
 /* get the major and minor error numbers on the top of the error stack */
-static
-herr_t walk_error_callback(unsigned n, const H5E_error2_t *err_desc, void *_err_nums)
+static herr_t
+walk_error_callback(unsigned n, const H5E_error2_t *err_desc, void *_err_nums)
 {
     H5E_num_t *err_nums = (H5E_num_t *)_err_nums;
 
-    if (err_desc) {
+    if(err_desc) {
         err_nums->maj_num = err_desc->maj_num;
         err_nums->min_num = err_desc->min_num;
-    }
+    } /* end if */
 
     return 0;
-}
+} /* end walk_error_callback() */
 
 /*
  * Class:     hdf_hdf5lib_exceptions_HDF5Library
@@ -113,12 +119,12 @@ herr_t walk_error_callback(unsigned n, const H5E_error2_t *err_desc, void *_err_
  * Signature: ()I
  *
  */
-JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5error_1off
-  (JNIEnv *env, jclass clss )
+JNIEXPORT jint JNICALL
+Java_hdf_hdf5lib_H5_H5error_1off(JNIEnv *env, jclass clss )
 {
     H5Eset_auto2(H5E_DEFAULT, NULL, NULL);
     return 0;
-}
+} /* end Java_hdf_hdf5lib_H5_H5error_1off() */
 
 
 /*
@@ -128,25 +134,26 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5error_1off
  *
  *  Call the HDF-5 library to print the HDF-5 error stack to 'file_name'.
  */
-JNIEXPORT void JNICALL Java_hdf_hdf5lib_exceptions_HDF5LibraryException_printStackTrace0
-  (JNIEnv *env, jobject obj, jstring file_name)
+JNIEXPORT void JNICALL
+Java_hdf_hdf5lib_exceptions_HDF5LibraryException_printStackTrace0(
+    JNIEnv *env, jobject obj, jstring file_name)
 {
-    FILE       *stream;
-    const char *file;
+    FILE       *stream = NULL;
+    const char *file = NULL;
 
-    if (file_name == NULL) {
+    if(file_name == NULL) {
         H5Eprint2(H5E_DEFAULT, stderr);
-    }
+    } /* end if */
     else {
-        file = ENVPTR->GetStringUTFChars(ENVPAR file_name,0);
+        file = ENVPTR->GetStringUTFChars(ENVPAR file_name, 0);
         stream = HDfopen(file, "a+");
-        if (stream) {
+        if(stream) {
             H5Eprint2(H5E_DEFAULT, stream);
             HDfclose(stream);
-        }
+        } /* end if */
         ENVPTR->ReleaseStringUTFChars(ENVPAR file_name, file);
-    }
-}
+    } /* end else */
+} /* end  Java_hdf_hdf5lib_exceptions_HDF5LibraryException_printStackTrace0() */
 
 /*
  * Class:     hdf_hdf5lib_exceptions_HDFLibraryException
@@ -155,8 +162,9 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_exceptions_HDF5LibraryException_printSta
  *
  *  Extract the HDF-5 major error number from the HDF-5 error stack.
  */
-JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_exceptions_HDF5LibraryException_getMajorErrorNumber
-  (JNIEnv *env, jobject obj)
+JNIEXPORT jlong JNICALL
+Java_hdf_hdf5lib_exceptions_HDF5LibraryException_getMajorErrorNumber(
+    JNIEnv *env, jobject obj)
 {
     H5E_num_t err_nums;
     err_nums.maj_num = 0;
@@ -165,7 +173,7 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_exceptions_HDF5LibraryException_getMajo
     H5Ewalk2(H5E_DEFAULT, H5E_WALK_DOWNWARD, walk_error_callback, &err_nums);
 
     return err_nums.maj_num;
-}
+} /* end Java_hdf_hdf5lib_exceptions_HDF5LibraryException_getMajorErrorNumber() */
 
 /*
  * Class:     hdf_hdf5lib_exceptions_HDFLibraryException
@@ -174,8 +182,9 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_exceptions_HDF5LibraryException_getMajo
  *
  *  Extract the HDF-5 minor error number from the HDF-5 error stack.
  */
-JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_exceptions_HDF5LibraryException_getMinorErrorNumber
-  (JNIEnv *env, jobject obj)
+JNIEXPORT jlong JNICALL
+Java_hdf_hdf5lib_exceptions_HDF5LibraryException_getMinorErrorNumber(
+    JNIEnv *env, jobject obj)
 {
     H5E_num_t err_nums;
     err_nums.maj_num = 0;
@@ -184,13 +193,14 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_exceptions_HDF5LibraryException_getMino
     H5Ewalk2(H5E_DEFAULT, H5E_WALK_DOWNWARD, walk_error_callback, &err_nums);
 
     return err_nums.min_num;
-}
+} /* end Java_hdf_hdf5lib_exceptions_HDF5LibraryException_getMinorErrorNumber() */
 
 /*
  *  Routine to raise particular Java exceptions from C
  */
 static
-jboolean H5JNIErrorClass(JNIEnv *env, const char *message, const char *className)
+jboolean
+H5JNIErrorClass(JNIEnv *env, const char *message, const char *className)
 {
     char *args[2];
     jstring str = ENVPTR->NewStringUTF(ENVPAR message);
@@ -198,7 +208,7 @@ jboolean H5JNIErrorClass(JNIEnv *env, const char *message, const char *className
     args[1] = 0;
 
     THROWEXCEPTION(className, args);
-}
+} /* end H5JNIErrorClass() */
 
 /*
  *  Create and throw an 'outOfMemoryException'
@@ -207,10 +217,11 @@ jboolean H5JNIErrorClass(JNIEnv *env, const char *message, const char *className
  *  and the Java native method immediately raises the
  *  exception.
  */
-jboolean h5outOfMemory(JNIEnv *env, const char *functName)
+jboolean
+h5outOfMemory(JNIEnv *env, const char *functName)
 {
     return H5JNIErrorClass(env, functName, "java/lang/OutOfMemoryError");
-}
+} /* end h5outOfMemory() */
 
 
 /*
@@ -221,10 +232,11 @@ jboolean h5outOfMemory(JNIEnv *env, const char *functName)
  *  and the Java native method immediately raises the
  *  exception.
  */
-jboolean h5JNIFatalError(JNIEnv *env, const char *functName)
+jboolean
+h5JNIFatalError(JNIEnv *env, const char *functName)
 {
     return H5JNIErrorClass(env, functName, "java/lang/InternalError");
-}
+} /* end h5JNIFatalError() */
 
 /*
  *  A NULL argument in an HDF5 call
@@ -234,10 +246,11 @@ jboolean h5JNIFatalError(JNIEnv *env, const char *functName)
  *  and the Java native method immediately raises the
  *  exception.
  */
-jboolean h5nullArgument(JNIEnv *env, const char *functName)
+jboolean
+h5nullArgument(JNIEnv *env, const char *functName)
 {
     return H5JNIErrorClass(env, functName, "java/lang/NullPointerException");
-}
+} /* end h5nullArgument() */
 
 /*
  *  A bad argument in an HDF5 call
@@ -247,10 +260,11 @@ jboolean h5nullArgument(JNIEnv *env, const char *functName)
  *  and the Java native method immediately raises the
  *  exception.
  */
-jboolean h5badArgument(JNIEnv *env, const char *functName)
+jboolean
+h5badArgument(JNIEnv *env, const char *functName)
 {
     return H5JNIErrorClass(env, functName, "java/lang/IllegalArgumentException");
-}
+} /* end h5badArgument() */
 
 /*
  *  Some feature Not implemented yet
@@ -260,22 +274,24 @@ jboolean h5badArgument(JNIEnv *env, const char *functName)
  *  and the Java native method immediately raises the
  *  exception.
  */
-jboolean h5unimplemented(JNIEnv *env, const char *functName)
+jboolean
+h5unimplemented(JNIEnv *env, const char *functName)
 {
     return H5JNIErrorClass(env, functName, "java/lang/UnsupportedOperationException");
-}
+} /* end h5unimplemented() */
 
-/*  raiseException().  This routine is called to generate
+/*  h5raiseException().  This routine is called to generate
  *  an arbitrary Java exception with a particular message.
  *
  *  Note:  This routine never returns from the 'throw',
  *  and the Java native method immediately raises the
  *  exception.
  */
-jboolean h5raiseException(JNIEnv *env, const char *exception, const char *message)
+jboolean
+h5raiseException(JNIEnv *env, const char *exception, const char *message)
 {
     return H5JNIErrorClass(env, message, exception);
-}
+} /* end h5raiseException() */
 
 /*
  *  h5libraryError()   determines the HDF-5 major error code
@@ -288,11 +304,12 @@ jboolean h5raiseException(JNIEnv *env, const char *exception, const char *messag
  *  and the Java native method immediately raises the
  *  exception.
  */
-jboolean h5libraryError(JNIEnv *env )
+jboolean
+h5libraryError(JNIEnv *env)
 {
     char       *args[2];
-    const char *exception;
-    char       *msg_str;
+    const char *exception = NULL;
+    char       *msg_str = NULL;
     int         num_errs = 0;
     hid_t       min_num;
     hid_t       maj_num;
@@ -304,6 +321,7 @@ jboolean h5libraryError(JNIEnv *env )
 
     exceptionNumbers.maj_num = 0;
     exceptionNumbers.min_num = 0;
+
     /* Save current stack contents for future use */
     stk_id = H5Eget_current_stack(); /* This will clear current stack  */
     if(stk_id >= 0)
@@ -312,17 +330,18 @@ jboolean h5libraryError(JNIEnv *env )
     min_num = exceptionNumbers.min_num;
 
     exception = defineHDF5LibraryException(maj_num);
+
     /* get the length of the name */
     msg_size = H5Eget_msg(min_num, NULL, NULL, 0);
     if(msg_size > 0) {
         msg_size++; /* add extra space for the null terminator */
-        msg_str = (char*)HDmalloc(sizeof(char) * (size_t)msg_size);
+        msg_str = (char*)HDcalloc((size_t)msg_size, sizeof(char));
         if(msg_str) {
             msg_size = H5Eget_msg(min_num, &error_msg_type, (char *)msg_str, (size_t)msg_size);
             str = ENVPTR->NewStringUTF(ENVPAR msg_str);
             HDfree(msg_str);
-        }
-    }
+        } /* end if */
+    } /* end if */
     else
         str = NULL;
     if(stk_id >= 0)
@@ -331,15 +350,15 @@ jboolean h5libraryError(JNIEnv *env )
     args[0] = (char *)str;
     args[1] = 0;
     THROWEXCEPTION(exception, args);
-}
+} /* end h5libraryError() */
 
 
 /*
  *  defineHDF5LibraryException()  returns the name of the sub-class
  *  which goes with an HDF-5 error code.
  */
-static
-const char *defineHDF5LibraryException(hid_t maj_num)
+static const char *
+defineHDF5LibraryException(hid_t maj_num)
 {
     hid_t err_num = maj_num;
 
@@ -387,8 +406,9 @@ const char *defineHDF5LibraryException(hid_t maj_num)
         return "hdf/hdf5lib/exceptions/HDF5ReferenceException";
 
     return "hdf/hdf5lib/exceptions/HDF5LibraryException";
-}
+} /* end  defineHDF5LibraryException() */
 
 #ifdef __cplusplus
-}
-#endif
+} /* end extern "C" */
+#endif /* __cplusplus */
+
