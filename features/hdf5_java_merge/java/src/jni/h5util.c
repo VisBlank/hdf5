@@ -56,7 +56,8 @@ static int     render_bin_output_region_points(FILE *stream, hid_t region_space,
             hid_t region_id, hid_t container);
 
 /** frees memory held by array of strings */
-void h5str_array_free(char **strs, size_t len) {
+void
+h5str_array_free(char **strs, size_t len) {
     size_t i;
 
     if (!strs || len <= 0)
@@ -70,7 +71,8 @@ void h5str_array_free(char **strs, size_t len) {
 }
 
 /** allocate a new str with given length */
-void h5str_new(h5str_t *str, size_t len) {
+void
+h5str_new(h5str_t *str, size_t len) {
     if (str && len > 0) {
         str->s = (char *)HDmalloc(len);
         str->max = len;
@@ -79,7 +81,8 @@ void h5str_new(h5str_t *str, size_t len) {
 }
 
 /** free string memory */
-void h5str_free(h5str_t *str) {
+void
+h5str_free(h5str_t *str) {
     if (str && str->max > 0) {
         HDfree(str->s);
         HDmemset(str, 0, sizeof(h5str_t));
@@ -87,7 +90,8 @@ void h5str_free(h5str_t *str) {
 }
 
 /** reset the max size of the string */
-void h5str_resize(h5str_t *str, size_t new_len) {
+void
+h5str_resize(h5str_t *str, size_t new_len) {
     char *new_str;
 
     if (!str || new_len <= 0 || str->max == new_len)
@@ -108,7 +112,8 @@ void h5str_resize(h5str_t *str, size_t new_len) {
  Return Value:
  the char string point to str->s
  */
-char* h5str_append(h5str_t *str, const char* cstr) {
+char*
+h5str_append(h5str_t *str, const char* cstr) {
     size_t len;
 
     if (!str)
@@ -130,7 +135,8 @@ char* h5str_append(h5str_t *str, const char* cstr) {
  On success, the total number of characters printed is returned.
  On error, a negative number is returned.
  */
-size_t h5str_sprintf(h5str_t *str, hid_t container, hid_t tid, void *ptr, int expand_data) {
+size_t
+h5str_sprintf(h5str_t *str, hid_t container, hid_t tid, void *ptr, int expand_data) {
     unsigned char   tmp_uchar = 0;
     char            tmp_char = 0;
     unsigned short  tmp_ushort = 0;
@@ -484,8 +490,8 @@ size_t h5str_sprintf(h5str_t *str, hid_t container, hid_t tid, void *ptr, int ex
  *      The function returns FAIL if there was an error, otherwise SUCEED
  *-------------------------------------------------------------------------
  */
-static
-int h5str_print_region_data_blocks(hid_t region_id,
+static int
+h5str_print_region_data_blocks(hid_t region_id,
         h5str_t *str, int ndims, hid_t type_id, hssize_t nblocks, hsize_t *ptdata)
 {
     hsize_t     *dims1 = NULL;
@@ -583,7 +589,8 @@ int h5str_print_region_data_blocks(hid_t region_id,
     return ret_value;
 }
 
-int h5str_dump_region_blocks_data(h5str_t *str, hid_t region, hid_t region_id)
+int
+h5str_dump_region_blocks_data(h5str_t *str, hid_t region, hid_t region_id)
 {
     int        ret_value = 0;
     hssize_t   nblocks;
@@ -635,8 +642,8 @@ int h5str_dump_region_blocks_data(h5str_t *str, hid_t region, hid_t region_id)
     return ret_value;
 }
 
-static
-int h5str_dump_region_blocks(h5str_t *str, hid_t region, hid_t region_id)
+static int
+h5str_dump_region_blocks(h5str_t *str, hid_t region, hid_t region_id)
 {
     int        ret_value = 0;
     hssize_t   nblocks;
@@ -706,8 +713,8 @@ int h5str_dump_region_blocks(h5str_t *str, hid_t region, hid_t region_id)
  *      The function returns FAIL on error, otherwise SUCCEED
  *-------------------------------------------------------------------------
  */
-static
-int h5str_print_region_data_points(hid_t region_space, hid_t region_id,
+static int
+h5str_print_region_data_points(hid_t region_space, hid_t region_id,
         h5str_t *str, int ndims, hid_t type_id, hssize_t npoints, hsize_t *ptdata)
 {
     hsize_t        *dims1 = NULL;
@@ -770,7 +777,8 @@ int h5str_print_region_data_points(hid_t region_space, hid_t region_id,
     return ret_value;
 }
 
-int h5str_dump_region_points_data(h5str_t *str, hid_t region, hid_t region_id)
+int
+h5str_dump_region_points_data(h5str_t *str, hid_t region, hid_t region_id)
 {
     int        ret_value = 0;
     hssize_t   npoints;
@@ -822,8 +830,8 @@ int h5str_dump_region_points_data(h5str_t *str, hid_t region, hid_t region_id)
     return ret_value;
 }
 
-static
-int h5str_dump_region_points(h5str_t *str, hid_t region, hid_t region_id)
+static int
+h5str_dump_region_points(h5str_t *str, hid_t region, hid_t region_id)
 {
     int        ret_value = 0;
     hssize_t   npoints;
@@ -875,8 +883,8 @@ int h5str_dump_region_points(h5str_t *str, hid_t region, hid_t region_id)
     return ret_value;
 }
 
-static
-int h5str_is_zero(const void *_mem, size_t size) {
+static int
+h5str_is_zero(const void *_mem, size_t size) {
     const unsigned char *mem = (const unsigned char *) _mem;
 
     while (size-- > 0)
@@ -898,8 +906,8 @@ int h5str_is_zero(const void *_mem, size_t size) {
  *
  *-------------------------------------------------------------------------
  */
-static
-htri_t h5str_detect_vlen_str(hid_t tid)
+static htri_t
+h5str_detect_vlen_str(hid_t tid)
 {
     H5T_class_t tclass = H5T_NO_CLASS;
     htri_t ret = 0;
@@ -957,8 +965,8 @@ done:
  *         Failure:    FAIL
  *-------------------------------------------------------------------------
  */
-static
-hid_t h5str_get_native_type(hid_t type)
+static hid_t
+h5str_get_native_type(hid_t type)
 {
     hid_t p_type;
     H5T_class_t type_class;
@@ -982,8 +990,8 @@ hid_t h5str_get_native_type(hid_t type)
  *         Failure:    FAIL
  *-------------------------------------------------------------------------
  */
-static
-hid_t h5str_get_little_endian_type(hid_t tid)
+static hid_t
+h5str_get_little_endian_type(hid_t tid)
 {
     hid_t       p_type=-1;
     H5T_class_t type_class;
@@ -1052,8 +1060,8 @@ hid_t h5str_get_little_endian_type(hid_t tid)
  *         Failure:    FAIL
  *-------------------------------------------------------------------------
  */
-static
-hid_t h5str_get_big_endian_type(hid_t tid)
+static hid_t
+h5str_get_big_endian_type(hid_t tid)
 {
     hid_t       p_type=-1;
     H5T_class_t type_class;
@@ -1124,8 +1132,8 @@ hid_t h5str_get_big_endian_type(hid_t tid)
  *    Negative value: error occur
  *-------------------------------------------------------------------------
  */
-static
-htri_t h5str_detect_vlen(hid_t tid)
+static htri_t
+h5str_detect_vlen(hid_t tid)
 {
     htri_t ret;
 
@@ -1152,8 +1160,8 @@ done:
  *         Failure:    FAIL
  *-------------------------------------------------------------------------
  */
-static
-int h5str_render_bin_output(FILE *stream, hid_t container, hid_t tid, void *_mem, hsize_t block_nelmts)
+static int
+h5str_render_bin_output(FILE *stream, hid_t container, hid_t tid, void *_mem, hsize_t block_nelmts)
 {
     int                ret_value = 0;
     unsigned char     *mem  = (unsigned char*)_mem;
@@ -1365,8 +1373,8 @@ int h5str_render_bin_output(FILE *stream, hid_t container, hid_t tid, void *_mem
  *
  *-------------------------------------------------------------------------
  */
-static
-int render_bin_output_region_data_blocks(FILE *stream, hid_t region_id,
+static int
+render_bin_output_region_data_blocks(FILE *stream, hid_t region_id,
     hid_t container, int ndims, hid_t type_id, hssize_t nblocks, hsize_t *ptdata)
 {
     hsize_t     *dims1 = NULL;
@@ -1475,8 +1483,8 @@ int render_bin_output_region_data_blocks(FILE *stream, hid_t region_id,
  *
  *-------------------------------------------------------------------------
  */
-static
-int render_bin_output_region_blocks(FILE *stream, hid_t region_space, hid_t region_id, hid_t container)
+static int
+render_bin_output_region_blocks(FILE *stream, hid_t region_space, hid_t region_id, hid_t container)
 {
     int          ret_value = SUCCEED;
     hssize_t     nblocks;
@@ -1537,8 +1545,8 @@ int render_bin_output_region_blocks(FILE *stream, hid_t region_space, hid_t regi
  *
  *-------------------------------------------------------------------------
  */
-static
-int render_bin_output_region_data_points(FILE *stream, hid_t region_space, hid_t region_id,
+static int
+render_bin_output_region_data_points(FILE *stream, hid_t region_space, hid_t region_id,
         hid_t container, int ndims, hid_t type_id, hssize_t npoints, hsize_t *ptdata)
 {
     hsize_t *dims1 = NULL;
@@ -1596,8 +1604,8 @@ int render_bin_output_region_data_points(FILE *stream, hid_t region_space, hid_t
  *
  *-------------------------------------------------------------------------
  */
-static
-int render_bin_output_region_points(FILE *stream, hid_t region_space, hid_t region_id, hid_t container)
+static int
+render_bin_output_region_points(FILE *stream, hid_t region_space, hid_t region_id, hid_t container)
 {
     int      ret_value = SUCCEED;
     hssize_t npoints;
@@ -1648,7 +1656,8 @@ int render_bin_output_region_points(FILE *stream, hid_t region_space, hid_t regi
     return ret_value;
 }
 
-int h5str_dump_simple_dset(FILE *stream, hid_t dset, int binary_order)
+int
+h5str_dump_simple_dset(FILE *stream, hid_t dset, int binary_order)
 {
     int      ret_value = SUCCEED;
     hid_t               f_space = -1;                  /* file data space */
@@ -1806,8 +1815,8 @@ int h5str_dump_simple_dset(FILE *stream, hid_t dset, int binary_order)
     return ret_value;
 }
 
-static
-int h5tools_dump_simple_data(FILE *stream, hid_t container, hid_t type, void *_mem, hsize_t nelmts)
+static int
+h5tools_dump_simple_data(FILE *stream, hid_t container, hid_t type, void *_mem, hsize_t nelmts)
 {
     int                ret_value = 0;
     int                line_count;
@@ -1845,13 +1854,195 @@ int h5tools_dump_simple_data(FILE *stream, hid_t container, hid_t type, void *_m
 }
 
 /*
+ * Utility Java APIs
+ * Functions designed to workaround issues with the Java-C interface
+ */
+
+/*
+ * Class:     hdf_hdf5lib_H5
+ * Method:    H5AwriteVL
+ * Signature: (JJ[Ljava/lang/String;)I
+ */
+JNIEXPORT jint JNICALL
+Java_hdf_hdf5lib_H5_H5AwriteVL(JNIEnv *env, jclass clss, jlong attr_id, jlong mem_type_id, jobjectArray buf)
+{
+    herr_t  status = -1;
+    char  **wdata;
+    jsize   size;
+    jint    i;
+
+    size = ENVPTR->GetArrayLength(ENVPAR (jarray) buf);
+
+    wdata = (char**)HDcalloc((size_t)size + 1, sizeof(char*));
+    if (!wdata) {
+        h5JNIFatalError(env, "H5AwriteVL:  cannot allocate buffer");
+    } /* end if */
+    else {
+        HDmemset(wdata, 0, (size_t)size * sizeof(char*));
+        for (i = 0; i < size; ++i) {
+            jstring obj = (jstring) ENVPTR->GetObjectArrayElement(ENVPAR (jobjectArray) buf, i);
+            if (obj != 0) {
+                jsize length = ENVPTR->GetStringUTFLength(ENVPAR obj);
+                const char *utf8 = ENVPTR->GetStringUTFChars(ENVPAR obj, 0);
+
+                if (utf8) {
+                    wdata[i] = (char*)HDmalloc((size_t)length + 1);
+                    if (wdata[i]) {
+                        HDmemset(wdata[i], 0, ((size_t)length + 1));
+                        HDstrncpy(wdata[i], utf8, (size_t)length);
+                    } /* end if */
+                } /* end if */
+
+                ENVPTR->ReleaseStringUTFChars(ENVPAR obj, utf8);
+                ENVPTR->DeleteLocalRef(ENVPAR obj);
+            } /* end if */
+        } /* end for (i = 0; i < size; ++i) */
+
+        status = H5Awrite((hid_t)attr_id, (hid_t)mem_type_id, wdata);
+
+        for (i = 0; i < size; i++) {
+            if(wdata[i]) {
+                HDfree(wdata[i]);
+            } /* end if */
+        } /* end for */
+        HDfree(wdata);
+
+        if (status < 0)
+            h5libraryError(env);
+    }
+
+    return (jint)status;
+} /* end Java_hdf_hdf5lib_H5_H5AwriteVL */
+
+/*
+ * Class:     hdf_hdf5lib_H5
+ * Method:    H5AreadVL
+ * Signature: (JJ[Ljava/lang/String;)I
+ */
+JNIEXPORT jint JNICALL
+Java_hdf_hdf5lib_H5_H5AreadVL(JNIEnv *env, jclass clss, jlong attr_id, jlong mem_type_id, jobjectArray buf)
+{
+    herr_t  status = -1;
+    jstring jstr;
+    char  **strs;
+    int     i, n;
+    hid_t   sid;
+    hsize_t dims[H5S_MAX_RANK];
+
+    n = ENVPTR->GetArrayLength(ENVPAR buf);
+
+    strs =(char **)HDmalloc((size_t)n * sizeof(char *));
+    if (strs == NULL) {
+        h5JNIFatalError( env, "H5AreadVL:  failed to allocate buff for read variable length strings");
+    } /* end if */
+    else {
+        status = H5Aread(attr_id, mem_type_id, strs);
+        if (status < 0) {
+            dims[0] = (hsize_t)n;
+            sid = H5Screate_simple(1, dims, NULL);
+            H5Dvlen_reclaim(mem_type_id, sid, H5P_DEFAULT, strs);
+            H5Sclose(sid);
+            HDfree(strs);
+            h5JNIFatalError(env, "H5AreadVL: failed to read variable length strings");
+        } /* end if */
+        else {
+            for (i=0; i<n; i++) {
+                jstr = ENVPTR->NewStringUTF(ENVPAR strs[i]);
+                ENVPTR->SetObjectArrayElement(ENVPAR buf, i, jstr);
+                HDfree (strs[i]);
+            } /* end for */
+
+            /*
+                for repeatedly reading an attribute with a large number of strs (e.g., 1,000,000 strings,
+                H5Dvlen_reclaim() may crash on Windows because the Java GC will not be able to collect
+                free space in time. Instead, use "free(strs[i])" to free individual strings
+                after it is done.
+                H5Dvlen_reclaim(tid, sid, H5P_DEFAULT, strs);
+            */
+
+            HDfree(strs);
+        }  /* end else */
+    }  /* end else */
+    return status;
+} /* end Java_hdf_hdf5lib_H5_H5AreadVL */
+
+/*
+ * Copies the content of one dataset to another dataset
+ * Class:     hdf_hdf5lib_H5
+ * Method:    H5Acopy
+ * Signature: (JJ)I
+ */
+JNIEXPORT jint JNICALL
+Java_hdf_hdf5lib_H5_H5Acopy(JNIEnv *env, jclass clss, jlong src_id, jlong dst_id)
+{
+    jbyte  *buf;
+    herr_t  retVal = -1;
+    hid_t   src_did = (hid_t)src_id;
+    hid_t   dst_did = (hid_t)dst_id;
+    hid_t   tid = -1;
+    hid_t   sid = -1;
+    hsize_t total_size = 0;
+
+
+    sid = H5Aget_space(src_did);
+    if (sid < 0) {
+        h5libraryError(env);
+    } /* end if */
+    else {
+        tid = H5Aget_type(src_did);
+        if (tid < 0) {
+            H5Sclose(sid);
+            h5libraryError(env);
+        } /* end if */
+        else {
+            total_size = (hsize_t)H5Sget_simple_extent_npoints(sid) * (hsize_t)H5Tget_size(tid);
+
+            H5Sclose(sid);
+
+            buf = (jbyte *)HDmalloc( (size_t)total_size * sizeof(jbyte));
+            if (buf == NULL) {
+                H5Tclose(tid);
+                h5outOfMemory( env, "H5Acopy:  malloc failed");
+            } /* end if */
+            else {
+                retVal = H5Aread(src_did, tid, buf);
+                H5Tclose(tid);
+
+                if (retVal < 0) {
+                    HDfree(buf);
+                    h5libraryError(env);
+                } /* end if */
+                else {
+                    tid = H5Aget_type(dst_did);
+                    if (tid < 0) {
+                        HDfree(buf);
+                        h5libraryError(env);
+                    } /* end if */
+                    else {
+                        retVal = H5Awrite(dst_did, tid, buf);
+
+                        H5Tclose(tid);
+                        HDfree(buf);
+
+                        if (retVal < 0)
+                            h5libraryError(env);
+                    } /* end else */
+                } /* end else */
+            } /* end else */
+        } /* end else */
+    } /* end else */
+
+    return (jint)retVal;
+} /* end Java_hdf_hdf5lib_H5_H5Acopy */
+
+/*
  * Copies the content of one dataset to another dataset
  * Class:     hdf_hdf5lib_H5
  * Method:    H5Dcopy
  * Signature: (JJ)I
  */
-JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Dcopy
-  (JNIEnv *env, jclass clss, jlong src_id, jlong dst_id)
+JNIEXPORT jint JNICALL
+Java_hdf_hdf5lib_H5_H5Dcopy(JNIEnv *env, jclass clss, jlong src_id, jlong dst_id)
 {
     jbyte  *buf;
     herr_t  retVal = -1;
@@ -1955,10 +2146,10 @@ typedef struct info_all
  * Method:    H5Gget_obj_info_full
  * Signature: (JLjava/lang/String;[Ljava/lang/String;[I[I[J[JIII)I
  */
-JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Gget_1obj_1info_1full
-  (JNIEnv *env, jclass clss, jlong loc_id, jstring group_name,
-  jobjectArray objName, jintArray oType, jintArray lType, jlongArray fNo,
-  jlongArray oRef, jint n, jint indx_type, jint indx_order)
+JNIEXPORT jint JNICALL
+Java_hdf_hdf5lib_H5_H5Gget_1obj_1info_1full(JNIEnv *env, jclass clss, jlong loc_id, jstring group_name,
+        jobjectArray objName, jintArray oType, jintArray lType, jlongArray fNo,
+        jlongArray oRef, jint n, jint indx_type, jint indx_order)
 {
     herr_t        ret_val = -1;
     const char   *gName = NULL;
@@ -2115,8 +2306,8 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Gget_1obj_1info_1full
  * Method:    H5Gget_obj_info_max
  * Signature: (J[Ljava/lang/String;[I[I[JJI)I
  */
-JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Gget_1obj_1info_1max
-  (JNIEnv *env, jclass clss, jlong loc_id, jobjectArray objName,
+JNIEXPORT jint JNICALL
+Java_hdf_hdf5lib_H5_H5Gget_1obj_1info_1max(JNIEnv *env, jclass clss, jlong loc_id, jobjectArray objName,
           jintArray oType, jintArray lType, jlongArray oRef,
           jlong maxnum, jint n)
 {
@@ -2213,7 +2404,8 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Gget_1obj_1info_1max
     return ret_val;
 }
 
-int H5Gget_obj_info_full(hid_t loc_id, char **objname, int *otype, int *ltype, unsigned long *fno, unsigned long *objno, int indexType, int indexOrder)
+int
+H5Gget_obj_info_full(hid_t loc_id, char **objname, int *otype, int *ltype, unsigned long *fno, unsigned long *objno, int indexType, int indexOrder)
 {
     info_all_t info;
     info.objname = objname;
@@ -2233,7 +2425,8 @@ int H5Gget_obj_info_full(hid_t loc_id, char **objname, int *otype, int *ltype, u
     return info.count;
 }
 
-int H5Gget_obj_info_max(hid_t loc_id, char **objname, int *otype, int *ltype, unsigned long *objno, long maxnum)
+int
+H5Gget_obj_info_max(hid_t loc_id, char **objname, int *otype, int *ltype, unsigned long *objno, long maxnum)
 {
     info_all_t info;
     info.objname = objname;
@@ -2249,7 +2442,8 @@ int H5Gget_obj_info_max(hid_t loc_id, char **objname, int *otype, int *ltype, un
     return info.count;
 }
 
-herr_t obj_info_all(hid_t loc_id, const char *name, const H5L_info_t *info, void *op_data)
+herr_t
+obj_info_all(hid_t loc_id, const char *name, const H5L_info_t *info, void *op_data)
 {
     int         type = -1;
     hid_t       oid = -1;
@@ -2287,7 +2481,8 @@ herr_t obj_info_all(hid_t loc_id, const char *name, const H5L_info_t *info, void
     return 0;
 }
 
-herr_t obj_info_max(hid_t loc_id, const char *name, const H5L_info_t *info, void *op_data)
+herr_t
+obj_info_max(hid_t loc_id, const char *name, const H5L_info_t *info, void *op_data)
 {
     int         type = -1;
     herr_t      retVal = 0;
@@ -2325,8 +2520,8 @@ herr_t obj_info_max(hid_t loc_id, const char *name, const H5L_info_t *info, void
  * Method:    H5export_dataset
  * Signature: (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;I)V
  */
-JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5export_1dataset
-  (JNIEnv *env, jclass cls, jstring file_export_name, jstring file_name, jstring object_path, jint binary_order)
+JNIEXPORT void JNICALL
+Java_hdf_hdf5lib_H5_H5export_1dataset(JNIEnv *env, jclass cls, jstring file_export_name, jstring file_name, jstring object_path, jint binary_order)
 {
     herr_t      status = -1;
     herr_t      ret_val = -1;

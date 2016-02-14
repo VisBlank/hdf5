@@ -224,7 +224,7 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif /* __cplusplus *
+#endif /* __cplusplus */
 
 extern jboolean h5JNIFatalError(JNIEnv *, const char *);
 extern jboolean h5nullArgument(JNIEnv *, const char *);

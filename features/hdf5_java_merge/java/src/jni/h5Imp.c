@@ -45,8 +45,8 @@ extern jobject visit_callback;
  * Method:    H5open
  * Signature: ()I
  */
-JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5open
-  (JNIEnv *env, jclass clss)
+JNIEXPORT jint JNICALL
+Java_hdf_hdf5lib_H5_H5open(JNIEnv *env, jclass clss)
 {
     herr_t retVal = H5open();
     if (retVal < 0) {
@@ -60,8 +60,8 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5open
  * Method:    H5close
  * Signature: ()I
  */
-JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5close
-  (JNIEnv *env, jclass clss)
+JNIEXPORT jint JNICALL
+Java_hdf_hdf5lib_H5_H5close(JNIEnv *env, jclass clss)
 {
     herr_t retVal = H5close();
     if (retVal < 0) {
@@ -75,8 +75,8 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5close
  * Method:    H5dont_atexit
  * Signature: ()I
  */
-JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5dont_1atexit
-  (JNIEnv *env, jclass clss)
+JNIEXPORT jint JNICALL
+Java_hdf_hdf5lib_H5_H5dont_1atexit(JNIEnv *env, jclass clss)
 {
     herr_t retVal = H5dont_atexit();
     if (retVal < 0) {
@@ -90,8 +90,8 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5dont_1atexit
  * Method:    H5get_libversion
  * Signature: ([I)I
  */
-JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5get_1libversion
-  (JNIEnv *env, jclass clss, jintArray libversion)
+JNIEXPORT jint JNICALL
+Java_hdf_hdf5lib_H5_H5get_1libversion(JNIEnv *env, jclass clss, jintArray libversion)
 {
     unsigned *theArray = NULL;
     herr_t    status = -1;
@@ -123,8 +123,8 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5get_1libversion
  * Method:    H5check_version
  * Signature: (III)I
  */
-JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5check_1version
-  (JNIEnv *env, jclass clss, jint majnum, jint minnum, jint relnum)
+JNIEXPORT jint JNICALL
+Java_hdf_hdf5lib_H5_H5check_1version(JNIEnv *env, jclass clss, jint majnum, jint minnum, jint relnum)
 {
     return (jint)H5check_version((unsigned)majnum, (unsigned)minnum, (unsigned)relnum);
 } /* end Java_hdf_hdf5lib_H5_H5check_1version */
@@ -135,8 +135,8 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5check_1version
  * Signature: ()I
  *
  */
-JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5garbage_1collect
-  (JNIEnv *env, jclass clss)
+JNIEXPORT jint JNICALL
+Java_hdf_hdf5lib_H5_H5garbage_1collect(JNIEnv *env, jclass clss)
 {
     herr_t retVal = H5garbage_collect();
     if (retVal < 0) {
@@ -150,9 +150,9 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5garbage_1collect
  * Method:    H5set_free_list_limits
  * Signature: (IIIIII)I
  */
-JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5set_1free_1list_1limits
-  (JNIEnv *env, jclass clss, jint reg_global_lim, jint reg_list_lim,
-  jint arr_global_lim, jint arr_list_lim, jint blk_global_lim, jint blk_list_lim )
+JNIEXPORT jint JNICALL
+Java_hdf_hdf5lib_H5_H5set_1free_1list_1limits(JNIEnv *env, jclass clss, jint reg_global_lim, jint reg_list_lim,
+        jint arr_global_lim, jint arr_list_lim, jint blk_global_lim, jint blk_list_lim )
 {
     herr_t retVal = H5set_free_list_limits((int)reg_global_lim, (int)reg_list_lim,
         (int)arr_global_lim, (int)arr_list_lim, (int)blk_global_lim, (int)blk_list_lim);
@@ -167,8 +167,8 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5set_1free_1list_1limits
  * Method:    H5is_library_threadsafe
  * Signature: ()Z
  */
-JNIEXPORT jboolean JNICALL Java_hdf_hdf5lib_H5_H5is_1library_1threadsafe
-  (JNIEnv *env, jclass clss)
+JNIEXPORT jboolean JNICALL
+Java_hdf_hdf5lib_H5_H5is_1library_1threadsafe(JNIEnv *env, jclass clss)
 {
     hbool_t is_ts = false;
     H5is_library_threadsafe(&is_ts);

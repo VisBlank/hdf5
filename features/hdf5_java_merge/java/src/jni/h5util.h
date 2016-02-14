@@ -48,6 +48,31 @@ extern int     h5str_dump_region_blocks_data(h5str_t *str, hid_t region, hid_t r
 extern int     h5str_dump_region_points_data(h5str_t *str, hid_t region, hid_t region_obj);
 
 /*
+ * Class:     hdf_hdf5lib_H5
+ * Method:    H5AwriteVL
+ * Signature: (JJ[Ljava/lang/String;)I
+ */
+JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5AwriteVL
+  (JNIEnv *, jclass, jlong, jlong, jobjectArray);
+
+/*
+ * Class:     hdf_hdf5lib_H5
+ * Method:    H5AreadVL
+ * Signature: (JJ[Ljava/lang/String;)I
+ */
+JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5AreadVL
+  (JNIEnv *, jclass, jlong, jlong, jobjectArray);
+
+/*
+ * Copies the content of one dataset to another dataset
+ * Class:     hdf_hdf5lib_H5
+ * Method:    H5Acopy
+ * Signature: (JJ)I
+ */
+JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Acopy
+  (JNIEnv *, jclass, jlong, jlong);
+
+/*
  * Copies the content of one dataset to another dataset
  * Class:     hdf_hdf5lib_H5
  * Method:    H5Dcopy

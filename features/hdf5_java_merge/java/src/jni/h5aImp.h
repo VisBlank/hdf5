@@ -58,14 +58,6 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Awrite
 
 /*
  * Class:     hdf_hdf5lib_H5
- * Method:    H5AwriteVL
- * Signature: (JJ[Ljava/lang/String;)I
- */
-JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5AwriteVL
-  (JNIEnv *, jclass, jlong, jlong, jobjectArray);
-
-/*
- * Class:     hdf_hdf5lib_H5
  * Method:    H5Aread
  * Signature: (JJ[B)I
  */
@@ -120,22 +112,6 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Adelete
 JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5__1H5Aclose
   (JNIEnv *, jclass, jlong);
 
-/*
- * Class:     hdf_hdf5lib_H5
- * Method:    H5AreadVL
- * Signature: (JJ[Ljava/lang/String;)I
- */
-JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5AreadVL
-  (JNIEnv *, jclass, jlong, jlong, jobjectArray);
-
-/*
- * Copies the content of one dataset to another dataset
- * Class:     hdf_hdf5lib_H5
- * Method:    H5Acopy
- * Signature: (JJ)I
- */
-JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Acopy
-  (JNIEnv *, jclass, jlong, jlong);
 /*
  * Class:     hdf_hdf5lib_H5
  * Method:    _H5Acreate2
