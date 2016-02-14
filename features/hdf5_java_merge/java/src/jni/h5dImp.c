@@ -1597,7 +1597,7 @@ Java_hdf_hdf5lib_H5_H5Dget_1space_1status(JNIEnv *env, jclass clss, jlong loc_id
  * Signature: (J)J
  */
 JNIEXPORT jlong JNICALL
-ava_hdf_hdf5lib_H5_H5Dget_1access_1plist(JNIEnv *env, jclass clss, jlong loc_id)
+Java_hdf_hdf5lib_H5_H5Dget_1access_1plist(JNIEnv *env, jclass clss, jlong loc_id)
 {
     hid_t retVal = -1;
 
