@@ -793,24 +793,11 @@ H5A_iterate_cb(hid_t g_id, const char *name, const H5A_info_t *info, void *op_da
     jvalue     args[4];
     jobject    cb_info_t = NULL;
 
-    if(JVMPTR->AttachCurrentThread(JVMPAR2 (void**)&cbenv, NULL) != 0) {
-        /* printf("JNI H5A_iterate_cb error: AttachCurrentThread failed\n"); */
-        JVMPTR->DetachCurrentThread(JVMPAR);
-    } /* end if */
-    else {
+    if(JVMPTR->AttachCurrentThread(JVMPAR2 (void**)&cbenv, NULL) == 0) {
         cls = CBENVPTR->GetObjectClass(CBENVPAR visit_callback);
-        if (cls == 0) {
-            /* printf("JNI H5A_iterate_cb error: GetObjectClass failed\n"); */
-        JVMPTR->DetachCurrentThread(JVMPAR);
-        } /* end if */
-        else {
+        if (cls != 0) {
             mid = CBENVPTR->GetMethodID(CBENVPAR cls, "callback", "(JLjava/lang/String;Lhdf/hdf5lib/structs/H5A_info_t;Lhdf/hdf5lib/callbacks/H5A_iterate_t;)I");
-            if (mid == 0) {
-                /* printf("JNI H5A_iterate_cb error: GetMethodID failed\n"); */
-                JVMPTR->DetachCurrentThread(JVMPAR);
-                return -1;
-            } /* end if */
-            else {
+            if (mid != 0) {
                 str = CBENVPTR->NewStringUTF(CBENVPAR name);
 
                 args[0].z = info->corder_valid;
@@ -819,29 +806,21 @@ H5A_iterate_cb(hid_t g_id, const char *name, const H5A_info_t *info, void *op_da
                 args[3].j = (jlong)info->data_size;
                 /* get a reference to your class if you don't have it already */
                 cls = CBENVPTR->FindClass(CBENVPAR "hdf/hdf5lib/structs/H5A_info_t");
-                if (cls == 0) {
-                    /* printf("JNI H5A_iterate_cb error: GetObjectClass info failed\n"); */
-                JVMPTR->DetachCurrentThread(JVMPAR);
-                } /* end if */
-                else {
+                if (cls != 0) {
                     /* get a reference to the constructor; the name is <init> */
                     constructor = CBENVPTR->GetMethodID(CBENVPAR cls, "<init>", "(ZJIJ)V");
-                    if (constructor == 0) {
-                        /* printf("JNI H5A_iterate_cb error: GetMethodID constructor failed\n"); */
-                        JVMPTR->DetachCurrentThread(JVMPAR);
-                    } /* end if */
-                    else {
+                    if (constructor != 0) {
                         cb_info_t = CBENVPTR->NewObjectA(CBENVPAR cls, constructor, args);
 
                         status = CBENVPTR->CallIntMethod(CBENVPAR visit_callback, mid, g_id, str, cb_info_t, op_data);
-                    } /* end else */
-                } /* end else */
-            } /* end else */
-        } /* end else */
-        JVMPTR->DetachCurrentThread(JVMPAR);
-    } /* end else */
+                    } /* end if (constructor != 0) */
+                } /* end if (cls != 0) */
+            } /* end if (mid != 0) */
+        } /* end if (cls != 0) */
+    } /* end if */
+    JVMPTR->DetachCurrentThread(JVMPAR);
 
-    return status;
+    return (herr_t)status;
 } /* end H5A_iterate_cb */
 
 /*
@@ -866,10 +845,10 @@ Java_hdf_hdf5lib_H5_H5Aiterate(JNIEnv *env, jclass clss, jlong grp_id, jint idx_
         status = H5Aiterate2((hid_t)grp_id, (H5_index_t)idx_type, (H5_iter_order_t)order, (hsize_t*)&start_idx, (H5A_operator2_t)H5A_iterate_cb, (void*)op_data);
 
         if (status < 0)
-        h5libraryError(env);
+            h5libraryError(env);
     } /* end else */
 
-    return status;
+    return (jint)status;
 } /* end Java_hdf_hdf5lib_H5_H5Aiterate */
 
 /*
@@ -899,10 +878,10 @@ Java_hdf_hdf5lib_H5_H5Aiterate_1by_1name(JNIEnv *env, jclass clss, jlong grp_id,
         UNPIN_JAVA_STRING(name, lName);
 
         if (status < 0)
-        h5libraryError(env);
+            h5libraryError(env);
     } /* end else */
 
-    return status;
+    return (jint)status;
 } /* end Java_hdf_hdf5lib_H5_H5Aiterate_1by_1name */
 
 #ifdef __cplusplus
