@@ -53,7 +53,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5open
         h5libraryError(env);
     }
     return (jint)retVal;
-}
+} /* end Java_hdf_hdf5lib_H5_H5open */
 
 /*
  * Class:     hdf_hdf5lib_H5
@@ -68,7 +68,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5close
         h5libraryError(env);
     }
     return (jint)retVal;
-}
+} /* end Java_hdf_hdf5lib_H5_H5close */
 
 /*
  * Class:     hdf_hdf5lib_H5
@@ -83,7 +83,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5dont_1atexit
         h5libraryError(env);
     }
     return (jint)retVal;
-}
+} /* end Java_hdf_hdf5lib_H5_H5dont_1atexit */
 
 /*
  * Class:     hdf_hdf5lib_H5
@@ -94,30 +94,29 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5get_1libversion
   (JNIEnv *env, jclass clss, jintArray libversion)
 {
     unsigned *theArray = NULL;
-    jboolean isCopy;
-    int status;
+    herr_t    status = -1;
+    jboolean  isCopy;
 
     if (libversion == NULL) {
         h5nullArgument(env, "H5get_version:  libversion is NULL");
-        return -1;
-    }
+    } /* end if */
+    else {
+        theArray = (unsigned*)ENVPTR->GetIntArrayElements(ENVPAR libversion, &isCopy);
+        if (theArray == NULL) {
+            h5JNIFatalError( env, "H5get_libversion:  input not pinned");
+        } /* end if */
+        else {
+            status = H5get_libversion(&(theArray[0]), &(theArray[1]), &(theArray[2]));
 
-    theArray = (unsigned*)ENVPTR->GetIntArrayElements(ENVPAR libversion, &isCopy);
-    if (theArray == NULL) {
-        h5JNIFatalError( env, "H5get_libversion:  input not pinned");
-        return -1;
-    }
-
-    status = H5get_libversion(&(theArray[0]), &(theArray[1]), &(theArray[2]));
-
-    if (status < 0) {
-        ENVPTR->ReleaseIntArrayElements(ENVPAR libversion, (jint*)theArray, JNI_ABORT);
-        h5libraryError(env);
-    }
-    ENVPTR->ReleaseIntArrayElements(ENVPAR libversion, (jint*)theArray,0);
-
+            if (status < 0) {
+                ENVPTR->ReleaseIntArrayElements(ENVPAR libversion, (jint*)theArray, JNI_ABORT);
+                h5libraryError(env);
+            } /* end if */
+            ENVPTR->ReleaseIntArrayElements(ENVPAR libversion, (jint*)theArray,0);
+        } /* end else */
+    } /* end else */
     return (jint)status;
-}
+} /* end Java_hdf_hdf5lib_H5_H5get_1libversion */
 
 /*
  * Class:     hdf_hdf5lib_H5
@@ -127,8 +126,8 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5get_1libversion
 JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5check_1version
   (JNIEnv *env, jclass clss, jint majnum, jint minnum, jint relnum)
 {
-    return H5check_version((unsigned)majnum, (unsigned)minnum, (unsigned)relnum);
-}
+    return (jint)H5check_version((unsigned)majnum, (unsigned)minnum, (unsigned)relnum);
+} /* end Java_hdf_hdf5lib_H5_H5check_1version */
 
 /*
  * Class:     hdf_hdf5lib_H5
@@ -144,7 +143,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5garbage_1collect
         h5libraryError(env);
     }
     return (jint)retVal;
-}
+} /* end Java_hdf_hdf5lib_H5_H5garbage_1collect */
 
 /*
  * Class:     hdf_hdf5lib_H5
@@ -155,13 +154,13 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5set_1free_1list_1limits
   (JNIEnv *env, jclass clss, jint reg_global_lim, jint reg_list_lim,
   jint arr_global_lim, jint arr_list_lim, jint blk_global_lim, jint blk_list_lim )
 {
-    int retVal = H5set_free_list_limits((int)reg_global_lim, (int)reg_list_lim,
+    herr_t retVal = H5set_free_list_limits((int)reg_global_lim, (int)reg_list_lim,
         (int)arr_global_lim, (int)arr_list_lim, (int)blk_global_lim, (int)blk_list_lim);
     if (retVal < 0) {
         h5libraryError(env);
     }
-    return retVal;
-}
+    return (jint)retVal;
+} /* end Java_hdf_hdf5lib_H5_H5set_1free_1list_1limits */
 
 /*
  * Class:     hdf_hdf5lib_H5
@@ -173,8 +172,8 @@ JNIEXPORT jboolean JNICALL Java_hdf_hdf5lib_H5_H5is_1library_1threadsafe
 {
     hbool_t is_ts = false;
     H5is_library_threadsafe(&is_ts);
-    return is_ts;
-}
+    return (jboolean)is_ts;
+} /* end Java_hdf_hdf5lib_H5_H5is_1library_1threadsafe */
 
 
 #ifdef __cplusplus
