@@ -49,9 +49,9 @@ JNIEXPORT jint JNICALL
 Java_hdf_hdf5lib_H5_H5open(JNIEnv *env, jclass clss)
 {
     herr_t retVal = H5open();
-    if (retVal < 0) {
+    if (retVal < 0)
         h5libraryError(env);
-    }
+
     return (jint)retVal;
 } /* end Java_hdf_hdf5lib_H5_H5open */
 
@@ -64,9 +64,9 @@ JNIEXPORT jint JNICALL
 Java_hdf_hdf5lib_H5_H5close(JNIEnv *env, jclass clss)
 {
     herr_t retVal = H5close();
-    if (retVal < 0) {
+    if (retVal < 0)
         h5libraryError(env);
-    }
+
     return (jint)retVal;
 } /* end Java_hdf_hdf5lib_H5_H5close */
 
@@ -79,9 +79,9 @@ JNIEXPORT jint JNICALL
 Java_hdf_hdf5lib_H5_H5dont_1atexit(JNIEnv *env, jclass clss)
 {
     herr_t retVal = H5dont_atexit();
-    if (retVal < 0) {
+    if (retVal < 0)
         h5libraryError(env);
-    }
+
     return (jint)retVal;
 } /* end Java_hdf_hdf5lib_H5_H5dont_1atexit */
 
@@ -139,9 +139,9 @@ JNIEXPORT jint JNICALL
 Java_hdf_hdf5lib_H5_H5garbage_1collect(JNIEnv *env, jclass clss)
 {
     herr_t retVal = H5garbage_collect();
-    if (retVal < 0) {
+    if (retVal < 0)
         h5libraryError(env);
-    }
+
     return (jint)retVal;
 } /* end Java_hdf_hdf5lib_H5_H5garbage_1collect */
 
@@ -156,9 +156,9 @@ Java_hdf_hdf5lib_H5_H5set_1free_1list_1limits(JNIEnv *env, jclass clss, jint reg
 {
     herr_t retVal = H5set_free_list_limits((int)reg_global_lim, (int)reg_list_lim,
         (int)arr_global_lim, (int)arr_list_lim, (int)blk_global_lim, (int)blk_list_lim);
-    if (retVal < 0) {
+    if (retVal < 0)
         h5libraryError(env);
-    }
+
     return (jint)retVal;
 } /* end Java_hdf_hdf5lib_H5_H5set_1free_1list_1limits */
 
