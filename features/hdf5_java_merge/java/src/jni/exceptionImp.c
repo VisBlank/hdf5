@@ -120,7 +120,7 @@ walk_error_callback(unsigned n, const H5E_error2_t *err_desc, void *_err_nums)
  *
  */
 JNIEXPORT jint JNICALL
-Java_hdf_hdf5lib_H5_H5error_1off(JNIEnv *env, jclass clss )
+Java_hdf_hdf5lib_H5_H5error_1off(JNIEnv *env, jclass clss)
 {
     H5Eset_auto2(H5E_DEFAULT, NULL, NULL);
     return 0;

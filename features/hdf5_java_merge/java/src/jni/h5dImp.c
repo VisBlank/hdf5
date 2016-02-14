@@ -21,7 +21,7 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif
+#endif /* __cplusplus */
 
 #include <jni.h>
 #include <stdio.h>
@@ -1824,5 +1824,5 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Diterate
 
 
 #ifdef __cplusplus
-}
-#endif
+} /* end extern "C" */
+#endif /* __cplusplus */

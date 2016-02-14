@@ -18,9 +18,10 @@
 
 #ifndef _Included_hdf_hdf5lib_H5_H5
 #define _Included_hdf_hdf5lib_H5_H5
+
 #ifdef __cplusplus
 extern "C" {
-#endif
+#endif /* __cplusplus */
 
 /*
  * Class:     hdf_hdf5lib_H5
@@ -88,6 +89,7 @@ JNIEXPORT jboolean JNICALL Java_hdf_hdf5lib_H5_H5is_1library_1threadsafe
   (JNIEnv *, jclass);
 
 #ifdef __cplusplus
-}
-#endif
-#endif
+} /* end extern "C" */
+#endif /* __cplusplus */
+
+#endif /* _Included_hdf_hdf5lib_H5_H5 */

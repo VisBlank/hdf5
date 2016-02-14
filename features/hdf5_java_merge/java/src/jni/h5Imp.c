@@ -21,7 +21,7 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif
+#endif /* __cplusplus */
 
 /*
  *  This code is the C-interface called by Java programs to access the
@@ -78,11 +78,11 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5close
 JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5dont_1atexit
   (JNIEnv *env, jclass clss)
 {
-    int retVal = H5dont_atexit();
+    herr_t retVal = H5dont_atexit();
     if (retVal < 0) {
         h5libraryError(env);
     }
-    return retVal;
+    return (jint)retVal;
 }
 
 /*
@@ -178,5 +178,5 @@ JNIEXPORT jboolean JNICALL Java_hdf_hdf5lib_H5_H5is_1library_1threadsafe
 
 
 #ifdef __cplusplus
-}
-#endif
+} /* end extern "C" */
+#endif /* __cplusplus */

@@ -21,7 +21,7 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif
+#endif /* __cplusplus */
 
 #include <stdlib.h>
 #include "hdf5.h"
@@ -759,5 +759,5 @@ static herr_t H5O_iterate_cb(hid_t g_id, const char *name, const H5O_info_t *inf
 
 
 #ifdef __cplusplus
-}
-#endif
+} /* end extern "C" */
+#endif /* __cplusplus */

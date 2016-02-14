@@ -21,7 +21,7 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif
+#endif /* __cplusplus */
 
 
     /*
@@ -177,6 +177,7 @@ extern "C" {
       (JNIEnv*, jclass, jint);
 
 #ifdef __cplusplus
-}
-#endif
-#endif
+} /* end extern "C" */
+#endif /* __cplusplus */
+
+#endif /* _Included_hdf_hdf5lib_H5_H5L */

@@ -21,7 +21,7 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif
+#endif /* __cplusplus */
 
 #include <stdlib.h>
 #include "hdf5.h"
@@ -4802,5 +4802,5 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Pset_1file_1space
 }
 
 #ifdef __cplusplus
-}
-#endif
+} /* end extern "C" */
+#endif /* __cplusplus */

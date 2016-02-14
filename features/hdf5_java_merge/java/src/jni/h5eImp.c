@@ -21,7 +21,7 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif
+#endif /* __cplusplus */
 
 /*
  *  This code is the C-interface called by Java programs to access the
@@ -563,5 +563,5 @@ static herr_t H5E_walk_cb(int nindx, const H5E_error2_t *info, void *op_data);
     }
 
 #ifdef __cplusplus
-}
-#endif
+} /* end extern "C" */
+#endif /* __cplusplus */

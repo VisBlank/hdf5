@@ -18,9 +18,10 @@
 
 #ifndef _Included_hdf_hdf5lib_H5_H5PL
 #define _Included_hdf_hdf5lib_H5_H5PL
+
 #ifdef __cplusplus
 extern "C" {
-#endif
+#endif /* __cplusplus */
 
 /*
  * Class:     hdf_hdf5lib_H5
@@ -39,6 +40,7 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5PLget_1loading_1state
   (JNIEnv *, jclass);
 
 #ifdef __cplusplus
-}
-#endif
-#endif
+} /* end extern "C" */
+#endif /* __cplusplus */
+
+#endif /* _Included_hdf_hdf5lib_H5_H5PL */

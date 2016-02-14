@@ -21,7 +21,7 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif
+#endif /* __cplusplus */
 
 
 /*
@@ -90,6 +90,7 @@ JNIEXPORT jobject JNICALL Java_hdf_hdf5lib_H5_H5Gget_1info_1by_1idx
   (JNIEnv*, jclass, jlong, jstring, jint, jint, jlong, jlong);
 
 #ifdef __cplusplus
-}
-#endif
-#endif
+} /* end extern "C" */
+#endif /* __cplusplus */
+
+#endif /* _Included_hdf_hdf5lib_H5_H5G */

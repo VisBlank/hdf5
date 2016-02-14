@@ -48,12 +48,6 @@ Java_hdf_hdf5lib_exceptions_HDF5LibraryException_printStackTrace0(JNIEnv *env,
  * Class:     hdf_hdf5lib_exceptions_HDFLibraryException
  * Method:    getMajorErrorNumber
  * Signature: ()J
- *
- *  Extract the HDF-5 major error number from the HDF-5 error stack.
- *
- *  Note:  This relies on undocumented, 'private' code in the HDF-5
- *  library.  Later releases will have a public interface for this
- *  purpose.
  */
 JNIEXPORT jlong JNICALL
 Java_hdf_hdf5lib_exceptions_HDF5LibraryException_getMajorErrorNumber(JNIEnv *env, jobject obj);
@@ -62,12 +56,6 @@ Java_hdf_hdf5lib_exceptions_HDF5LibraryException_getMajorErrorNumber(JNIEnv *env
  * Class:     hdf_hdf5lib_exceptions_HDFLibraryException
  * Method:    getMinorErrorNumber
  * Signature: ()J
- *
- *  Extract the HDF-5 minor error number from the HDF-5 error stack.
- *
- *  Note:  This relies on undocumented, 'private' code in the HDF-5
- *  library.  Later releases will have a public interface for this
- *  purpose.
  */
 JNIEXPORT jlong JNICALL
 Java_hdf_hdf5lib_exceptions_HDF5LibraryException_getMinorErrorNumber(JNIEnv *env, jobject obj);
@@ -77,4 +65,3 @@ Java_hdf_hdf5lib_exceptions_HDF5LibraryException_getMinorErrorNumber(JNIEnv *env
 #endif /* __cplusplus */
 
 #endif /* _Included_hdf_hdf5lib_H5_exception */
-

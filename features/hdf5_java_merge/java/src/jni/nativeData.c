@@ -39,7 +39,7 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif
+#endif /* __cplusplus */
 
 #include <jni.h>
 #include "hdf5.h"

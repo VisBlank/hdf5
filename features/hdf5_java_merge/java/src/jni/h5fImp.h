@@ -21,7 +21,7 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif
+#endif /* __cplusplus */
 
 /*
  * Class:     hdf_hdf5lib_H5
@@ -216,6 +216,7 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Fclear_1elink_1file_1cache
   (JNIEnv *, jclass, jlong);
 
 #ifdef __cplusplus
-}
-#endif
-#endif
+} /* end extern "C" */
+#endif /* __cplusplus */
+
+#endif /* _Included_hdf_hdf5lib_H5_H5F */

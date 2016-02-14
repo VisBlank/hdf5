@@ -28,28 +28,24 @@
 #define _Included_h5jni
 
 #ifdef __cplusplus
-#define ENVPTR (env)
-#define ENVPAR
-#define ENVONLY
-#else
-#define ENVPTR (*env)
-#define ENVPAR env,
-#define ENVONLY env
-#endif
-
-#ifdef __cplusplus
+  #define ENVPTR (env)
+  #define ENVPAR
+  #define ENVONLY
   #define CBENVPTR (cbenv)
   #define CBENVPAR
   #define JVMPTR (jvm)
   #define JVMPAR
   #define JVMPAR2
-#else
+#else /* __cplusplus */
+  #define ENVPTR (*env)
+  #define ENVPAR env,
+  #define ENVONLY env
   #define CBENVPTR (*cbenv)
   #define CBENVPAR cbenv,
   #define JVMPTR (*jvm)
   #define JVMPAR jvm
   #define JVMPAR2 jvm,
-#endif
+#endif /* __cplusplus */
 
 /* Macros for class access */
 /* Calling code must define ret_obj as jobject */
@@ -228,7 +224,7 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif
+#endif /* __cplusplus *
 
 extern jboolean h5JNIFatalError(JNIEnv *, const char *);
 extern jboolean h5nullArgument(JNIEnv *, const char *);
@@ -247,7 +243,7 @@ extern jobject get_enum_object(JNIEnv *env, const char* enum_class_name,
 extern jobject create_H5G_info_t(JNIEnv *env, H5G_info_t group_info);
 
 #ifdef __cplusplus
-}
-#endif
+} /* end extern "C" */
+#endif /* __cplusplus */
 
-#endif
+#endif /* _Included_h5jni */

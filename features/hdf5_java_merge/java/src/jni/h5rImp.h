@@ -18,9 +18,10 @@
 
 #ifndef _Included_hdf_hdf5lib_H5_H5R
 #define _Included_hdf_hdf5lib_H5_H5R
+
 #ifdef __cplusplus
 extern "C" {
-#endif
+#endif /* __cplusplus */
 
 /*
  * Class:     hdf_hdf5lib_H5
@@ -71,6 +72,7 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5_H5Rget_1name
   (JNIEnv *, jclass, jlong, jint, jbyteArray, jobjectArray, jlong);
 
 #ifdef __cplusplus
-}
-#endif
-#endif
+} /* end extern "C" */
+#endif /* __cplusplus */
+
+#endif /* _Included_hdf_hdf5lib_H5_H5R */
