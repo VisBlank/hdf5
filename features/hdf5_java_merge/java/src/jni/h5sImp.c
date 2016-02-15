@@ -1234,8 +1234,6 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Sget_1regular_1hyperslab(JNIEnv *en
     hsize_t *blk;
     int rank;
     int i;
-    hsize_t *lp;
-    jlong *jlp;
 
     if (start == NULL) {
         h5nullArgument(env, "H5Sget_regular_hyperslab:  start is NULL");

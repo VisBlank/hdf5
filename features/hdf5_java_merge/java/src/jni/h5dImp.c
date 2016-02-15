@@ -253,8 +253,8 @@ H5Tdetect_variable_str(hid_t tid) {
 
     if (H5Tget_class(tid) == H5T_COMPOUND) {
         unsigned i;
-        int nm = H5Tget_nmembers(tid);
-        for(i = 0; i <nm; i++) {
+        unsigned nm = (unsigned)H5Tget_nmembers(tid);
+        for(i = 0; i < nm; i++) {
             hid_t mtid = H5Tget_member_type(tid, i);
             ret_val = H5Tdetect_variable_str(mtid);
             H5Tclose (mtid);
@@ -1172,7 +1172,6 @@ Java_hdf_hdf5lib_H5_H5DwriteNotString(JNIEnv *env, jclass clss, jlong dataset_id
     jbyte   *buffP;
     jboolean isCopy;
     jint    i;
-    jint    j;
 
     if (buf == NULL) {
         h5nullArgument(env, "H5DwriteNotString:  buf is NULL");
@@ -1245,8 +1244,8 @@ Java_hdf_hdf5lib_H5_H5DreadVL(JNIEnv *env, jclass clss, jlong dataset_id, jlong 
 
     if (H5Tget_class((hid_t)mem_type_id) == H5T_COMPOUND) {
         unsigned i;
-        int nm = H5Tget_nmembers(mem_type_id);
-        for(i = 0; i <nm; i++) {
+        unsigned nm = (unsigned)H5Tget_nmembers(mem_type_id);
+        for(i = 0; i < nm; i++) {
             hid_t nested_tid = H5Tget_member_type((hid_t)mem_type_id, i);
             isComplex = H5Tdetect_class((hid_t)nested_tid, H5T_COMPOUND) ||
                         H5Tdetect_class((hid_t)nested_tid, H5T_VLEN);
