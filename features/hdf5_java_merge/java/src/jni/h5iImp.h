@@ -117,7 +117,7 @@ JNIEXPORT jboolean JNICALL Java_hdf_hdf5lib_H5_H5Iis_1valid
  * Method:    H5Itype_exists
  * Signature: (I)Z
  */
-JNIEXPORT jboolean JNICALL Java_hdf_hdf5lib_H5_H5Itype_1xists
+JNIEXPORT jboolean JNICALL Java_hdf_hdf5lib_H5_H5Itype_1exists
   (JNIEnv*, jclass, jint);
 
 /*
