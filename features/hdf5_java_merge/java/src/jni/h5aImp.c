@@ -702,7 +702,7 @@ Java_hdf_hdf5lib_H5_H5Adelete_1by_1name(JNIEnv *env, jclass clss, jlong loc_id, 
 JNIEXPORT jboolean JNICALL
 Java_hdf_hdf5lib_H5_H5Aexists(JNIEnv *env, jclass clss, jlong obj_id, jstring attr_name)
 {
-    htri_t      bval = 0;
+    htri_t      bval = JNI_FALSE;
     const char *aName;
 
     PIN_JAVA_STRING(attr_name, aName, JNI_FALSE);
@@ -711,16 +711,12 @@ Java_hdf_hdf5lib_H5_H5Aexists(JNIEnv *env, jclass clss, jlong obj_id, jstring at
 
     UNPIN_JAVA_STRING(attr_name, aName);
 
-    if (bval > 0) {
-        return JNI_TRUE;
-    } /* end if */
-    else if (bval == 0) {
-        return JNI_FALSE;
-    } /* end else if */
-    else {
+    if (bval > 0)
+        bval = JNI_TRUE;
+    else if (bval < 0)
         h5libraryError(env);
-        return JNI_FALSE;
-    } /* end else */
+
+    return (jboolean)bval;
 } /* end Java_hdf_hdf5lib_H5_H5Aexists */
 
 /*

@@ -678,7 +678,7 @@ Java_hdf_hdf5lib_H5_H5Oget_1comment_1by_1name(JNIEnv *env, jclass clss, jlong lo
 JNIEXPORT jboolean JNICALL
 Java_hdf_hdf5lib_H5_H5Oexists_1by_1name(JNIEnv *env, jclass clss, jlong loc_id, jstring name, jlong access_id)
 {
-    htri_t      bval;
+    htri_t      bval = JNI_FALSE;
     const char *oName;
 
     PIN_JAVA_STRING(name, oName, JNI_FALSE);
@@ -687,13 +687,12 @@ Java_hdf_hdf5lib_H5_H5Oexists_1by_1name(JNIEnv *env, jclass clss, jlong loc_id, 
 
     UNPIN_JAVA_STRING(name, oName);
 
-    if (bval > 0) {
-        return JNI_TRUE;
-    } /* end if */
-    else if (bval < 0) {
+    if (bval > 0)
+        bval = JNI_TRUE;
+    else if (bval < 0)
         h5libraryError(env);
-    } /* end else if */
-    return JNI_FALSE;
+
+    return (jboolean)bval;
 } /* end Java_hdf_hdf5lib_H5_H5Oexists_1by_1name */
 
 /*

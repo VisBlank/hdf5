@@ -192,13 +192,12 @@ Java_hdf_hdf5lib_H5_H5Lexists(JNIEnv *env, jclass clss, jlong loc_id, jstring na
 
     UNPIN_JAVA_STRING(name, lName);
 
-    if (bval > 0) {
-        return JNI_TRUE;
-    }
-    else if (bval < 0) {
+    if (bval > 0)
+        bval = JNI_TRUE;
+    else if (bval < 0)
         h5libraryError(env);
-    }
-    return JNI_FALSE;
+
+    return (jboolean)bval;
 } /* end Java_hdf_hdf5lib_H5_H5Lexists */
 
 /*

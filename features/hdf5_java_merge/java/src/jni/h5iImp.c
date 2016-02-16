@@ -234,14 +234,12 @@ Java_hdf_hdf5lib_H5_H5Iis_1valid(JNIEnv *env, jclass clss, jlong obj_id)
     htri_t bval = JNI_FALSE;
 
     bval = H5Iis_valid((hid_t)obj_id);
-    if (bval > 0) {
-        return JNI_TRUE;
-    } /* end if */
-    else if (bval < 0) {
+    if (bval > 0)
+        bval = JNI_TRUE;
+    else if (bval < 0)
         h5libraryError(env);
-    } /* end else if */
 
-    return JNI_FALSE;
+    return (jboolean)bval;
 } /* end Java_hdf_hdf5lib_H5_H5Iis_1valid */
 /*
  * Class:     hdf_hdf5lib_H5
@@ -254,14 +252,12 @@ Java_hdf_hdf5lib_H5_H5Itype_1exists(JNIEnv *env, jclass clss, jint type)
     htri_t bval = JNI_FALSE;
 
     bval = H5Itype_exists((H5I_type_t)type);
-    if (bval > 0) {
-        return JNI_TRUE;
-    } /* end if */
-    else if (bval < 0) {
+    if (bval > 0)
+        bval = JNI_TRUE;
+    else if (bval < 0)
         h5libraryError(env);
-    }
 
-    return JNI_FALSE;
+    return (jboolean)bval;
 } /* end else Java_hdf_hdf5lib_H5_H5Itype_1exists */
 
 /*

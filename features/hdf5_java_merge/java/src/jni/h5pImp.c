@@ -1783,12 +1783,11 @@ Java_hdf_hdf5lib_H5_H5Pall_1filters_1avail(JNIEnv *env, jclass clss, jlong dcpl_
 
     bval = H5Pall_filters_avail((hid_t)dcpl_id);
     if (bval > 0)
-        return JNI_TRUE;
-
+        bval = JNI_TRUE;
     else if (bval < 0)
         h5libraryError(env);
 
-    return JNI_FALSE;
+    return (jboolean)bval;
 } /* end Java_hdf_hdf5lib_H5_H5Pall_1filters_1avail */
 
 /*
