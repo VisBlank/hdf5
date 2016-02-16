@@ -48,13 +48,11 @@ extern "C" {
 
 
 /* returns int [] */
-JNIEXPORT jintArray JNICALL Java_hdf_hdf5lib_HDFNativeData_byteToInt___3B
-( JNIEnv *env,
-jclass clss,
-jbyteArray bdata)  /* IN: array of bytes */
+JNIEXPORT jintArray JNICALL
+Java_hdf_hdf5lib_HDFNativeData_byteToInt___3B(JNIEnv *env, jclass clss, jbyteArray bdata)  /* IN: array of bytes */
 {
     jbyte *barr;
-    jintArray rarray;
+    jintArray rarray = NULL;
     int blen;
     jint *iarray;
     jboolean bb;
@@ -65,51 +63,48 @@ jbyteArray bdata)  /* IN: array of bytes */
 
     if (bdata == NULL) {
         h5nullArgument( env,  "byteToInt: bdata is NULL?");
-        return NULL;
-    }
-    barr = ENVPTR->GetByteArrayElements(ENVPAR bdata,&bb);
-    if (barr == NULL) {
-        h5JNIFatalError(env,  "byteToInt: pin failed");
-        return NULL;
-    }
+    } /* end if */
+    else {
+        barr = ENVPTR->GetByteArrayElements(ENVPAR bdata,&bb);
+        if (barr == NULL) {
+            h5JNIFatalError(env,  "byteToInt: pin failed");
+        } /* end if */
+        else {
+            blen = ENVPTR->GetArrayLength(ENVPAR bdata);
 
-    blen = ENVPTR->GetArrayLength(ENVPAR bdata);
+            len = blen/(int)sizeof(jint);
+            rarray = ENVPTR->NewIntArray(ENVPAR len);
+            if (rarray == NULL) {
+                ENVPTR->ReleaseByteArrayElements(ENVPAR bdata,barr,JNI_ABORT);
+                h5outOfMemory( env,  "byteToInt" );
+                return NULL;
+            } /* end if */
 
-    len = blen/(int)sizeof(jint);
-    rarray = ENVPTR->NewIntArray(ENVPAR len);
-    if (rarray == NULL) {
+            iarray = ENVPTR->GetIntArrayElements(ENVPAR rarray,&bb);
+            if (iarray == NULL) {
+                ENVPTR->ReleaseByteArrayElements(ENVPAR bdata,barr,JNI_ABORT);
+                h5JNIFatalError(env,  "byteToInt: pin iarray failed");
+                return NULL;
+            } /* end if */
+
+            bp = (char *)barr;
+            iap = iarray;
+            for (ii = 0; ii < len; ii++) {
+                *iap = *(jint *)bp;
+                iap++;
+                bp += sizeof(jint);
+            } /* end for */
+
+            ENVPTR->ReleaseIntArrayElements(ENVPAR rarray,iarray, 0);
+        } /* end else */
         ENVPTR->ReleaseByteArrayElements(ENVPAR bdata,barr,JNI_ABORT);
-        h5outOfMemory( env,  "byteToInt" );
-        return NULL;
-    }
-
-    iarray = ENVPTR->GetIntArrayElements(ENVPAR rarray,&bb);
-    if (iarray == NULL) {
-        ENVPTR->ReleaseByteArrayElements(ENVPAR bdata,barr,JNI_ABORT);
-        h5JNIFatalError(env,  "byteToInt: pin iarray failed");
-        return NULL;
-    }
-
-    bp = (char *)barr;
-    iap = iarray;
-    for (ii = 0; ii < len; ii++) {
-        *iap = *(jint *)bp;
-        iap++;
-        bp += sizeof(jint);
-    }
-
-    ENVPTR->ReleaseIntArrayElements(ENVPAR rarray,iarray, 0);
-    ENVPTR->ReleaseByteArrayElements(ENVPAR bdata,barr,JNI_ABORT);
-
+    }  /* end else */
     return rarray;
-
-}
+} /* end Java_hdf_hdf5lib_HDFNativeData_byteToInt___3B */
 
 /* returns float [] */
-JNIEXPORT jfloatArray JNICALL Java_hdf_hdf5lib_HDFNativeData_byteToFloat___3B
-( JNIEnv *env,
-jclass clss,
-jbyteArray bdata)  /* IN: array of bytes */
+JNIEXPORT jfloatArray JNICALL
+Java_hdf_hdf5lib_HDFNativeData_byteToFloat___3B(JNIEnv *env, jclass clss, jbyteArray bdata)  /* IN: array of bytes */
 {
     jbyte *barr;
     jfloatArray rarray;
@@ -124,12 +119,12 @@ jbyteArray bdata)  /* IN: array of bytes */
     if (bdata == NULL) {
         h5nullArgument( env,  "byteToFloat: bdata is NULL?");
         return NULL;
-    }
+    } /* end if */
     barr = ENVPTR->GetByteArrayElements(ENVPAR bdata,&bb);
     if (barr == NULL) {
         h5JNIFatalError(env,  "byteToFloat: pin failed");
         return NULL;
-    }
+    } /* end if */
     blen = ENVPTR->GetArrayLength(ENVPAR bdata);
 
     len = blen/(int)sizeof(jfloat);
@@ -138,13 +133,13 @@ jbyteArray bdata)  /* IN: array of bytes */
         ENVPTR->ReleaseByteArrayElements(ENVPAR bdata,barr,JNI_ABORT);
         h5outOfMemory( env,  "byteToFloat" );
         return NULL;
-    }
+    } /* end if */
     farray = ENVPTR->GetFloatArrayElements(ENVPAR rarray,&bb);
     if (farray == NULL) {
         ENVPTR->ReleaseByteArrayElements(ENVPAR bdata,barr,JNI_ABORT);
         h5JNIFatalError(env,  "byteToFloat: pin farray failed");
         return NULL;
-    }
+    } /* end if */
 
     bp = (char *)barr;
     iap = farray;
@@ -152,20 +147,17 @@ jbyteArray bdata)  /* IN: array of bytes */
         *iap = *(jfloat *)bp;
         iap++;
         bp += sizeof(jfloat);
-    }
+    } /* end for */
 
     ENVPTR->ReleaseFloatArrayElements(ENVPAR rarray,farray, 0);
     ENVPTR->ReleaseByteArrayElements(ENVPAR bdata,barr,JNI_ABORT);
 
     return rarray;
-
-}
+} /* end Java_hdf_hdf5lib_HDFNativeData_byteToFloat___3B */
 
 /* returns short [] */
-JNIEXPORT jshortArray JNICALL Java_hdf_hdf5lib_HDFNativeData_byteToShort___3B
-( JNIEnv *env,
-jclass clss,
-jbyteArray bdata)  /* IN: array of bytes */
+JNIEXPORT jshortArray JNICALL
+Java_hdf_hdf5lib_HDFNativeData_byteToShort___3B(JNIEnv *env, jclass clss, jbyteArray bdata)  /* IN: array of bytes */
 {
     jbyte *barr;
     jshortArray rarray;
@@ -180,12 +172,12 @@ jbyteArray bdata)  /* IN: array of bytes */
     if (bdata == NULL) {
         h5nullArgument( env,  "byteToShort: bdata is NULL?");
         return NULL;
-    }
+    } /* end if */
     barr = ENVPTR->GetByteArrayElements(ENVPAR bdata,&bb);
     if (barr == NULL) {
         h5JNIFatalError(env,  "byteToShort: pin failed");
         return NULL;
-    }
+    } /* end if */
 
     blen = ENVPTR->GetArrayLength(ENVPAR bdata);
 
@@ -195,14 +187,14 @@ jbyteArray bdata)  /* IN: array of bytes */
         ENVPTR->ReleaseByteArrayElements(ENVPAR bdata,barr,JNI_ABORT);
         h5outOfMemory( env,  "byteToShort" );
         return NULL;
-    }
+    } /* end if */
 
     sarray = ENVPTR->GetShortArrayElements(ENVPAR rarray,&bb);
     if (sarray == NULL) {
         ENVPTR->ReleaseByteArrayElements(ENVPAR bdata,barr,JNI_ABORT);
         h5JNIFatalError(env,  "byteToShort: pin sarray failed");
         return NULL;
-    }
+    } /* end if */
 
     bp = (char *)barr;
     iap = sarray;
@@ -210,21 +202,18 @@ jbyteArray bdata)  /* IN: array of bytes */
         *iap = *(jshort *)bp;
         iap++;
         bp += sizeof(jshort);
-    }
+    } /* end for */
 
     ENVPTR->ReleaseShortArrayElements(ENVPAR rarray,sarray, 0);
     ENVPTR->ReleaseByteArrayElements(ENVPAR bdata,barr,JNI_ABORT);
 
     return rarray;
-
-}
+} /* end Java_hdf_hdf5lib_HDFNativeData_byteToShort___3B */
 
 
 /* returns long [] */
-JNIEXPORT jlongArray JNICALL Java_hdf_hdf5lib_HDFNativeData_byteToLong___3B
-( JNIEnv *env,
-jclass clss,
-jbyteArray bdata)  /* IN: array of bytes */
+JNIEXPORT jlongArray JNICALL
+Java_hdf_hdf5lib_HDFNativeData_byteToLong___3B(JNIEnv *env, jclass clss, jbyteArray bdata)  /* IN: array of bytes */
 {
     jbyte *barr;
     jlongArray rarray;
@@ -239,12 +228,12 @@ jbyteArray bdata)  /* IN: array of bytes */
     if (bdata == NULL) {
         h5nullArgument( env,  "byteToLong: bdata is NULL?");
         return NULL;
-    }
+    } /* end if */
     barr = ENVPTR->GetByteArrayElements(ENVPAR bdata,&bb);
     if (barr == NULL) {
         h5JNIFatalError(env,  "byteToLong: pin failed");
         return NULL;
-    }
+    } /* end if */
     blen = ENVPTR->GetArrayLength(ENVPAR bdata);
 
     len = blen/(int)sizeof(jlong);
@@ -253,14 +242,14 @@ jbyteArray bdata)  /* IN: array of bytes */
         ENVPTR->ReleaseByteArrayElements(ENVPAR bdata,barr,JNI_ABORT);
         h5outOfMemory( env,  "byteToLong" );
         return NULL;
-    }
+    } /* end if */
 
     larray = ENVPTR->GetLongArrayElements(ENVPAR rarray,&bb);
     if (larray == NULL) {
         ENVPTR->ReleaseByteArrayElements(ENVPAR bdata,barr,JNI_ABORT);
         h5JNIFatalError(env,  "byteToLong: pin larray failed");
         return NULL;
-    }
+    } /* end if */
 
     bp = (char *)barr;
     iap = larray;
@@ -268,19 +257,17 @@ jbyteArray bdata)  /* IN: array of bytes */
         *iap = *(jlong *)bp;
         iap++;
         bp += sizeof(jlong);
-    }
+    } /* end for */
     ENVPTR->ReleaseLongArrayElements(ENVPAR rarray,larray, 0);
     ENVPTR->ReleaseByteArrayElements(ENVPAR bdata,barr,JNI_ABORT);
 
     return rarray;
-}
+} /* end Java_hdf_hdf5lib_HDFNativeData_byteToLong___3B */
 
 
 /* returns double [] */
-JNIEXPORT jdoubleArray JNICALL Java_hdf_hdf5lib_HDFNativeData_byteToDouble___3B
-( JNIEnv *env,
-jclass clss,
-jbyteArray bdata)  /* IN: array of bytes */
+JNIEXPORT jdoubleArray JNICALL
+Java_hdf_hdf5lib_HDFNativeData_byteToDouble___3B(JNIEnv *env, jclass clss, jbyteArray bdata)  /* IN: array of bytes */
 {
     jbyte *barr;
     jdoubleArray rarray;
@@ -295,12 +282,12 @@ jbyteArray bdata)  /* IN: array of bytes */
     if (bdata == NULL) {
         h5nullArgument( env,  "byteToDouble: bdata is NULL?");
         return NULL;
-    }
+    } /* end if */
     barr = ENVPTR->GetByteArrayElements(ENVPAR bdata,&bb);
     if (barr == NULL) {
         h5JNIFatalError(env,  "byteToDouble: pin failed");
         return NULL;
-    }
+    } /* end if */
     blen = ENVPTR->GetArrayLength(ENVPAR bdata);
 
     len = blen/(int)sizeof(jdouble);
@@ -309,14 +296,14 @@ jbyteArray bdata)  /* IN: array of bytes */
         ENVPTR->ReleaseByteArrayElements(ENVPAR bdata,barr,JNI_ABORT);
         h5outOfMemory( env,  "byteToDouble" );
         return NULL;
-    }
+    } /* end if */
 
     darray = ENVPTR->GetDoubleArrayElements(ENVPAR rarray,&bb);
     if (darray == NULL) {
         ENVPTR->ReleaseByteArrayElements(ENVPAR bdata,barr,JNI_ABORT);
         h5JNIFatalError(env,  "byteToDouble: pin darray failed");
         return NULL;
-    }
+    } /* end if */
 
     bp = (char *)barr;
     iap = darray;
@@ -324,22 +311,18 @@ jbyteArray bdata)  /* IN: array of bytes */
         *iap = *(jdouble *)bp;
         iap++;
         bp += sizeof(jdouble);
-    }
+    } /* end for */
 
     ENVPTR->ReleaseDoubleArrayElements(ENVPAR rarray,darray,0);
     ENVPTR->ReleaseByteArrayElements(ENVPAR bdata,barr,JNI_ABORT);
 
     return rarray;
-}
+} /* end Java_hdf_hdf5lib_HDFNativeData_byteToDouble___3B */
 
 
 /* returns int [] */
-JNIEXPORT jintArray JNICALL Java_hdf_hdf5lib_HDFNativeData_byteToInt__II_3B
-( JNIEnv *env,
-jclass clss,
-jint start,
-jint len,
-jbyteArray bdata)  /* IN: array of bytes */
+JNIEXPORT jintArray JNICALL
+Java_hdf_hdf5lib_HDFNativeData_byteToInt__II_3B(JNIEnv *env, jclass clss, jint start, jint len, jbyteArray bdata)  /* IN: array of bytes */
 {
     char *bp;
     jbyte *barr;
@@ -353,19 +336,19 @@ jbyteArray bdata)  /* IN: array of bytes */
     if (bdata == NULL) {
         h5nullArgument( env,  "byteToInt: bdata is NULL?");
         return NULL;
-    }
+    } /* end if */
     barr = ENVPTR->GetByteArrayElements(ENVPAR bdata,&bb);
     if (barr == NULL) {
         h5JNIFatalError(env,  "byteToInt: pin failed");
         return NULL;
-    }
+    } /* end if */
 
     blen = ENVPTR->GetArrayLength(ENVPAR bdata);
     if ((start < 0) || ((int)(start + (len*(int)sizeof(jint))) > blen)) {
         ENVPTR->ReleaseByteArrayElements(ENVPAR bdata,barr,JNI_ABORT);
         h5JNIFatalError(env,  "byteToInt: getLen failed");
         return NULL;
-    }
+    } /* end if */
 
     bp = (char *)barr + start;
 
@@ -374,35 +357,31 @@ jbyteArray bdata)  /* IN: array of bytes */
         ENVPTR->ReleaseByteArrayElements(ENVPAR bdata,barr,JNI_ABORT);
         h5outOfMemory( env,  "byteToInt" );
         return NULL;
-    }
+    } /* end if */
 
     iarray = ENVPTR->GetIntArrayElements(ENVPAR rarray,&bb);
     if (iarray == NULL) {
         ENVPTR->ReleaseByteArrayElements(ENVPAR bdata,barr,JNI_ABORT);
         h5JNIFatalError(env,  "byteToInt: pin iarray failed");
         return NULL;
-    }
+    } /* end if */
 
     iap = iarray;
     for (ii = 0; ii < len; ii++) {
         *iap = *(jint *)bp;
         iap++;
         bp += sizeof(jint);
-    }
+    } /* end for */
 
     ENVPTR->ReleaseIntArrayElements(ENVPAR rarray,iarray, 0);
     ENVPTR->ReleaseByteArrayElements(ENVPAR bdata,barr,JNI_ABORT);
 
     return rarray;
-}
+} /* end Java_hdf_hdf5lib_HDFNativeData_byteToInt__II_3B */
 
 /* returns short [] */
-JNIEXPORT jshortArray JNICALL Java_hdf_hdf5lib_HDFNativeData_byteToShort__II_3B
-( JNIEnv *env,
-jclass clss,
-jint start,
-jint len,
-jbyteArray bdata)  /* IN: array of bytes */
+JNIEXPORT jshortArray JNICALL
+Java_hdf_hdf5lib_HDFNativeData_byteToShort__II_3B(JNIEnv *env, jclass clss, jint start, jint len, jbyteArray bdata)  /* IN: array of bytes */
 {
     char *bp;
     jbyte *barr;
@@ -416,19 +395,19 @@ jbyteArray bdata)  /* IN: array of bytes */
     if (bdata == NULL) {
         h5nullArgument( env,  "byteToShort: bdata is NULL?");
         return NULL;
-    }
+    } /* end if */
     barr = ENVPTR->GetByteArrayElements(ENVPAR bdata,&bb);
     if (barr == NULL) {
         h5JNIFatalError( env,  "byteToShort: getByte failed?");
         return NULL;
-    }
+    } /* end if */
 
     blen = ENVPTR->GetArrayLength(ENVPAR bdata);
     if ((start < 0) || ((int)(start + (len*(int)sizeof(jshort))) > blen)) {
         ENVPTR->ReleaseByteArrayElements(ENVPAR bdata,barr,JNI_ABORT);
         h5badArgument( env,  "byteToShort: start or len is out of bounds");
         return NULL;
-    }
+    } /* end if */
 
     bp = (char *)barr + start;
 
@@ -437,36 +416,31 @@ jbyteArray bdata)  /* IN: array of bytes */
         ENVPTR->ReleaseByteArrayElements(ENVPAR bdata,barr,JNI_ABORT);
         h5outOfMemory( env,  "byteToShort" );
         return NULL;
-    }
+    } /* end if */
 
     iarray = ENVPTR->GetShortArrayElements(ENVPAR rarray,&bb);
     if (iarray == NULL) {
         ENVPTR->ReleaseByteArrayElements(ENVPAR bdata,barr,JNI_ABORT);
         h5JNIFatalError( env,  "byteToShort: getShort failed?");
         return NULL;
-    }
+    } /* end if */
 
     iap = iarray;
     for (ii = 0; ii < len; ii++) {
         *iap = *(jshort *)bp;
         iap++;
         bp += sizeof(jshort);
-    }
+    } /* end for */
 
     ENVPTR->ReleaseShortArrayElements(ENVPAR rarray,iarray, 0);
     ENVPTR->ReleaseByteArrayElements(ENVPAR bdata,barr,JNI_ABORT);
 
     return rarray;
-
-}
+} /* end Java_hdf_hdf5lib_HDFNativeData_byteToShort__II_3B */
 
 /* returns float [] */
-JNIEXPORT jfloatArray JNICALL Java_hdf_hdf5lib_HDFNativeData_byteToFloat__II_3B
-( JNIEnv *env,
-jclass clss,
-jint start,
-jint len,
-jbyteArray bdata)  /* IN: array of bytes */
+JNIEXPORT jfloatArray JNICALL
+Java_hdf_hdf5lib_HDFNativeData_byteToFloat__II_3B(JNIEnv *env, jclass clss, jint start, jint len, jbyteArray bdata)  /* IN: array of bytes */
 {
     char *bp;
     jbyte *barr;
@@ -480,19 +454,19 @@ jbyteArray bdata)  /* IN: array of bytes */
     if (bdata == NULL) {
         h5nullArgument( env,  "byteToFloat: bdata is NULL?");
         return NULL;
-    }
+    } /* end if */
     barr = ENVPTR->GetByteArrayElements(ENVPAR bdata,&bb);
     if (barr == NULL) {
         h5JNIFatalError( env,  "byteToFloat: getByte failed?");
         return NULL;
-    }
+    } /* end if */
 
     blen = ENVPTR->GetArrayLength(ENVPAR bdata);
     if ((start < 0) || ((int)(start + (len*(int)sizeof(jfloat))) > blen)) {
         ENVPTR->ReleaseByteArrayElements(ENVPAR bdata,barr,JNI_ABORT);
         h5badArgument( env,  "byteToFloat: start or len is out of bounds");
         return NULL;
-    }
+    } /* end if */
 
     bp = (char *)barr + start;
 
@@ -501,35 +475,31 @@ jbyteArray bdata)  /* IN: array of bytes */
         ENVPTR->ReleaseByteArrayElements(ENVPAR bdata,barr,JNI_ABORT);
         h5outOfMemory( env,  "byteToFloat" );
         return NULL;
-    }
+    } /* end if */
 
     iarray = ENVPTR->GetFloatArrayElements(ENVPAR rarray,&bb);
     if (iarray == NULL) {
         ENVPTR->ReleaseByteArrayElements(ENVPAR bdata,barr,JNI_ABORT);
         h5JNIFatalError( env,  "byteToFloat: getFloat failed?");
         return NULL;
-    }
+    } /* end if */
 
     iap = iarray;
     for (ii = 0; ii < len; ii++) {
         *iap = *(jfloat *)bp;
         iap++;
         bp += sizeof(jfloat);
-    }
+    } /* end for */
 
     ENVPTR->ReleaseFloatArrayElements(ENVPAR rarray,iarray, 0);
     ENVPTR->ReleaseByteArrayElements(ENVPAR bdata,barr,JNI_ABORT);
 
     return rarray;
-}
+} /* end Java_hdf_hdf5lib_HDFNativeData_byteToFloat__II_3B */
 
 /* returns long [] */
-JNIEXPORT jlongArray JNICALL Java_hdf_hdf5lib_HDFNativeData_byteToLong__II_3B
-( JNIEnv *env,
-jclass clss,
-jint start,
-jint len,
-jbyteArray bdata)  /* IN: array of bytes */
+JNIEXPORT jlongArray JNICALL
+Java_hdf_hdf5lib_HDFNativeData_byteToLong__II_3B(JNIEnv *env, jclass clss, jint start, jint len, jbyteArray bdata)  /* IN: array of bytes */
 {
     char *bp;
     jbyte *barr;
@@ -543,19 +513,19 @@ jbyteArray bdata)  /* IN: array of bytes */
     if (bdata == NULL) {
         h5nullArgument( env,  "byteToLong: bdata is NULL?");
         return NULL;
-    }
+    } /* end if */
     barr = ENVPTR->GetByteArrayElements(ENVPAR bdata,&bb);
     if (barr == NULL) {
         h5JNIFatalError( env,  "byteToLong: getByte failed?");
         return NULL;
-    }
+    } /* end if */
 
     blen = ENVPTR->GetArrayLength(ENVPAR bdata);
     if ((start < 0) || ((int)(start + (len*(int)sizeof(jlong))) > blen)) {
         ENVPTR->ReleaseByteArrayElements(ENVPAR bdata,barr,JNI_ABORT);
         h5badArgument( env,  "byteToLong: start or len is out of bounds");
         return NULL;
-    }
+    } /* end if */
 
     bp = (char *)barr + start;
 
@@ -564,14 +534,14 @@ jbyteArray bdata)  /* IN: array of bytes */
         ENVPTR->ReleaseByteArrayElements(ENVPAR bdata,barr,JNI_ABORT);
         h5outOfMemory( env,  "byteToLong" );
         return NULL;
-    }
+    } /* end if */
 
     iarray = ENVPTR->GetLongArrayElements(ENVPAR rarray,&bb);
     if (iarray == NULL) {
         ENVPTR->ReleaseByteArrayElements(ENVPAR bdata,barr,JNI_ABORT);
         h5JNIFatalError( env,  "byteToLong: getLong failed?");
         return NULL;
-    }
+    } /* end if */
 
     iap = iarray;
     for (ii = 0; ii < len; ii++) {
@@ -579,22 +549,17 @@ jbyteArray bdata)  /* IN: array of bytes */
         *iap = *(jlong *)bp;
         iap++;
         bp += sizeof(jlong);
-    }
+    } /* end for */
 
     ENVPTR->ReleaseLongArrayElements(ENVPAR rarray,iarray, 0);
     ENVPTR->ReleaseByteArrayElements(ENVPAR bdata,barr,JNI_ABORT);
 
     return rarray;
-
-}
+} /* end Java_hdf_hdf5lib_HDFNativeData_byteToLong__II_3B */
 
 /* returns double [] */
-JNIEXPORT jdoubleArray JNICALL Java_hdf_hdf5lib_HDFNativeData_byteToDouble__II_3B
-( JNIEnv *env,
-jclass clss,
-jint start,
-jint len,
-jbyteArray bdata)  /* IN: array of bytes */
+JNIEXPORT jdoubleArray JNICALL
+Java_hdf_hdf5lib_HDFNativeData_byteToDouble__II_3B(JNIEnv *env, jclass clss, jint start, jint len, jbyteArray bdata)  /* IN: array of bytes */
 {
     char *bp;
     jbyte *barr;
@@ -608,19 +573,19 @@ jbyteArray bdata)  /* IN: array of bytes */
     if (bdata == NULL) {
         h5nullArgument( env,  "byteToDouble: bdata is NULL?");
         return NULL;
-    }
+    } /* end if */
     barr = ENVPTR->GetByteArrayElements(ENVPAR bdata,&bb);
     if (barr == NULL) {
         h5JNIFatalError( env,  "byteToDouble: getByte failed?");
         return NULL;
-    }
+    } /* end if */
 
     blen = ENVPTR->GetArrayLength(ENVPAR bdata);
     if ((start < 0) || ((int)(start + (len*(int)sizeof(jdouble))) > blen)) {
         ENVPTR->ReleaseByteArrayElements(ENVPAR bdata,barr,JNI_ABORT);
         h5badArgument( env,  "byteToDouble: start or len is out of bounds");
         return NULL;
-    }
+    } /* end if */
 
     bp = (char *)barr + start;
 
@@ -629,35 +594,31 @@ jbyteArray bdata)  /* IN: array of bytes */
         ENVPTR->ReleaseByteArrayElements(ENVPAR bdata,barr,JNI_ABORT);
         h5outOfMemory( env,  "byteToDouble" );
         return NULL;
-    }
+    } /* end if */
 
     iarray = ENVPTR->GetDoubleArrayElements(ENVPAR rarray,&bb);
     if (iarray == NULL) {
         ENVPTR->ReleaseByteArrayElements(ENVPAR bdata,barr,JNI_ABORT);
         h5JNIFatalError( env,  "byteToDouble: getDouble failed?");
         return NULL;
-    }
+    } /* end if */
 
     iap = iarray;
     for (ii = 0; ii < len; ii++) {
         *iap = *(jdouble *)bp;
         iap++;
         bp += sizeof(jdouble);
-    }
+    } /* end for */
 
     ENVPTR->ReleaseDoubleArrayElements(ENVPAR rarray,iarray, 0);
     ENVPTR->ReleaseByteArrayElements(ENVPAR bdata,barr,JNI_ABORT);
 
     return rarray;
-}
+} /* end Java_hdf_hdf5lib_HDFNativeData_byteToDouble__II_3B */
 
 /* returns byte [] */
-JNIEXPORT jbyteArray JNICALL Java_hdf_hdf5lib_HDFNativeData_intToByte__II_3I
-(JNIEnv *env,
-jclass clss,
-jint start,
-jint len,
-jintArray idata)  /* IN: array of int */
+JNIEXPORT jbyteArray JNICALL
+Java_hdf_hdf5lib_HDFNativeData_intToByte__II_3I(JNIEnv *env, jclass clss, jint start, jint len, jintArray idata)  /* IN: array of int */
 {
     jint *ip;
     jint *iarr;
@@ -677,20 +638,20 @@ jintArray idata)  /* IN: array of int */
     if (idata == NULL) {
         h5nullArgument( env,  "intToByte: idata is NULL?");
         return NULL;
-    }
+    } /* end if */
 
     iarr = ENVPTR->GetIntArrayElements(ENVPAR idata,&bb);
     if (iarr == NULL) {
         h5JNIFatalError( env,  "intToByte: getInt failed?");
         return NULL;
-    }
+    } /* end if */
 
     ilen = ENVPTR->GetArrayLength(ENVPAR idata);
     if ((start < 0) || (((start + len)) > ilen)) {
         ENVPTR->ReleaseIntArrayElements(ENVPAR idata,iarr,JNI_ABORT);
         h5badArgument( env,  "intToByte: start or len is out of bounds");
         return NULL;
-    }
+    } /* end if */
 
     ip = iarr + start;
 
@@ -700,14 +661,14 @@ jintArray idata)  /* IN: array of int */
         ENVPTR->ReleaseIntArrayElements(ENVPAR idata,iarr,JNI_ABORT);
         h5outOfMemory( env,  "intToByte" );
         return NULL;
-    }
+    } /* end if */
 
     barray = ENVPTR->GetByteArrayElements(ENVPAR rarray,&bb);
     if (barray == NULL) {
         ENVPTR->ReleaseIntArrayElements(ENVPAR idata,iarr,JNI_ABORT);
         h5JNIFatalError( env,  "intToByte: getByte failed?");
         return NULL;
-    }
+    } /* end if */
 
     bap = barray;
     for (ii = 0; ii < len; ii++) {
@@ -715,22 +676,18 @@ jintArray idata)  /* IN: array of int */
         for (ij = 0; ij < sizeof(jint); ij++) {
             *bap = u.bytes[ij];
             bap++;
-        }
-    }
+        } /* end for */
+    } /* end for */
 
     ENVPTR->ReleaseByteArrayElements(ENVPAR rarray,barray, 0);
     ENVPTR->ReleaseIntArrayElements(ENVPAR idata,iarr,JNI_ABORT);
 
     return rarray;
-}
+} /* end Java_hdf_hdf5lib_HDFNativeData_intToByte__II_3I */
 
 /* returns byte [] */
-JNIEXPORT jbyteArray JNICALL Java_hdf_hdf5lib_HDFNativeData_shortToByte__II_3S
-( JNIEnv *env,
-jclass clss,
-jint start,
-jint len,
-jshortArray idata)  /* IN: array of short */
+JNIEXPORT jbyteArray JNICALL
+Java_hdf_hdf5lib_HDFNativeData_shortToByte__II_3S(JNIEnv *env, jclass clss, jint start, jint len, jshortArray idata)  /* IN: array of short */
 {
     jshort *ip;
     jshort *iarr;
@@ -750,19 +707,19 @@ jshortArray idata)  /* IN: array of short */
     if (idata == NULL) {
         h5nullArgument( env,  "shortToByte: idata is NULL?");
         return NULL;
-    }
+    } /* end if */
     iarr = ENVPTR->GetShortArrayElements(ENVPAR idata,&bb);
     if (iarr == NULL) {
         h5JNIFatalError( env,  "shortToByte: getShort failed?");
         return NULL;
-    }
+    } /* end if */
 
     ilen = ENVPTR->GetArrayLength(ENVPAR idata);
     if ((start < 0) || (((start + len)) > ilen)) {
         ENVPTR->ReleaseShortArrayElements(ENVPAR idata,iarr,JNI_ABORT);
         h5badArgument( env,  "shortToByte: start or len is out of bounds");
         return NULL;
-    }
+    } /* end if */
 
     ip = iarr + start;
 
@@ -772,14 +729,14 @@ jshortArray idata)  /* IN: array of short */
         ENVPTR->ReleaseShortArrayElements(ENVPAR idata,iarr,JNI_ABORT);
         h5outOfMemory( env,  "shortToByte" );
         return NULL;
-    }
+    } /* end if */
 
     barray = ENVPTR->GetByteArrayElements(ENVPAR rarray,&bb);
     if (barray == NULL) {
         ENVPTR->ReleaseShortArrayElements(ENVPAR idata,iarr,JNI_ABORT);
         h5JNIFatalError( env,  "shortToByte: getByte failed?");
         return NULL;
-    }
+    } /* end if */
 
     bap = barray;
     for (ii = 0; ii < len; ii++) {
@@ -787,23 +744,18 @@ jshortArray idata)  /* IN: array of short */
         for (ij = 0; ij < sizeof(jshort); ij++) {
             *bap = u.bytes[ij];
             bap++;
-        }
-    }
+        } /* end for */
+    } /* end for */
 
     ENVPTR->ReleaseByteArrayElements(ENVPAR rarray,barray, 0);
     ENVPTR->ReleaseShortArrayElements(ENVPAR idata,iarr,JNI_ABORT);
 
     return rarray;
-
-}
+} /* end Java_hdf_hdf5lib_HDFNativeData_shortToByte__II_3S */
 
 /* returns byte [] */
-JNIEXPORT jbyteArray JNICALL Java_hdf_hdf5lib_HDFNativeData_floatToByte__II_3F
-( JNIEnv *env,
-jclass clss,
-jint start,
-jint len,
-jfloatArray idata)  /* IN: array of float */
+JNIEXPORT jbyteArray JNICALL
+Java_hdf_hdf5lib_HDFNativeData_floatToByte__II_3F(JNIEnv *env, jclass clss, jint start, jint len, jfloatArray idata)  /* IN: array of float */
 {
     jfloat *ip;
     jfloat *iarr;
@@ -823,19 +775,19 @@ jfloatArray idata)  /* IN: array of float */
     if (idata == NULL) {
         h5nullArgument( env,  "floatToByte: idata is NULL?");
         return NULL;
-    }
+    } /* end if */
     iarr = ENVPTR->GetFloatArrayElements(ENVPAR idata,&bb);
     if (iarr == NULL) {
         h5JNIFatalError( env,  "floatToByte: getFloat failed?");
         return NULL;
-    }
+    } /* end if */
 
     ilen = ENVPTR->GetArrayLength(ENVPAR idata);
     if ((start < 0) || (((start + len)) > ilen)) {
         ENVPTR->ReleaseFloatArrayElements(ENVPAR idata,iarr,JNI_ABORT);
         h5badArgument( env,  "floatToByte: start or len is out of bounds");
         return NULL;
-    }
+    } /* end if */
 
     ip = iarr + start;
 
@@ -845,14 +797,14 @@ jfloatArray idata)  /* IN: array of float */
         ENVPTR->ReleaseFloatArrayElements(ENVPAR idata,iarr,JNI_ABORT);
         h5outOfMemory( env,  "floatToByte" );
         return NULL;
-    }
+    } /* end if */
 
     barray = ENVPTR->GetByteArrayElements(ENVPAR rarray,&bb);
     if (barray == NULL) {
         ENVPTR->ReleaseFloatArrayElements(ENVPAR idata,iarr,JNI_ABORT);
         h5JNIFatalError( env,  "floatToByte: getByte failed?");
         return NULL;
-    }
+    } /* end if */
 
     bap = barray;
     for (ii = 0; ii < len; ii++) {
@@ -860,22 +812,18 @@ jfloatArray idata)  /* IN: array of float */
         for (ij = 0; ij < sizeof(jfloat); ij++) {
             *bap = u.bytes[ij];
             bap++;
-        }
-    }
+        } /* end for */
+    } /* end for */
 
     ENVPTR->ReleaseByteArrayElements(ENVPAR rarray,barray, 0);
     ENVPTR->ReleaseFloatArrayElements(ENVPAR idata,iarr,JNI_ABORT);
 
     return rarray;
-}
+} /* end Java_hdf_hdf5lib_HDFNativeData_floatToByte__II_3F */
 
 /* returns byte [] */
-JNIEXPORT jbyteArray JNICALL Java_hdf_hdf5lib_HDFNativeData_doubleToByte__II_3D
-( JNIEnv *env,
-jclass clss,
-jint start,
-jint len,
-jdoubleArray idata)  /* IN: array of double */
+JNIEXPORT jbyteArray JNICALL
+Java_hdf_hdf5lib_HDFNativeData_doubleToByte__II_3D(JNIEnv *env, jclass clss, jint start, jint len, jdoubleArray idata)  /* IN: array of double */
 {
     jdouble *ip;
     jdouble *iarr;
@@ -895,19 +843,19 @@ jdoubleArray idata)  /* IN: array of double */
     if (idata == NULL) {
         h5nullArgument( env,  "doubleToByte: idata is NULL?");
         return NULL;
-    }
+    } /* end if */
     iarr = ENVPTR->GetDoubleArrayElements(ENVPAR idata,&bb);
     if (iarr == NULL) {
         h5JNIFatalError( env,  "doubleToByte: getDouble failed?");
         return NULL;
-    }
+    } /* end if */
 
     ilen = ENVPTR->GetArrayLength(ENVPAR idata);
     if ((start < 0) || (((start + len)) > ilen)) {
         ENVPTR->ReleaseDoubleArrayElements(ENVPAR idata,iarr,JNI_ABORT);
         h5badArgument( env,  "doubleToByte: start or len is out of bounds");
         return NULL;
-    }
+    } /* end if */
 
     ip = iarr + start;
 
@@ -917,14 +865,14 @@ jdoubleArray idata)  /* IN: array of double */
         ENVPTR->ReleaseDoubleArrayElements(ENVPAR idata,iarr,JNI_ABORT);
         h5outOfMemory( env,  "doubleToByte" );
         return NULL;
-    }
+    } /* end if */
 
     barray = ENVPTR->GetByteArrayElements(ENVPAR rarray,&bb);
     if (barray == NULL) {
         ENVPTR->ReleaseDoubleArrayElements(ENVPAR idata,iarr,JNI_ABORT);
         h5JNIFatalError( env,  "doubleToByte: getByte failed?");
         return NULL;
-    }
+    } /* end if */
 
     bap = barray;
     for (ii = 0; ii < len; ii++) {
@@ -932,23 +880,19 @@ jdoubleArray idata)  /* IN: array of double */
         for (ij = 0; ij < sizeof(jdouble); ij++) {
             *bap = u.bytes[ij];
             bap++;
-        }
-    }
+        } /* end for */
+    } /* end for */
 
     ENVPTR->ReleaseByteArrayElements(ENVPAR rarray,barray, 0);
     ENVPTR->ReleaseDoubleArrayElements(ENVPAR idata,iarr,JNI_ABORT);
 
     return rarray;
-}
+} /* end Java_hdf_hdf5lib_HDFNativeData_doubleToByte__II_3D */
 
 
 /* returns byte [] */
-JNIEXPORT jbyteArray JNICALL Java_hdf_hdf5lib_HDFNativeData_longToByte__II_3J
-( JNIEnv *env,
-jclass clss,
-jint start,
-jint len,
-jlongArray idata)  /* IN: array of long */
+JNIEXPORT jbyteArray JNICALL
+Java_hdf_hdf5lib_HDFNativeData_longToByte__II_3J(JNIEnv *env, jclass clss, jint start, jint len, jlongArray idata)  /* IN: array of long */
 {
     jlong *ip;
     jlong *iarr;
@@ -968,19 +912,19 @@ jlongArray idata)  /* IN: array of long */
     if (idata == NULL) {
         h5nullArgument( env,  "longToByte: idata is NULL?");
         return NULL;
-    }
+    } /* end if */
     iarr = ENVPTR->GetLongArrayElements(ENVPAR idata,&bb);
     if (iarr == NULL) {
         h5JNIFatalError( env,  "longToByte: getLong failed?");
         return NULL;
-    }
+    } /* end if */
 
     ilen = ENVPTR->GetArrayLength(ENVPAR idata);
     if ((start < 0) || (((start + len)) > ilen)) {
         ENVPTR->ReleaseLongArrayElements(ENVPAR idata,iarr,JNI_ABORT);
         h5badArgument( env,  "longToByte: start or len is out of bounds?\n");
         return NULL;
-    }
+    } /* end if */
 
     ip = iarr + start;
 
@@ -990,14 +934,14 @@ jlongArray idata)  /* IN: array of long */
         ENVPTR->ReleaseLongArrayElements(ENVPAR idata,iarr,JNI_ABORT);
         h5outOfMemory( env,  "longToByte" );
         return NULL;
-    }
+    } /* end if */
 
     barray = ENVPTR->GetByteArrayElements(ENVPAR rarray,&bb);
     if (barray == NULL) {
         ENVPTR->ReleaseLongArrayElements(ENVPAR idata,iarr,JNI_ABORT);
         h5JNIFatalError( env,  "longToByte: getByte failed?");
         return NULL;
-    }
+    } /* end if */
 
     bap = barray;
     for (ii = 0; ii < len; ii++) {
@@ -1005,22 +949,19 @@ jlongArray idata)  /* IN: array of long */
         for (ij = 0; ij < sizeof(jlong); ij++) {
             *bap = u.bytes[ij];
             bap++;
-        }
-    }
+        } /* end for */
+    } /* end for */
 
     ENVPTR->ReleaseByteArrayElements(ENVPAR rarray,barray, 0);
     ENVPTR->ReleaseLongArrayElements(ENVPAR idata,iarr,JNI_ABORT);
 
     return rarray;
-
-}
+} /* end Java_hdf_hdf5lib_HDFNativeData_longToByte__II_3J */
 
 
 /* returns byte [] */
-JNIEXPORT jbyteArray JNICALL Java_hdf_hdf5lib_HDFNativeData_intToByte__I
-( JNIEnv *env,
-jclass clss,
-jint idata)  /* IN: int */
+JNIEXPORT jbyteArray JNICALL
+Java_hdf_hdf5lib_HDFNativeData_intToByte__I(JNIEnv *env, jclass clss, jint idata)  /* IN: int */
 {
     jbyteArray rarray;
     jbyte *barray;
@@ -1036,31 +977,29 @@ jint idata)  /* IN: int */
     if (rarray == NULL) {
         h5outOfMemory( env,  "intToByte" );
         return NULL;
-    }
+    } /* end if */
 
     barray = ENVPTR->GetByteArrayElements(ENVPAR rarray,&bb);
     if (barray == NULL) {
         h5JNIFatalError( env,  "intToByte: getByte failed?");
         return NULL;
-    }
+    } /* end if */
 
     bap = barray;
     u.ival = idata;
     for (ij = 0; ij < sizeof(jint); ij++) {
         *bap = u.bytes[ij];
         bap++;
-    }
+    } /* end for */
 
     ENVPTR->ReleaseByteArrayElements(ENVPAR rarray,barray, 0);
-    return rarray;
 
-}
+    return rarray;
+} /* end Java_hdf_hdf5lib_HDFNativeData_intToByte__I */
 
 /* returns byte [] */
-JNIEXPORT jbyteArray JNICALL Java_hdf_hdf5lib_HDFNativeData_floatToByte__F
-( JNIEnv *env,
-jclass clss,
-jfloat idata)  /* IN: int */
+JNIEXPORT jbyteArray JNICALL
+Java_hdf_hdf5lib_HDFNativeData_floatToByte__F(JNIEnv *env, jclass clss, jfloat idata)  /* IN: int */
 {
     jbyteArray rarray;
     jbyte *barray;
@@ -1076,31 +1015,29 @@ jfloat idata)  /* IN: int */
     if (rarray == NULL) {
         h5outOfMemory( env,  "floatToByte" );
         return NULL;
-    }
+    } /* end if */
 
     barray = ENVPTR->GetByteArrayElements(ENVPAR rarray,&bb);
     if (barray == NULL) {
         h5JNIFatalError( env,  "floatToByte: getByte failed?");
         return NULL;
-    }
+    } /* end if */
 
     bap = barray;
     u.ival = idata;
     for (ij = 0; ij < sizeof(jfloat); ij++) {
         *bap = u.bytes[ij];
         bap++;
-    }
+    } /* end for */
 
     ENVPTR->ReleaseByteArrayElements(ENVPAR rarray,(jbyte *)barray, 0);
-    return rarray;
 
-}
+    return rarray;
+} /* end Java_hdf_hdf5lib_HDFNativeData_floatToByte__F */
 
 /* returns byte [] */
-JNIEXPORT jbyteArray JNICALL Java_hdf_hdf5lib_HDFNativeData_shortToByte__S
-( JNIEnv *env,
-jclass clss,
-jshort idata)  /* IN: short */
+JNIEXPORT jbyteArray JNICALL
+Java_hdf_hdf5lib_HDFNativeData_shortToByte__S(JNIEnv *env, jclass clss, jshort idata)  /* IN: short */
 {
     jbyteArray rarray;
     jbyte *barray;
@@ -1116,32 +1053,30 @@ jshort idata)  /* IN: short */
     if (rarray == NULL) {
         h5outOfMemory( env,  "shortToByte" );
         return NULL;
-    }
+    } /* end if */
 
     barray = ENVPTR->GetByteArrayElements(ENVPAR rarray,&bb);
     if (barray == NULL) {
         h5JNIFatalError( env,  "shortToByte: getShort failed?");
         return NULL;
-    }
+    } /* end if */
 
     bap = barray;
     u.ival = idata;
     for (ij = 0; ij < sizeof(jshort); ij++) {
         *bap = u.bytes[ij];
         bap++;
-    }
+    } /* end for */
 
     ENVPTR->ReleaseByteArrayElements(ENVPAR rarray,(jbyte *)barray, 0);
 
     return rarray;
-}
+} /* end Java_hdf_hdf5lib_HDFNativeData_shortToByte__S */
 
 
 /* returns byte [] */
-JNIEXPORT jbyteArray JNICALL Java_hdf_hdf5lib_HDFNativeData_doubleToByte__D
-( JNIEnv *env,
-jclass clss,
-jdouble idata)  /* IN: double */
+JNIEXPORT jbyteArray JNICALL
+Java_hdf_hdf5lib_HDFNativeData_doubleToByte__D(JNIEnv *env, jclass clss, jdouble idata)  /* IN: double */
 {
     jbyteArray rarray;
     jbyte *barray;
@@ -1157,32 +1092,30 @@ jdouble idata)  /* IN: double */
     if (rarray == NULL) {
         h5outOfMemory( env,  "doubleToByte" );
         return NULL;
-    }
+    } /* end if */
 
     barray = ENVPTR->GetByteArrayElements(ENVPAR rarray,&bb);
     if (barray == NULL) {
         h5JNIFatalError( env,  "doubleToByte: getDouble failed?");
         return NULL;
-    }
+    } /* end if */
 
     bap = barray;
     u.ival = idata;
     for (ij = 0; ij < sizeof(jdouble); ij++) {
         *bap = u.bytes[ij];
         bap++;
-    }
+    } /* end for */
 
     ENVPTR->ReleaseByteArrayElements(ENVPAR rarray,(jbyte *)barray, 0);
 
     return rarray;
-}
+} /* end Java_hdf_hdf5lib_HDFNativeData_doubleToByte__D */
 
 
 /* returns byte [] */
-JNIEXPORT jbyteArray JNICALL Java_hdf_hdf5lib_HDFNativeData_longToByte__J
-( JNIEnv *env,
-jclass clss,
-jlong idata)  /* IN: array of long */
+JNIEXPORT jbyteArray JNICALL
+Java_hdf_hdf5lib_HDFNativeData_longToByte__J(JNIEnv *env, jclass clss, jlong idata)  /* IN: array of long */
 {
     jbyteArray rarray;
     jbyte *barray;
@@ -1198,31 +1131,29 @@ jlong idata)  /* IN: array of long */
     if (rarray == NULL) {
         h5outOfMemory( env,  "longToByte" );
         return NULL;
-    }
+    } /* end if */
 
     barray = ENVPTR->GetByteArrayElements(ENVPAR rarray,&bb);
     if (barray == NULL) {
         h5JNIFatalError( env,  "longToByte: getLong failed?");
         return NULL;
-    }
+    } /* end if */
 
     bap = barray;
     u.ival = idata;
     for (ij = 0; ij < sizeof(jlong); ij++) {
         *bap = u.bytes[ij];
         bap++;
-    }
+    } /* end for */
 
     ENVPTR->ReleaseByteArrayElements(ENVPAR rarray,(jbyte *)barray, 0);
 
     return rarray;
-}
+} /* end Java_hdf_hdf5lib_HDFNativeData_longToByte__J */
 
 /* returns byte [] */
-JNIEXPORT jbyteArray JNICALL Java_hdf_hdf5lib_HDFNativeData_byteToByte__B
-( JNIEnv *env,
-jclass clss,
-jbyte idata)  /* IN: array of long */
+JNIEXPORT jbyteArray JNICALL
+Java_hdf_hdf5lib_HDFNativeData_byteToByte__B(JNIEnv *env, jclass clss, jbyte idata)  /* IN: array of long */
 {
     jbyteArray rarray;
     jbyte *barray;
@@ -1238,27 +1169,27 @@ jbyte idata)  /* IN: array of long */
     if (rarray == NULL) {
         h5outOfMemory( env,  "byteToByte" );
         return NULL;
-    }
+    } /* end if */
 
     barray = ENVPTR->GetByteArrayElements(ENVPAR rarray,&bb);
     if (barray == NULL) {
         h5JNIFatalError( env,  "byteToByte: getByte failed?");
         return NULL;
-    }
+    } /* end if */
 
     bap = barray;
     u.ival = idata;
     for (ij = 0; ij < sizeof(jbyte); ij++) {
         *bap = u.bytes[ij];
         bap++;
-    }
+    } /* end for */
 
     ENVPTR->ReleaseByteArrayElements(ENVPAR rarray,(jbyte *)barray, 0);
 
     return rarray;
-}
+} /* end Java_hdf_hdf5lib_HDFNativeData_byteToByte__B */
 
 
 #ifdef __cplusplus
-}
-#endif
+} /* end extern "C" */
+#endif /* __cplusplus */
