@@ -1265,68 +1265,24 @@ Java_hdf_hdf5lib_H5_H5Pset_1gc_1references(JNIEnv *env, jclass clss, jlong fapl_
 /*
  * Class:     hdf_hdf5lib_H5
  * Method:    H5Pget_gc_references
- * Signature: (J[Z)I
- */
-JNIEXPORT jint JNICALL
-Java_hdf_hdf5lib_H5_H5Pget_1gc_1references(JNIEnv *env, jclass clss, jlong fapl_id, jbooleanArray gc_ref)
-{
-    herr_t    status = -1;
-    jboolean *theArray;
-    jboolean  isCopy;
-    unsigned  gc_ref_val = 0;
-
-    if (gc_ref == NULL) {
-        h5nullArgument(env, "H5Pget_gc_references:  gc_ref input array is NULL");
-    } /* end if */
-    else {
-        theArray = (jboolean *)ENVPTR->GetBooleanArrayElements(ENVPAR gc_ref, &isCopy);
-        if (theArray == NULL) {
-            h5JNIFatalError(env, "H5Pget_gc_references:  gc_ref not pinned");
-        } /* end if */
-        else {
-            status = H5Pget_gc_references((hid_t)fapl_id, (unsigned *)&gc_ref_val);
-
-            if (status < 0) {
-                ENVPTR->ReleaseBooleanArrayElements(ENVPAR gc_ref, theArray, JNI_ABORT);
-                h5libraryError(env);
-            } /* end if */
-            else {
-                if (gc_ref_val == 1) {
-                    theArray[0] = JNI_TRUE;
-                } /* end if */
-                else {
-                    theArray[0] = JNI_FALSE;
-                } /* end else */
-                ENVPTR->ReleaseBooleanArrayElements(ENVPAR gc_ref, theArray, 0);
-            } /* end else */
-        } /* end else */
-    } /* end else */
-
-    return (jint)status;
-} /* end Java_hdf_hdf5lib_H5_H5Pget_1gc_1references */
-
-/*
- * Class:     hdf_hdf5lib_H5
- * Method:    H5Pget_gcreferences
  * Signature: (J)Z
  */
 JNIEXPORT jboolean JNICALL
-Java_hdf_hdf5lib_H5_H5Pget_1gcreferences(JNIEnv *env, jclass clss, jlong fapl_id)
+Java_hdf_hdf5lib_H5_H5Pget_1gc_1references(JNIEnv *env, jclass clss, jlong fapl_id)
 {
     unsigned  gc_ref_val = 0;
-    herr_t status = -1;
+    jboolean  bval = JNI_FALSE;
 
-    status = H5Pget_gc_references((hid_t)fapl_id, (unsigned *)&gc_ref_val);
-    if (status < 0) {
+    if (H5Pget_gc_references((hid_t)fapl_id, (unsigned *)&gc_ref_val) < 0) {
         h5libraryError(env);
     } /* end if */
     else {
         if (gc_ref_val == 1)
-            return JNI_TRUE;
+            bval =  JNI_TRUE;
     } /* end else */
 
-    return JNI_FALSE;
-} /* end Java_hdf_hdf5lib_H5_H5Pget_1gcreferences */
+    return bval;
+} /* end Java_hdf_hdf5lib_H5_H5Pget_1gc_1references */
 
 /*
  * Class:     hdf_hdf5lib_H5
@@ -1430,58 +1386,18 @@ Java_hdf_hdf5lib_H5_H5Pset_1small_1data_1block_1size(JNIEnv *env, jclass clss, j
 /*
  * Class:     hdf_hdf5lib_H5
  * Method:    H5Pget_small_data_block_size
- * Signature: (J[J)I
- */
-JNIEXPORT jint JNICALL
-Java_hdf_hdf5lib_H5_H5Pget_1small_1data_1block_1size(JNIEnv *env, jclass clss, jlong plist, jlongArray size)
-{
-    herr_t   status = -1;
-    jlong   *theArray;
-    jboolean isCopy;
-    hsize_t  s;
-
-    if (size == NULL) {
-        /* exception ? */
-        h5nullArgument(env, "H5Pget_small_user_block_size:  size is NULL");
-    } /* end if */
-    else {
-        theArray = (jlong *)ENVPTR->GetLongArrayElements(ENVPAR size, &isCopy);
-        if (theArray == NULL) {
-            h5JNIFatalError(env, "H5Pget_userblock:  size not pinned");
-        } /* end if */
-        else {
-            status = H5Pget_small_data_block_size((hid_t)plist, &s);
-            if (status < 0) {
-                ENVPTR->ReleaseLongArrayElements(ENVPAR size, theArray, JNI_ABORT);
-                h5libraryError(env);
-            } /* end if */
-            else {
-                theArray[0] = (jlong)s;
-                ENVPTR->ReleaseLongArrayElements(ENVPAR size, theArray, 0);
-            } /* end else */
-        } /* end else */
-    } /* end else */
-
-    return (jint)status;
-} /* end Java_hdf_hdf5lib_H5_H5Pget_1small_1data_1block_1size */
-
-/*
- * Class:     hdf_hdf5lib_H5
- * Method:    H5Pget_small_data_block_size_long
  * Signature: (J)J
  */
 JNIEXPORT jlong JNICALL
-Java_hdf_hdf5lib_H5_H5Pget_1small_1data_1block_1size_1long(JNIEnv *env, jclass clss, jlong plist)
+Java_hdf_hdf5lib_H5_H5Pget_1small_1data_1block_1size(JNIEnv *env, jclass clss, jlong plist)
 {
     hsize_t  s;
-    herr_t status = -1;
 
-    status = H5Pget_small_data_block_size((hid_t)plist, &s);
-    if (status < 0)
+    if (H5Pget_small_data_block_size((hid_t)plist, &s) < 0)
         h5libraryError(env);
 
     return (jlong)s;
-} /* end Java_hdf_hdf5lib_H5_H5Pget_1small_1data_1block_1size_1long */
+} /* end Java_hdf_hdf5lib_H5_H5Pget_1small_1data_1block_1size */
 
 /*
  * Class:     hdf_hdf5lib_H5

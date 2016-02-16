@@ -78,7 +78,7 @@ Java_hdf_hdf5lib_H5_H5Tcommitted(JNIEnv *env, jclass clss, jlong type_id)
 
 /*
  * Class:     hdf_hdf5lib_H5
- * Method:    H5Tcreate
+ * Method:    _H5Tcreate
  * Signature: (IJ)J
  */
 JNIEXPORT jlong JNICALL
@@ -166,9 +166,9 @@ Java_hdf_hdf5lib_H5_H5Tget_1class(JNIEnv *env, jclass clss, jlong type_id)
 /*
  * Class:     hdf_hdf5lib_H5
  * Method:    H5Tget_size
- * Signature: (J)I
+ * Signature: (J)J
  */
-JNIEXPORT jint JNICALL
+JNIEXPORT jlong JNICALL
 Java_hdf_hdf5lib_H5_H5Tget_1size(JNIEnv *env, jclass clss, jlong type_id)
 {
     size_t retVal = 0;
@@ -177,25 +177,8 @@ Java_hdf_hdf5lib_H5_H5Tget_1size(JNIEnv *env, jclass clss, jlong type_id)
     if (retVal == 0)
         h5libraryError(env);
 
-    return (jint)retVal;
-} /* end Java_hdf_hdf5lib_H5_H5Tget_1size */
-
-/*
- * Class:     hdf_hdf5lib_H5
- * Method:    H5Tget_size_long
- * Signature: (J)J
- */
-JNIEXPORT jlong JNICALL
-Java_hdf_hdf5lib_H5_H5Tget_1size_1long(JNIEnv *env, jclass clss, jlong type_id)
-{
-    size_t retVal = 0;
-
-    retVal = H5Tget_size((hid_t)type_id);
-    if (retVal == 0)
-        h5libraryError(env);
-
     return (jlong)retVal;
-} /* end Java_hdf_hdf5lib_H5_H5Tget_1size_1long */
+} /* end Java_hdf_hdf5lib_H5_H5Tget_1size*/
 
 /*
  * Class:     hdf_hdf5lib_H5

@@ -456,45 +456,6 @@ Java_hdf_hdf5lib_H5_H5Dget_1storage_1size(JNIEnv *env, jclass clss, jlong datase
 
 /*
  * Class:     hdf_hdf5lib_H5
- * Method:    H5Dvlen_get_buf_size
- * Signature: (JJJ[I)I
- */
-JNIEXPORT jint JNICALL
-Java_hdf_hdf5lib_H5_H5Dvlen_1get_1buf_1size(JNIEnv *env, jclass clss, jlong dataset_id, jlong type_id, jlong space_id,
-          jintArray size)
-{
-    herr_t   status = -1;
-    jint    *P;
-    jboolean isCopy;
-    hsize_t  sz;
-
-    if (size == NULL) {
-        h5nullArgument(env, "H5Dvlen_get_buf_size:  size is NULL");
-    } /* end if */
-    else {
-        P = ENVPTR->GetIntArrayElements(ENVPAR size, &isCopy);
-        if (P == NULL) {
-            h5JNIFatalError(env, "H5Dvlen_get_buf_size:  array not pinned");
-        } /* end if */
-        else {
-            status = (jint)H5Dvlen_get_buf_size((hid_t)dataset_id, (hid_t)type_id, (hid_t)space_id, &sz);
-
-            if (status < 0) {
-                ENVPTR->ReleaseIntArrayElements(ENVPAR size, P, JNI_ABORT);
-                h5libraryError(env);
-            } /* end if */
-            else {
-                P[0] = (jint)sz;
-                ENVPTR->ReleaseIntArrayElements(ENVPAR size, P, 0);
-            } /* end else */
-        } /* end else */
-    } /* end else */
-
-    return (jint)status;
-} /* end Java_hdf_hdf5lib_H5_H5Dvlen_1get_1buf_1size */
-
-/*
- * Class:     hdf_hdf5lib_H5
  * Method:    H5Dvlen_reclaim
  * Signature: (JJJ[B)I
  */
@@ -526,45 +487,6 @@ Java_hdf_hdf5lib_H5_H5Dvlen_1reclaim(JNIEnv *env, jclass clss, jlong type_id, jl
     } /* end else */
     return (jint)status;
 } /* end Java_hdf_hdf5lib_H5_H5Dvlen_1reclaim */
-
-/*
- * Class:     hdf_hdf5lib_H5
- * Method:    _H5Dget_space_status
- * Signature: (J[I)I
- */
-JNIEXPORT jint JNICALL
-Java_hdf_hdf5lib_H5__1H5Dget_1space_1status  (JNIEnv *env, jclass clss, jlong dset_id, jintArray status)
-{
-    herr_t   retVal = -1;
-    jint    *theArray;
-    jboolean isCopy;
-    H5D_space_status_t space_status = H5D_SPACE_STATUS_ERROR;
-
-    if (status == NULL) {
-        h5nullArgument(env, "H5Dget_space_status:  status is NULL");
-    }
-    else {
-        theArray = (jint*)ENVPTR->GetIntArrayElements(ENVPAR status, &isCopy);
-        if (theArray == NULL) {
-            h5JNIFatalError(env, "H5Dget_space_status:  status not pinned");
-        } /* end if */
-        else {
-            retVal = H5Dget_space_status((hid_t)dset_id, &space_status);
-
-            if (retVal < 0) {
-                ENVPTR->ReleaseIntArrayElements(ENVPAR status, theArray, JNI_ABORT);
-                h5libraryError(env);
-            } /* end if */
-            else {
-                theArray[0] = space_status;
-                ENVPTR->ReleaseIntArrayElements(ENVPAR status, theArray, 0);
-            } /* end else */
-        } /* end else */
-    } /* end else */
-
-    return (jint)retVal;
-} /* end Java_hdf_hdf5lib_H5__1H5Dget_1space_1status */
-
 
 /*
     ////////////////////////////////////////////////////////////////////
@@ -1626,11 +1548,11 @@ Java_hdf_hdf5lib_H5_H5Dget_1offset(JNIEnv *env, jclass clss, jlong loc_id)
 
 /*
  * Class:     hdf_hdf5lib_H5
- * Method:    H5Dvlen_get_buf_size_long
+ * Method:    H5Dvlen_get_buf_size
  * Signature: (JJJ)J
  */
 JNIEXPORT jlong JNICALL
-Java_hdf_hdf5lib_H5_H5Dvlen_1get_1buf_1size_1long(JNIEnv *env, jclass clss, jlong dataset_id, jlong type_id, jlong space_id)
+Java_hdf_hdf5lib_H5_H5Dvlen_1get_1buf_1size(JNIEnv *env, jclass clss, jlong dataset_id, jlong type_id, jlong space_id)
 {
   hsize_t sz = 0;
 

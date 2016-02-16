@@ -272,29 +272,29 @@ Java_hdf_hdf5lib_H5_H5Rget_1name(JNIEnv *env, jclass clss, jlong loc_id, jint re
 
     bs = (size_t)size;
     if (bs <= 0) {
-        h5badArgument( env, "H5Rget_name:  size <= 0");
+        h5badArgument(env, "H5Rget_name:  size <= 0");
     } /* end if */
     else if (ref == NULL) {
-        h5nullArgument( env, "H5Rget_name:  ref is NULL");
+        h5nullArgument(env, "H5Rget_name:  ref is NULL");
     } /* end else if */
     else {
         if ((ref_type == H5R_OBJECT) && ENVPTR->GetArrayLength(ENVPAR ref) != H5R_OBJ_REF_BUF_SIZE) {
-            h5badArgument( env, "H5Rdereference:  obj ref input array != H5R_OBJ_REF_BUF_SIZE");
+            h5badArgument(env, "H5Rget_name:  obj ref input array != H5R_OBJ_REF_BUF_SIZE");
         } /* end if */
         else if ((ref_type == H5R_DATASET_REGION)
                 && ENVPTR->GetArrayLength(ENVPAR ref) != H5R_DSET_REG_REF_BUF_SIZE) {
-            h5badArgument( env, "H5Rdereference:  region ref input array != H5R_DSET_REG_REF_BUF_SIZE");
+            h5badArgument(env, "H5Rget_name:  region ref input array != H5R_DSET_REG_REF_BUF_SIZE");
         } /* end else if */
         else {
             refP = (jbyte *)ENVPTR->GetByteArrayElements(ENVPAR ref, &isCopy);
             if (refP == NULL) {
-                h5JNIFatalError(env,  "H5Rcreate:  ref not pinned");
+                h5JNIFatalError(env,  "H5Rget_name:  ref not pinned");
             } /* end if */
             else {
                 aName = (char*)HDmalloc(sizeof(char)*bs);
                 if (aName == NULL) {
                     ENVPTR->ReleaseByteArrayElements(ENVPAR ref, refP, JNI_ABORT);
-                    h5outOfMemory( env, "H5Aget_name:  malloc failed");
+                    h5outOfMemory(env, "H5Rget_name:  malloc failed");
                 } /* end if */
                 else {
                     ret_val = (jlong)H5Rget_name((hid_t)loc_id, (H5R_type_t)ref_type, refP, aName, bs) ;

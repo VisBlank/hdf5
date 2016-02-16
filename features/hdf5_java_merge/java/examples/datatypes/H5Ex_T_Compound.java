@@ -51,15 +51,15 @@ public class H5Ex_T_Compound {
         static int[] memberStorage = { INTEGERSIZE, MAXSTRINGSIZE, DOUBLESIZE, DOUBLESIZE };
 
         // Data size is the storage size for the members.
-        static int getTotalDataSize() {
-            int data_size = 0;
+        static long getTotalDataSize() {
+            long data_size = 0;
             for (int indx = 0; indx < numberMembers; indx++)
                 data_size += memberStorage[indx] * memberDims[indx];
             return DIM0 * data_size;
         }
 
-        static int getDataSize() {
-            int data_size = 0;
+        static long getDataSize() {
+            long data_size = 0;
             for (int indx = 0; indx < numberMembers; indx++)
                 data_size += memberStorage[indx] * memberDims[indx];
             return data_size;
@@ -217,11 +217,11 @@ public class H5Ex_T_Compound {
 
         // Write the compound data to the dataset.
         // allocate memory for read buffer.
-        dset_data = new byte[(int) dims[0] * Sensor_Datatype.getDataSize()];
+        dset_data = new byte[(int)dims[0] * (int)Sensor_Datatype.getDataSize()];
         ByteBuffer outBuf = ByteBuffer.wrap(dset_data);
         outBuf.order(ByteOrder.nativeOrder());
         for (int indx = 0; indx < (int) dims[0]; indx++) {
-            object_data[indx].writeBuffer(outBuf, indx * Sensor_Datatype.getDataSize());
+            object_data[indx].writeBuffer(outBuf, indx * (int)Sensor_Datatype.getDataSize());
         }
         try {
             if ((dataset_id >= 0) && (memtype_id >= 0))
@@ -359,7 +359,7 @@ public class H5Ex_T_Compound {
         }
 
         // allocate memory for read buffer.
-        dset_data = new byte[(int) dims[0] * Sensor_Datatype.getDataSize()];
+        dset_data = new byte[(int) dims[0] * (int)Sensor_Datatype.getDataSize()];
 
         object_data2 = new Sensor[(int) dims[0]];
 
@@ -372,7 +372,7 @@ public class H5Ex_T_Compound {
             ByteBuffer inBuf = ByteBuffer.wrap(dset_data);
             inBuf.order(ByteOrder.nativeOrder());
             for (int indx = 0; indx < (int) dims[0]; indx++) {
-                object_data2[indx] = new Sensor(inBuf, indx * Sensor_Datatype.getDataSize());
+                object_data2[indx] = new Sensor(inBuf, indx * (int)Sensor_Datatype.getDataSize());
             }
         }
         catch (Exception e) {

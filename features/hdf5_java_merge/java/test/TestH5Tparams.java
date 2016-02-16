@@ -70,11 +70,6 @@ public class TestH5Tparams {
     }
 
     @Test(expected = HDF5LibraryException.class)
-    public void testH5Tget_size_long_invalid() throws Throwable {
-        H5.H5Tget_size_long(-1);
-    }
-
-    @Test(expected = HDF5LibraryException.class)
     public void testH5Tset_size_invalid() throws Throwable {
         H5.H5Tset_size(-1, 0);
     }
@@ -116,7 +111,7 @@ public class TestH5Tparams {
 
     @Test(expected = HDF5LibraryException.class)
     public void testH5Tcreate_invalid() throws Throwable {
-        H5.H5Tcreate(-1, 0);
+        H5.H5Tcreate(-1, (long)0);
     }
 
     @Test(expected = NullPointerException.class)

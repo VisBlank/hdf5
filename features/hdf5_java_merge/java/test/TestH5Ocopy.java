@@ -249,7 +249,6 @@ public class TestH5Ocopy {
         long dataset_id = -1;
         long did = -1;
         int obj_type = -1;
-        int[] otype = { 1 };
         byte[] read_data = new byte[16];
 
         try {
@@ -311,10 +310,10 @@ public class TestH5Ocopy {
             System.arraycopy(read_data, 8, rbuf1, 0, 8);
 
             //Get the type of object the reference points to.
-            obj_type = H5.H5Rget_obj_type(H5fid, HDF5Constants.H5R_OBJECT, rbuf1, otype);
+            obj_type = H5.H5Rget_obj_type(H5fid, HDF5Constants.H5R_OBJECT, rbuf1);
             assertEquals(obj_type, HDF5Constants.H5O_TYPE_DATASET);
 
-            obj_type = H5.H5Rget_obj_type(H5fid, HDF5Constants.H5R_OBJECT, rbuf0, otype);
+            obj_type = H5.H5Rget_obj_type(H5fid, HDF5Constants.H5R_OBJECT, rbuf0);
             assertEquals(obj_type, HDF5Constants.H5O_TYPE_GROUP);
         }
         catch (Exception ex) {

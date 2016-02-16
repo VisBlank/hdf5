@@ -331,17 +331,9 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Pset_1gc_1references
 /*
  * Class:     hdf_hdf5lib_H5
  * Method:    H5Pget_gc_references
- * Signature: (J[Z)I
- */
-JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Pget_1gc_1references
-(JNIEnv *, jclass, jlong, jbooleanArray);
-
-/*
- * Class:     hdf_hdf5lib_H5
- * Method:    H5Pget_gcreferences
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_hdf_hdf5lib_H5_H5Pget_1gcreferences
+JNIEXPORT jboolean JNICALL Java_hdf_hdf5lib_H5_H5Pget_1gc_1references
 (JNIEnv *, jclass, jlong);
 
 /*
@@ -371,17 +363,9 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Pset_1small_1data_1block_1size
 /*
  * Class:     hdf_hdf5lib_H5
  * Method:    H5Pget_small_data_block_size
- * Signature: (J[J)I
- */
-JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Pget_1small_1data_1block_1size
-(JNIEnv *, jclass, jlong, jlongArray);
-
-/*
- * Class:     hdf_hdf5lib_H5
- * Method:    H5Pget_small_data_block_size_long
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5_H5Pget_1small_1data_1block_1size_1long
+JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5_H5Pget_1small_1data_1block_1size
 (JNIEnv *, jclass, jlong);
 
 /*

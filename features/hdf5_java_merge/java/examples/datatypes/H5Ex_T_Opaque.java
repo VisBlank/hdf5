@@ -62,7 +62,7 @@ public class H5Ex_T_Opaque {
         // For this example we will write and view the data as a character
         // array.
         try {
-            datatype_id = H5.H5Tcreate(HDF5Constants.H5T_OPAQUE, LEN);
+            datatype_id = H5.H5Tcreate(HDF5Constants.H5T_OPAQUE, (long)LEN);
             if (datatype_id >= 0)
                 H5.H5Tset_tag(datatype_id, "Character array");
         }

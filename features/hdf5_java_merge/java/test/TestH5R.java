@@ -167,7 +167,6 @@ public class TestH5R {
 
         String objName = "/dset";
         int obj_type = -1;;
-        int[] otype = { 1 };
 
         try {
             ref = H5.H5Rcreate(H5fid, objName, ref_type, -1);
@@ -177,7 +176,7 @@ public class TestH5R {
         }
 
         try {
-            obj_type = H5.H5Rget_obj_type(H5fid, HDF5Constants.H5R_OBJECT, ref, otype);
+            obj_type = H5.H5Rget_obj_type(H5fid, HDF5Constants.H5R_OBJECT, ref);
         }
         catch (Throwable err) {
             err.printStackTrace();
@@ -279,9 +278,8 @@ public class TestH5R {
     @Test(expected = HDF5LibraryException.class)
     public void testH5Rget_obj_type2_Invalidreftype() throws Throwable {
         byte[] ref = null;
-        int[] otype = { 1 };
         ref = H5.H5Rcreate(H5fid, "/dset", HDF5Constants.H5R_OBJECT, -1);
-        H5.H5Rget_obj_type(H5fid, HDF5Constants.H5R_DATASET_REGION, ref, otype);
+        H5.H5Rget_obj_type(H5fid, HDF5Constants.H5R_DATASET_REGION, ref);
     }
 
     @Test(expected = HDF5LibraryException.class)

@@ -87,8 +87,8 @@ public class H5Ex_T_Commit {
         static int[] memberStorage = { INTEGERSIZE, MAXSTRINGSIZE, DOUBLESIZE, DOUBLESIZE };
 
         // Data size is the storage size for the members not the object.
-        static int getDataSize() {
-            int data_size = 0;
+        static long getDataSize() {
+            long data_size = 0;
             for (int indx = 0; indx < numberMembers; indx++)
                 data_size += memberStorage[indx] * memberDims[indx];
             return data_size;

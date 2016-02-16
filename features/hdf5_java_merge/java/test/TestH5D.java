@@ -399,8 +399,8 @@ public class TestH5D {
     @Test
     public void testH5Dget_space_status() {
         int[][] write_dset_data = new int[DIM_X][DIM_Y];
-        int[] space_status = new int[1];
-        int[] space_status0 = new int[1];
+        int space_status = -1;
+        int space_status0 = -1;
 
         // Initialize the dataset.
         for (int indx = 0; indx < DIM_X; indx++)
@@ -412,21 +412,21 @@ public class TestH5D {
 
         // Retrieve and print space status and storage size for dset0.
         try {
-            H5.H5Dget_space_status(H5did0, space_status0);
+            space_status0 = H5.H5Dget_space_status(H5did0);
         }
         catch (Exception e) {
             e.printStackTrace();
         }
-        assertTrue("testH5Dget_space_status0 - H5.H5Dget_space_status: ", space_status0[0] == H5D_space_status.H5D_SPACE_STATUS_ALLOCATED.getCode());
+        assertTrue("testH5Dget_space_status0 - H5.H5Dget_space_status: ", space_status0 == H5D_space_status.H5D_SPACE_STATUS_ALLOCATED.getCode());
 
         // Retrieve and print space status and storage size for dset.
         try {
-            H5.H5Dget_space_status(H5did, space_status);
+            space_status = H5.H5Dget_space_status(H5did);
         }
         catch (Exception e) {
             e.printStackTrace();
         }
-        assertFalse("testH5Dget_space_status - H5.H5Dget_space_status: ", space_status[0] == H5D_space_status.H5D_SPACE_STATUS_ALLOCATED.getCode());
+        assertFalse("testH5Dget_space_status - H5.H5Dget_space_status: ", space_status == H5D_space_status.H5D_SPACE_STATUS_ALLOCATED.getCode());
 
         // Write the data to the dataset.
         try {
@@ -440,12 +440,12 @@ public class TestH5D {
 
         // Retrieve and print space status and storage size for dset.
         try {
-            H5.H5Dget_space_status(H5did, space_status);
+            space_status = H5.H5Dget_space_status(H5did);
         }
         catch (Exception e) {
             e.printStackTrace();
         }
-        assertTrue("testH5Dget_space_status - H5.H5Dget_space_status: ", space_status[0] == H5D_space_status.H5D_SPACE_STATUS_ALLOCATED.getCode());
+        assertTrue("testH5Dget_space_status - H5.H5Dget_space_status: ", space_status == H5D_space_status.H5D_SPACE_STATUS_ALLOCATED.getCode());
     }
 
     @Test(expected = HDF5LibraryException.class)
@@ -804,43 +804,6 @@ public class TestH5D {
                 "Diamonds", "are", "a", "girls!",
                 "S A", "T U R", "D A Y", "night",
                 "That's", "all", "folks", "!!!" };
-        int[] size = new int[2];
-        long str_data_bytes = 0;
-        for (int idx = 0; idx < str_data.length; idx++)
-            str_data_bytes += str_data[idx].length() + 1;  //Account for terminating null
-
-        _createVLDataset(H5fid, H5dsid, "dset", HDF5Constants.H5P_DEFAULT);
-
-        try {
-            if ((H5did >= 0) && (H5dtid >= 0))
-                H5.H5DwriteString(H5did, H5dtid,
-                        HDF5Constants.H5S_ALL, HDF5Constants.H5S_ALL,
-                        HDF5Constants.H5P_DEFAULT, str_data);
-
-            _closeH5file();
-            _openH5file("dset", HDF5Constants.H5P_DEFAULT);
-            H5dtid = H5.H5Dget_type(H5did);
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-        }
-        try {
-            H5.H5Dvlen_get_buf_size(H5did, H5dtid, H5dsid, size);
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-        }
-        assertTrue("H5Dvlen_get_buf_size "+ size[0] + " == " + str_data_bytes, size[0] == str_data_bytes);
-    }
-
-    @Test
-    public void testH5Dvlen_get_buf_size_long() {
-        String[] str_data = { "Parting", "is such", "sweet", "sorrow.",
-                "Testing", "one", "two", "three.",
-                "Dog,", "man's", "best", "friend.",
-                "Diamonds", "are", "a", "girls!",
-                "S A", "T U R", "D A Y", "night",
-                "That's", "all", "folks", "!!!" };
         long vl_size = -1;  /* Number of bytes used */
         long str_data_bytes = 0;
         for (int idx = 0; idx < str_data.length; idx++)
@@ -858,12 +821,12 @@ public class TestH5D {
             e.printStackTrace();
         }
         try {
-            vl_size = H5.H5Dvlen_get_buf_size_long(H5did, H5dtid, H5dsid);
+            vl_size = H5.H5Dvlen_get_buf_size(H5did, H5dtid, H5dsid);
         }
         catch (Exception e) {
             e.printStackTrace();
         }
-        assertTrue("H5Dvlen_get_buf_size_long " + vl_size + " == " + str_data_bytes, vl_size == str_data_bytes);
+        assertTrue("H5Dvlen_get_buf_size " + vl_size + " == " + str_data_bytes, vl_size == str_data_bytes);
     }
 
     @Test(expected = IllegalArgumentException.class)

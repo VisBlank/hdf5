@@ -105,29 +105,12 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5_H5Dget_1storage_1size
   (JNIEnv*, jclass, jlong);
 
 /*
- * Copies the content of one dataset to another dataset
- * Class:     hdf_hdf5lib_H5
- * Method:    H5Dvlen_get_buf_size
- * Signature: (JJJ[I)I
- */
-JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Dvlen_1get_1buf_1size
-  (JNIEnv*, jclass, jlong, jlong, jlong, jintArray);
-
-/*
  * Class:     hdf_hdf5lib_H5
  * Method:    H5Dvlen_reclaim
  * Signature: (JJJ[B)I
  */
 JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Dvlen_1reclaim
   (JNIEnv*, jclass, jlong, jlong, jlong, jbyteArray);
-
-/*
- * Class:     hdf_hdf5lib_H5
- * Method:    _H5Dget_space_status
- * Signature: (J[I)I
- */
-JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5__1H5Dget_1space_1status
-  (JNIEnv*, jclass, jlong, jintArray);
 
 /*
  * Class:     hdf_hdf5lib_H5
@@ -307,10 +290,10 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5_H5Dget_1offset
 
 /*
  * Class:     hdf_hdf5lib_H5
- * Method:    H5Dvlen_get_buf_size_long
+ * Method:    H5Dvlen_get_buf_size
  * Signature: (JJJ)J
  */
-JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5_H5Dvlen_1get_1buf_1size_1long
+JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5_H5Dvlen_1get_1buf_1size
   (JNIEnv*, jclass, jlong, jlong, jlong);
 
 /*

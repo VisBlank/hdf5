@@ -230,7 +230,7 @@ public class TestH5F {
 
         for (int i = 0; i < OBJ_TYPES.length; i++) {
             try {
-                count = H5.H5Fget_obj_count_long(H5fid, OBJ_TYPES[i]);
+                count = H5.H5Fget_obj_count(H5fid, OBJ_TYPES[i]);
             }
             catch (Throwable err) {
                 fail("H5.H5Fget_obj_count: " + err);
@@ -256,7 +256,7 @@ public class TestH5F {
 
         for (int i = 0; i < OBJ_TYPES.length; i++) {
             try {
-                count = H5.H5Fget_obj_ids_long(H5fid, OBJ_TYPES[i], max_objs,
+                count = H5.H5Fget_obj_ids(H5fid, OBJ_TYPES[i], max_objs,
                         obj_id_list);
             }
             catch (Throwable err) {

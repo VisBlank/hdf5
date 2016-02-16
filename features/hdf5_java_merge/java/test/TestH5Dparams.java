@@ -86,13 +86,7 @@ public class TestH5Dparams {
 
     @Test(expected = HDF5LibraryException.class)
     public void testH5Dget_space_status_invalid() throws Throwable {
-        int[] status = new int[2];
-        H5.H5Dget_space_status(-1, status);
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void testH5Dget_space_status_null() throws Throwable {
-        H5.H5Dget_space_status(-1, null);
+        int status = H5.H5Dget_space_status(-1);
     }
 
     @Test(expected = HDF5LibraryException.class)
@@ -118,13 +112,7 @@ public class TestH5Dparams {
 
     @Test(expected = HDF5LibraryException.class)
     public void testH5Dvlen_get_buf_size_invalid() throws Throwable {
-        int[] size = new int[2];
-        H5.H5Dvlen_get_buf_size(-1, -1, -1, size);
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void testH5Dvlen_get_buf_size_null() throws Throwable {
-        H5.H5Dvlen_get_buf_size(-1, -1, -1, null);
+        H5.H5Dvlen_get_buf_size(-1, -1, -1);
     }
 
     @Test(expected = HDF5LibraryException.class)

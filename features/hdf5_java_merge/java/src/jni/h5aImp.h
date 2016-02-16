@@ -83,10 +83,10 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Aget_1type
 /*
  * Class:     hdf_hdf5lib_H5
  * Method:    H5Aget_name
- * Signature: (JJ[Ljava/lang/String;)J
+ * Signature: (J)Ljava/lang/String;
  */
-JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5_H5Aget_1name
-  (JNIEnv *, jclass, jlong, jlong, jobjectArray);
+JNIEXPORT jstring JNICALL Java_hdf_hdf5lib_H5_H5Aget_1name
+  (JNIEnv *, jclass, jlong);
 
 /*
  * Class:     hdf_hdf5lib_H5

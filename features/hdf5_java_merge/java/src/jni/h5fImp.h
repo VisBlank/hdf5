@@ -129,43 +129,19 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Freopen
 
 /*
  * Class:     hdf_hdf5lib_H5
- * Method:    H5Fget_obj_ids_long
+ * Method:    H5Fget_obj_ids
  * Signature: (JIJ[J)J
  */
-JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5_H5Fget_1obj_1ids_1long
+JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5_H5Fget_1obj_1ids
   (JNIEnv*, jclass, jlong, jint, jlong, jlongArray);
 
 /*
  * Class:     hdf_hdf5lib_H5
- * Method:    H5Fget_obj_ids
- * Signature: (JII[J)I
- */
-JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Fget_1obj_1ids
-  (JNIEnv*, jclass, jlong, jint, jint, jlongArray);
-
-/*
- * Class:     hdf_hdf5lib_H5
- * Method:    H5Fget_obj_count(hid_t file_id, unsigned int types )
- * Signature: (JI)I
- */
-JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Fget_1obj_1count
-  (JNIEnv*, jclass, jlong, jint);
-
-/*
- * Class:     hdf_hdf5lib_H5
- * Method:    H5Fget_obj_count_long
+ * Method:    H5Fget_obj_count
  * Signature: (JI)J
  */
-JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5_H5Fget_1obj_1count_1long
+JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5_H5Fget_1obj_1count
   (JNIEnv*, jclass, jlong, jint);
-
-/*
- * Class:     hdf_hdf5lib_H5
- * Method:    H5Fget_name
- * Signature: (JLjava/lang/String;I)Ljava/lang/String;
- */
-JNIEXPORT jstring JNICALL Java_hdf_hdf5lib_H5_H5Fget_2name
-  (JNIEnv*, jclass, jlong, jstring, jint);
 
 /*
  * Class:     hdf_hdf5lib_H5

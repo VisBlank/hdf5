@@ -74,7 +74,7 @@ public class H5Ex_D_Alloc {
         long dcpl_id = -1;
         long[] dims = { DIM_X, DIM_Y };
         int[][] dset_data = new int[DIM_X][DIM_Y];
-        int[] space_status = new int[1];
+        int space_status = 0;
         long storage_size = 0;
 
         // Initialize the dataset.
@@ -147,7 +147,7 @@ public class H5Ex_D_Alloc {
         // Retrieve and print space status and storage size for dset1.
         try {
             if (dataset_id1 >= 0)
-                H5.H5Dget_space_status(dataset_id1, space_status);
+                space_status = H5.H5Dget_space_status(dataset_id1);
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -160,7 +160,7 @@ public class H5Ex_D_Alloc {
             e.printStackTrace();
         }
         String the_space = " ";
-        if (H5D_space_status.get(space_status[0]) != H5D_space_status.H5D_SPACE_STATUS_ALLOCATED)
+        if (H5D_space_status.get(space_status) != H5D_space_status.H5D_SPACE_STATUS_ALLOCATED)
             the_space += "not ";
         System.out.println("Space for " + DATASETNAME1 + " has" + the_space + "been allocated.");
         System.out.println("Storage size for " + DATASETNAME1 + " is: " + storage_size + " bytes.");
@@ -168,7 +168,7 @@ public class H5Ex_D_Alloc {
         // Retrieve and print space status and storage size for dset2.
         try {
             if (dataset_id2 >= 0)
-                H5.H5Dget_space_status(dataset_id2, space_status);
+                space_status = H5.H5Dget_space_status(dataset_id2);
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -181,7 +181,7 @@ public class H5Ex_D_Alloc {
             e.printStackTrace();
         }
         the_space = " ";
-        if (H5D_space_status.get(space_status[0]) != H5D_space_status.H5D_SPACE_STATUS_ALLOCATED)
+        if (H5D_space_status.get(space_status) != H5D_space_status.H5D_SPACE_STATUS_ALLOCATED)
             the_space += "not ";
         System.out.println("Space for " + DATASETNAME2 + " has" + the_space + "been allocated.");
         System.out.println("Storage size for " + DATASETNAME2 + " is: " + storage_size + " bytes.");
@@ -211,7 +211,7 @@ public class H5Ex_D_Alloc {
         // Retrieve and print space status and storage size for dset1.
         try {
             if (dataset_id1 >= 0)
-                H5.H5Dget_space_status(dataset_id1, space_status);
+                space_status = H5.H5Dget_space_status(dataset_id1);
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -224,7 +224,7 @@ public class H5Ex_D_Alloc {
             e.printStackTrace();
         }
         the_space = " ";
-        if (H5D_space_status.get(space_status[0]) != H5D_space_status.H5D_SPACE_STATUS_ALLOCATED)
+        if (H5D_space_status.get(space_status) != H5D_space_status.H5D_SPACE_STATUS_ALLOCATED)
             the_space += "not ";
         System.out.println("Space for " + DATASETNAME1 + " has" + the_space + "been allocated.");
         System.out.println("Storage size for " + DATASETNAME1 + " is: " + storage_size + " bytes.");
@@ -232,7 +232,7 @@ public class H5Ex_D_Alloc {
         // Retrieve and print space status and storage size for dset2.
         try {
             if (dataset_id2 >= 0)
-                H5.H5Dget_space_status(dataset_id2, space_status);
+                space_status = H5.H5Dget_space_status(dataset_id2);
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -245,7 +245,7 @@ public class H5Ex_D_Alloc {
             e.printStackTrace();
         }
         the_space = " ";
-        if (H5D_space_status.get(space_status[0]) != H5D_space_status.H5D_SPACE_STATUS_ALLOCATED)
+        if (H5D_space_status.get(space_status) != H5D_space_status.H5D_SPACE_STATUS_ALLOCATED)
             the_space += "not ";
         System.out.println("Space for " + DATASETNAME2 + " has" + the_space + "been allocated.");
         System.out.println("Storage size for " + DATASETNAME2 + " is: " + storage_size + " bytes.");

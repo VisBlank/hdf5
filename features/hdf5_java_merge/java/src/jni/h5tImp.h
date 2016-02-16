@@ -82,17 +82,9 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Tget_1class
 /*
  * Class:     hdf_hdf5lib_H5
  * Method:    H5Tget_size
- * Signature: (J)I
- */
-JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Tget_1size
-  (JNIEnv *, jclass, jlong);
-
-/*
- * Class:     hdf_hdf5lib_H5
- * Method:    H5Tget_size_long
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5_H5Tget_1size_1long
+JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5_H5Tget_1size
   (JNIEnv *, jclass, jlong);
 
 /*

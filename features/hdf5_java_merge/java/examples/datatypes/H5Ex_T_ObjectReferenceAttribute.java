@@ -286,9 +286,8 @@ public class H5Ex_T_ObjectReferenceAttribute {
             // Open the referenced object, get its name and type.
             try {
                 if (dataset_id >= 0) {
-                    int[] otype = { 1 };
                     object_id = H5.H5Rdereference(dataset_id, HDF5Constants.H5P_DEFAULT, HDF5Constants.H5R_OBJECT, dset_data[indx]);
-                    object_type = H5.H5Rget_obj_type(dataset_id, HDF5Constants.H5R_OBJECT, dset_data[indx], otype);
+                    object_type = H5.H5Rget_obj_type(dataset_id, HDF5Constants.H5R_OBJECT, dset_data[indx]);
                 }
                 String[] obj_name = new String[1];
                 long name_size = 1;

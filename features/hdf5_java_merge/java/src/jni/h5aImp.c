@@ -224,51 +224,41 @@ Java_hdf_hdf5lib_H5__1H5Aget_1type(JNIEnv *env, jclass clss, jlong attr_id)
 /*
  * Class:     hdf_hdf5lib_H5
  * Method:    H5Aget_name
- * Signature: (JJ[Ljava/lang/String;)J
+ * Signature: (J)Ljava/lang/String;
  */
-JNIEXPORT jlong JNICALL
-Java_hdf_hdf5lib_H5_H5Aget_1name(JNIEnv *env, jclass clss, jlong attr_id, jlong buf_size, jobjectArray name)
+JNIEXPORT jstring JNICALL
+Java_hdf_hdf5lib_H5_H5Aget_1name(JNIEnv *env, jclass clss, jlong attr_id)
 {
     char    *aName;
-    jstring  str;
-    hssize_t size = -1;
-    ssize_t  bs;
+    jstring  str = NULL;
+    ssize_t  buf_size;
 
-    if (buf_size == 0 && name == NULL) {
-        size = H5Aget_name((hid_t)attr_id, 0, NULL);
+    /* get the length of the name */
+    buf_size = H5Aget_name((hid_t)attr_id, NULL, 0);
+
+    if (buf_size <= 0) {
+        h5badArgument(env, "H5Aget_name:  buf_size <= 0");
     } /* end if */
     else {
-        bs = (ssize_t)buf_size;
-        if (bs <= 0) {
-            h5badArgument(env, "H5Aget_name:  buf_size <= 0");
+        buf_size++; /* add extra space for the null terminator */
+        aName = (char*)HDmalloc(sizeof(char) * (size_t)buf_size);
+        if (aName == NULL) {
+            h5outOfMemory(env, "H5Aget_name:  malloc failed");
         } /* end if */
         else {
-            aName = (char*)HDmalloc(sizeof(char) * (size_t)bs);
-            if (aName == NULL) {
-                h5outOfMemory(env, "H5Aget_name:  malloc failed");
+            buf_size = H5Aget_name((hid_t)attr_id, (size_t)buf_size, aName);
+            if (buf_size < 0) {
+                HDfree(aName);
+                h5libraryError(env);
             } /* end if */
             else {
-                size = H5Aget_name((hid_t)attr_id, (size_t)buf_size, aName);
-                if (size < 0) {
-                    HDfree(aName);
-                    h5libraryError(env);
-                } /* end if */
-                else {
-                    /* save the string; */
-                    str = ENVPTR->NewStringUTF(ENVPAR aName);
-                    HDfree(aName);
-
-                    if (str == NULL) {
-                        h5JNIFatalError(env,"H5Aget_name:  return string failed");
-                    } /* end if */
-                    else {
-                        ENVPTR->SetObjectArrayElement(ENVPAR name, 0, str);
-                    } /* end else */
-                } /* end else */
+                /* save the string; */
+                str = ENVPTR->NewStringUTF(ENVPAR aName);
+                HDfree(aName);
             } /* end else */
         } /* end else */
     } /* end else */
-    return (jlong)size;
+    return str;
 } /* end Java_hdf_hdf5lib_H5_H5Aget_1name */
 
 /*

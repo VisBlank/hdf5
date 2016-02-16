@@ -568,20 +568,20 @@ public class TestH5Pfapl {
 
     @Test
     public void testH5P_small_data_block_size() {
-        long[] align = {0};
+        long align = 0;
         try {
-            H5.H5Pget_small_data_block_size(fapl_id, align);
-            assertTrue("H5P_small_data_block_size default", align[0] == 2048);
+            align = H5.H5Pget_small_data_block_size(fapl_id);
+            assertTrue("H5P_small_data_block_size default", align == 2048);
         }
         catch (Throwable err) {
             err.printStackTrace();
             fail("H5P_small_data_block_size: default " + err);
         }
         try {
-            align[0] = 4096;
-            H5.H5Pset_small_data_block_size(fapl_id, align[0]);
-            H5.H5Pget_small_data_block_size(fapl_id, align);
-            assertTrue("H5P_small_data_block_size 4096", align[0] == 4096);
+            align = 4096;
+            H5.H5Pset_small_data_block_size(fapl_id, align);
+            align = H5.H5Pget_small_data_block_size(fapl_id);
+            assertTrue("H5P_small_data_block_size 4096", align == 4096);
         }
         catch (Throwable err) {
             err.printStackTrace();
@@ -694,7 +694,7 @@ public class TestH5Pfapl {
         boolean ret_val_id = false;
         try {
             H5.H5Pset_gc_references(fapl_id, true);
-            ret_val_id = H5.H5Pget_gcreferences(fapl_id);
+            ret_val_id = H5.H5Pget_gc_references(fapl_id);
             assertTrue("H5P_gc_references", ret_val_id);
         }
         catch (Throwable err) {

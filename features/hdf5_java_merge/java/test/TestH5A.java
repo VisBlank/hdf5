@@ -365,7 +365,7 @@ public class TestH5A {
     public void testH5Aget_name() {
         String obj_name = ".";
         String attr_name = "DATASET1";
-        String[] ret_name = new String[1];
+        String ret_name = null;
         long attribute_id = -1;
 
         try {
@@ -373,8 +373,8 @@ public class TestH5A {
                     type_id, space_id, HDF5Constants.H5P_DEFAULT,
                     HDF5Constants.H5P_DEFAULT, lapl_id);
             assertTrue("testH5Aget_name: H5Acreate_by_name ", attribute_id > 0);
-            long attr_name_size = H5.H5Aget_name(attribute_id, ret_name);
-            assertTrue("testH5Aget_name: testH5Aget_name", attr_name_size >= 0);
+            ret_name = H5.H5Aget_name(attribute_id);
+            assertEquals(ret_name, attr_name);
         }
         catch (Throwable err) {
             err.printStackTrace();
@@ -418,7 +418,6 @@ public class TestH5A {
                     1, lapl_id);
             assertFalse("H5Aget_name_by_idx ", ret_name == null);
             assertEquals(ret_name, attr2_name);
-
         }
         catch (Throwable err) {
             err.printStackTrace();
@@ -931,7 +930,7 @@ public class TestH5A {
         }
         catch (Throwable err) {
             err.printStackTrace();
-            fail("testH5Aget_name " + err);
+            fail("testH5Aget_create_plist: H5Pcreate " + err);
         }
         try {
             // Get the character encoding and ensure that it is the default (ASCII)
@@ -947,11 +946,11 @@ public class TestH5A {
             // Create an attribute for the dataset using the property list
             try {
                 attribute_id = H5.H5Acreate(H5fid, attr_name, type_id, space_id, plist_id, HDF5Constants.H5P_DEFAULT);
-                assertTrue("testH5Acreate2", attribute_id >= 0);
+                assertTrue("testH5Aget_create_plist: H5Acreate", attribute_id >= 0);
             }
             catch (Throwable err) {
                 err.printStackTrace();
-                fail("H5.H5Acreate2: " + err);
+                fail("H5.H5Acreate: " + err);
             }
 
             /* Close the property list, and get the attribute's property list */
