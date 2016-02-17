@@ -163,7 +163,7 @@ public class H5Ex_T_String {
         long memtype_id = -1;
         long dataspace_id = -1;
         long dataset_id = -1;
-        int sdim = 0;
+        long sdim = 0;
         long[] dims = { DIM0 };
         byte[][] dset_data;
         StringBuffer[] str_data;
@@ -216,7 +216,7 @@ public class H5Ex_T_String {
         }
 
         // Allocate space for data.
-        dset_data = new byte[(int) dims[0]][sdim];
+        dset_data = new byte[(int) dims[0]][(int)sdim];
         str_data = new StringBuffer[(int) dims[0]];
 
         // Create the memory datatype.
@@ -234,7 +234,7 @@ public class H5Ex_T_String {
             if ((dataset_id >= 0) && (memtype_id >= 0))
                 H5.H5Dread(dataset_id, memtype_id, HDF5Constants.H5S_ALL, HDF5Constants.H5S_ALL,
                         HDF5Constants.H5P_DEFAULT, dset_data);
-            byte[] tempbuf = new byte[sdim];
+            byte[] tempbuf = new byte[(int)sdim];
             for (int indx = 0; indx < (int) dims[0]; indx++) {
                 for (int jndx = 0; jndx < sdim; jndx++) {
                     tempbuf[jndx] = dset_data[indx][jndx];

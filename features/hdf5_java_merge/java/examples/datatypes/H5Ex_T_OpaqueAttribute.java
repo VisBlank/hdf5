@@ -165,7 +165,7 @@ public class H5Ex_T_OpaqueAttribute {
         long dataspace_id = -1;
         long dataset_id = -1;
         long attribute_id = -1;
-        int type_len = -1;
+        long type_len = -1;
         long[] dims = { DIM0 };
         byte[] dset_data;
         String tag_name = null;
@@ -227,7 +227,7 @@ public class H5Ex_T_OpaqueAttribute {
         }
 
         // Allocate buffer.
-        dset_data = new byte[(int) dims[0] * type_len];
+        dset_data = new byte[(int) (dims[0] * type_len)];
 
         // Read data.
         try {
@@ -243,7 +243,7 @@ public class H5Ex_T_OpaqueAttribute {
         for (int indx = 0; indx < dims[0]; indx++) {
             System.out.print(ATTRIBUTENAME + "[" + indx + "]: ");
             for (int jndx = 0; jndx < type_len; jndx++) {
-                char temp = (char) dset_data[jndx + indx * type_len];
+                char temp = (char) dset_data[jndx + indx * (int)type_len];
                 System.out.print(temp);
             }
             System.out.println("");
