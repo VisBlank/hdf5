@@ -3656,7 +3656,8 @@ public class H5 implements java.io.Serializable {
             int order, long n, long lapl_id) throws HDF5LibraryException, NullPointerException;
 
     /**
-     * H5Lget_val returns the link value of a symbolic link.
+     * H5Lget_value returns the link value of a symbolic link. Note that this function is a combination
+     * of H5Lget_info(), H5Lget_val() and for external links, H5Lunpack_elink_val.
      *
      * @param loc_id
      *            IN: Identifier of the file or group containing the object.
@@ -3674,11 +3675,13 @@ public class H5 implements java.io.Serializable {
      * @exception NullPointerException
      *                - name is null.
      **/
-    public synchronized static native int H5Lget_val(long loc_id, String name, String[] link_value, long lapl_id)
+    public synchronized static native int H5Lget_value(long loc_id, String name, String[] link_value, long lapl_id)
             throws HDF5LibraryException, NullPointerException;
 
     /**
-     * H5Lget_val_by_idx retrieves value of the nth link in a group, according to the order within an index.
+     * H5Lget_value_by_idx retrieves value of the nth link in a group, according to the order within an index.
+     * Note that this function is a combination of H5Lget_info(), H5Lget_val() and for external links,
+     * H5Lunpack_elink_val.
      *
      * @param loc_id
      *            IN: File or group identifier specifying location of subject group
@@ -3702,7 +3705,7 @@ public class H5 implements java.io.Serializable {
      * @exception NullPointerException
      *                - group_name is null.
      **/
-    public synchronized static native int H5Lget_val_by_idx(long loc_id, String group_name, int idx_type, int order,
+    public synchronized static native int H5Lget_value_by_idx(long loc_id, String group_name, int idx_type, int order,
             long n, String[] link_value, long lapl_id) throws HDF5LibraryException, NullPointerException;
 
     /**
@@ -3874,8 +3877,12 @@ public class H5 implements java.io.Serializable {
 
     // herr_t H5Lunpack_elink_val(const void *ext_linkval/*in*/, size_t link_size,
     //         unsigned *flags, const char **filename/*out*/, const char **obj_path /*out*/);
+    // herr_t H5Lget_val(hid_t loc_id, const char *name, void *buf/*out*/,
+    //        size_t size, hid_t lapl_id);
+    // herr_t H5Lget_val_by_idx(hid_t loc_id, const char *group_name,
+    //        H5_index_t idx_type, H5_iter_order_t order, hsize_t n,
+    //        void *buf/*out*/, size_t size, hid_t lapl_id);
 
-    // herr_t H5Lunregister(H5L_type_t id);
 
     // ////////////////////////////////////////////////////////////
     // //

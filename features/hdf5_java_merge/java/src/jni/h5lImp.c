@@ -328,11 +328,11 @@ Java_hdf_hdf5lib_H5_H5Lget_1name_1by_1idx(JNIEnv *env, jclass clss, jlong loc_id
 
 /*
  * Class:     hdf_hdf5lib_H5
- * Method:    H5Lget_val
+ * Method:    H5Lget_value
  * Signature: (JLjava/lang/String;[Ljava/lang/String;J)I
  */
 JNIEXPORT jint JNICALL
-Java_hdf_hdf5lib_H5_H5Lget_1val(JNIEnv *env, jclass clss, jlong loc_id, jstring name, jobjectArray link_value, jlong access_id)
+Java_hdf_hdf5lib_H5_H5Lget_1value(JNIEnv *env, jclass clss, jlong loc_id, jstring name, jobjectArray link_value, jlong access_id)
 {
     size_t      buf_size;
     herr_t      status;
@@ -422,11 +422,11 @@ Java_hdf_hdf5lib_H5_H5Lget_1val(JNIEnv *env, jclass clss, jlong loc_id, jstring 
 
 /*
  * Class:     hdf_hdf5lib_H5
- * Method:    H5Lget_val_by_idx
+ * Method:    H5Lget_value_by_idx
  * Signature: (JLjava/lang/String;IIJ[Ljava/lang/String;J)I
  */
 JNIEXPORT jint JNICALL
-Java_hdf_hdf5lib_H5_H5Lget_1val_1by_1idx(JNIEnv *env, jclass clss, jlong loc_id, jstring name, jint index_field, jint order,
+Java_hdf_hdf5lib_H5_H5Lget_1value_1by_1idx(JNIEnv *env, jclass clss, jlong loc_id, jstring name, jint index_field, jint order,
         jlong link_n, jobjectArray link_value, jlong access_id)
 {
     herr_t      status;

@@ -106,18 +106,18 @@ extern "C" {
 
     /*
      * Class:     hdf_hdf5lib_H5
-     * Method:    H5Lget_val
+     * Method:    H5Lget_value
      * Signature: (JLjava/lang/String;[Ljava/lang/String;J)I
      */
-    JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Lget_1val
+    JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Lget_1value
       (JNIEnv*, jclass, jlong, jstring, jobjectArray, jlong);
 
     /*
      * Class:     hdf_hdf5lib_H5
-     * Method:    H5Lget_val_by_idx
+     * Method:    H5Lget_value_by_idx
      * Signature: (JLjava/lang/String;IIJ[Ljava/lang/String;J)I
      */
-    JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Lget_1val_1by_1idx
+    JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Lget_1value_1by_1idx
     (JNIEnv*, jclass, jlong, jstring, jint, jint, jlong, jobjectArray, jlong);
 
     /*

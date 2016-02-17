@@ -39,13 +39,13 @@ public class TestH5Lparams {
     }
 
     @Test(expected = HDF5LibraryException.class)
-    public void testH5Lget_val_invalid() throws Throwable {
-        H5.H5Lget_val(-1, "Bogus", null, -1);
+    public void testH5Lget_value_invalid() throws Throwable {
+        H5.H5Lget_value(-1, "Bogus", null, -1);
     }
 
     @Test(expected = NullPointerException.class)
-    public void testH5Lget_val_null() throws Throwable {
-        H5.H5Lget_val(-1, null, null, 0);
+    public void testH5Lget_value_null() throws Throwable {
+        H5.H5Lget_value(-1, null, null, 0);
     }
 
     @Test(expected = HDF5LibraryException.class)
@@ -179,13 +179,13 @@ public class TestH5Lparams {
     }
 
     @Test(expected = HDF5LibraryException.class)
-    public void testH5Lget_val_by_idx_invalid() throws Throwable {
-        H5.H5Lget_val_by_idx(-1, "Bogus", -1, -1, -1L, null, -1);
+    public void testH5Lget_value_by_idx_invalid() throws Throwable {
+        H5.H5Lget_value_by_idx(-1, "Bogus", -1, -1, -1L, null, -1);
     }
 
     @Test(expected = NullPointerException.class)
-    public void testH5Lget_val_by_idx_null() throws Throwable {
-        H5.H5Lget_val_by_idx(-1, null, 0, 0, 0L, null, 0);
+    public void testH5Lget_value_by_idx_null() throws Throwable {
+        H5.H5Lget_value_by_idx(-1, null, 0, 0, 0L, null, 0);
     }
 
     @Test(expected = HDF5LibraryException.class)
