@@ -28029,24 +28029,28 @@ fi
 case "X-$OPTIMIZATION" in
   X-high)
     H5_CFLAGS="$H5_CFLAGS $HIGH_OPT_CFLAGS"
+    H5_CXXFLAGS="$H5_CXXFLAGS $HIGH_OPT_CXXFLAGS"
     H5_FCFLAGS="$H5_FCFLAGS $HIGH_OPT_FCFLAGS"
     { $as_echo "$as_me:${as_lineno-$LINENO}: result: high" >&5
 $as_echo "high" >&6; }
     ;;
   X-debug)
     H5_CFLAGS="$H5_CFLAGS $DEBUG_OPT_CFLAGS"
+    H5_CXXFLAGS="$H5_CXXFLAGS $DEBUG_OPT_CXXFLAGS"
     H5_FCFLAGS="$H5_FCFLAGS $DEBUG_OPT_FCFLAGS"
     { $as_echo "$as_me:${as_lineno-$LINENO}: result: debug" >&5
 $as_echo "debug" >&6; }
     ;;
   X-none)
     H5_CFLAGS="$H5_CFLAGS $NO_OPT_CFLAGS"
+    H5_CXXFLAGS="$H5_CXXFLAGS $NO_OPT_CXXFLAGS"
     H5_FCFLAGS="$H5_FCFLAGS $NO_OPT_FCFLAGS"
     { $as_echo "$as_me:${as_lineno-$LINENO}: result: none" >&5
 $as_echo "none" >&6; }
     ;;
   *)
     H5_CFLAGS="$H5_CFLAGS $OPTIMIZATION"
+    H5_CXXFLAGS="$H5_CXXFLAGS $OPTIMIZATION"
     H5_FCFLAGS="$H5_FCFLAGS $OPTIMIZATION"
     OPTIMIZATION="custom ($OPTIMIZATION)"
     { $as_echo "$as_me:${as_lineno-$LINENO}: result: $OPTIMIZATION" >&5
