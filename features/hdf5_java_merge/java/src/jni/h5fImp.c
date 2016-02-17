@@ -422,30 +422,30 @@ Java_hdf_hdf5lib_H5_H5Fget_1mdc_1size(JNIEnv *env, jclass cls, jlong file_id, jl
     jint     size = 0;
     jlong   *metadata_cache_ptr;
     size_t   max_size = 0, min_clean_size = 0, cur_size = 0;
-    int      cur_num_entries = 0;
+    int      cur_num_entries = -1;
     jboolean isCopy;
 
     if (metadata_cache == NULL) {
         h5nullArgument(env, "H5Fget_mdc_size:  metadata_cache is NULL");
-        return -1;
     } /* end if */
-
-    size = (int)ENVPTR->GetArrayLength(ENVPAR metadata_cache);
-    if (size < 3) {
-        h5badArgument(env, "H5Fget_mdc_size:  length of metadata_cache < 3.");
-        return -1;
-    } /* end if */
-
-    if (H5Fget_mdc_size((hid_t)file_id, &max_size, &min_clean_size, &cur_size, &cur_num_entries) < 0) {
-        h5libraryError(env);
-        return -1;
-    } /* end if */
-
-    metadata_cache_ptr = ENVPTR->GetLongArrayElements(ENVPAR metadata_cache, &isCopy);
-    metadata_cache_ptr[0] = (jlong)max_size;
-    metadata_cache_ptr[1] = (jlong)min_clean_size;
-    metadata_cache_ptr[2] = (jlong)cur_size;
-    ENVPTR->ReleaseLongArrayElements(ENVPAR metadata_cache, metadata_cache_ptr, 0);
+    else {
+        size = (int)ENVPTR->GetArrayLength(ENVPAR metadata_cache);
+        if (size < 3) {
+            h5badArgument(env, "H5Fget_mdc_size:  length of metadata_cache < 3.");
+        } /* end if */
+        else {
+            if (H5Fget_mdc_size((hid_t)file_id, &max_size, &min_clean_size, &cur_size, &cur_num_entries) < 0) {
+                h5libraryError(env);
+            } /* end if */
+            else {
+                metadata_cache_ptr = ENVPTR->GetLongArrayElements(ENVPAR metadata_cache, &isCopy);
+                metadata_cache_ptr[0] = (jlong)max_size;
+                metadata_cache_ptr[1] = (jlong)min_clean_size;
+                metadata_cache_ptr[2] = (jlong)cur_size;
+                ENVPTR->ReleaseLongArrayElements(ENVPAR metadata_cache, metadata_cache_ptr, 0);
+            } /* end else */
+        } /* end else */
+    } /* end else */
 
     return (jint)cur_num_entries;
 } /* end Java_hdf_hdf5lib_H5_H5Fget_1mdc_1size */
@@ -464,24 +464,24 @@ Java_hdf_hdf5lib_H5_H5Fget_1info(JNIEnv *env, jclass clss, jlong obj_id)
 
     if (H5Fget_info2((hid_t)obj_id, &finfo) < 0) {
        h5libraryError(env);
-       return NULL;
     } /* end if */
+    else {
+        args[0].j = (jlong)finfo.sohm.msgs_info.index_size;
+        args[1].j = (jlong)finfo.sohm.msgs_info.heap_size;
+        CALL_CONSTRUCTOR("hdf/hdf5lib/structs/H5_ih_info_t", "(JJ)V", args);
+        ihinfobuf = ret_obj;
 
-    args[0].j = (jlong)finfo.sohm.msgs_info.index_size;
-    args[1].j = (jlong)finfo.sohm.msgs_info.heap_size;
-    CALL_CONSTRUCTOR("hdf/hdf5lib/structs/H5_ih_info_t", "(JJ)V", args);
-    ihinfobuf = ret_obj;
-
-    args[0].i = (jint)finfo.super.version;
-    args[1].j = (jlong)finfo.super.super_size;
-    args[2].j = (jlong)finfo.super.super_ext_size;
-    args[3].i = (jint)finfo.free.version;
-    args[4].j = (jlong)finfo.free.meta_size;
-    args[5].j = (jlong)finfo.free.tot_space;
-    args[6].j = (jint)finfo.sohm.version;
-    args[7].j = (jlong)finfo.sohm.hdr_size;
-    args[8].l = ihinfobuf;
-    CALL_CONSTRUCTOR("hdf/hdf5lib/structs/H5F_info2_t", "(IJJIJJIJLhdf/hdf5lib/structs/H5_ih_info_t;)V", args);
+        args[0].i = (jint)finfo.super.version;
+        args[1].j = (jlong)finfo.super.super_size;
+        args[2].j = (jlong)finfo.super.super_ext_size;
+        args[3].i = (jint)finfo.free.version;
+        args[4].j = (jlong)finfo.free.meta_size;
+        args[5].j = (jlong)finfo.free.tot_space;
+        args[6].j = (jint)finfo.sohm.version;
+        args[7].j = (jlong)finfo.sohm.hdr_size;
+        args[8].l = ihinfobuf;
+        CALL_CONSTRUCTOR("hdf/hdf5lib/structs/H5F_info2_t", "(IJJIJJIJLhdf/hdf5lib/structs/H5_ih_info_t;)V", args);
+    } /* end else */
     return ret_obj;
 } /* end Java_hdf_hdf5lib_H5_H5Fget_1info */
 
