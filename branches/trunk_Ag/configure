@@ -3929,57 +3929,6 @@ $as_echo "done" >&6; }
 UNAME_INFO=`uname -a`
 
 ## ----------------------------------------------------------------------
-## Determine build mode (debug, production, clean).
-## This has to be done early since the build mode is referred to
-## frequently.
-##
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking build mode" >&5
-$as_echo_n "checking build mode... " >&6; }
-# Check whether --enable-build-mode was given.
-if test "${enable_build_mode+set}" = set; then :
-  enableval=$enable_build_mode; BUILD_MODE=$enableval
-fi
-
-
-## Set the default
-## Depends on branch, set via script at branch creation time
-if test "X-$BUILD_MODE" = X- ; then
-    BUILD_MODE=debug
-fi
-
-## Allow this variable to be substituted in
-## other files (src/libhdf5.settings.in, etc.)
-
-
-case "X-$BUILD_MODE" in
-  X-clean)
-    { $as_echo "$as_me:${as_lineno-$LINENO}: result: clean" >&5
-$as_echo "clean" >&6; }
-    ;;
-  X-debug)
-
-$as_echo "#define DEBUG_BUILD 1" >>confdefs.h
-
-    H5_CFLAGS="$H5_CFLAGS $DEBUG_CFLAGS"
-    H5_CPPFLAGS="$H5_CPPFLAGS $DEBUG_CPPFLAGS"
-    H5_CXXFLAGS="$H5_CXXFLAGS $DEBUG_CXXFLAGS"
-    H5_FCFLAGS="$H5_FCFLAGS $DEBUG_FCFLAGS"
-    { $as_echo "$as_me:${as_lineno-$LINENO}: result: debug" >&5
-$as_echo "debug" >&6; }
-    ;;
-  X-production)
-    H5_CFLAGS="$H5_CFLAGS $PROD_CFLAGS"
-    H5_CPPFLAGS="$H5_CPPFLAGS $PROD_CPPFLAGS"
-    H5_CXXFLAGS="$H5_CXXFLAGS $PROD_CXXFLAGS"
-    H5_FCFLAGS="$H5_FCFLAGS $PROD_FCFLAGS"
-    { $as_echo "$as_me:${as_lineno-$LINENO}: result: production" >&5
-$as_echo "production" >&6; }
-    ;;
-  *)
-    as_fn_error $? "Unrecognized build mode: $BUILD_MODE. Use debug, production, or clean." "$LINENO" 5
-esac
-
-## ----------------------------------------------------------------------
 ## Some platforms have broken basename, and/or xargs programs. Check
 ## that it actually does what it's supposed to do. Catch this early
 ## since configure and scripts relies upon them heavily and there's
@@ -4105,6 +4054,57 @@ $as_echo "no" >&6; }
   hname="`echo $hname | cut -d. -f2-99`"
   test "$hname_tmp" = "$hname" && break
 done
+
+## ----------------------------------------------------------------------
+## Determine build mode (debug, production, clean).
+## This has to be done early since the build mode is referred to
+## frequently.
+##
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking build mode" >&5
+$as_echo_n "checking build mode... " >&6; }
+# Check whether --enable-build-mode was given.
+if test "${enable_build_mode+set}" = set; then :
+  enableval=$enable_build_mode; BUILD_MODE=$enableval
+fi
+
+
+## Set the default
+## Depends on branch, set via script at branch creation time
+if test "X-$BUILD_MODE" = X- ; then
+    BUILD_MODE=debug
+fi
+
+## Allow this variable to be substituted in
+## other files (src/libhdf5.settings.in, etc.)
+
+
+case "X-$BUILD_MODE" in
+  X-clean)
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: clean" >&5
+$as_echo "clean" >&6; }
+    ;;
+  X-debug)
+
+$as_echo "#define DEBUG_BUILD 1" >>confdefs.h
+
+    H5_CFLAGS="$H5_CFLAGS $DEBUG_CFLAGS"
+    H5_CPPFLAGS="$H5_CPPFLAGS $DEBUG_CPPFLAGS"
+    H5_CXXFLAGS="$H5_CXXFLAGS $DEBUG_CXXFLAGS"
+    H5_FCFLAGS="$H5_FCFLAGS $DEBUG_FCFLAGS"
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: debug" >&5
+$as_echo "debug" >&6; }
+    ;;
+  X-production)
+    H5_CFLAGS="$H5_CFLAGS $PROD_CFLAGS"
+    H5_CPPFLAGS="$H5_CPPFLAGS $PROD_CPPFLAGS"
+    H5_CXXFLAGS="$H5_CXXFLAGS $PROD_CXXFLAGS"
+    H5_FCFLAGS="$H5_FCFLAGS $PROD_FCFLAGS"
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: production" >&5
+$as_echo "production" >&6; }
+    ;;
+  *)
+    as_fn_error $? "Unrecognized build mode: $BUILD_MODE. Use debug, production, or clean." "$LINENO" 5
+esac
 
 ## ----------------------------------------------------------------------
 ## Some built-in configure checks can only see CFLAGS (not AM_CFLAGS), so
