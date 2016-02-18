@@ -243,8 +243,8 @@ public class TestH5F {
     @Test
     public void testH5Fget_obj_ids() {
         long count = 0;
-        int max_objs = 100;
-        long[] obj_id_list = new long[max_objs];
+        long max_objs = 100;
+        long[] obj_id_list = new long[(int)max_objs];
         int[] open_obj_counts = new int[OBJ_TYPES.length];
 
         for (int i = 0; i < OBJ_TYPES.length; i++)

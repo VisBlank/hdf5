@@ -2710,7 +2710,7 @@ public class H5 implements java.io.Serializable {
      * @exception NullPointerException
      *                - obj_id_list is null.
      **/
-    public synchronized static native long H5Fget_obj_ids(long file_id, int types, int max_objs, long[] obj_id_list)
+    public synchronized static native long H5Fget_obj_ids(long file_id, int types, long max_objs, long[] obj_id_list)
             throws HDF5LibraryException, NullPointerException;
 
     /**
@@ -4548,6 +4548,28 @@ public class H5 implements java.io.Serializable {
     }
 
     private synchronized static native long _H5Pcopy(long plist) throws HDF5LibraryException;
+
+    // public static long H5Pcreate_class(long parent_class, String name, H5P_cls_create_func_cb create_op, H5P_cls_create_func_t create_data,
+    //          H5P_cls_copy_func_cb copy_op, H5P_cls_copy_func_t copy_data, H5P_cls_close_func_cb close_op, H5P_cls_close_func_t close_data) throws HDF5LibraryException {
+    //     long id = _H5Pcreate_class(parent_class, name, create_op, create_data, copy_op, copy_data, close_op, close_data);
+    //       if (id > 0) {
+    //         log.trace("OPEN_IDS: H5Pcreate_class add {}", id);
+    //         OPEN_IDS.add(id);
+    //         log.trace("OPEN_IDS: {}", OPEN_IDS.size());
+    //     }
+    //     return id;
+    // }
+    //
+    // private synchronized static native long _H5Pcreate_class(long parent_class, String name, H5P_cls_create_func_cb create_op, H5P_cls_create_func_t create_data,
+    //      H5P_cls_copy_func_cb copy_op, H5P_cls_copy_func_t copy_data, H5P_cls_close_func_cb close_op, H5P_cls_close_func_t close_data) throws HDF5LibraryException;;
+
+    // public synchronized static native void H5Pregister2(long plist_class, String name, long size, byte[] default, H5P_prp_create_func_cb prp_create, H5P_prp_set_func_cb prp_set,
+    //      H5P_prp_get_func_cb prp_get, H5P_prp_delete_func_cb prp_delete, H5P_prp_copy_func_cb prp_copy, H5P_prp_compare_func_cb prp_cmp, H5P_prp_close_func_cb prp_close) throws HDF5LibraryException;
+
+    // public synchronized static native void H5Pinsert2(long plist, String name, long size,  byte[] value, H5P_prp_set_func_cb prp_set, H5P_prp_get_func_cb prp_get,
+    //      H5P_prp_delete_func_cb prp_delete, H5P_prp_copy_func_cb prp_copy, H5P_prp_compare_func_cb prp_cmp, H5P_prp_close_func_cb prp_close) throws HDF5LibraryException;
+
+    // public synchronized static native int H5Piterate(long plist, int[] idx, H5P_iterate_cb op, H5P_iterate_t op_data) throws HDF5LibraryException;
 
     // Object creation property list (OCPL) routines
 
@@ -6708,27 +6730,20 @@ public class H5 implements java.io.Serializable {
     public synchronized static native void H5Pset_fapl_log(long fapl_id, String logfile, long flags, long buf_size)
             throws HDF5LibraryException, NullPointerException;
 
-    public synchronized static native int H5Pset_fapl_sec2(long fapl_id) throws HDF5LibraryException,
-    NullPointerException;
+    public synchronized static native int H5Pset_fapl_sec2(long fapl_id) throws HDF5LibraryException, NullPointerException;
 
     public synchronized static native void H5Pset_fapl_split(long fapl_id, String meta_ext, long meta_plist_id,
             String raw_ext, long raw_plist_id) throws HDF5LibraryException, NullPointerException;
 
-    public synchronized static native int H5Pset_fapl_stdio(long fapl_id) throws HDF5LibraryException,
-    NullPointerException;
+    public synchronized static native int H5Pset_fapl_stdio(long fapl_id) throws HDF5LibraryException, NullPointerException;
 
-    public synchronized static native int H5Pset_fapl_windows(long fapl_id) throws HDF5LibraryException,
-    NullPointerException;
+    public synchronized static native int H5Pset_fapl_windows(long fapl_id) throws HDF5LibraryException, NullPointerException;
 
     // /////// unimplemented ////////
 
     // Generic property list routines //
-    // hid_t H5Pcreate_class( hid_t parent_class, const char *name, H5P_cls_create_func_t create, void *create_data,
-    // herr_t H5Pregister2( hid_t class, const char * name, size_t size, void * default, H5P_prp_create_func_t create,
-    // herr_t H5Pinsert2( hid_t plid, const char *name, size_t size, void *value, H5P_prp_set_func_t set,
     // herr_t H5Pencode(hid_t plist_id, void *buf, size_t *nalloc);
     // hid_t  H5Pdecode(const void *buf);
-    // int H5Piterate( hid_t id, int * idx, H5P_iterate_t iter_func, void * iter_data )
 
     // Object creation property list (OCPL) routines //
     // herr_t H5Pset_attr_phase_change( hid_t ocpl_id, unsigned max_compact, unsigned min_dense )
@@ -6781,17 +6796,6 @@ public class H5 implements java.io.Serializable {
 
 
     // Other/Older property list routines //
-    // H5P_cls_copy_func_t copy, void *copy_data, H5P_cls_close_func_t close, void *close_data )
-
-    // H5P_prp_get_func_t get, H5P_prp_delete_func_t delete, H5P_prp_copy_func_t copy, H5P_prp_compare_func_t compare,
-    // H5P_prp_close_func_t close )]
-    // H5P_prp_get_func_t get, H5P_prp_delete_func_t delete, H5P_prp_copy_func_t copy, H5P_prp_compare_func_t compare,
-    // H5P_prp_close_func_t close )
-    // H5P_prp_set_func_t set, H5P_prp_get_func_t get, H5P_prp_delete_func_t delete, H5P_prp_copy_func_t copy,
-    // H5P_prp_compare_func_t compare, H5P_prp_close_func_t close )
-    // H5P_prp_set_func_t set, H5P_prp_get_func_t get, H5P_prp_delete_func_t delete, H5P_prp_copy_func_t copy,
-    // H5P_prp_compare_func_t compare, H5P_prp_close_func_t close )
-
     // herr_t H5Pget_fapl_mpio( int fapl_id, MPI_Comm *comm, MPI_Info *info )
     // herr_t H5Pset_fapl_mpio( int fapl_id, MPI_Comm comm, MPI_Info info )
 
