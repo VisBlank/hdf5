@@ -493,7 +493,7 @@ if test $USE_FILTER_DEFLATE = "yes" ; then
     TOOLTEST tvds-3_2.ddl --enable-error-stack 3_2_vds.h5
     TOOLTEST tvds-4.ddl --enable-error-stack 4_vds.h5
     TOOLTEST tvds-5.ddl --enable-error-stack 5_vds.h5
-    TOOLTEST vds-first.ddl --vds-view-first --enable-error-stack vds-percival-unlim-maxmin.h5
+    TOOLTEST vds-first.ddl --vds-view-first-missing --enable-error-stack vds-percival-unlim-maxmin.h5
     TOOLTEST vds-gap1.ddl -d /VDS-Eiger --vds-gap-size=1 --enable-error-stack vds-eiger.h5
     TOOLTEST vds-gap2.ddl --vds-gap-size=2 --enable-error-stack vds-eiger.h5
 fi
