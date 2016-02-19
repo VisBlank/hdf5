@@ -57,6 +57,8 @@ extern jobject visit_callback;
 
 static herr_t H5DreadVL_str (JNIEnv *env, hid_t did, hid_t tid, hid_t mem_sid, hid_t file_sid, hid_t xfer_plist_id, jobjectArray buf);
 static herr_t H5DreadVL_notstr (JNIEnv *env, hid_t did, hid_t tid, hid_t mem_sid, hid_t file_sid, hid_t xfer_plist_id, jobjectArray buf);
+static herr_t H5DwriteVL_str (JNIEnv *env, hid_t did, hid_t tid, hid_t mem_sid, hid_t file_sid, hid_t xfer_plist_id, jobjectArray buf);
+static herr_t H5DwriteVL_notstr (JNIEnv *env, hid_t did, hid_t tid, hid_t mem_sid, hid_t file_sid, hid_t xfer_plist_id, jobjectArray buf);
 
 /********************/
 /* Local Macros     */
@@ -186,9 +188,8 @@ Java_hdf_hdf5lib_H5__1H5Dopen(JNIEnv *env, jclass clss, jlong loc_id, jstring na
     dset_id = H5Dopen2((hid_t)loc_id, fileName, H5P_DEFAULT);
 
     UNPIN_JAVA_STRING(name, fileName);
-    if (dset_id < 0) {
+    if (dset_id < 0)
         h5libraryError(env);
-    }
 
     return (jlong)dset_id;
 } /* end Java_hdf_hdf5lib_H5__1H5Dopen */
@@ -204,9 +205,8 @@ Java_hdf_hdf5lib_H5__1H5Dget_1space(JNIEnv *env, jclass clss, jlong dataset_id)
     hid_t retVal = -1;
 
     retVal = H5Dget_space((hid_t)dataset_id);
-    if (retVal < 0) {
+    if (retVal < 0)
         h5libraryError(env);
-    }
 
     return (jlong)retVal;
 } /* end Java_hdf_hdf5lib_H5__1H5Dget_1space */
@@ -222,9 +222,8 @@ Java_hdf_hdf5lib_H5__1H5Dget_1type(JNIEnv *env, jclass clss, jlong dataset_id)
     hid_t retVal = -1;
 
     retVal = H5Dget_type((hid_t)dataset_id);
-    if (retVal < 0) {
+    if (retVal < 0)
         h5libraryError(env);
-    }
 
     return (jlong)retVal;
 } /* end Java_hdf_hdf5lib_H5__1H5Dget_1type */
@@ -240,9 +239,8 @@ Java_hdf_hdf5lib_H5__1H5Dget_1create_1plist(JNIEnv *env, jclass clss, jlong data
     hid_t retVal = -1;
 
     retVal = H5Dget_create_plist((hid_t)dataset_id);
-    if (retVal < 0) {
+    if (retVal < 0)
         h5libraryError(env);
-    }
 
     return (jlong)retVal;
 } /* end Java_hdf_hdf5lib_H5__1H5Dget_1create_1plist */
@@ -255,8 +253,13 @@ H5Tdetect_variable_str(hid_t tid) {
         unsigned i;
         unsigned nm = (unsigned)H5Tget_nmembers(tid);
         for(i = 0; i < nm; i++) {
-            hid_t mtid = H5Tget_member_type(tid, i);
-            ret_val = H5Tdetect_variable_str(mtid);
+            htri_t status = 0;
+            hid_t mtid = 0;
+            if((mtid = H5Tget_member_type(tid, i)) < 0)
+                return -1; /* exit immediately on error */
+            if((status = H5Tdetect_variable_str(mtid)) < 0)
+                return status; /* exit immediately on error */
+            ret_val |= status;
             H5Tclose (mtid);
         } /* end for */
     } /* end if */
@@ -280,41 +283,43 @@ Java_hdf_hdf5lib_H5_H5Dread(JNIEnv *env, jclass clss, jlong dataset_id, jlong me
     jboolean isCopy;
     htri_t data_class;
 
-    /* recursive detect any vlen data values in type (compound, array ...) */
-    data_class = H5Tdetect_class(mem_type_id, H5T_VLEN);
-    if((data_class == 1) || (data_class < 0)) {
-        h5badArgument( env, "H5Dread:  buf does not support variable length type");
-        return -1;
-    } /* end if */
-    /* recursive detect any vlen string in type (compound, array ...) */
-    data_class = H5Tdetect_variable_str(mem_type_id);
-    if((data_class == 1) || (data_class < 0)) {
-        h5badArgument( env, "H5Dread:  buf does not support variable length string type");
-        return -1;
-    } /* end if */
-
     if (buf == NULL) {
-        h5nullArgument( env, "H5Dread:  buf is NULL");
-        return -1;
+        h5nullArgument(env, "H5Dread:  buf is NULL");
     } /* end if */
+    else if((data_class = H5Tdetect_class(mem_type_id, H5T_VLEN)) < 0) {
+        h5JNIFatalError(env, "H5Dread: H5Tdetect_class() failed");
+    } /* end else if */
+    else  if(data_class == 1) {
+        h5badArgument(env, "H5Dread:  buf does not support variable length type");
+    } /* end else if */
+    else {
+        /* recursive detect any vlen string in type (compound, array ...) */
+        if((data_class = H5Tdetect_variable_str(mem_type_id)) < 0) {
+            h5JNIFatalError(env, "H5Dread: H5Tdetect_variable_str() failed");
+        } /* end if */
+        else  if(data_class == 1) {
+            h5badArgument(env, "H5Dread:  buf does not support variable length type");
+        } /* end else if */
+        else {
+            PIN_BYTE_ARRAY();
 
-    PIN_BYTE_ARRAY();
+            if (buffP == NULL) {
+                h5JNIFatalError(env, "H5Dread:  buf not pinned");
+            } /* end if */
+            else {
+                status = H5Dread((hid_t)dataset_id, (hid_t)mem_type_id, (hid_t)mem_space_id,
+                                (hid_t)file_space_id, (hid_t)xfer_plist_id, buffP);
 
-    if (buffP == NULL) {
-        h5JNIFatalError( env, "H5Dread:  buf not pinned");
-        return -1;
-    } /* end if */
-
-    status = H5Dread((hid_t)dataset_id, (hid_t)mem_type_id, (hid_t)mem_space_id,
-                     (hid_t)file_space_id, (hid_t)xfer_plist_id, buffP);
-
-    if (status < 0) {
-        UNPIN_BYTE_ARRAY(JNI_ABORT);
-        h5libraryError(env);
-        return -1;
-    } /* end if */
-
-    UNPIN_BYTE_ARRAY(0);
+                if (status < 0) {
+                    UNPIN_BYTE_ARRAY(JNI_ABORT);
+                    h5libraryError(env);
+                } /* end if */
+                else {
+                    UNPIN_BYTE_ARRAY(0); /* update java buffer for return */
+                } /* end else */
+            } /* end else */
+        } /* end else */
+    } /* end else */
 
     return (jint)status;
 } /* end Java_hdf_hdf5lib_H5_H5Dread */
@@ -331,89 +336,44 @@ Java_hdf_hdf5lib_H5_H5Dwrite(JNIEnv *env, jclass clss, jlong dataset_id, jlong m
     herr_t   status;
     jbyte   *buffP;
     jboolean isCopy;
+    htri_t data_class;
 
     if (buf == NULL) {
         h5nullArgument(env, "H5Dwrite:  buf is NULL");
-        return -1;
     } /* end if */
-
-    PIN_BYTE_ARRAY();
-    if (buffP == NULL) {
-        h5JNIFatalError(env, "H5Dwrite:  buf not pinned");
-        return -1;
-    } /* end if */
-
-    status = H5Dwrite((hid_t)dataset_id, (hid_t)mem_type_id, (hid_t)mem_space_id,
-                      (hid_t)file_space_id, (hid_t)xfer_plist_id, buffP);
-
-    UNPIN_BYTE_ARRAY(JNI_ABORT);
-
-    if (status < 0) {
-        h5libraryError(env);
-    } /* end if */
-
-    return (jint)status;
-} /* end Java_hdf_hdf5lib_H5_H5Dwrite */
-
-/*
- * Class:     hdf_hdf5lib_H5
- * Method:    H5Dextend
- * Signature: (J[B)I
- */
-JNIEXPORT jint JNICALL
-Java_hdf_hdf5lib_H5_H5Dextend(JNIEnv *env, jclass clss, jlong dataset_id, jbyteArray size)
-{
-    herr_t   status = -1;
-    size_t   i;
-    size_t   rank;
-    size_t   n;
-    hsize_t *sa;
-    hsize_t *lp;
-    jbyte   *P;
-    jboolean isCopy;
-    jlong   *jlp;
-
-    if (size == NULL) {
-        h5nullArgument(env, "H5Dextend:  array of sizes is NULL");
-        return -1;
-    } /* end if */
-    /*
-     *  Future:  check that the array has correct
-     *           rank (same as dataset dataset_id)
-     */
-    P = ENVPTR->GetByteArrayElements(ENVPAR size, &isCopy);
-    if (P == NULL) {
-        h5JNIFatalError(env, "H5Dextend:  array not pinned");
-        return -1;
-    } /* end if */
-    n = (size_t)ENVPTR->GetArrayLength(ENVPAR size);
-    rank = n / sizeof(jlong);
-    sa = lp = (hsize_t*)HDmalloc(rank * sizeof(hsize_t));
-    if (sa == NULL)  {
-        ENVPTR->ReleaseByteArrayElements(ENVPAR size, P, JNI_ABORT);
-        h5JNIFatalError(env,  "H5Dextend:  size array not allocated");
-    } /* end if */
+    else if((data_class = H5Tdetect_class(mem_type_id, H5T_VLEN)) < 0) {
+        h5JNIFatalError(env, "H5Dwrite: H5Tdetect_class() failed");
+    } /* end else if */
+    else  if(data_class == 1) {
+        h5badArgument(env, "H5Dwrite:  buf does not support variable length type");
+    } /* end else if */
     else {
-        jlp = (jlong*)P;
-        for (i = 0; i < rank; i++) {
-            *lp = (hsize_t) *jlp;
-            lp++;
-            jlp++;
-        } /* end for */
-
-        status = H5Dextend((hid_t)dataset_id, sa);
-
-        /* free the buffer without copying back */
-        ENVPTR->ReleaseByteArrayElements(ENVPAR size, P, JNI_ABORT);
-        HDfree(sa);
-
-        if (status < 0) {
-            h5libraryError(env);
+        /* recursive detect any vlen string in type (compound, array ...) */
+        if((data_class = H5Tdetect_variable_str(mem_type_id)) < 0) {
+            h5JNIFatalError(env, "H5Dwrite: H5Tdetect_variable_str() failed");
         } /* end if */
+        else  if(data_class == 1) {
+            h5badArgument(env, "H5Dwrite:  buf does not support variable length type");
+        } /* end else if */
+        else {
+            PIN_BYTE_ARRAY();
+            if (buffP == NULL) {
+                h5JNIFatalError(env, "H5Dwrite:  buf not pinned");
+            } /* end if */
+            else {
+                status = H5Dwrite((hid_t)dataset_id, (hid_t)mem_type_id, (hid_t)mem_space_id,
+                                (hid_t)file_space_id, (hid_t)xfer_plist_id, buffP);
+
+                UNPIN_BYTE_ARRAY(JNI_ABORT); /* no need to update buffer */
+
+                if (status < 0)
+                    h5libraryError(env);
+            } /* end else */
+        } /* end else */
     } /* end else */
 
     return (jint)status;
-} /* end Java_hdf_hdf5lib_H5_H5Dextend */
+} /* end Java_hdf_hdf5lib_H5_H5Dwrite */
 
 /*
  * Class:     hdf_hdf5lib_H5
@@ -427,9 +387,8 @@ Java_hdf_hdf5lib_H5__1H5Dclose(JNIEnv *env, jclass clss, jlong dataset_id)
 
     retVal = H5Dclose((hid_t)dataset_id);
 
-    if (retVal < 0) {
+    if (retVal < 0)
         h5libraryError(env);
-    }
 
     return (jint)retVal;
 } /* end Java_hdf_hdf5lib_H5__1H5Dclose */
@@ -480,11 +439,11 @@ Java_hdf_hdf5lib_H5_H5Dvlen_1reclaim(JNIEnv *env, jclass clss, jlong type_id, jl
 
             ENVPTR->ReleaseByteArrayElements(ENVPAR buf, byteP, JNI_ABORT);
 
-            if (status < 0) {
+            if (status < 0)
                 h5libraryError(env);
-            } /* end if */
         } /* end else */
     } /* end else */
+
     return (jint)status;
 } /* end Java_hdf_hdf5lib_H5_H5Dvlen_1reclaim */
 
@@ -513,43 +472,96 @@ Java_hdf_hdf5lib_H5_H5Dread_1short(JNIEnv *env, jclass clss, jlong dataset_id, j
     jboolean isCopy;
     htri_t data_class;
 
-    /* recursive detect any vlen data values in type (compound, array ...) */
-    data_class = H5Tdetect_class(mem_type_id, H5T_VLEN);
-    if((data_class == 1) || (data_class < 0)) {
-        h5badArgument(env, "H5Dread_short:  buf does not support variable length type");
-        return -1;
-    } /* end if */
-    /* recursive detect any vlen string in type (compound, array ...) */
-    data_class = H5Tdetect_variable_str(mem_type_id);
-    if((data_class == 1) || (data_class < 0)) {
-        h5badArgument(env, "H5Dread_short:  buf does not support variable length string type");
-        return -1;
-    } /* end if */
-
     if (buf == NULL) {
         h5nullArgument(env, "H5Dread_short:  buf is NULL");
     } /* end if */
+    else if((data_class = H5Tdetect_class(mem_type_id, H5T_VLEN)) < 0) {
+        h5JNIFatalError(env, "H5Dread: H5Tdetect_class() failed");
+    } /* end else if */
+    else  if(data_class == 1) {
+        h5badArgument(env, "H5Dread_short:  buf does not support variable length type");
+    } /* end else if */
     else {
-        PIN_SHORT_ARRAY();
-        if (buffP == NULL) {
-            h5JNIFatalError(env, "H5Dread_short:  buf not pinned");
-            return -1;
+        /* recursive detect any vlen string in type (compound, array ...) */
+        if((data_class = H5Tdetect_variable_str(mem_type_id)) < 0) {
+            h5JNIFatalError(env, "H5Dread_short: H5Tdetect_variable_str() failed");
         } /* end if */
-
-        status = H5Dread((hid_t)dataset_id, (hid_t)mem_type_id, (hid_t)mem_space_id,
-                        (hid_t)file_space_id, (hid_t)xfer_plist_id, buffP);
-
-        if (status < 0) {
-            UNPIN_SHORT_ARRAY(JNI_ABORT);
-            h5libraryError(env);
-        } /* end if */
+        else  if(data_class == 1) {
+            h5badArgument(env, "H5Dread_short:  buf does not support variable length type");
+        } /* end else if */
         else {
-            UNPIN_SHORT_ARRAY(0);
+            PIN_SHORT_ARRAY();
+            if (buffP == NULL) {
+                h5JNIFatalError(env, "H5Dread_short:  buf not pinned");
+            } /* end if */
+            else {
+                status = H5Dread((hid_t)dataset_id, (hid_t)mem_type_id, (hid_t)mem_space_id,
+                                (hid_t)file_space_id, (hid_t)xfer_plist_id, buffP);
+
+                if (status < 0) {
+                    UNPIN_SHORT_ARRAY(JNI_ABORT);
+                    h5libraryError(env);
+                } /* end if */
+                else {
+                    UNPIN_SHORT_ARRAY(0);
+                } /* end else */
+            } /* end else */
         } /* end else */
     } /* end else */
 
     return (jint)status;
 } /* end Java_hdf_hdf5lib_H5_H5Dread_1short */
+
+/*
+ * Class:     hdf_hdf5lib_H5
+ * Method:    H5Dwrite_short
+ * Signature: (JJJJJ[SZ)I
+ */
+JNIEXPORT jint JNICALL
+Java_hdf_hdf5lib_H5_H5Dwrite_1short(JNIEnv *env, jclass clss, jlong dataset_id, jlong mem_type_id, jlong mem_space_id,
+          jlong file_space_id, jlong xfer_plist_id, jshortArray buf, jboolean isCriticalPinning)
+{
+    herr_t   status = -1;
+    jshort  *buffP;
+    jboolean isCopy;
+    htri_t data_class;
+
+    if (buf == NULL ) {
+        h5nullArgument(env, "H5Dwrite_short:  buf is NULL");
+    } /* end if */
+    else if((data_class = H5Tdetect_class(mem_type_id, H5T_VLEN)) < 0) {
+        h5JNIFatalError(env, "H5Dwrite_short: H5Tdetect_class() failed");
+    } /* end else if */
+    else  if(data_class == 1) {
+        h5badArgument(env, "H5Dwrite_short:  buf does not support variable length type");
+    } /* end else if */
+    else {
+        /* recursive detect any vlen string in type (compound, array ...) */
+        if((data_class = H5Tdetect_variable_str(mem_type_id)) < 0) {
+            h5JNIFatalError(env, "H5Dwrite_short: H5Tdetect_variable_str() failed");
+        } /* end if */
+        else  if(data_class == 1) {
+            h5badArgument(env, "H5Dwrite_short:  buf does not support variable length type");
+        } /* end else if */
+        else {
+            PIN_SHORT_ARRAY();
+            if (buffP == NULL) {
+                h5JNIFatalError(env, "H5Dwrite_short:  buf not pinned");
+            } /* end if */
+            else {
+                status = H5Dwrite((hid_t)dataset_id, (hid_t)mem_type_id, (hid_t)mem_space_id,
+                                (hid_t)file_space_id, (hid_t)xfer_plist_id, buffP);
+
+                UNPIN_SHORT_ARRAY(JNI_ABORT);
+
+                if (status < 0)
+                    h5libraryError(env);
+            } /* end else */
+        } /* end else */
+    } /* end else */
+
+    return (jint)status;
+} /* end Java_hdf_hdf5lib_H5_H5Dwrite_1short */
 
 /*
  * Class:     hdf_hdf5lib_H5
@@ -565,42 +577,96 @@ Java_hdf_hdf5lib_H5_H5Dread_1int(JNIEnv *env, jclass clss, jlong dataset_id, jlo
     jboolean isCopy;
     htri_t data_class;
 
-    /* recursive detect any vlen data values in type (compound, array ...) */
-    data_class = H5Tdetect_class(mem_type_id, H5T_VLEN);
-    if((data_class == 1) || (data_class < 0)) {
-        h5badArgument(env, "H5Dread_int:  buf does not support variable length type");
-        return -1;
-    } /* end if */
-    /* recursive detect any vlen string in type (compound, array ...) */
-    data_class = H5Tdetect_variable_str(mem_type_id);
-    if((data_class == 1) || (data_class < 0)) {
-        h5badArgument(env, "H5Dread_int:  buf does not support variable length string type");
-        return -1;
-    } /* end if */
-
     if (buf == NULL) {
         h5nullArgument(env, "H5Dread_int:  buf is NULL");
     } /* end if */
+    else if((data_class = H5Tdetect_class(mem_type_id, H5T_VLEN)) < 0) {
+        h5JNIFatalError(env, "H5Dread_int: H5Tdetect_class() failed");
+    } /* end else if */
+    else  if(data_class == 1) {
+        h5badArgument(env, "H5Dread_int:  buf does not support variable length type");
+    } /* end else if */
     else {
-        PIN_INT_ARRAY();
-        if (buffP == NULL) {
-            h5JNIFatalError(env, "H5Dread_int:  buf not pinned");
+        /* recursive detect any vlen string in type (compound, array ...) */
+        if((data_class = H5Tdetect_variable_str(mem_type_id)) < 0) {
+            h5JNIFatalError(env, "H5Dread_int: H5Tdetect_variable_str() failed");
         } /* end if */
+        else  if(data_class == 1) {
+            h5badArgument(env, "H5Dread_int:  buf does not support variable length type");
+        } /* end else if */
         else {
-            status = H5Dread((hid_t)dataset_id, (hid_t)mem_type_id, (hid_t)mem_space_id,
-                            (hid_t)file_space_id, (hid_t)xfer_plist_id, buffP);
-
-            if (status < 0) {
-                UNPIN_INT_ARRAY(JNI_ABORT);
-                h5libraryError(env);
+            PIN_INT_ARRAY();
+            if (buffP == NULL) {
+                h5JNIFatalError(env, "H5Dread_int:  buf not pinned");
             } /* end if */
             else {
-                UNPIN_INT_ARRAY(0);
+                status = H5Dread((hid_t)dataset_id, (hid_t)mem_type_id, (hid_t)mem_space_id,
+                                (hid_t)file_space_id, (hid_t)xfer_plist_id, buffP);
+
+                if (status < 0) {
+                    UNPIN_INT_ARRAY(JNI_ABORT);
+                    h5libraryError(env);
+                } /* end if */
+                else {
+                    UNPIN_INT_ARRAY(0);
+                } /* end else */
             } /* end else */
         } /* end else */
     } /* end else */
+
     return (jint)status;
 } /* end Java_hdf_hdf5lib_H5_H5Dread_1int */
+
+/*
+ * Class:     hdf_hdf5lib_H5
+ * Method:    H5Dwrite_int
+ * Signature: (JJJJJ[IZ)I
+ */
+JNIEXPORT jint JNICALL
+Java_hdf_hdf5lib_H5_H5Dwrite_1int(JNIEnv *env, jclass clss, jlong dataset_id, jlong mem_type_id, jlong mem_space_id,
+          jlong file_space_id, jlong xfer_plist_id, jintArray buf, jboolean isCriticalPinning)
+{
+    herr_t   status = -1;
+    jint    *buffP;
+    jboolean isCopy;
+    htri_t data_class;
+
+    if (buf == NULL) {
+        h5nullArgument(env, "H5Dwrite_int:  buf is NULL");
+    } /* end if */
+    else if((data_class = H5Tdetect_class(mem_type_id, H5T_VLEN)) < 0) {
+        h5JNIFatalError(env, "H5Dwrite_int: H5Tdetect_class() failed");
+    } /* end else if */
+    else  if(data_class == 1) {
+        h5badArgument(env, "H5Dwrite_int:  buf does not support variable length type");
+    } /* end else if */
+    else {
+        /* recursive detect any vlen string in type (compound, array ...) */
+        if((data_class = H5Tdetect_variable_str(mem_type_id)) < 0) {
+            h5JNIFatalError(env, "H5Dwrite_int: H5Tdetect_variable_str() failed");
+        } /* end if */
+        else  if(data_class == 1) {
+            h5badArgument(env, "H5Dwrite_int:  buf does not support variable length type");
+        } /* end else if */
+        else {
+            PIN_INT_ARRAY();
+            if (buffP == NULL) {
+                h5JNIFatalError(env, "H5Dwrite_int:  buf not pinned");
+            } /* end if */
+            else {
+                status = H5Dwrite((hid_t)dataset_id, (hid_t)mem_type_id, (hid_t)mem_space_id,
+                                (hid_t)file_space_id, (hid_t)xfer_plist_id, buffP);
+
+                UNPIN_INT_ARRAY(JNI_ABORT);
+
+                if (status < 0)
+                    h5libraryError(env);
+            } /* end else */
+        } /* end else */
+    } /* end else */
+
+    return (jint)status;
+} /* end Java_hdf_hdf5lib_H5_H5Dwrite_1int */
 
 /*
  * Class:     hdf_hdf5lib_H5
@@ -616,42 +682,95 @@ Java_hdf_hdf5lib_H5_H5Dread_1long(JNIEnv *env, jclass clss, jlong dataset_id, jl
     jboolean isCopy;
     htri_t data_class;
 
-    /* recursive detect any vlen data values in type (compound, array ...) */
-    data_class = H5Tdetect_class(mem_type_id, H5T_VLEN);
-    if((data_class == 1) || (data_class < 0)) {
-        h5badArgument(env, "H5Dread_long:  buf does not support variable length type");
-        return -1;
-    } /* end if */
-    /* recursive detect any vlen string in type (compound, array ...) */
-    data_class = H5Tdetect_variable_str(mem_type_id);
-    if((data_class == 1) || (data_class < 0)) {
-        h5badArgument(env, "H5Dread_long:  buf does not support variable length string type");
-        return -1;
-    } /* end if */
-
     if (buf == NULL) {
         h5nullArgument(env, "H5Dread_long:  buf is NULL");
     } /* end if */
+    else if((data_class = H5Tdetect_class(mem_type_id, H5T_VLEN)) < 0) {
+        h5JNIFatalError(env, "H5Dread_long: H5Tdetect_class() failed");
+    } /* end else if */
+    else  if(data_class == 1) {
+        h5badArgument(env, "H5Dread_long:  buf does not support variable length type");
+    } /* end else if */
     else {
-        PIN_LONG_ARRAY();
-        if (buffP == NULL) {
-            h5JNIFatalError(env, "H5Dread_long:  buf not pinned");
+        /* recursive detect any vlen string in type (compound, array ...) */
+        if((data_class = H5Tdetect_variable_str(mem_type_id)) < 0) {
+            h5JNIFatalError(env, "H5Dread_long: H5Tdetect_variable_str() failed");
         } /* end if */
+        else  if(data_class == 1) {
+            h5badArgument(env, "H5Dread_long:  buf does not support variable length type");
+        } /* end else if */
         else {
-            status = H5Dread((hid_t)dataset_id, (hid_t)mem_type_id, (hid_t)mem_space_id,
-                            (hid_t)file_space_id, (hid_t)xfer_plist_id, buffP);
-
-            if (status < 0) {
-                UNPIN_LONG_ARRAY(JNI_ABORT);
-                h5libraryError(env);
+            PIN_LONG_ARRAY();
+            if (buffP == NULL) {
+                h5JNIFatalError(env, "H5Dread_long:  buf not pinned");
             } /* end if */
             else {
-                UNPIN_LONG_ARRAY(0);
+                status = H5Dread((hid_t)dataset_id, (hid_t)mem_type_id, (hid_t)mem_space_id,
+                                (hid_t)file_space_id, (hid_t)xfer_plist_id, buffP);
+
+                if (status < 0) {
+                    UNPIN_LONG_ARRAY(JNI_ABORT);
+                    h5libraryError(env);
+                } /* end if */
+                else {
+                    UNPIN_LONG_ARRAY(0);
+                } /* end else */
             } /* end else */
         } /* end else */
     } /* end else */
+
     return (jint)status;
 } /* end Java_hdf_hdf5lib_H5_H5Dread_1long */
+
+/*
+ * Class:     hdf_hdf5lib_H5
+ * Method:    H5Dwrite_long
+ * Signature: (JJJJJ[JZ)I
+ */
+JNIEXPORT jint JNICALL
+Java_hdf_hdf5lib_H5_H5Dwrite_1long(JNIEnv *env, jclass clss, jlong dataset_id, jlong mem_type_id, jlong mem_space_id,
+          jlong file_space_id, jlong xfer_plist_id, jlongArray buf, jboolean isCriticalPinning)
+{
+    herr_t   status = -1;
+    jlong   *buffP;
+    jboolean isCopy;
+    htri_t data_class;
+
+    if (buf == NULL) {
+        h5nullArgument(env, "H5Dwrite_long:  buf is NULL");
+    } /* end if */
+    else if((data_class = H5Tdetect_class(mem_type_id, H5T_VLEN)) < 0) {
+        h5JNIFatalError(env, "H5Dwrite_long: H5Tdetect_class() failed");
+    } /* end else if */
+    else  if(data_class == 1) {
+        h5badArgument(env, "H5Dwrite_long:  buf does not support variable length type");
+    } /* end else if */
+    else {
+        /* recursive detect any vlen string in type (compound, array ...) */
+        if((data_class = H5Tdetect_variable_str(mem_type_id)) < 0) {
+            h5JNIFatalError(env, "H5Dwrite_long: H5Tdetect_variable_str() failed");
+        } /* end if */
+        else  if(data_class == 1) {
+            h5badArgument(env, "H5Dwrite_long:  buf does not support variable length type");
+        } /* end else if */
+        else {
+            PIN_LONG_ARRAY();
+            if (buffP == NULL) {
+                h5JNIFatalError(env, "H5Dwrite_long:  buf not pinned");
+            } /* end if */
+            else {
+                status = H5Dwrite((hid_t)dataset_id, (hid_t)mem_type_id, (hid_t)mem_space_id,
+                                (hid_t)file_space_id, (hid_t)xfer_plist_id, buffP);
+
+                UNPIN_LONG_ARRAY(JNI_ABORT);
+                if (status < 0)
+                    h5libraryError(env);
+            } /* end else */
+        } /* end else */
+    } /* end else */
+
+    return (jint)status;
+} /* end Java_hdf_hdf5lib_H5_H5Dwrite_1long */
 
 /*
  * Class:     hdf_hdf5lib_H5
@@ -667,42 +786,95 @@ Java_hdf_hdf5lib_H5_H5Dread_1float(JNIEnv *env, jclass clss, jlong dataset_id, j
     jboolean isCopy;
     htri_t data_class;
 
-    /* recursive detect any vlen data values in type (compound, array ...) */
-    data_class = H5Tdetect_class(mem_type_id, H5T_VLEN);
-    if((data_class == 1) || (data_class < 0)) {
-        h5badArgument(env, "H5Dread_float:  buf does not support variable length type");
-        return -1;
-    } /* end if */
-    /* recursive detect any vlen string in type (compound, array ...) */
-    data_class = H5Tdetect_variable_str(mem_type_id);
-    if((data_class == 1) || (data_class < 0)) {
-        h5badArgument(env, "H5Dread_float:  buf does not support variable length string type");
-        return -1;
-    } /* end if */
-
     if (buf == NULL) {
         h5nullArgument(env, "H5Dread_float:  buf is NULL");
     } /* end if */
+    else if((data_class = H5Tdetect_class(mem_type_id, H5T_VLEN)) < 0) {
+        h5JNIFatalError(env, "H5Dread_float: H5Tdetect_class() failed");
+    } /* end else if */
+    else  if(data_class == 1) {
+        h5badArgument(env, "H5Dread_float:  buf does not support variable length type");
+    } /* end else if */
     else {
-        PIN_FLOAT_ARRAY();
-        if (buffP == NULL) {
-            h5JNIFatalError(env, "H5Dread_float:  buf not pinned");
+        /* recursive detect any vlen string in type (compound, array ...) */
+        if((data_class = H5Tdetect_variable_str(mem_type_id)) < 0) {
+            h5JNIFatalError(env, "H5Dread_float: H5Tdetect_variable_str() failed");
         } /* end if */
+        else  if(data_class == 1) {
+            h5badArgument(env, "H5Dread_float:  buf does not support variable length type");
+        } /* end else if */
         else {
-            status = H5Dread((hid_t)dataset_id, (hid_t)mem_type_id, (hid_t)mem_space_id,
-                            (hid_t)file_space_id, (hid_t)xfer_plist_id, buffP);
-
-            if (status < 0) {
-                UNPIN_FLOAT_ARRAY(JNI_ABORT);
-                h5libraryError(env);
+            PIN_FLOAT_ARRAY();
+            if (buffP == NULL) {
+                h5JNIFatalError(env, "H5Dread_float:  buf not pinned");
             } /* end if */
             else {
-                UNPIN_FLOAT_ARRAY(0);
+                status = H5Dread((hid_t)dataset_id, (hid_t)mem_type_id, (hid_t)mem_space_id,
+                                (hid_t)file_space_id, (hid_t)xfer_plist_id, buffP);
+
+                if (status < 0) {
+                    UNPIN_FLOAT_ARRAY(JNI_ABORT);
+                    h5libraryError(env);
+                } /* end if */
+                else {
+                    UNPIN_FLOAT_ARRAY(0);
+                } /* end else */
             } /* end else */
         } /* end else */
     } /* end else */
+
     return (jint)status;
 } /* end Java_hdf_hdf5lib_H5_H5Dread_1float */
+
+/*
+ * Class:     hdf_hdf5lib_H5
+ * Method:    H5Dwrite_float
+ * Signature: (JJJJJ[FZ)I
+ */
+JNIEXPORT jint JNICALL
+Java_hdf_hdf5lib_H5_H5Dwrite_1float(JNIEnv *env, jclass clss, jlong dataset_id, jlong mem_type_id, jlong mem_space_id,
+          jlong file_space_id, jlong xfer_plist_id, jfloatArray buf, jboolean isCriticalPinning)
+{
+    herr_t   status = -1;
+    jfloat  *buffP;
+    jboolean isCopy;
+    htri_t data_class;
+
+    if (buf == NULL) {
+        h5nullArgument(env, "H5Dwrite_float:  buf is NULL");
+    } /* end if */
+    else if((data_class = H5Tdetect_class(mem_type_id, H5T_VLEN)) < 0) {
+        h5JNIFatalError(env, "H5Dwrite_float: H5Tdetect_class() failed");
+    } /* end else if */
+    else  if(data_class == 1) {
+        h5badArgument(env, "H5Dwrite_float:  buf does not support variable length type");
+    } /* end else if */
+    else {
+        /* recursive detect any vlen string in type (compound, array ...) */
+        if((data_class = H5Tdetect_variable_str(mem_type_id)) < 0) {
+            h5JNIFatalError(env, "H5Dwrite_float: H5Tdetect_variable_str() failed");
+        } /* end if */
+        else  if(data_class == 1) {
+            h5badArgument(env, "H5Dwrite_float:  buf does not support variable length type");
+        } /* end else if */
+        else {
+            PIN_FLOAT_ARRAY();
+            if (buffP == NULL) {
+                h5JNIFatalError(env, "H5Dwrite_float:  buf not pinned");
+            } /* end if */
+            else {
+                status = H5Dwrite((hid_t)dataset_id, (hid_t)mem_type_id, (hid_t)mem_space_id,
+                                (hid_t)file_space_id, (hid_t)xfer_plist_id, buffP);
+
+                UNPIN_FLOAT_ARRAY(JNI_ABORT);
+                if (status < 0)
+                    h5libraryError(env);
+            } /* end else */
+        } /* end else */
+    } /* end else */
+
+    return (jint)status;
+} /* end Java_hdf_hdf5lib_H5_H5Dwrite_1float */
 
 /*
  * Class:     hdf_hdf5lib_H5
@@ -718,42 +890,95 @@ Java_hdf_hdf5lib_H5_H5Dread_1double(JNIEnv *env, jclass clss, jlong dataset_id, 
     jboolean isCopy;
     htri_t data_class;
 
-    /* recursive detect any vlen data values in type (compound, array ...) */
-    data_class = H5Tdetect_class(mem_type_id, H5T_VLEN);
-    if((data_class == 1) || (data_class < 0)) {
-        h5badArgument(env, "H5Dread_double:  buf does not support variable length type");
-        return -1;
-    } /* end if */
-    /* recursive detect any vlen string in type (compound, array ...) */
-    data_class = H5Tdetect_variable_str(mem_type_id);
-    if((data_class == 1) || (data_class < 0)) {
-        h5badArgument(env, "H5Dread_double:  buf does not support variable length string type");
-        return -1;
-    } /* end if */
-
     if (buf == NULL) {
         h5nullArgument(env, "H5Dread_double:  buf is NULL");
     } /* end if */
+    else if((data_class = H5Tdetect_class(mem_type_id, H5T_VLEN)) < 0) {
+        h5JNIFatalError(env, "H5Dread_double: H5Tdetect_class() failed");
+    } /* end else if */
+    else  if(data_class == 1) {
+        h5badArgument(env, "H5Dread_double:  buf does not support variable length type");
+    } /* end else if */
     else {
-        PIN_DOUBLE_ARRAY();
-        if (buffP == NULL) {
-            h5JNIFatalError(env, "H5Dread_double:  buf not pinned");
+        /* recursive detect any vlen string in type (compound, array ...) */
+        if((data_class = H5Tdetect_variable_str(mem_type_id)) < 0) {
+            h5JNIFatalError(env, "H5Dread_double: H5Tdetect_variable_str() failed");
         } /* end if */
+        else  if(data_class == 1) {
+            h5badArgument(env, "H5Dread_double:  buf does not support variable length type");
+        } /* end else if */
         else {
-            status = H5Dread((hid_t)dataset_id, (hid_t)mem_type_id, (hid_t)mem_space_id,
-                            (hid_t)file_space_id, (hid_t)xfer_plist_id, buffP);
-
-            if (status < 0) {
-                UNPIN_DOUBLE_ARRAY(JNI_ABORT);
-                h5libraryError(env);
+            PIN_DOUBLE_ARRAY();
+            if (buffP == NULL) {
+                h5JNIFatalError(env, "H5Dread_double:  buf not pinned");
             } /* end if */
             else {
-                UNPIN_DOUBLE_ARRAY(0);
+                status = H5Dread((hid_t)dataset_id, (hid_t)mem_type_id, (hid_t)mem_space_id,
+                                (hid_t)file_space_id, (hid_t)xfer_plist_id, buffP);
+
+                if (status < 0) {
+                    UNPIN_DOUBLE_ARRAY(JNI_ABORT);
+                    h5libraryError(env);
+                } /* end if */
+                else {
+                    UNPIN_DOUBLE_ARRAY(0);
+                } /* end else */
             } /* end else */
         } /* end else */
     } /* end else */
+
     return (jint)status;
 } /* end Java_hdf_hdf5lib_H5_H5Dread_1double */
+
+/*
+ * Class:     hdf_hdf5lib_H5
+ * Method:    H5Dwrite_double
+ * Signature: (JJJJJ[DZ)I
+ */
+JNIEXPORT jint JNICALL
+Java_hdf_hdf5lib_H5_H5Dwrite_1double(JNIEnv *env, jclass clss, jlong dataset_id, jlong mem_type_id, jlong mem_space_id,
+          jlong file_space_id, jlong xfer_plist_id, jdoubleArray buf, jboolean isCriticalPinning)
+{
+    herr_t   status = -1;
+    jdouble *buffP;
+    jboolean isCopy;
+    htri_t data_class;
+
+    if (buf == NULL) {
+        h5nullArgument(env, "H5Dwrite_double:  buf is NULL");
+    } /* end if */
+    else if((data_class = H5Tdetect_class(mem_type_id, H5T_VLEN)) < 0) {
+        h5JNIFatalError(env, "H5Dwrite_double: H5Tdetect_class() failed");
+    } /* end else if */
+    else  if(data_class == 1) {
+        h5badArgument(env, "H5Dwrite_double:  buf does not support variable length type");
+    } /* end else if */
+    else {
+        /* recursive detect any vlen string in type (compound, array ...) */
+        if((data_class = H5Tdetect_variable_str(mem_type_id)) < 0) {
+            h5JNIFatalError(env, "H5Dwrite_double: H5Tdetect_variable_str() failed");
+        } /* end if */
+        else  if(data_class == 1) {
+            h5badArgument(env, "H5Dwrite_double:  buf does not support variable length type");
+        } /* end else if */
+        else {
+            PIN_DOUBLE_ARRAY();
+            if (buffP == NULL) {
+                h5JNIFatalError(env, "H5Dwrite_double:  buf not pinned");
+            } /* end if */
+            else {
+                status = H5Dwrite((hid_t)dataset_id, (hid_t)mem_type_id, (hid_t)mem_space_id,
+                                (hid_t)file_space_id, (hid_t)xfer_plist_id, buffP);
+
+                UNPIN_DOUBLE_ARRAY(JNI_ABORT);
+                if (status < 0)
+                    h5libraryError(env);
+            } /* end else */
+        } /* end else */
+    } /* end else */
+
+    return (jint)status;
+} /* end Java_hdf_hdf5lib_H5_H5Dwrite_1double */
 
 /*
  * Class:     hdf_hdf5lib_H5
@@ -781,7 +1006,7 @@ Java_hdf_hdf5lib_H5_H5Dread_1string(JNIEnv *env, jclass clss, jlong dataset_id, 
 
     n = ENVPTR->GetArrayLength(ENVPAR j_buf);
     if (n <= 0) {
-        h5nullArgument(env, "H5Dread_string:  buf length <=0");
+        h5nullArgument(env, "H5Dread_string:  buf length <= 0");
         return -1;
     } /* end if */
 
@@ -837,307 +1062,66 @@ Java_hdf_hdf5lib_H5_H5Dread_1string(JNIEnv *env, jclass clss, jlong dataset_id, 
 
 /*
  * Class:     hdf_hdf5lib_H5
- * Method:    H5Dwrite_short
- * Signature: (JJJJJ[SZ)I
- */
-JNIEXPORT jint JNICALL
-Java_hdf_hdf5lib_H5_H5Dwrite_1short(JNIEnv *env, jclass clss, jlong dataset_id, jlong mem_type_id, jlong mem_space_id,
-          jlong file_space_id, jlong xfer_plist_id, jshortArray buf, jboolean isCriticalPinning)
-{
-    herr_t   status = -1;
-    jshort  *buffP;
-    jboolean isCopy;
-
-    if (buf == NULL ) {
-        h5nullArgument(env, "H5Dwrite_short:  buf is NULL");
-        return -1;
-    } /* end if */
-
-    PIN_SHORT_ARRAY();
-    if (buffP == NULL) {
-        h5JNIFatalError(env, "H5Dwrite_short:  buf not pinned");
-        return -1;
-    } /* end if */
-
-    status = H5Dwrite((hid_t)dataset_id, (hid_t)mem_type_id, (hid_t)mem_space_id,
-                      (hid_t)file_space_id, (hid_t)xfer_plist_id, buffP);
-
-    UNPIN_SHORT_ARRAY(JNI_ABORT);
-
-    if (status < 0) {
-        h5libraryError(env);
-    } /* end if */
-
-    return (jint)status;
-} /* end Java_hdf_hdf5lib_H5_H5Dwrite_1short */
-
-/*
- * Class:     hdf_hdf5lib_H5
- * Method:    H5Dwrite_int
- * Signature: (JJJJJ[IZ)I
- */
-JNIEXPORT jint JNICALL
-Java_hdf_hdf5lib_H5_H5Dwrite_1int(JNIEnv *env, jclass clss, jlong dataset_id, jlong mem_type_id, jlong mem_space_id,
-          jlong file_space_id, jlong xfer_plist_id, jintArray buf, jboolean isCriticalPinning)
-{
-    herr_t   status = -1;
-    jint    *buffP;
-    jboolean isCopy;
-
-    if (buf == NULL) {
-        h5nullArgument(env, "H5Dwrite_int:  buf is NULL");
-        return -1;
-    } /* end if */
-
-    PIN_INT_ARRAY();
-    if (buffP == NULL) {
-        h5JNIFatalError(env, "H5Dwrite_int:  buf not pinned");
-        return -1;
-    } /* end if */
-
-    status = H5Dwrite((hid_t)dataset_id, (hid_t)mem_type_id, (hid_t)mem_space_id,
-                      (hid_t)file_space_id, (hid_t)xfer_plist_id, buffP);
-
-    UNPIN_INT_ARRAY(JNI_ABORT);
-
-    if (status < 0) {
-        h5libraryError(env);
-    } /* end if */
-
-    return (jint)status;
-} /* end Java_hdf_hdf5lib_H5_H5Dwrite_1int */
-
-/*
- * Class:     hdf_hdf5lib_H5
- * Method:    H5Dwrite_long
- * Signature: (JJJJJ[JZ)I
- */
-JNIEXPORT jint JNICALL
-Java_hdf_hdf5lib_H5_H5Dwrite_1long(JNIEnv *env, jclass clss, jlong dataset_id, jlong mem_type_id, jlong mem_space_id,
-          jlong file_space_id, jlong xfer_plist_id, jlongArray buf, jboolean isCriticalPinning)
-{
-    herr_t   status = -1;
-    jlong   *buffP;
-    jboolean isCopy;
-
-    if (buf == NULL) {
-        h5nullArgument(env, "H5Dwrite_long:  buf is NULL");
-        return -1;
-    } /* end if */
-
-    PIN_LONG_ARRAY();
-    if (buffP == NULL) {
-        h5JNIFatalError(env, "H5Dwrite_long:  buf not pinned");
-        return -1;
-    } /* end if */
-
-    status = H5Dwrite((hid_t)dataset_id, (hid_t)mem_type_id, (hid_t)mem_space_id,
-                      (hid_t)file_space_id, (hid_t)xfer_plist_id, buffP);
-
-    UNPIN_LONG_ARRAY(JNI_ABORT);
-    if (status < 0) {
-        h5libraryError(env);
-    } /* end if */
-
-    return (jint)status;
-} /* end Java_hdf_hdf5lib_H5_H5Dwrite_1long */
-
-/*
- * Class:     hdf_hdf5lib_H5
- * Method:    H5Dwrite_float
- * Signature: (JJJJJ[FZ)I
- */
-JNIEXPORT jint JNICALL
-Java_hdf_hdf5lib_H5_H5Dwrite_1float(JNIEnv *env, jclass clss, jlong dataset_id, jlong mem_type_id, jlong mem_space_id,
-          jlong file_space_id, jlong xfer_plist_id, jfloatArray buf, jboolean isCriticalPinning)
-{
-    herr_t   status = -1;
-    jfloat  *buffP;
-    jboolean isCopy;
-
-    if (buf == NULL) {
-        h5nullArgument(env, "H5Dwrite_float:  buf is NULL");
-        return -1;
-    } /* end if */
-
-    PIN_FLOAT_ARRAY();
-    if (buffP == NULL) {
-        h5JNIFatalError(env, "H5Dwrite_float:  buf not pinned");
-        return -1;
-    } /* end if */
-
-    status = H5Dwrite((hid_t)dataset_id, (hid_t)mem_type_id, (hid_t)mem_space_id,
-                      (hid_t)file_space_id, (hid_t)xfer_plist_id, buffP);
-
-    UNPIN_FLOAT_ARRAY(JNI_ABORT);
-    if (status < 0) {
-        h5libraryError(env);
-    } /* end if */
-
-    return (jint)status;
-} /* end Java_hdf_hdf5lib_H5_H5Dwrite_1float */
-
-/*
- * Class:     hdf_hdf5lib_H5
- * Method:    H5Dwrite_double
- * Signature: (JJJJJ[DZ)I
- */
-JNIEXPORT jint JNICALL
-Java_hdf_hdf5lib_H5_H5Dwrite_1double(JNIEnv *env, jclass clss, jlong dataset_id, jlong mem_type_id, jlong mem_space_id,
-          jlong file_space_id, jlong xfer_plist_id, jdoubleArray buf, jboolean isCriticalPinning)
-{
-    herr_t   status = -1;
-    jdouble *buffP;
-    jboolean isCopy;
-
-    if (buf == NULL) {
-        h5nullArgument(env, "H5Dwrite_double:  buf is NULL");
-        return -1;
-    } /* end if */
-
-    PIN_DOUBLE_ARRAY();
-    if (buffP == NULL) {
-        h5JNIFatalError(env, "H5Dwrite_double:  buf not pinned");
-        return -1;
-    } /* end if */
-
-    status = H5Dwrite((hid_t)dataset_id, (hid_t)mem_type_id, (hid_t)mem_space_id,
-                      (hid_t)file_space_id, (hid_t)xfer_plist_id, buffP);
-
-    UNPIN_DOUBLE_ARRAY(JNI_ABORT);
-    if (status < 0) {
-        h5libraryError(env);
-    } /* end if */
-
-    return (jint)status;
-} /* end Java_hdf_hdf5lib_H5_H5Dwrite_1double */
-
-// Rosetta Biosoftware
-/*
- * Class:     hdf_hdf5lib_H5
- * Method:    H5DwriteString
+ * Method:    H5Dwrite_string
  * Signature: (JJJJJ[Ljava/lang/String;)I
  */
 JNIEXPORT jint JNICALL
-Java_hdf_hdf5lib_H5_H5DwriteString(JNIEnv *env, jclass clss, jlong dataset_id, jlong mem_type_id, jlong mem_space_id,
-          jlong file_space_id, jlong xfer_plist_id, jobjectArray buf)
+Java_hdf_hdf5lib_H5_H5Dwrite_1string(JNIEnv *env, jclass clss, jlong dataset_id, jlong mem_type_id, jlong mem_space_id,
+          jlong file_space_id, jlong xfer_plist_id, jobjectArray j_buf)
 {
     herr_t  status = -1;
-    char  **wdata;
-    jsize   size;
-    jsize    i;
+    char   **c_buf;
+    jsize  str_len;
+    jsize   i;
+    jsize   n;
 
-    if (buf == NULL) {
-        h5nullArgument(env, "H5DwriteString:  buf is NULL");
+    if (j_buf == NULL) {
+        h5nullArgument(env, "H5Dwrite_string:  buf is NULL");
+        return -1;
+    } /* end if */
+    n = ENVPTR->GetArrayLength(ENVPAR j_buf);
+    if (n <= 0) {
+        h5nullArgument(env, "H5Dwrite_string:  buf length <= 0");
+        return -1;
+    } /* end if */
+    if ((str_len = (jsize)H5Tget_size((hid_t)mem_type_id)) <=0) {
+        h5libraryError(env);
+        return -1;
+    } /* end if */
+    if ((c_buf = (char*)HDmalloc((size_t)n * (size_t)str_len)) == NULL) {
+        h5JNIFatalError(env, "H5Dwrite_string: memory allocation failed.");
         return -1;
     } /* end if */
 
-    size = ENVPTR->GetArrayLength(ENVPAR (jarray) buf);
-    wdata = (char**)HDmalloc((size_t)size * sizeof (char*));
-
-    if (!wdata) {
-        h5JNIFatalError(env, "H5DwriteString:  cannot allocate buffer");
-        return -1;
-    } /* end if */
-
-    HDmemset(wdata, 0, (size_t)size * sizeof(char*));
-    for (i = 0; i < size; ++i) {
-        jstring obj = (jstring) ENVPTR->GetObjectArrayElement(ENVPAR (jobjectArray) buf, i);
+    for (i = 0; i < n; i++) {
+        jstring obj = (jstring)ENVPTR->GetObjectArrayElement(ENVPAR (jobjectArray)j_buf, i);
         if (obj != 0) {
             jsize length = ENVPTR->GetStringUTFLength(ENVPAR obj);
             const char *utf8 = ENVPTR->GetStringUTFChars(ENVPAR obj, 0);
 
             if (utf8) {
-                wdata[i] = (char*)HDmalloc((size_t)length + 1);
-                if (wdata[i]) {
-                    HDmemset(wdata[i], 0, (size_t)length + 1);
-                    HDstrncpy(wdata[i], utf8, (size_t)length);
-                } /* end if */
-           } /* end if */
+                strcpy(c_buf[i * str_len], utf8);
+            } /* end if */
 
-           ENVPTR->ReleaseStringUTFChars(ENVPAR obj, utf8);
-           ENVPTR->DeleteLocalRef(ENVPAR obj);
+            ENVPTR->ReleaseStringUTFChars(ENVPAR obj, utf8);
+            ENVPTR->DeleteLocalRef(ENVPAR obj);
         } /* end if */
-    } /* end for (i = 0; i < size; ++i) */
+    } /* end for */
 
     status = H5Dwrite((hid_t)dataset_id, (hid_t)mem_type_id, (hid_t)mem_space_id,
-                      (hid_t)file_space_id, (hid_t)xfer_plist_id, wdata);
+                     (hid_t)file_space_id, (hid_t)xfer_plist_id, c_buf);
 
-    // now free memory
-    for (i = 0; i < size; i++) {
-       if(wdata[i]) {
-        HDfree(wdata[i]);
-       } /* end if */
-    } /* end for */
-    HDfree(wdata);
+    if (c_buf)
+        HDfree(c_buf);
+    c_buf = NULL;
 
     if (status < 0) {
         h5libraryError(env);
+        return -1;
     } /* end if */
 
     return (jint)status;
-} /* end Java_hdf_hdf5lib_H5_H5DwriteString */
-
-/*
- * Class:     hdf_hdf5lib_H5
- * Method:    H5DwriteNotString
- * Signature: (JJJJJ[BZ)I
- */
-JNIEXPORT jint JNICALL
-Java_hdf_hdf5lib_H5_H5DwriteNotString(JNIEnv *env, jclass clss, jlong dataset_id, jlong mem_type_id, jlong mem_space_id,
-          jlong file_space_id, jlong xfer_plist_id, jbyteArray buf, jboolean isCriticalPinning)
-{
-    herr_t  status = -1;
-    hvl_t  *wdata;
-    size_t  size;
-    jsize   n;
-    jbyte   *buffP;
-    jboolean isCopy;
-    jint    i;
-
-    if (buf == NULL) {
-        h5nullArgument(env, "H5DwriteNotString:  buf is NULL");
-        return -1;
-    } /* end if */
-
-    PIN_BYTE_ARRAY();
-
-    if (buffP == NULL) {
-        h5JNIFatalError( env, "H5DwriteNotString:  buf not pinned");
-        return -1;
-    } /* end if */
-
-    /* rebuild VL structure */
-    n = ENVPTR->GetArrayLength(ENVPAR (jarray)buf);
-    wdata = (hvl_t*)HDcalloc((size_t)n, sizeof(hvl_t));
-
-    if (!wdata) {
-        h5JNIFatalError(env, "H5DwriteNotString:  cannot allocate buffer");
-        return -1;
-    } /* end if */
-
-    size = H5Tget_size(mem_type_id);
-    HDmemset(wdata, 0, (size_t)n * sizeof(hvl_t));
-
-    UNPIN_BYTE_ARRAY(0);
-
-    status = H5Dwrite((hid_t)dataset_id, (hid_t)mem_type_id, (hid_t)mem_space_id,
-                      (hid_t)file_space_id, (hid_t)xfer_plist_id, wdata);
-
-    /* now free memory */
-    for (i = 0; i < n; i++) {
-        if(wdata[i].p) {
-            HDfree(wdata[i].p);
-        } /* end if */
-    } /* end for */
-    HDfree(wdata);
-
-    if (status < 0) {
-        h5libraryError(env);
-    } /* end if */
-
-    return (jint)status;
-} /* end Java_hdf_hdf5lib_H5_H5DwriteNotString */
+} /* end Java_hdf_hdf5lib_H5_H5Dwrited_1string */
 
 /**
  *  Read VLEN data into array of arrays.
@@ -1159,36 +1143,36 @@ Java_hdf_hdf5lib_H5_H5DreadVL(JNIEnv *env, jclass clss, jlong dataset_id, jlong 
 
     if (buf == NULL) {
         h5nullArgument(env, "H5DreadVL:  buf is NULL");
-        return -1;
     } /* end if */
+    else {
+        isStr = H5Tdetect_class((hid_t)mem_type_id, H5T_STRING);
 
-    isStr = H5Tdetect_class((hid_t)mem_type_id, H5T_STRING);
+        if (H5Tget_class((hid_t)mem_type_id) == H5T_COMPOUND) {
+            unsigned i;
+            unsigned nm = (unsigned)H5Tget_nmembers(mem_type_id);
+            for(i = 0; i < nm; i++) {
+                hid_t nested_tid = H5Tget_member_type((hid_t)mem_type_id, i);
+                isComplex |= H5Tdetect_class((hid_t)nested_tid, H5T_COMPOUND) ||
+                            H5Tdetect_class((hid_t)nested_tid, H5T_VLEN);
+                H5Tclose(nested_tid);
+            } /* end for */
+        } /* end if */
+        else if (H5Tget_class((hid_t)mem_type_id) == H5T_VLEN) {
+        isVlenStr = 1; /* strings created by H5Tvlen_create(H5T_C_S1) */
+        } /* end else if */
 
-    if (H5Tget_class((hid_t)mem_type_id) == H5T_COMPOUND) {
-        unsigned i;
-        unsigned nm = (unsigned)H5Tget_nmembers(mem_type_id);
-        for(i = 0; i < nm; i++) {
-            hid_t nested_tid = H5Tget_member_type((hid_t)mem_type_id, i);
-            isComplex = H5Tdetect_class((hid_t)nested_tid, H5T_COMPOUND) ||
-                        H5Tdetect_class((hid_t)nested_tid, H5T_VLEN);
-            H5Tclose(nested_tid);
-        } /* end for */
-    } /* end if */
-    else if (H5Tget_class((hid_t)mem_type_id) == H5T_VLEN) {
-      isVlenStr = 1; /* strings created by H5Tvlen_create( H5T_C_S1) */
-    } /* end else if */
+        if (isStr == 0 || isComplex>0 || isVlenStr) {
+            return (jint) H5DreadVL_notstr(env, (hid_t)dataset_id, (hid_t)mem_type_id,
+                                        (hid_t)mem_space_id, (hid_t)file_space_id,
+                                        (hid_t)xfer_plist_id, buf);
+        } /* end if */
 
-    if (isStr == 0 || isComplex>0 || isVlenStr) {
-        return (jint) H5DreadVL_notstr(env, (hid_t)dataset_id, (hid_t)mem_type_id,
-                                     (hid_t)mem_space_id, (hid_t)file_space_id,
-                                     (hid_t)xfer_plist_id, buf);
-    } /* end if */
-
-    if (isStr > 0) {
-        return (jint) H5DreadVL_str(env, (hid_t)dataset_id, (hid_t)mem_type_id,
-                                     (hid_t)mem_space_id, (hid_t)file_space_id,
-                                     (hid_t)xfer_plist_id, buf);
-    } /* end if */
+        if (isStr > 0) {
+            return (jint) H5DreadVL_str(env, (hid_t)dataset_id, (hid_t)mem_type_id,
+                                        (hid_t)mem_space_id, (hid_t)file_space_id,
+                                        (hid_t)xfer_plist_id, buf);
+        } /* end if */
+    } /* end else */
 
     return -1;
 } /* end Java_hdf_hdf5lib_H5_H5DreadVL */
@@ -1211,45 +1195,45 @@ H5DreadVL_notstr (JNIEnv *env, hid_t did, hid_t tid, hid_t mem_sid,
     rdata = (hvl_t*)HDcalloc((size_t)n, sizeof(hvl_t));
     if (rdata == NULL) {
         h5JNIFatalError(env, "H5DreadVL_notstr:  failed to allocate buff for read");
-        return -1;
     } /* end if */
+    else {
+        status = H5Dread(did, tid, mem_sid, file_sid, xfer_plist_id, rdata);
 
-    status = H5Dread(did, tid, mem_sid, file_sid, xfer_plist_id, rdata);
+        if (status < 0) {
+            H5Dvlen_reclaim(tid, mem_sid, xfer_plist_id, rdata);
+            free(rdata);
+            h5JNIFatalError(env, "H5DreadVL_notstr: failed to read data");
+        } /* end if */
+        else {
+            max_len = 1;
+            for (i=0; i<n; i++) {
+                if ((rdata + i)->len > max_len)
+                    max_len = (rdata + i)->len;
+            } /* end for */
 
-    if (status < 0) {
-        H5Dvlen_reclaim(tid, mem_sid, xfer_plist_id, rdata);
-        free(rdata);
-        h5JNIFatalError(env, "H5DreadVL_notstr: failed to read data");
-        return -1;
-    } /* end if */
+            size = H5Tget_size(tid) * max_len;
+            HDmemset(&h5str, 0, sizeof(h5str_t));
+            h5str_new(&h5str, 4 * size);
 
-    max_len = 1;
-    for (i=0; i<n; i++) {
-        if ((rdata + i)->len > max_len)
-            max_len = (rdata + i)->len;
-    } /* end for */
+            if (h5str.s == NULL) {
+                H5Dvlen_reclaim(tid, mem_sid, xfer_plist_id, rdata);
+                HDfree(rdata);
+                h5JNIFatalError(env, "H5DreadVL_notstr:  failed to allocate string bufffer");
+            } /* end if */
+            else {
+                for (i=0; i<n; i++) {
+                    h5str.s[0] = '\0';
+                    h5str_sprintf(&h5str, did, tid, rdata+i, 0);
+                    jstr = ENVPTR->NewStringUTF(ENVPAR h5str.s);
+                    ENVPTR->SetObjectArrayElement(ENVPAR buf, i, jstr);
+                } /* end for */
+                h5str_free(&h5str);
 
-    size = H5Tget_size(tid) * max_len;
-    HDmemset(&h5str, 0, sizeof(h5str_t));
-    h5str_new(&h5str, 4 * size);
-
-    if (h5str.s == NULL) {
-        H5Dvlen_reclaim(tid, mem_sid, xfer_plist_id, rdata);
-        HDfree(rdata);
-        h5JNIFatalError(env, "H5DreadVL_notstr:  failed to allocate strng buf");
-        return -1;
-    } /* end if */
-
-    for (i=0; i<n; i++) {
-        h5str.s[0] = '\0';
-        h5str_sprintf(&h5str, did, tid, rdata+i, 0);
-        jstr = ENVPTR->NewStringUTF(ENVPAR h5str.s);
-        ENVPTR->SetObjectArrayElement(ENVPAR buf, i, jstr);
-    } /* end for */
-    h5str_free(&h5str);
-
-    H5Dvlen_reclaim(tid, mem_sid, xfer_plist_id, rdata);
-    HDfree(rdata);
+                H5Dvlen_reclaim(tid, mem_sid, xfer_plist_id, rdata);
+                HDfree(rdata);
+            } /* end else */
+        } /* end else */
+    } /* end else */
 
     return status;
 } /* end H5DreadVL_notstr */
@@ -1269,36 +1253,185 @@ H5DreadVL_str (JNIEnv *env, hid_t did, hid_t tid, hid_t mem_sid, hid_t
 
     if (strs == NULL) {
         h5JNIFatalError(env, "H5DreadVL_str:  failed to allocate buff for read variable length strings");
-        return -1;
     } /* end if */
+    else {
+        status = H5Dread(did, tid, mem_sid, file_sid, xfer_plist_id, strs);
 
-    status = H5Dread(did, tid, mem_sid, file_sid, xfer_plist_id, strs);
+        if (status < 0) {
+            H5Dvlen_reclaim(tid, mem_sid, xfer_plist_id, strs);
+            HDfree(strs);
+            h5JNIFatalError(env, "H5DreadVL_str: failed to read variable length strings");
+            return -1;
+        } /* end if */
+        else {
+            for (i=0; i<n; i++) {
+                jstr = ENVPTR->NewStringUTF(ENVPAR strs[i]);
+                ENVPTR->SetObjectArrayElement(ENVPAR buf, i, jstr);
+                free (strs[i]);
+            } /* end for */
 
-    if (status < 0) {
-        H5Dvlen_reclaim(tid, mem_sid, xfer_plist_id, strs);
-        HDfree(strs);
-        h5JNIFatalError(env, "H5DreadVL_str: failed to read variable length strings");
-        return -1;
-    } /* end if */
+            /*
+            for repeatedly reading a dataset with a large number of strs (e.g., 1,000,000 strings,
+            H5Dvlen_reclaim() may crash on Windows because the Java GC will not be able to collect
+            free space in time. Instead, use "free(strs[i])" above to free individual strings
+            after it is done.
+            H5Dvlen_reclaim(tid, mem_sid, xfer_plist_id, strs);
+            */
 
-    for (i=0; i<n; i++) {
-        jstr = ENVPTR->NewStringUTF(ENVPAR strs[i]);
-        ENVPTR->SetObjectArrayElement(ENVPAR buf, i, jstr);
-        free (strs[i]);
-    } /* end for */
-
-    /*
-    for repeatedly reading a dataset with a large number of strs (e.g., 1,000,000 strings,
-    H5Dvlen_reclaim() may crash on Windows because the Java GC will not be able to collect
-    free space in time. Instead, use "free(strs[i])" above to free individual strings
-    after it is done.
-    H5Dvlen_reclaim(tid, mem_sid, xfer_plist_id, strs);
-    */
-
-    HDfree(strs);
+            HDfree(strs);
+        } /* end else */
+    } /* end else */
 
     return status;
 } /* end H5DreadVL_str */
+
+
+/*
+ * Class:     hdf_hdf5lib_H5
+ * Method:    H5DwriteVL
+ * Signature: (JJJJJ[Ljava/lang/String;)I
+ */
+JNIEXPORT jint JNICALL
+Java_hdf_hdf5lib_H5_H5DwriteVL(JNIEnv *env, jclass clss, jlong dataset_id, jlong mem_type_id, jlong mem_space_id,
+          jlong file_space_id, jlong xfer_plist_id, jobjectArray buf)
+{
+    htri_t isStr=0, isComplex=0, isVlenStr=0;
+
+    if (buf == NULL) {
+        h5nullArgument(env, "H5DwriteVL:  buf is NULL");
+    } /* end if */
+    else {
+        isStr = H5Tdetect_class((hid_t)mem_type_id, H5T_STRING);
+
+        if (H5Tget_class((hid_t)mem_type_id) == H5T_COMPOUND) {
+            unsigned i;
+            unsigned nm = (unsigned)H5Tget_nmembers(mem_type_id);
+            for(i = 0; i < nm; i++) {
+                hid_t nested_tid = H5Tget_member_type((hid_t)mem_type_id, i);
+                isComplex |= H5Tdetect_class((hid_t)nested_tid, H5T_COMPOUND) ||
+                            H5Tdetect_class((hid_t)nested_tid, H5T_VLEN);
+                H5Tclose(nested_tid);
+            } /* end for */
+        } /* end if */
+        else if (H5Tget_class((hid_t)mem_type_id) == H5T_VLEN) {
+            isVlenStr = 1; /* strings created by H5Tvlen_create(H5T_C_S1) */
+        } /* end else if */
+
+        if (isStr == 0 || isComplex>0 || isVlenStr) {
+            return (jint) H5DwriteVL_notstr(env, (hid_t)dataset_id, (hid_t)mem_type_id,
+                                        (hid_t)mem_space_id, (hid_t)file_space_id,
+                                        (hid_t)xfer_plist_id, buf);
+        } /* end if */
+
+        if (isStr > 0) {
+            return (jint) H5DwriteVL_str(env, (hid_t)dataset_id, (hid_t)mem_type_id,
+                                        (hid_t)mem_space_id, (hid_t)file_space_id,
+                                        (hid_t)xfer_plist_id, buf);
+        } /* end if */
+    } /* end else */
+
+    return -1;
+} /* end Java_hdf_hdf5lib_H5_H5DreadVL */
+
+// Rosetta Biosoftware
+herr_t
+H5DwriteVL_str(JNIEnv *env, hid_t dataset_id, hid_t mem_type_id, hid_t mem_space_id,
+        hid_t file_space_id, hid_t xfer_plist_id, jobjectArray buf)
+{
+    herr_t  status = -1;
+    char  **wdata;
+    jsize   size;
+    jsize    i;
+
+    size = ENVPTR->GetArrayLength(ENVPAR (jarray) buf);
+    wdata = (char**)HDmalloc((size_t)size * sizeof (char*));
+
+    if (!wdata) {
+        h5JNIFatalError(env, "H5DwriteVL_string:  cannot allocate buffer");
+    } /* end if */
+    else {
+        HDmemset(wdata, 0, (size_t)size * sizeof(char*));
+        for (i = 0; i < size; ++i) {
+            jstring obj = (jstring) ENVPTR->GetObjectArrayElement(ENVPAR (jobjectArray)buf, i);
+            if (obj != 0) {
+                jsize length = ENVPTR->GetStringUTFLength(ENVPAR obj);
+                const char *utf8 = ENVPTR->GetStringUTFChars(ENVPAR obj, 0);
+
+                if (utf8) {
+                    wdata[i] = (char*)HDmalloc((size_t)length + 1);
+                    if (wdata[i]) {
+                        HDmemset(wdata[i], 0, (size_t)length + 1);
+                        HDstrncpy(wdata[i], utf8, (size_t)length);
+                    } /* end if */
+                } /* end if */
+
+                ENVPTR->ReleaseStringUTFChars(ENVPAR obj, utf8);
+                ENVPTR->DeleteLocalRef(ENVPAR obj);
+            } /* end if */
+        } /* end for (i = 0; i < size; ++i) */
+
+        status = H5Dwrite(dataset_id, mem_type_id, mem_space_id, file_space_id, xfer_plist_id, wdata);
+
+        // now free memory
+        for (i = 0; i < size; i++) {
+        if(wdata[i]) {
+            HDfree(wdata[i]);
+        } /* end if */
+        } /* end for */
+        HDfree(wdata);
+
+        if (status < 0)
+            h5libraryError(env);
+    } /* end else */
+
+    return (jint)status;
+} /* end H5DwriteVL_str */
+
+herr_t
+H5DwriteVL_notstr(JNIEnv *env, hid_t dataset_id, hid_t mem_type_id, hid_t mem_space_id,
+        hid_t file_space_id, hid_t xfer_plist_id, jobjectArray buf)
+{
+    herr_t  status = -1;
+    hvl_t  *wdata;
+    size_t  size;
+    jsize   n;
+    jbyte   *buffP;
+    jboolean isCopy;
+    jint    i;
+
+    if (buffP == NULL) {
+        h5JNIFatalError( env, "H5DwriteNotString:  buf not pinned");
+    } /* end if */
+    else {
+        /* rebuild VL structure */
+        n = ENVPTR->GetArrayLength(ENVPAR (jarray)buf);
+        wdata = (hvl_t*)HDcalloc((size_t)n, sizeof(hvl_t));
+
+        if (!wdata) {
+            h5JNIFatalError(env, "H5DwriteNotString:  cannot allocate buffer");
+        } /* end if */
+        else {
+            size = H5Tget_size(mem_type_id);
+            HDmemset(wdata, 0, (size_t)n * sizeof(hvl_t));
+
+
+            status = H5Dwrite(dataset_id, mem_type_id, mem_space_id, file_space_id, xfer_plist_id, wdata);
+
+            /* now free memory */
+            for (i = 0; i < n; i++) {
+                if(wdata[i].p) {
+                    HDfree(wdata[i].p);
+                } /* end if */
+            } /* end for */
+            HDfree(wdata);
+
+            if (status < 0)
+                h5libraryError(env);
+        } /* end else */
+    } /* end else */
+
+    return (jint)status;
+} /* end H5DwriteVL_notstr */
 
 /*
  * Class:     hdf_hdf5lib_H5
