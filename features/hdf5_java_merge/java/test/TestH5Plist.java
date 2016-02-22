@@ -22,9 +22,24 @@ import static org.junit.Assert.fail;
 import java.io.File;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.nio.charset.StandardCharsets;
 
 import hdf.hdf5lib.H5;
 import hdf.hdf5lib.HDF5Constants;
+import hdf.hdf5lib.HDFNativeData;
+import hdf.hdf5lib.callbacks.H5P_cls_close_func_cb;
+import hdf.hdf5lib.callbacks.H5P_cls_close_func_t;
+import hdf.hdf5lib.callbacks.H5P_cls_copy_func_cb;
+import hdf.hdf5lib.callbacks.H5P_cls_copy_func_t;
+import hdf.hdf5lib.callbacks.H5P_cls_create_func_cb;
+import hdf.hdf5lib.callbacks.H5P_cls_create_func_t;
+import hdf.hdf5lib.callbacks.H5P_prp_set_func_cb;
+import hdf.hdf5lib.callbacks.H5P_prp_get_func_cb;
+import hdf.hdf5lib.callbacks.H5P_prp_delete_func_cb;
+import hdf.hdf5lib.callbacks.H5P_prp_copy_func_cb;
+import hdf.hdf5lib.callbacks.H5P_prp_compare_func_cb;
+import hdf.hdf5lib.callbacks.H5P_prp_close_func_cb;
+import hdf.hdf5lib.callbacks.H5P_prp_create_func_cb;
 import hdf.hdf5lib.exceptions.HDF5Exception;
 import hdf.hdf5lib.exceptions.HDF5LibraryException;
 import hdf.hdf5lib.structs.H5AC_cache_config_t;
@@ -256,13 +271,13 @@ public class TestH5Plist {
         }
     }
 
-/*    // Test basic generic property list code. Tests adding properties to generic classes.
+    // Test basic generic property list code. Tests adding properties to generic classes.
     @Test
     public void testH5P_genprop_basic_class_prop() {
         int         status = -1;
         long        cid1 = -1;        // Generic Property class ID
-        int         size = -1;        // Generic Property size
-        int         nprops = -1;      // Generic Property class number
+        long        size = -1;        // Generic Property size
+        long        nprops = -1;      // Generic Property class number
 
         // Check the number of properties in class
         try {
@@ -285,12 +300,25 @@ public class TestH5Plist {
         assertTrue("H5Pexist plist_class_id "+PROP1_NAME, status == 0);
 
         // Insert first property into class (with no callbacks)
-        ret = H5Pregister2(cid1, PROP1_NAME, PROP1_SIZE, PROP1_DEF_VALUE, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
-        CHECK_I(ret, "H5Pregister2");
+        try {
+            byte[] prop_value = HDFNativeData.intToByte(prop1_def);
+
+            H5.H5Pregister2(plist_class_id, PROP1_NAME, PROP1_SIZE, prop_value, null, null, null, null, null, null, null);
+        }
+        catch (Throwable err) {
+            err.printStackTrace();
+            fail("H5Pregister2 plist_class_id: "+PROP1_NAME + err);
+        }
 
         // Try to insert the first property again (should fail)
-        ret = H5Pregister2(cid1, PROP1_NAME, PROP1_SIZE, PROP1_DEF_VALUE, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
-        VERIFY(ret, FAIL, "H5Pregister2");
+        try {
+            byte[] prop_value = HDFNativeData.intToByte(prop1_def);
+
+            H5.H5Pregister2(plist_class_id, PROP1_NAME, PROP1_SIZE, prop_value, null, null, null, null, null, null, null);
+            fail("H5Pregister2 plist_class_id: "+PROP1_NAME);
+        }
+        catch (Throwable err) {
+        }
 
         // Check the existance of the first property
         try {
@@ -323,12 +351,25 @@ public class TestH5Plist {
         assertTrue("H5Pget_nprops: "+nprops, nprops==1);
 
         // Insert second property into class (with no callbacks)
-        ret = H5Pregister2(cid1, PROP2_NAME, PROP2_SIZE, PROP2_DEF_VALUE, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
-        CHECK_I(ret, "H5Pregister2");
+        try {
+            byte[] prop_value = HDFNativeData.floatToByte(prop2_def);
+
+            H5.H5Pregister2(plist_class_id, PROP2_NAME, PROP2_SIZE, prop_value, null, null, null, null, null, null, null);
+        }
+        catch (Throwable err) {
+            err.printStackTrace();
+            fail("H5Pregister2 plist_class_id: "+PROP2_NAME + err);
+        }
 
         // Try to insert the second property again (should fail)
-        ret = H5Pregister2(cid1, PROP2_NAME, PROP2_SIZE, PROP2_DEF_VALUE, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
-        VERIFY(ret, FAIL, "H5Pregister2");
+        try {
+            byte[] prop_value = HDFNativeData.floatToByte(prop2_def);
+
+            H5.H5Pregister2(plist_class_id, PROP2_NAME, PROP2_SIZE, prop_value, null, null, null, null, null, null, null);
+            fail("H5Pregister2 plist_class_id: "+PROP2_NAME);
+        }
+        catch (Throwable err) {
+        }
 
         // Check the existance of the second property
         try {
@@ -361,8 +402,15 @@ public class TestH5Plist {
         assertTrue("H5Pget_nprops: "+nprops, nprops==2);
 
         // Insert third property into class (with no callbacks)
-        ret = H5Pregister2(cid1, PROP3_NAME, PROP3_SIZE, PROP3_DEF_VALUE, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
-        CHECK_I(ret, "H5Pregister2");
+        try {
+            byte[] prop_value = new String(prop3_def).getBytes(StandardCharsets.UTF_8);
+
+            H5.H5Pregister2(plist_class_id, PROP3_NAME, PROP3_SIZE, prop_value, null, null, null, null, null, null, null);
+        }
+        catch (Throwable err) {
+            err.printStackTrace();
+            fail("H5Pregister2 plist_class_id: "+PROP3_NAME + err);
+        }
 
         // Check the existance of the third property
         try {
@@ -406,12 +454,10 @@ public class TestH5Plist {
         // Try to check the size of the first property (should fail)
         try {
             size = H5.H5Pget_size(plist_class_id, PROP1_NAME);
+            fail("H5Pget_size PROP1_NAME");
         }
         catch (Throwable err) {
-            err.printStackTrace();
-            fail("H5Pget_size PROP1_NAME: " + err);
         }
-        assertTrue("H5Pget_size "+PROP1_NAME +" size: "+size, size == PROP1_SIZE);
 
         // Check the number of properties in class
         try {
@@ -444,11 +490,11 @@ public class TestH5Plist {
 
         // Unregister third property
         try {
-            H5.H5Punregister(plist_class_id, PROP1_NAME);
+            H5.H5Punregister(plist_class_id, PROP3_NAME);
         }
         catch (Throwable err) {
             err.printStackTrace();
-            fail("H5Punregister plist_class_id: "+PROP1_NAME + err);
+            fail("H5Punregister plist_class_id: "+PROP3_NAME + err);
         }
 
         // Check the number of properties in class
@@ -461,4 +507,4 @@ public class TestH5Plist {
         }
         assertTrue("H5Pget_nprops: "+nprops, nprops==0);
     }
-*/}
+}

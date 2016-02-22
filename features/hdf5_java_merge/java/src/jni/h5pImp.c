@@ -38,6 +38,13 @@ extern jobject visit_callback;
 static herr_t H5P_cls_create_func_cb(hid_t prop_id, void *create_data);
 static herr_t H5P_cls_copy_func_cb(hid_t new_prop_id, hid_t old_prop_id, void *copy_data);
 static herr_t H5P_cls_close_func_cb(hid_t prop_id, void *close_data);
+static herr_t H5P_prp_create_func_cb(const char *name, size_t size, void *value);
+static herr_t H5P_prp_copy_func_cb(const char *name, size_t size, void *value);
+static herr_t H5P_prp_close_func_cb(const char *name, size_t size, void *value);
+static int H5P_prp_compare_func_cb(void *value1, void *value2, size_t size);
+static herr_t H5P_prp_get_func_cb(hid_t prop_id, const char *name, size_t size, void *value);
+static herr_t H5P_prp_set_func_cb(hid_t prop_id, const char *name, size_t size, void *value);
+static herr_t H5P_prp_delete_func_cb(hid_t prop_id, const char *name, size_t size, void *value);
 
 /*
  * Class:     hdf_hdf5lib_H5
@@ -2134,7 +2141,7 @@ Java_hdf_hdf5lib_H5_H5Pset(JNIEnv *env, jclass clss, jlong plid, jstring name, j
 
     retVal =  H5Pset((hid_t)plid, cstr, &val);
 
-    ENVPTR->ReleaseStringUTFChars(ENVPAR name, cstr);
+    UNPIN_JAVA_STRING(name, cstr);
 
     if (retVal < 0)
         h5libraryError(env);
@@ -4849,9 +4856,9 @@ H5P_cls_close_func_cb(hid_t prop_id, void *close_data)
  * Method:    _H5Pcreate_class
  * Signature: (JLjava/lang/String;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)J
  */
-JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Pcreate_1class
-  (JNIEnv *env, jclass clss, jlong parent_class, jstring name, jobject create_op, jobject create_data,
-        jobject copy_op, jobject copy_data, jobject c, jobject close_data)
+JNIEXPORT jlong JNICALL
+Java_hdf_hdf5lib_H5__1H5Pcreate_1class(JNIEnv *env, jclass clss, jlong parent_class, jstring name, jobject create_op,
+        jobject create_data, jobject copy_op, jobject copy_data, jobject c, jobject close_data)
 {
     hid_t class_id = -1;
     const char *cstr;
@@ -4861,13 +4868,217 @@ JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Pcreate_1class
     class_id = H5Pcreate_class((hid_t)parent_class, cstr, (H5P_cls_create_func_t) create_op, (void*) create_data,
             (H5P_cls_copy_func_t) copy_op, (void*) copy_data, (H5P_cls_close_func_t) copy_op, (void*) close_data);
 
-    ENVPTR->ReleaseStringUTFChars(ENVPAR name, cstr);
+    UNPIN_JAVA_STRING(name, cstr);
 
     if (class_id < 0)
         h5libraryError(env);
 
     return (jlong)class_id;
-}
+} /* end Java_hdf_hdf5lib_H5__1H5Pcreate_1class */
+
+static herr_t
+H5P_prp_create_func_cb(const char *name, size_t size, void *value)
+{
+    JNIEnv    *cbenv;
+    jint       status;
+    jclass     cls;
+    jmethodID  mid;
+    jmethodID  constructor;
+    jstring    str;
+
+    if(JVMPTR->AttachCurrentThread(JVMPAR2 (void**)&cbenv, NULL) == 0) {
+        cls = CBENVPTR->GetObjectClass(CBENVPAR visit_callback);
+        if (cls != 0) {
+            mid = CBENVPTR->GetMethodID(CBENVPAR cls, "callback", "(Ljava/lang/String;J[B)I");
+            if (mid != 0) {
+                str = CBENVPTR->NewStringUTF(CBENVPAR name);
+                status = CBENVPTR->CallIntMethod(CBENVPAR visit_callback, mid, str, size, value);
+            } /* end if */
+        } /* end if */
+    } /* end if */
+    JVMPTR->DetachCurrentThread(JVMPAR);
+    return status;
+} /* end H5P_prp_create_func_cb */
+
+static herr_t
+H5P_prp_copy_func_cb(const char *name, size_t size, void *value)
+{
+    JNIEnv    *cbenv;
+    jint       status;
+    jclass     cls;
+    jmethodID  mid;
+    jmethodID  constructor;
+    jstring    str;
+
+    if(JVMPTR->AttachCurrentThread(JVMPAR2 (void**)&cbenv, NULL) == 0) {
+        cls = CBENVPTR->GetObjectClass(CBENVPAR visit_callback);
+        if (cls != 0) {
+            mid = CBENVPTR->GetMethodID(CBENVPAR cls, "callback", "(Ljava/lang/String;J[B)I");
+            if (mid != 0) {
+                str = CBENVPTR->NewStringUTF(CBENVPAR name);
+                status = CBENVPTR->CallIntMethod(CBENVPAR visit_callback, mid, str, size, value);
+            } /* end if */
+        } /* end if */
+    } /* end if */
+    JVMPTR->DetachCurrentThread(JVMPAR);
+    return status;
+} /* end H5P_prp_copy_func_cb */
+
+static herr_t
+H5P_prp_close_func_cb(const char *name, size_t size, void *value)
+{
+    JNIEnv    *cbenv;
+    jint       status;
+    jclass     cls;
+    jmethodID  mid;
+    jmethodID  constructor;
+    jstring    str;
+
+    if(JVMPTR->AttachCurrentThread(JVMPAR2 (void**)&cbenv, NULL) == 0) {
+        cls = CBENVPTR->GetObjectClass(CBENVPAR visit_callback);
+        if (cls != 0) {
+            mid = CBENVPTR->GetMethodID(CBENVPAR cls, "callback", "(Ljava/lang/String;J[B)I");
+            if (mid != 0) {
+                str = CBENVPTR->NewStringUTF(CBENVPAR name);
+                status = CBENVPTR->CallIntMethod(CBENVPAR visit_callback, mid, str, size, value);
+            } /* end if */
+        } /* end if */
+    } /* end if */
+    JVMPTR->DetachCurrentThread(JVMPAR);
+    return status;
+} /* end H5P_prp_close_func_cb */
+
+static int
+H5P_prp_compare_func_cb(void *value1, void *value2, size_t size)
+{
+    JNIEnv    *cbenv;
+    jint       status;
+    jclass     cls;
+    jmethodID  mid;
+    jmethodID  constructor;
+
+    if(JVMPTR->AttachCurrentThread(JVMPAR2 (void**)&cbenv, NULL) == 0) {
+        cls = CBENVPTR->GetObjectClass(CBENVPAR visit_callback);
+        if (cls != 0) {
+            mid = CBENVPTR->GetMethodID(CBENVPAR cls, "callback", "([B[BJ)I");
+            if (mid != 0) {
+                status = CBENVPTR->CallIntMethod(CBENVPAR visit_callback, mid, value1, value2, size);
+            } /* end if */
+        } /* end if */
+    } /* end if */
+    JVMPTR->DetachCurrentThread(JVMPAR);
+    return status;
+} /* end H5P_prp_compare_func_cb */
+
+static herr_t
+H5P_prp_get_func_cb(hid_t prop_id, const char *name, size_t size, void *value)
+{
+    JNIEnv    *cbenv;
+    jint       status;
+    jclass     cls;
+    jmethodID  mid;
+    jmethodID  constructor;
+    jstring    str;
+
+    if(JVMPTR->AttachCurrentThread(JVMPAR2 (void**)&cbenv, NULL) == 0) {
+        cls = CBENVPTR->GetObjectClass(CBENVPAR visit_callback);
+        if (cls != 0) {
+            mid = CBENVPTR->GetMethodID(CBENVPAR cls, "callback", "(JLjava/lang/String;J[B)I");
+            if (mid != 0) {
+                str = CBENVPTR->NewStringUTF(CBENVPAR name);
+                status = CBENVPTR->CallIntMethod(CBENVPAR visit_callback, mid, prop_id, str, size, value);
+            } /* end if */
+        } /* end if */
+    } /* end if */
+    JVMPTR->DetachCurrentThread(JVMPAR);
+    return status;
+} /* end H5P_prp_get_func_cb */
+
+static herr_t
+H5P_prp_set_func_cb(hid_t prop_id, const char *name, size_t size, void *value)
+{
+    JNIEnv    *cbenv;
+    jint       status;
+    jclass     cls;
+    jmethodID  mid;
+    jmethodID  constructor;
+    jstring    str;
+
+    if(JVMPTR->AttachCurrentThread(JVMPAR2 (void**)&cbenv, NULL) == 0) {
+        cls = CBENVPTR->GetObjectClass(CBENVPAR visit_callback);
+        if (cls != 0) {
+            mid = CBENVPTR->GetMethodID(CBENVPAR cls, "callback", "(JLjava/lang/String;J[B)I");
+            if (mid != 0) {
+                str = CBENVPTR->NewStringUTF(CBENVPAR name);
+                status = CBENVPTR->CallIntMethod(CBENVPAR visit_callback, mid, prop_id, str, size, value);
+            } /* end if */
+        } /* end if */
+    } /* end if */
+    JVMPTR->DetachCurrentThread(JVMPAR);
+    return status;
+} /* end H5P_prp_set_func_cb */
+
+static herr_t
+H5P_prp_delete_func_cb(hid_t prop_id, const char *name, size_t size, void *value)
+{
+    JNIEnv    *cbenv;
+    jint       status;
+    jclass     cls;
+    jmethodID  mid;
+    jmethodID  constructor;
+    jstring    str;
+
+    if(JVMPTR->AttachCurrentThread(JVMPAR2 (void**)&cbenv, NULL) == 0) {
+        cls = CBENVPTR->GetObjectClass(CBENVPAR visit_callback);
+        if (cls != 0) {
+            mid = CBENVPTR->GetMethodID(CBENVPAR cls, "callback", "(JLjava/lang/String;J[B)I");
+            if (mid != 0) {
+                str = CBENVPTR->NewStringUTF(CBENVPAR name);
+                status = CBENVPTR->CallIntMethod(CBENVPAR visit_callback, mid, prop_id, str, size, value);
+            } /* end if */
+        } /* end if */
+    } /* end if */
+    JVMPTR->DetachCurrentThread(JVMPAR);
+    return status;
+} /* end H5P_prp_delete_func_cb */
+
+
+/*
+ * Class:     hdf_hdf5lib_H5
+ * Method:    H5Pregister2
+ * Signature: (JLjava/lang/String;J[BLjava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V
+ */
+JNIEXPORT void JNICALL
+Java_hdf_hdf5lib_H5_H5Pregister2(JNIEnv *env, jclass clss, jlong cls_id, jstring name, jlong prp_size,
+        jbyteArray def_value, jobject prp_create, jobject prp_set, jobject prp_get, jobject prp_delete,
+        jobject prp_copy, jobject prp_cmp, jobject prp_close)
+{
+    herr_t   status = -1;
+    jbyte   *buffP;
+    jboolean isCopy2;
+    const char *cstr;
+
+    PIN_JAVA_STRING0(name, cstr);
+    buffP = ENVPTR->GetByteArrayElements(ENVPAR def_value, &isCopy2);
+    if (buffP == NULL) {
+        UNPIN_JAVA_STRING(name, cstr);
+        h5JNIFatalError(env, "H5Dread:  buf not pinned");
+    } /* end if */
+    else {
+        status = H5Pregister2((hid_t)cls_id, cstr, (size_t)prp_size, (void*)buffP, (H5P_prp_create_func_t)prp_create,
+            (H5P_prp_set_func_t)prp_set, (H5P_prp_get_func_t)prp_get, (H5P_prp_delete_func_t)prp_delete,
+            (H5P_prp_copy_func_t)prp_copy, (H5P_prp_compare_func_t)prp_cmp, (H5P_prp_close_func_t)prp_close);
+
+        UNPIN_JAVA_STRING(name, cstr);
+        if (status < 0) {
+            ENVPTR->ReleaseByteArrayElements(ENVPAR def_value, buffP, JNI_ABORT);
+            h5libraryError(env);
+        } /* end if */
+        else {
+            ENVPTR->ReleaseByteArrayElements(ENVPAR def_value, buffP, 0);
+        } /* end else */
+    } /* end else */
+} /* end Java_hdf_hdf5lib_H5_H5Pregister2 */
 
 #ifdef __cplusplus
 } /* end extern "C" */

@@ -31,6 +31,13 @@ set (HDF5_JAVA_HDF_HDF5_CALLBACKS_SRCS
     callbacks/H5P_cls_copy_func_t.java
     callbacks/H5P_cls_create_func_cb.java
     callbacks/H5P_cls_create_func_t.java
+    callbacks/H5P_prp_close_func_cb.java
+    callbacks/H5P_prp_compare_func_cb.java
+    callbacks/H5P_prp_copy_func_cb.java
+    callbacks/H5P_prp_create_func_cb.java
+    callbacks/H5P_prp_delete_func_cb.java
+    callbacks/H5P_prp_get_func_cb.java
+    callbacks/H5P_prp_set_func_cb.java
     callbacks/H5P_iterate_cb.java
     callbacks/H5P_iterate_t.java
     callbacks/Callbacks.java
