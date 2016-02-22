@@ -55,6 +55,13 @@ hdf5_java_JAVA =  \
 	${pkgpath}/callbacks/H5L_iterate_t.java \
 	${pkgpath}/callbacks/H5O_iterate_cb.java \
 	${pkgpath}/callbacks/H5O_iterate_t.java \
+    ${pkgpath}/callbacks/H5P_cls_close_func_cb.java \
+    ${pkgpath}/callbacks/H5P_cls_close_func_t.java \
+    ${pkgpath}/callbacks/H5P_cls_copy_func_cb.java \
+    ${pkgpath}/callbacks/H5P_cls_copy_func_t.java \
+    ${pkgpath}/callbacks/H5P_cls_create_func_cb.java \
+ 	${pkgpath}/callbacks/H5P_iterate_cb.java \
+	${pkgpath}/callbacks/H5P_iterate_t.java \
 	${pkgpath}/exceptions/HDF5AtomException.java  \
 	${pkgpath}/exceptions/HDF5AttributeException.java  \
 	${pkgpath}/exceptions/HDF5BtreeException.java  \

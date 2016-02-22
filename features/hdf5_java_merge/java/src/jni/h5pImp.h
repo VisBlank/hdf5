@@ -666,10 +666,10 @@ JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Punregister
 
 /*
  * Class:     hdf_hdf5lib_H5
- * Method:    H5Pclose_list
+ * Method:    _H5Pclose_class
  * Signature: (J)I
  */
-JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5_H5Pclose_1class
+JNIEXPORT jint JNICALL Java_hdf_hdf5lib_H5__1H5Pclose_1class
 (JNIEnv *, jclass, jlong);
 
 /*
@@ -1241,6 +1241,14 @@ JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Pget_1file_1space
  */
 JNIEXPORT void JNICALL Java_hdf_hdf5lib_H5_H5Pset_1file_1space
 (JNIEnv *, jclass, jlong, jint, jlong);
+
+/*
+ * Class:     hdf_hdf5lib_H5
+ * Method:    _H5Pcreate_class
+ * Signature: (JLjava/lang/String;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)J
+ */
+JNIEXPORT jlong JNICALL Java_hdf_hdf5lib_H5__1H5Pcreate_1class
+  (JNIEnv*, jclass, jlong, jstring, jobject, jobject, jobject, jobject, jobject, jobject);
 
 
 #ifdef __cplusplus

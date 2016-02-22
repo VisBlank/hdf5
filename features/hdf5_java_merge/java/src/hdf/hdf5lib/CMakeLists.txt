@@ -25,6 +25,14 @@ set (HDF5_JAVA_HDF_HDF5_CALLBACKS_SRCS
     callbacks/H5L_iterate_t.java
     callbacks/H5O_iterate_cb.java
     callbacks/H5O_iterate_t.java
+    callbacks/H5P_cls_close_func_cb.java
+    callbacks/H5P_cls_close_func_t.java
+    callbacks/H5P_cls_copy_func_cb.java
+    callbacks/H5P_cls_copy_func_t.java
+    callbacks/H5P_cls_create_func_cb.java
+    callbacks/H5P_cls_create_func_t.java
+    callbacks/H5P_iterate_cb.java
+    callbacks/H5P_iterate_t.java
     callbacks/Callbacks.java
 )
 

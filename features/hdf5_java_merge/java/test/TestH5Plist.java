@@ -1,0 +1,464 @@
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * Copyright by The HDF Group.                                               *
+ * Copyright by the Board of Trustees of the University of Illinois.         *
+ * All rights reserved.                                                      *
+ *                                                                           *
+ * This file is part of HDF5.  The full HDF5 copyright notice, including     *
+ * terms governing use, modification, and redistribution, is contained in    *
+ * the files COPYING and Copyright.html.  COPYING can be found at the root   *
+ * of the source code distribution tree; Copyright.html can be found at the  *
+ * root level of an installed copy of the electronic HDF5 document set and   *
+ * is linked from the top-level documents page.  It can also be found at     *
+ * http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
+ * access to either file, you may request a copy from help@hdfgroup.org.     *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+package test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+import java.io.File;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+
+import hdf.hdf5lib.H5;
+import hdf.hdf5lib.HDF5Constants;
+import hdf.hdf5lib.exceptions.HDF5Exception;
+import hdf.hdf5lib.exceptions.HDF5LibraryException;
+import hdf.hdf5lib.structs.H5AC_cache_config_t;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TestName;
+
+public class TestH5Plist {
+    @Rule public TestName testname = new TestName();
+
+    // Property definitions
+    private static final String CLASS1_NAME = "Class 1";
+    private static final String CLASS1_PATH = "root/Class 1";
+
+    private static final String CLASS2_NAME = "Class 2";
+    private static final String CLASS2_PATH = "root/Class 1/Class 2";
+
+    // Property definitions
+    private static final String PROP1_NAME = "Property 1";
+    private static final int    prop1_def = 10;   // Property 1 default value
+    private static final int    PROP1_SIZE = 2;
+
+    private static final String PROP2_NAME = "Property 2";
+    private static final float  prop2_def = 3.14F;   // Property 2 default value
+    private static final int    PROP2_SIZE = 8;
+
+    private static final String PROP3_NAME  = "Property 3";
+    private static final char[] prop3_def = {'T','e','n',' ','c','h','a','r','s',' '};   // Property 3 default value
+    private static final int    PROP3_SIZE = 10;
+
+    private static final String PROP4_NAME  = "Property 4";
+    private static final double prop4_def = 1.41F;   // Property 4 default value
+    private static final int    PROP4_SIZE = 8;
+
+    long plist_class_id = -1;
+
+    @Before
+    public void createPropClass()throws NullPointerException, HDF5Exception
+    {
+        assertTrue("H5 open ids is 0",H5.getOpenIDCount()==0);
+        System.out.print(testname.getMethodName());
+        // Create a new generic class, derived from the root of the class hierarchy
+        try {
+            plist_class_id = H5.H5Pcreate_class(HDF5Constants.H5P_ROOT, CLASS1_NAME, null, null, null, null, null, null);
+        }
+        catch (Throwable err) {
+            err.printStackTrace();
+            fail("TestH5Plist.H5Pcreate_class: " + err);
+        }
+        assertTrue(plist_class_id > 0);
+    }
+
+    @After
+    public void deleteFileAccess() throws HDF5LibraryException {
+        if (plist_class_id > 0)
+            try {H5.H5Pclose(plist_class_id);} catch (Exception ex) {}
+        System.out.println();
+    }
+
+    // Test basic generic property list code. Tests creating new generic classes.
+    @Test
+    public void testH5P_genprop_basic_class() {
+        int         status = -1;
+        long        cid1 = -1;        // Generic Property class ID
+        long        cid2 = -1;        // Generic Property class ID
+        long        cid3 = -1;        // Generic Property class ID
+        String      name = null;       // Name of class
+
+        try {
+            // Check class name
+            try {
+                name = H5.H5Pget_class_name(plist_class_id);
+            }
+            catch (Throwable err) {
+                err.printStackTrace();
+                fail("H5Pget_class_name plist_class_id: " + err);
+            }
+            assertTrue("Class names don't match!, "+name+"="+CLASS1_NAME+"\n", name.compareTo(CLASS1_NAME)==0);
+
+            // Check class parent
+            try {
+                cid2 = H5.H5Pget_class_parent(plist_class_id);
+            }
+            catch (Throwable err) {
+                err.printStackTrace();
+                fail("H5Pget_class_parent cid2: " + err);
+            }
+
+            // Verify class parent correct
+            try {
+                status = H5.H5Pequal(cid2, HDF5Constants.H5P_ROOT);
+            }
+            catch (Throwable err) {
+                err.printStackTrace();
+                fail("H5Pequal cid2: " + err);
+            }
+            assertTrue("H5Pequal cid2", status >= 0);
+
+            // Make certain false postives aren't being returned
+            try {
+                status = H5.H5Pequal(cid2, HDF5Constants.H5P_FILE_CREATE);
+            }
+            catch (Throwable err) {
+                err.printStackTrace();
+                fail("H5Pequal cid2: " + err);
+            }
+            assertTrue("H5Pequal cid2", status >= 0);
+
+            // Close parent class
+            try {
+                H5.H5Pclose_class(cid2);
+                cid2 = -1;
+            }
+            catch (Throwable err) {
+                err.printStackTrace();
+                fail("H5Pclose_class cid2: " + err);
+            }
+
+            // Close class
+            try {
+                H5.H5Pclose_class(plist_class_id);
+                plist_class_id = -1;
+            }
+            catch (Throwable err) {
+                err.printStackTrace();
+                fail("H5Pclose_class plist_class_id: " + err);
+            }
+
+            // Create another new generic class, derived from file creation class
+            try {
+                cid1 = H5.H5Pcreate_class(HDF5Constants.H5P_FILE_CREATE, CLASS2_NAME, null, null, null, null, null, null);
+            }
+            catch (Throwable err) {
+                err.printStackTrace();
+                fail("H5Pcreate_class cid1: " + err);
+            }
+            assertTrue("H5Pcreate_class cid1", cid1 >= 0);
+
+            // Check class name
+            try {
+                name = H5.H5Pget_class_name(cid1);
+            }
+            catch (Throwable err) {
+                err.printStackTrace();
+                fail("H5Pget_class_name cid1: " + err);
+            }
+            assertTrue("Class names don't match!, "+name+"="+CLASS2_NAME+"\n", name.compareTo(CLASS2_NAME)==0);
+
+            // Check class parent
+            try {
+                cid2 = H5.H5Pget_class_parent(cid1);
+            }
+            catch (Throwable err) {
+                err.printStackTrace();
+                fail("H5Pget_class_parent cid2: " + err);
+            }
+            assertTrue("H5Pget_class_parent cid2 ", cid2 >= 0);
+
+            // Verify class parent correct
+            try {
+                status = H5.H5Pequal(cid2, HDF5Constants.H5P_FILE_CREATE);
+            }
+            catch (Throwable err) {
+                err.printStackTrace();
+                fail("H5Pequal cid2: " + err);
+            }
+            assertTrue("H5Pequal cid2 ", status >= 0);
+
+            // Check class parent's parent
+            try {
+                cid3 = H5.H5Pget_class_parent(cid2);
+            }
+            catch (Throwable err) {
+                err.printStackTrace();
+                fail("H5Pget_class_parent cid3: " + err);
+            }
+            assertTrue("H5Pget_class_parent cid3", cid3 >= 0);
+
+            // Verify class parent's parent correct
+            try {
+                status = H5.H5Pequal(cid3, HDF5Constants.H5P_GROUP_CREATE);
+            }
+            catch (Throwable err) {
+                err.printStackTrace();
+                fail("H5Pequal cid3: " + err);
+            }
+            assertTrue("H5Pequal cid3 ", status >= 0);
+
+            // Close parent class's parent
+            try {
+                H5.H5Pclose_class(cid3);
+                cid3 = -1;
+            }
+            catch (Throwable err) {
+                err.printStackTrace();
+                fail("H5Pclose_class cid3: " + err);
+            }
+
+            // Close parent class's parent
+            try {
+                H5.H5Pclose_class(cid2);
+                cid2 = -1;
+            }
+            catch (Throwable err) {
+                err.printStackTrace();
+                fail("H5Pclose_class cid2: " + err);
+            }
+
+            // Close parent class's parent
+            try {
+                H5.H5Pclose_class(cid1);
+                cid1 = -1;
+            }
+            catch (Throwable err) {
+                err.printStackTrace();
+                fail("H5Pclose_class cid1: " + err);
+            }
+        }
+        finally {
+            if (cid3 > 0)
+                try {H5.H5Pclose_class(cid3);} catch (Throwable err) {}
+            if (cid2 > 0)
+                try {H5.H5Pclose_class(cid2);} catch (Throwable err) {}
+            if (cid1 > 0)
+                try {H5.H5Pclose_class(cid1);} catch (Throwable err) {}
+        }
+    }
+
+/*    // Test basic generic property list code. Tests adding properties to generic classes.
+    @Test
+    public void testH5P_genprop_basic_class_prop() {
+        int         status = -1;
+        long        cid1 = -1;        // Generic Property class ID
+        int         size = -1;        // Generic Property size
+        int         nprops = -1;      // Generic Property class number
+
+        // Check the number of properties in class
+        try {
+            nprops = H5.H5Pget_nprops(plist_class_id);
+        }
+        catch (Throwable err) {
+            err.printStackTrace();
+            fail("H5Pget_nprops plist_class_id: " + err);
+        }
+        assertTrue("H5Pget_nprops: "+nprops, nprops==0);
+
+        // Check the existance of the first property (should fail)
+        try {
+            status = H5.H5Pexist(plist_class_id, PROP1_NAME);
+        }
+        catch (Throwable err) {
+            err.printStackTrace();
+            fail("H5Pexist plist_class_id: " + err);
+        }
+        assertTrue("H5Pexist plist_class_id "+PROP1_NAME, status == 0);
+
+        // Insert first property into class (with no callbacks)
+        ret = H5Pregister2(cid1, PROP1_NAME, PROP1_SIZE, PROP1_DEF_VALUE, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+        CHECK_I(ret, "H5Pregister2");
+
+        // Try to insert the first property again (should fail)
+        ret = H5Pregister2(cid1, PROP1_NAME, PROP1_SIZE, PROP1_DEF_VALUE, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+        VERIFY(ret, FAIL, "H5Pregister2");
+
+        // Check the existance of the first property
+        try {
+            status = H5.H5Pexist(plist_class_id, PROP1_NAME);
+        }
+        catch (Throwable err) {
+            err.printStackTrace();
+            fail("H5Pexist plist_class_id: " + err);
+        }
+        assertTrue("H5Pexist plist_class_id "+PROP1_NAME, status == 1);
+
+        // Check the size of the first property
+        try {
+            size = H5.H5Pget_size(plist_class_id, PROP1_NAME);
+        }
+        catch (Throwable err) {
+            err.printStackTrace();
+            fail("H5Pget_size PROP1_NAME: " + err);
+        }
+        assertTrue("H5Pget_size "+PROP1_NAME +" size: "+size, size == PROP1_SIZE);
+
+        // Check the number of properties in class
+        try {
+            nprops = H5.H5Pget_nprops(plist_class_id);
+        }
+        catch (Throwable err) {
+            err.printStackTrace();
+            fail("H5Pget_nprops plist_class_id: " + err);
+        }
+        assertTrue("H5Pget_nprops: "+nprops, nprops==1);
+
+        // Insert second property into class (with no callbacks)
+        ret = H5Pregister2(cid1, PROP2_NAME, PROP2_SIZE, PROP2_DEF_VALUE, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+        CHECK_I(ret, "H5Pregister2");
+
+        // Try to insert the second property again (should fail)
+        ret = H5Pregister2(cid1, PROP2_NAME, PROP2_SIZE, PROP2_DEF_VALUE, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+        VERIFY(ret, FAIL, "H5Pregister2");
+
+        // Check the existance of the second property
+        try {
+            status = H5.H5Pexist(plist_class_id, PROP2_NAME);
+        }
+        catch (Throwable err) {
+            err.printStackTrace();
+            fail("H5Pexist plist_class_id: " + err);
+        }
+        assertTrue("H5Pexist plist_class_id "+PROP2_NAME, status == 1);
+
+        // Check the size of the second property
+        try {
+            size = H5.H5Pget_size(plist_class_id, PROP2_NAME);
+        }
+        catch (Throwable err) {
+            err.printStackTrace();
+            fail("H5Pget_size PROP2_NAME: " + err);
+        }
+        assertTrue("H5Pget_size "+PROP2_NAME +" size: "+size, size == PROP2_SIZE);
+
+        // Check the number of properties in class
+        try {
+            nprops = H5.H5Pget_nprops(plist_class_id);
+        }
+        catch (Throwable err) {
+            err.printStackTrace();
+            fail("H5Pget_nprops plist_class_id: " + err);
+        }
+        assertTrue("H5Pget_nprops: "+nprops, nprops==2);
+
+        // Insert third property into class (with no callbacks)
+        ret = H5Pregister2(cid1, PROP3_NAME, PROP3_SIZE, PROP3_DEF_VALUE, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+        CHECK_I(ret, "H5Pregister2");
+
+        // Check the existance of the third property
+        try {
+            status = H5.H5Pexist(plist_class_id, PROP3_NAME);
+        }
+        catch (Throwable err) {
+            err.printStackTrace();
+            fail("H5Pexist plist_class_id: " + err);
+        }
+        assertTrue("H5Pexist plist_class_id "+PROP3_NAME, status == 1);
+
+        // Check the size of the third property
+        try {
+            size = H5.H5Pget_size(plist_class_id, PROP3_NAME);
+        }
+        catch (Throwable err) {
+            err.printStackTrace();
+            fail("H5Pget_size PROP3_NAME: " + err);
+        }
+        assertTrue("H5Pget_size "+PROP3_NAME +" size: "+size, size == PROP3_SIZE);
+
+        // Check the number of properties in class
+        try {
+            nprops = H5.H5Pget_nprops(plist_class_id);
+        }
+        catch (Throwable err) {
+            err.printStackTrace();
+            fail("H5Pget_nprops plist_class_id: " + err);
+        }
+        assertTrue("H5Pget_nprops: "+nprops, nprops==3);
+
+        // Unregister first property
+        try {
+            H5.H5Punregister(plist_class_id, PROP1_NAME);
+        }
+        catch (Throwable err) {
+            err.printStackTrace();
+            fail("H5Punregister plist_class_id: "+PROP1_NAME + err);
+        }
+
+        // Try to check the size of the first property (should fail)
+        try {
+            size = H5.H5Pget_size(plist_class_id, PROP1_NAME);
+        }
+        catch (Throwable err) {
+            err.printStackTrace();
+            fail("H5Pget_size PROP1_NAME: " + err);
+        }
+        assertTrue("H5Pget_size "+PROP1_NAME +" size: "+size, size == PROP1_SIZE);
+
+        // Check the number of properties in class
+        try {
+            nprops = H5.H5Pget_nprops(plist_class_id);
+        }
+        catch (Throwable err) {
+            err.printStackTrace();
+            fail("H5Pget_nprops plist_class_id: " + err);
+        }
+        assertTrue("H5Pget_nprops: "+nprops, nprops==2);
+
+        // Unregister second property
+        try {
+            H5.H5Punregister(plist_class_id, PROP2_NAME);
+        }
+        catch (Throwable err) {
+            err.printStackTrace();
+            fail("H5Punregister plist_class_id: "+PROP2_NAME + err);
+        }
+
+        // Check the number of properties in class
+        try {
+            nprops = H5.H5Pget_nprops(plist_class_id);
+        }
+        catch (Throwable err) {
+            err.printStackTrace();
+            fail("H5Pget_nprops plist_class_id: " + err);
+        }
+        assertTrue("H5Pget_nprops: "+nprops, nprops==1);
+
+        // Unregister third property
+        try {
+            H5.H5Punregister(plist_class_id, PROP1_NAME);
+        }
+        catch (Throwable err) {
+            err.printStackTrace();
+            fail("H5Punregister plist_class_id: "+PROP1_NAME + err);
+        }
+
+        // Check the number of properties in class
+        try {
+            nprops = H5.H5Pget_nprops(plist_class_id);
+        }
+        catch (Throwable err) {
+            err.printStackTrace();
+            fail("H5Pget_nprops plist_class_id: " + err);
+        }
+        assertTrue("H5Pget_nprops: "+nprops, nprops==0);
+    }
+*/}

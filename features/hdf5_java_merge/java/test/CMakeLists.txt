@@ -35,6 +35,7 @@ set (HDF5_JAVA_TEST_SRCS
     TestH5PData.java
     TestH5Pfapl.java
     TestH5Pvirtual.java
+    TestH5Plist.java
     TestH5A.java
     TestH5Oparams.java
     TestH5Obasic.java
