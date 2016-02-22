@@ -449,6 +449,7 @@ Java_hdf_hdf5lib_H5_H5Fget_1mdc_1size(JNIEnv *env, jclass cls, jlong file_id, jl
 
     return (jint)cur_num_entries;
 } /* end Java_hdf_hdf5lib_H5_H5Fget_1mdc_1size */
+
 /*
  * Class:     hdf_hdf5lib_H5
  * Method:    H5Fget_info
@@ -457,7 +458,7 @@ Java_hdf_hdf5lib_H5_H5Fget_1mdc_1size(JNIEnv *env, jclass cls, jlong file_id, jl
 JNIEXPORT jobject JNICALL
 Java_hdf_hdf5lib_H5_H5Fget_1info(JNIEnv *env, jclass clss, jlong obj_id)
 {
-    H5F_info_t  finfo;
+    H5F_info2_t  finfo;
     jvalue      args[9];
     jobject     ihinfobuf;
     jobject     ret_obj = NULL;
