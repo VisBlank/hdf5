@@ -674,7 +674,7 @@ CHECK_CLEANFILES = *.chkexe *.chklog *.clog *.clog2
 
 # Mark this directory as part of the JNI API
 JAVA_API = yes
-JAVAROOT = $(top_builddir)/.classes
+JAVAROOT = .classes
 pkgpath = examples/intro
 hdfjarfile = jar$(PACKAGE_TARNAME)-$(PACKAGE_VERSION).jar
 CLASSPATH_ENV = CLASSPATH=.:$(JAVAROOT):$(top_builddir)/java/src/$(hdfjarfile):$(top_srcdir)/java/lib/slf4j-api-1.7.5.jar:$(top_srcdir)/java/lib/ext/slf4j-simple-1.7.5.jar:$$CLASSPATH
@@ -1086,7 +1086,7 @@ help:
 	@$(top_srcdir)/bin/makehelp
 
 classes:
-	$(MKDIR_P) $(@D)/$(JAVAROOT)
+	test -d $(@D)/$(JAVAROOT) || $(MKDIR_P) $(@D)/$(JAVAROOT)
 
 $(jarfile): classnoinst.stamp classes
 	$(JAR) cvf $@ -C $(JAVAROOT)/ $(pkgpath)
@@ -1094,7 +1094,7 @@ $(jarfile): classnoinst.stamp classes
 .PHONY: classes
 
 clean:
-	rm -rf $(JAVAROOT)
+	rm -rf $(JAVAROOT)/*
 	rm -f $(jarfile)
 	rm -f classnoinst.stamp
 

@@ -567,7 +567,7 @@ CHECK_CLEANFILES = *.chkexe *.chklog *.clog *.clog2
 # Mark this directory as part of the JNI API
 JAVA_API = yes
 SUBDIRS = jni
-JAVAROOT = $(top_builddir)/.classes
+JAVAROOT = .classes
 jarfile = jar$(PACKAGE_TARNAME)-$(PACKAGE_VERSION).jar
 hdf5_javadir = $(libdir)
 pkgpath = hdf/hdf5lib
@@ -1023,7 +1023,7 @@ help:
 	@$(top_srcdir)/bin/makehelp
 
 classes:
-	$(MKDIR_P) $(@D)/$(JAVAROOT)
+	test -d $(@D)/$(JAVAROOT) || $(MKDIR_P) $(@D)/$(JAVAROOT)
 
 $(jarfile): classhdf5_java.stamp classes docs
 	$(JAR) cvf $@ -C $(JAVAROOT)/ $(pkgpath)
@@ -1034,7 +1034,7 @@ docs:
 	$(JAVADOC) -sourcepath $(srcdir) -d javadoc -use -splitIndex -windowtitle $(WINDOWTITLE) -doctitle $(DOCTITLE) -J-Xmx180m -verbose -overview $(top_srcdir)/java/src/hdf/overview.html -classpath $(CLASSPATH_ENV) hdf.hdf5lib
 
 clean:
-	rm -rf $(JAVAROOT)
+	rm -rf $(JAVAROOT)/*
 	rm -f $(jarfile)
 	rm -f classhdf5_java.stamp
 
