@@ -103,7 +103,7 @@ if (CMAKE_BUILD_TYPE MATCHES Debug)
 endif(CMAKE_BUILD_TYPE MATCHES Debug)
 
 add_test (
-  NAME JJUnit-interface-clearall-objects
+  NAME JUnit-interface-clearall-objects
   COMMAND    ${CMAKE_COMMAND}
       -E remove
       JUnit-interface.out
@@ -128,3 +128,4 @@ add_test (
         -D "TEST_REFERENCE=JUnit-interface.txt"
         -P "${HDF_RESOURCES_DIR}/jrunTest.cmake"
 )
+set_tests_properties (JUnit-interface PROPERTIES DEPENDS "JUnit-interface-clearall-objects")
