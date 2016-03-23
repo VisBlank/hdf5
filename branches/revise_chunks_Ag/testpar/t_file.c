@@ -115,7 +115,7 @@ test_file_properties(void)
     /* setup file access plist */
     fapl_id = H5Pcreate(H5P_FILE_ACCESS);
     VRFY((fapl_id >= 0), "H5Pcreate");
-	ret = H5Pset_fapl_mpio(fapl_id, comm, info);
+    ret = H5Pset_fapl_mpio(fapl_id, comm, info);
     VRFY((ret >= 0), "H5Pset_fapl_mpio");
 
     /* create the file */

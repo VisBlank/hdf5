@@ -206,7 +206,7 @@ test_ohdr_cache(char *filename, hid_t fapl)
     if((file = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, my_fapl)) < 0)
         FAIL_STACK_ERROR
     if(H5Pclose(my_fapl) < 0)
-	FAIL_STACK_ERROR
+        FAIL_STACK_ERROR
     if(NULL == (f = (H5F_t *)H5I_object(file)))
         FAIL_STACK_ERROR
     if(H5AC_ignore_tags(f) < 0)

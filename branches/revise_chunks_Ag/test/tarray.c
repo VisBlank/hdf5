@@ -26,12 +26,12 @@
 
 #include "hdf5.h"
 
-#define FILENAME        "tarray1.h5"
-#define TESTFILE        "tarrold.h5"
+#define FILENAME   "tarray1.h5"
+#define TESTFILE   "tarrold.h5"
 
 /* 1-D array datatype */
-#define ARRAY1_RANK     1
-#define ARRAY1_DIM1     4
+#define ARRAY1_RANK	1
+#define ARRAY1_DIM1 4
 
 /* 3-D array datatype */
 #define ARRAY2_RANK     3

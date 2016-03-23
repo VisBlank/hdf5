@@ -360,7 +360,7 @@ test_filter_read(void)
      * STEP 4: Test shuffling by itself.
      *----------------------------------------------------------
      */
-#ifdef H5_HAVE_FILTER_SHUFFLE
+
     dc = H5Pcreate(H5P_DATASET_CREATE);
     VRFY(dc>=0, "H5Pcreate");
 
@@ -377,13 +377,12 @@ test_filter_read(void)
     hrc = H5Pclose (dc);
     VRFY(hrc>=0, "H5Pclose");
 
-#endif /* H5_HAVE_FILTER_SHUFFLE */
 
     /*----------------------------------------------------------
      * STEP 5: Test shuffle + deflate + checksum in any order.
      *----------------------------------------------------------
      */
-#if defined H5_HAVE_FILTER_DEFLATE && defined H5_HAVE_FILTER_SHUFFLE && defined H5_HAVE_FILTER_FLETCHER32
+#ifdef H5_HAVE_FILTER_DEFLATE
     /* Testing shuffle+deflate+checksum filters (checksum first) */
     dc = H5Pcreate(H5P_DATASET_CREATE);
     VRFY(dc>=0, "H5Pcreate");
@@ -428,13 +427,13 @@ test_filter_read(void)
     hrc = H5Pclose (dc);
     VRFY(hrc>=0, "H5Pclose");
 
-#endif /* H5_HAVE_FILTER_DEFLATE && H5_HAVE_FILTER_SHUFFLE && H5_HAVE_FILTER_FLETCHER32 */
+#endif /* H5_HAVE_FILTER_DEFLATE */
 
     /*----------------------------------------------------------
      * STEP 6: Test shuffle + szip + checksum in any order.
      *----------------------------------------------------------
      */
-#if defined H5_HAVE_FILTER_SZIP && defined H5_HAVE_FILTER_SHUFFLE && defined H5_HAVE_FILTER_FLETCHER32
+#ifdef H5_HAVE_FILTER_SZIP
 
     /* Testing shuffle+szip(with encoder)+checksum filters(checksum first) */
     dc = H5Pcreate(H5P_DATASET_CREATE);
@@ -486,6 +485,6 @@ test_filter_read(void)
         VRFY(hrc>=0, "H5Pclose");
     }
 
-#endif /* H5_HAVE_FILTER_SZIP && H5_HAVE_FILTER_SHUFFLE && H5_HAVE_FILTER_FLETCHER32 */
+#endif /* H5_HAVE_FILTER_SZIP */
 }
 
