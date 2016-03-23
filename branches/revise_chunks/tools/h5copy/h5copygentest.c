@@ -645,8 +645,8 @@ out:
  *------------------------------------------------------------------------*/
 static void Test_Obj_Copy(void)
 {
-    hid_t fid = (-1);		/* File id */
-    hid_t fapl_new = (-1);	/* File access property id */
+    hid_t fid = -1;		        /* File id */
+    hid_t fapl_new = (-1);	        /* File access property id */
     unsigned new_format;		/* New format or old format */
 
     if((fapl_new = H5Pcreate(H5P_FILE_ACCESS)) < 0) {
