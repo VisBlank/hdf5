@@ -118,7 +118,7 @@
 
 /* Declaration for test_get_obj_ids() */
 #define FILE7			"tfile7.h5"	/* Test file */
-#define N_GROUPS			2
+#define NGROUPS			2
 #define NDSETS			4
 
 const char *OLD_FILENAME[] = {  /* Files created under 1.6 branch and 1.8 branch */
@@ -1024,7 +1024,7 @@ create_objects(hid_t fid1, hid_t fid2, hid_t *ret_did, hid_t *ret_gid1,
 static void
 test_get_obj_ids(void)
 {
-    hid_t    fid, gid[N_GROUPS], dset[NDSETS];
+    hid_t    fid, gid[NGROUPS], dset[NDSETS];
     hid_t    filespace;
     hsize_t  file_dims[F2_RANK] = {F2_DIM0, F2_DIM1};
     ssize_t  oid_count, ret_count;
@@ -1041,8 +1041,8 @@ test_get_obj_ids(void)
     filespace = H5Screate_simple(F2_RANK, file_dims,  NULL);
     CHECK(filespace, FAIL, "H5Screate_simple");
 
-    /* creates N_GROUPS groups under the root group */
-    for(m = 0; m < N_GROUPS; m++) {
+    /* creates NGROUPS groups under the root group */
+    for(m = 0; m < NGROUPS; m++) {
         sprintf(gname, "group%d", m);
         gid[m] = H5Gcreate2(fid, gname, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
         CHECK(gid[m], FAIL, "H5Gcreate2");
@@ -1055,10 +1055,10 @@ test_get_obj_ids(void)
          CHECK(dset[n], FAIL, "H5Dcreate2");
     }
 
-    /* The number of opened objects should be N_GROUPS + NDSETS + 1.  One is opened file. */
+    /* The number of opened objects should be NGROUPS + NDSETS + 1.  One is opened file. */
     oid_count = H5Fget_obj_count(fid, H5F_OBJ_ALL);
     CHECK(oid_count, FAIL, "H5Fget_obj_count");
-    VERIFY(oid_count, (N_GROUPS + NDSETS + 1), "H5Fget_obj_count");
+    VERIFY(oid_count, (NGROUPS + NDSETS + 1), "H5Fget_obj_count");
 
     oid_list = (hid_t *)HDcalloc((size_t)oid_list_size, sizeof(hid_t));
     CHECK(oid_list, NULL, "HDcalloc");
@@ -1079,11 +1079,11 @@ test_get_obj_ids(void)
         }
     }
 
-    /* The number of opened objects should be N_GROUPS + 1 + 1.  The first one is opened file. The second one
+    /* The number of opened objects should be NGROUPS + 1 + 1.  The first one is opened file. The second one
      * is the dataset ID left open from the previous around of H5Fget_obj_ids */
     oid_count = H5Fget_obj_count(fid, H5F_OBJ_ALL);
     CHECK(oid_count, FAIL, "H5Fget_obj_count");
-    VERIFY(oid_count, N_GROUPS + 2, "H5Fget_obj_count");
+    VERIFY(oid_count, NGROUPS + 2, "H5Fget_obj_count");
 
     /* Get the IDs of the left opend objects */ 
     ret_count = H5Fget_obj_ids(fid, H5F_OBJ_ALL, (size_t)oid_list_size, oid_list);
@@ -3875,7 +3875,7 @@ test_libver_macros2(void)
 
 /****************************************************************
 **
-**  test_deprec(): 
+**  test_deprec():
 **	Test deprecated functionality.
 **
 ****************************************************************/
@@ -4054,14 +4054,6 @@ test_file(void)
     test_libver_bounds();       /* Test compatibility for file space management */
     test_libver_macros();       /* Test the macros for library version comparison */
     test_libver_macros2();      /* Test the macros for library version comparison */
-    /*
-     * The two tests: test_swmr_write() and test_swmr_read() are removed.
-     * They are covered by the following tests in swmr.c:
-     *	 test_file_lock_same();
-     *	 test_file_lock_swmr_same();
-     *	 test_file_lock_concur(); 
-     * 	 test_file_lock_swmr_concur();
-     */
 #ifndef H5_NO_DEPRECATED_SYMBOLS
     test_deprec();              /* Test deprecated routines */
 #endif /* H5_NO_DEPRECATED_SYMBOLS */
