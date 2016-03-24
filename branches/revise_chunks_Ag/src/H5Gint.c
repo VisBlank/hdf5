@@ -473,7 +473,7 @@ herr_t
 H5G_close(H5G_t *grp)
 {
     hbool_t	corked;			/* Whether the group is corked or not */
-    herr_t      ret_value = SUCCEED; 	/* Return value */
+    herr_t      ret_value = SUCCEED;       /* Return value */
 
     FUNC_ENTER_NOAPI(FAIL)
 

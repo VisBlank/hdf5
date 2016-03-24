@@ -185,6 +185,7 @@ typedef struct H5F_superblock_cache_ud_t {
 			       */
 } H5F_superblock_cache_ud_t;
 
+/* Structure for passing 'user data' to driver info block cache callbacks */
 typedef struct H5F_drvrinfo_cache_ud_t {
     H5F_t   *f;               /* Pointer to file */
     haddr_t driver_addr;      /* address of driver info block */

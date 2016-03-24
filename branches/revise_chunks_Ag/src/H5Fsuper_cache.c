@@ -330,6 +330,7 @@ H5F__cache_superblock_deserialize(const void *_image, size_t len, void *_udata,
     if(NULL == (sblock = H5FL_CALLOC(H5F_super_t)))
         HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, NULL, "memory allocation failed")
 
+    /* Skip over signature (already checked when locating the superblock) */
     image += H5F_SIGNATURE_LEN;
 
     /* Superblock version */

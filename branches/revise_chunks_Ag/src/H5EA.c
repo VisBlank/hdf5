@@ -841,7 +841,7 @@ HDfprintf(stderr, "%s: Called\n", FUNC);
 
     /*
      * Check to see if the flush dependency between the object header proxy
-     * and the extensible array header has already been setup.  If it hasn't
+     * and the extensible array header has already been set up.  If it hasn't
      * set it up.
      */
     if(!H5F_addr_defined(hdr->fd_parent_addr)) {
