@@ -351,9 +351,9 @@ H5O_copy_header_real(const H5O_loc_t *oloc_src, H5O_loc_t *oloc_dst /*out*/,
 
     /* Check if the object at the address is already open in the file */
     if(H5FO_opened(oloc_src->file, oloc_src->addr) != NULL) {
-	H5G_loc_t tmp_loc; 	/* Location of object */
-	H5O_loc_t tmp_oloc; 	/* Location of object */
-	H5G_name_t tmp_path;	/* Object's path */
+	H5G_loc_t   tmp_loc; 	/* Location of object */
+	H5O_loc_t   tmp_oloc; 	/* Location of object */
+	H5G_name_t  tmp_path;	/* Object's path */
 	void *obj_ptr = NULL;	/* Object pointer */
 	hid_t tmp_id = -1;	/* Object ID */
 

@@ -202,7 +202,7 @@ const H5AC_class_t H5AC_EARRAY_TEST[1] = {{
     /* mem_type      */ H5FD_MEM_DEFAULT,
     /* flags         */ H5AC__CLASS_NO_IO_FLAG,
     /* get_load_size */ (H5AC_get_load_size_func_t)earray_cache_test_get_load_size,
-    /* varify_chksum */ (H5AC_verify_chksum_func_t)NULL,
+    /* verify_chksum */ (H5AC_verify_chksum_func_t)NULL,
     /* deserialize   */ (H5AC_deserialize_func_t)earray_cache_test_deserialize,
     /* image_len     */ (H5AC_image_len_func_t)earray_cache_test_image_len,
     /* pre_serialize */ (H5AC_pre_serialize_func_t)NULL,
@@ -2711,11 +2711,6 @@ main(void)
     unsigned	nerrors = 0;            /* Cumulative error count */
     time_t      curr_time;              /* Current time, for seeding random number generator */
     int		ExpressMode;            /* Test express value */
-    const char  *env_h5_drvr;      /* File Driver value from environment */
-
-    env_h5_drvr = HDgetenv("HDF5_DRIVER");
-    if(env_h5_drvr == NULL)
-        env_h5_drvr = "nomatch";
 
     /* Reset library */
     h5_reset();
@@ -2782,14 +2777,6 @@ main(void)
         nerrors += test_open_twice(fapl, &cparam, &tparam);
         nerrors += test_open_twice_diff(fapl, &cparam, &tparam);
         nerrors += test_delete_open(fapl, &cparam, &tparam);
-	/* 
-         *	nerrors += test_flush_depend(env_h5_drvr, fapl, &cparam, &tparam);
-	 * The test test_flush_depend() was removed with this checkin because chunk proxy for SWMR handling is
-	 * no longer used: chunk allocation is moved up to the chunk layer, data is written to the chunk before
-	 * inserting the chunk address into the index structure.
-	 * New tests will be written in the future to verify dependency within the index data structures and 
-	 * with the object header.
-	 */
 
         /* Iterate over the type of capacity tests */
         for(curr_iter = EARRAY_ITER_FW; curr_iter < EARRAY_ITER_NITERS; H5_INC_ENUM(earray_iter_type_t, curr_iter)) {
@@ -2883,7 +2870,7 @@ main(void)
 
     if(nerrors)
         goto error;
-    puts("All extensible array tests passed.");
+    HDputs("All extensible array tests passed.");
 
     /* Clean up file used */
     h5_cleanup(FILENAME, fapl);
@@ -2891,10 +2878,10 @@ main(void)
     return 0;
 
 error:
-    puts("*** TESTS FAILED ***");
+    HDputs("*** TESTS FAILED ***");
 
     H5E_BEGIN_TRY {
-	H5Pclose(fapl);
+        H5Pclose(fapl);
     } H5E_END_TRY;
 
     return 1;

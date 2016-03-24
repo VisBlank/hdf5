@@ -88,8 +88,6 @@
 #define H5D_ACS_EFILE_PREFIX_CMP                H5P__dapl_efile_pref_cmp
 #define H5D_ACS_EFILE_PREFIX_CLOSE              H5P__dapl_efile_pref_close
 
-
-
 /******************/
 /* Local Typedefs */
 /******************/

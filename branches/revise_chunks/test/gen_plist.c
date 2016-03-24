@@ -89,7 +89,7 @@ main(void)
 
     /* check endianess */
     {
-        short int word = 0x0000;
+        short int word = 0x0001;
         char *byte = (char *) &word;
 
         if(byte[0] == 1)

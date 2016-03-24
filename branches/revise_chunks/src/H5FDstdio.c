@@ -114,7 +114,6 @@ typedef struct H5FD_stdio_t {
     
     HANDLE          hFile;      /* Native windows file handle */
 #endif  /* H5_HAVE_WIN32_API */
-
 } H5FD_stdio_t;
 
 /* Use similar structure as in H5private.h by defining Windows stuff first. */
