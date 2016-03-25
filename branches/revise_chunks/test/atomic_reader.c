@@ -28,15 +28,18 @@
 /* Headers */
 /***********/
 
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+
+#if !defined(WIN32) && !defined(__MINGW32__)
+
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
 
 /****************/
 /* Local Macros */
@@ -345,3 +348,15 @@ main(int argc, char *argv[])
 
     return(0);
 }
+
+#else /* WIN32 / MINGW32 */
+
+int
+main(void)
+{
+    printf("Non-POSIX platform. Exiting.\n");
+    return EXIT_SUCCESS;
+} /* end main() */
+
+#endif /* WIN32 / MINGW32 */
+
