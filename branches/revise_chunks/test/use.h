@@ -15,12 +15,6 @@
 /*
  * Use Case Header file: common definitions for use cases tests.
  */
-#include <sys/types.h>
-#include <unistd.h>
-#include <sys/wait.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include "h5test.h"
 
 /* Macro definitions */
@@ -67,3 +61,4 @@ void usage(const char *prog);
 int create_uc_file(void);
 int write_uc_file(hbool_t tosend);
 int read_uc_file(hbool_t towait);
+
