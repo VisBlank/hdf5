@@ -206,7 +206,7 @@ H5B2__cache_hdr_get_load_size(const void *_image, void *_udata, size_t *image_le
 	*image_len = H5B2_HEADER_SIZE_FILE(udata->f);
     } else {
 	HDassert(actual_len);
-	HDassert(*actual_len == *actual_len);
+	HDassert(*actual_len == *image_len);
     }
 
     FUNC_LEAVE_NOAPI(SUCCEED)
