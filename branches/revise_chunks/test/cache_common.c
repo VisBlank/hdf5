@@ -860,17 +860,6 @@ deserialize(const void *image, size_t len, void *udata, hbool_t *dirty,
     HDassert( entry->flush_dep_npar == 0 );
     HDassert( entry->flush_dep_nchd == 0 );
 
-#if 1 /* JRM */
-    if ( ! ( ( entry->type == VARIABLE_ENTRY_TYPE ) ||
-             ( entry->size == entry_sizes[type] ) ) ) {
-
-        HDfprintf(stdout, "entry type/index/size = %d/%d/%ld\n",
-                  (int)(entry->type),
-                  (int)(entry->index),
-                  (long)(entry->size));
-    }
-#endif /* JRM */
-
     /* for now *dirty will always be FALSE */
     *dirty = FALSE;
 
