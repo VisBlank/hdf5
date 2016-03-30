@@ -275,7 +275,7 @@
   # copy test files from source to build dir
   #
   foreach (h5_tstfiles ${LIST_HDF5_TEST_FILES} ${LIST_OTHER_TEST_FILES})
-    GET_FILENAME_COMPONENT(fname "${h5_tstfiles}" NAME)
+    get_filename_component(fname "${h5_tstfiles}" NAME)
     set (dest "${PROJECT_BINARY_DIR}/testfiles/${fname}")
     #message (STATUS " Copying ${fname}")
     add_custom_command (
