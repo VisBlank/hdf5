@@ -2625,10 +2625,10 @@ compress_readAll(void)
 
         /* Open dataset with compressed chunks */
         dataset = H5Dopen2(fid, "compressed_data", H5P_DEFAULT);
-        VRFY((dataset >= 0), "H5Dopen2 succeeded");
+        VRFY((dataset > 0), "H5Dopen2 succeeded");
 
         /* Try reading & writing data */
-        if(dataset>=0) {
+        if(dataset>0) {
             /* Create dataset transfer property list */
             xfer_plist = H5Pcreate(H5P_DATASET_XFER);
             VRFY((xfer_plist > 0), "H5Pcreate succeeded");
