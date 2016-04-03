@@ -2372,8 +2372,8 @@ H5O_delete(H5F_t *f, hid_t dxpl_id, haddr_t addr)
     else if(corked) {
 	if(H5AC_cork(f, addr, H5AC__UNCORK, NULL) < 0)
 	    HGOTO_ERROR(H5E_OHDR, H5E_SYSTEM, FAIL, "unable to uncork an object")
-    }
-    
+    } /* end if */
+
     /* Mark object header as deleted */
     oh_flags = H5AC__DIRTIED_FLAG | H5AC__DELETED_FLAG | H5AC__FREE_FILE_SPACE_FLAG;
 

@@ -143,9 +143,6 @@ const char *FILENAME[] = {
 #define NUM_WIDE_LOOP_GROUPS  10
 #define NUM_DATASETS  10
 
-#define COPY_OPEN_OBJ_NAME     "CopyOpenObj"
-#define COPY_OPEN_OBJ_SIZE      sizeof(hbool_t)
-
 char src_obj_full_name[215];  /* the full path + name of the object to be copied */
 
 unsigned num_attributes_g;         /* Number of attributes created */
@@ -1196,18 +1193,6 @@ compare_datasets(hid_t did, hid_t did2, hid_t pid, const void *wbuf)
     void *rbuf2 = NULL;                         /* Buffer for reading raw data */
     H5D_space_status_t space_status;            /* Dataset's raw data space status */
     H5D_space_status_t space_status2;           /* Dataset's raw data space status */
-    hbool_t copy_open_obj = FALSE;              /* Indicate if we are copying open objects */
-
-    /* Retrieve the private "copy open object" property from the property list, if it's non-DEFAULT */
-    if(pid != H5P_DEFAULT) {
-        htri_t copy_open_obj_exists;
-
-        if((copy_open_obj_exists = H5Pexist(pid, COPY_OPEN_OBJ_NAME)) < 0) TEST_ERROR
-        if(copy_open_obj_exists) {
-            if(H5Pget(pid, COPY_OPEN_OBJ_NAME, &copy_open_obj) < 0)
-                TEST_ERROR
-        } /* end if */
-    } /* end if */
 
     /* Check the datatypes are equal */
 
@@ -1252,54 +1237,10 @@ compare_datasets(hid_t did, hid_t did2, hid_t pid, const void *wbuf)
     /* Open the dataset creation property list for the destination dataset */
     if((dcpl2 = H5Dget_create_plist(did2)) < 0) TEST_ERROR
 
-    /* If external file storage is being used, the value stored in the
-     * dcpl will be a heap ID, which is not guaranteed to be the same in
-     * source and destination files.
-     * Instead, compare the actual external file values and then
-     * delete this property from the dcpls before comparing them.
-     */
-    if((ext_count = H5Pget_external_count(dcpl)) < 0) TEST_ERROR
-
-    if(ext_count > 0)
-    {
-        unsigned x;  /* Counter varaible */
-        char name1[NAME_BUF_SIZE];
-        char name2[NAME_BUF_SIZE];
-        off_t offset1=0;
-        off_t offset2=0;
-        hsize_t size1=0;
-        hsize_t size2=0;
-
-        if(H5Pget_external_count(dcpl2) != ext_count) TEST_ERROR
-
-        /* Ensure that all external file information is the same */
-        for(x=0; x < (unsigned) ext_count; ++x)
-        {
-            if(H5Pget_external(dcpl, x, (size_t)NAME_BUF_SIZE, name1, &offset1, &size1) < 0) TEST_ERROR
-            if(H5Pget_external(dcpl2, x, (size_t)NAME_BUF_SIZE, name2, &offset2, &size2) < 0) TEST_ERROR
-
-            if(offset1 != offset2) TEST_ERROR
-            if(size1 != size2) TEST_ERROR
-            if(HDstrcmp(name1, name2) != 0) TEST_ERROR
-        }
-
-        /* Reset external file information from the dcpls */
-        /* (Directly removing default property causes memory leak) */
-        if (H5P_reset_external_file_test(dcpl) < 0) TEST_ERROR
-        if (H5P_reset_external_file_test(dcpl2) < 0) TEST_ERROR
-    }
-
-    /* Check for copying open objects */
-    if(copy_open_obj) {
-        /* Reset layout information from the dcpls */
-        if(H5P_reset_layout_test(dcpl) < 0) TEST_ERROR
-        if(H5P_reset_layout_test(dcpl2) < 0) TEST_ERROR
-    } /* end if */
-
     /* Compare the rest of the dataset creation property lists */
     if(H5Pequal(dcpl, dcpl2) != TRUE) TEST_ERROR
 
-    /* Get the number of filters on dataset */
+    /* Get the number of filters on dataset (for later) */
     if((nfilters = H5Pget_nfilters(dcpl)) < 0) TEST_ERROR
 
     /* close the source dataset creation property list */
@@ -2631,7 +2572,6 @@ test_copy_dataset_chunked(hid_t fcpl_src, hid_t fcpl_dst, hid_t src_fapl, hid_t 
 
     /* close chunk plist */
     if(H5Pclose(pid) < 0) TEST_ERROR
-
 
     /* write data into file */
     if(H5Dwrite(did, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, buf2d) < 0) TEST_ERROR
@@ -13060,11 +13000,9 @@ test_copy_dataset_open(hid_t fcpl_src, hid_t fcpl_dst, hid_t src_fapl, hid_t dst
     hid_t tid = -1;                             /* Datatype ID */
     hid_t did = -1, did2 = -1;                  /* Dataset IDs */
     hid_t gid = -1, gid2 = -1;                  /* Group IDs */
-    hid_t ocpl = -1;                            /* Object copy property list ID */
     int buf[DIM_SIZE_1][DIM_SIZE_2];            /* Buffer for writing data */
     int newbuf[DIM_SIZE_1][DIM_SIZE_2];		/* Buffer for writing data */
     hsize_t dim2d[2];                           /* Dataset dimensions */
-    hbool_t copy_open_obj = TRUE;               /* Property to indicate we are copying open objects */
     int i, j;                                   /* local index variables */
     char src_filename[NAME_BUF_SIZE];
     char dst_filename[NAME_BUF_SIZE];
@@ -13113,18 +13051,6 @@ test_copy_dataset_open(hid_t fcpl_src, hid_t fcpl_dst, hid_t src_fapl, hid_t dst
     /* attach attributes to the dataset */
     if(test_copy_attach_attributes(did, H5T_NATIVE_INT) < 0) TEST_ERROR
 
-
-    /* Create object copy property list, for passing private property to
-     *  dataset comparison routine
-     */
-    /* Create the object copy plist */
-    if((ocpl = H5Pcreate(H5P_OBJECT_COPY)) < 0) TEST_ERROR
-
-    /* Set the private property */
-    if(H5Pinsert2(ocpl, COPY_OPEN_OBJ_NAME, COPY_OPEN_OBJ_SIZE, &copy_open_obj, NULL, NULL, NULL, NULL, NULL, NULL) < 0) TEST_ERROR
-
-
-
     /* 
      * Test case 1 
      */
@@ -13139,7 +13065,7 @@ test_copy_dataset_open(hid_t fcpl_src, hid_t fcpl_dst, hid_t src_fapl, hid_t dst
     if((did2 = H5Dopen2(fid_src, NAME_DATASET_SIMPLE2, H5P_DEFAULT)) < 0) TEST_ERROR
 
     /* Check if the datasets are equal */
-    if(compare_datasets(did, did2, ocpl, buf) != TRUE) TEST_ERROR
+    if(compare_datasets(did, did2, H5P_DEFAULT, buf) != TRUE) TEST_ERROR
 
     /* close the copied dataset */
     if(H5Dclose(did2) < 0) TEST_ERROR
@@ -13154,7 +13080,7 @@ test_copy_dataset_open(hid_t fcpl_src, hid_t fcpl_dst, hid_t src_fapl, hid_t dst
     if((did2 = H5Dopen2(fid_dst, NAME_DATASET_SIMPLE, H5P_DEFAULT)) < 0) TEST_ERROR
 
     /* Check if the datasets are equal */
-    if(compare_datasets(did, did2, ocpl, buf) != TRUE) TEST_ERROR
+    if(compare_datasets(did, did2, H5P_DEFAULT, buf) != TRUE) TEST_ERROR
 
     /* close the copied dataset in DST file */
     if(H5Dclose(did2) < 0) TEST_ERROR
@@ -13181,7 +13107,7 @@ test_copy_dataset_open(hid_t fcpl_src, hid_t fcpl_dst, hid_t src_fapl, hid_t dst
     if((did2 = H5Dopen2(fid_src, "NEW_DATASET", H5P_DEFAULT)) < 0) TEST_ERROR
 
     /* Check if the datasets are equal */
-    if(compare_datasets(did, did2, ocpl, newbuf) != TRUE) TEST_ERROR
+    if(compare_datasets(did, did2, H5P_DEFAULT, newbuf) != TRUE) TEST_ERROR
 
     /* close the copied dataset in SRC file */
     if(H5Dclose(did2) < 0) TEST_ERROR
@@ -13195,7 +13121,7 @@ test_copy_dataset_open(hid_t fcpl_src, hid_t fcpl_dst, hid_t src_fapl, hid_t dst
     if((did2 = H5Dopen2(fid_dst, "NEW_DATASET", H5P_DEFAULT)) < 0) TEST_ERROR
 
     /* Check if the datasets are equal */
-    if(compare_datasets(did, did2, ocpl, newbuf) != TRUE) TEST_ERROR
+    if(compare_datasets(did, did2, H5P_DEFAULT, newbuf) != TRUE) TEST_ERROR
 
     /* close the copied dataset in DST file */
     if(H5Dclose(did2) < 0) TEST_ERROR
@@ -13235,7 +13161,7 @@ test_copy_dataset_open(hid_t fcpl_src, hid_t fcpl_dst, hid_t src_fapl, hid_t dst
     if((did2 = H5Dopen2(fid_src, NAME_DATASET_NAMED_DTYPE2, H5P_DEFAULT)) < 0) TEST_ERROR
 
     /* Check if the datasets are equal */
-    if(compare_datasets(did, did2, ocpl, buf) != TRUE) TEST_ERROR
+    if(compare_datasets(did, did2, H5P_DEFAULT, buf) != TRUE) TEST_ERROR
 
     /* close the copied dataset in SRC file */
     if(H5Dclose(did2) < 0) TEST_ERROR
@@ -13250,7 +13176,7 @@ test_copy_dataset_open(hid_t fcpl_src, hid_t fcpl_dst, hid_t src_fapl, hid_t dst
     if((did2 = H5Dopen2(fid_dst, NAME_DATASET_NAMED_DTYPE2, H5P_DEFAULT)) < 0) TEST_ERROR
 
     /* Check if the datasets are equal */
-    if(compare_datasets(did, did2, ocpl, buf) != TRUE) TEST_ERROR
+    if(compare_datasets(did, did2, H5P_DEFAULT, buf) != TRUE) TEST_ERROR
 
     /* close the copied dataset in DST file */
     if(H5Dclose(did2) < 0) TEST_ERROR
@@ -13285,7 +13211,7 @@ test_copy_dataset_open(hid_t fcpl_src, hid_t fcpl_dst, hid_t src_fapl, hid_t dst
     if((gid2 = H5Gopen2(fid_src, "COPIED_GROUP", H5P_DEFAULT)) < 0) TEST_ERROR
 
     /* Check if the groups are equal */
-    if(compare_groups(gid, gid2, ocpl, -1, 0) != TRUE) TEST_ERROR
+    if(compare_groups(gid, gid2, H5P_DEFAULT, -1, 0) != TRUE) TEST_ERROR
 
     /* close the DST dataset */
     if(H5Gclose(gid2) < 0) TEST_ERROR
@@ -13300,7 +13226,7 @@ test_copy_dataset_open(hid_t fcpl_src, hid_t fcpl_dst, hid_t src_fapl, hid_t dst
     if((gid2 = H5Gopen2(fid_dst, "COPIED_GROUP", H5P_DEFAULT)) < 0) TEST_ERROR
 
     /* Check if the groups are equal */
-    if(compare_groups(gid, gid2, ocpl, -1, 0) != TRUE) TEST_ERROR
+    if(compare_groups(gid, gid2, H5P_DEFAULT, -1, 0) != TRUE) TEST_ERROR
 
     /* close the group in DST file */
     if(H5Gclose(gid2) < 0) TEST_ERROR
@@ -13313,9 +13239,6 @@ test_copy_dataset_open(hid_t fcpl_src, hid_t fcpl_dst, hid_t src_fapl, hid_t dst
 
     /* close dataspace */
     if(H5Sclose(sid) < 0) TEST_ERROR
-
-    /* close the object copy property list */
-    if(H5Pclose(ocpl) < 0) TEST_ERROR
 
     /* close the SRC file */
     if(H5Fclose(fid_src) < 0) TEST_ERROR
@@ -13333,7 +13256,6 @@ error:
     	H5Sclose(sid);
     	H5Gclose(gid);
     	H5Gclose(gid2);
-        H5Pclose(ocpl);
     	H5Fclose(fid_dst);
     	H5Fclose(fid_src);
     } H5E_END_TRY;
@@ -13519,6 +13441,7 @@ main(void)
                     H5O_COPY_WITHOUT_ATTR_FLAG | H5O_COPY_PRESERVE_NULL_FLAG,
                     TRUE, "H5Ocopy(): preserve NULL messages");
         nerrors += test_copy_dataset_open(fcpl_src, fcpl_dst, src_fapl, dst_fapl);
+
         /* Tests that do not use attributes and do not need to be tested
          * multiple times for different attribute configurations */
         if(configuration < CONFIG_DENSE) {
@@ -13575,6 +13498,7 @@ main(void)
             nerrors += test_copy_null_ref(fcpl_src, fcpl_dst, src_fapl, dst_fapl);
             nerrors += test_copy_iterate(fcpl_src, fcpl_dst, src_fapl, dst_fapl);
         } /* end if */
+
 /* TODO: not implemented
         nerrors += test_copy_mount(src_fapl);
 */

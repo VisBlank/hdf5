@@ -309,7 +309,6 @@
 #define H5F_RDCC_W0(F)          ((F)->shared->rdcc_w0)
 #define H5F_SIEVE_BUF_SIZE(F)   ((F)->shared->sieve_buf_size)
 #define H5F_GC_REF(F)           ((F)->shared->gc_ref)
-#define H5F_USE_LATEST_FORMAT(F) ((F)->shared->latest_format)
 #define H5F_USE_LATEST_FLAGS(F,FL)  ((F)->shared->latest_flags & (FL))
 #define H5F_STORE_MSG_CRT_IDX(F)    ((F)->shared->store_msg_crt_idx)
 #define H5F_SET_STORE_MSG_CRT_IDX(F, FL)    ((F)->shared->store_msg_crt_idx = (FL))
@@ -356,7 +355,6 @@
 #define H5F_RDCC_W0(F)          (H5F_rdcc_w0(F))
 #define H5F_SIEVE_BUF_SIZE(F)   (H5F_sieve_buf_size(F))
 #define H5F_GC_REF(F)           (H5F_gc_ref(F))
-#define H5F_USE_LATEST_FORMAT(F) (H5F_use_latest_format(F))
 #define H5F_USE_LATEST_FLAGS(F,FL) (H5F_use_latest_flags(F,FL))
 #define H5F_STORE_MSG_CRT_IDX(F) (H5F_store_msg_crt_idx(F))
 #define H5F_SET_STORE_MSG_CRT_IDX(F, FL)    (H5F_set_store_msg_crt_idx((F), (FL)))
@@ -687,7 +685,6 @@ H5_DLL size_t H5F_rdcc_nslots(const H5F_t *f);
 H5_DLL double H5F_rdcc_w0(const H5F_t *f);
 H5_DLL size_t H5F_sieve_buf_size(const H5F_t *f);
 H5_DLL unsigned H5F_gc_ref(const H5F_t *f);
-H5_DLL hbool_t H5F_use_latest_format(const H5F_t *f);
 H5_DLL unsigned H5F_use_latest_flags(const H5F_t *f, unsigned fl);
 H5_DLL hbool_t H5F_store_msg_crt_idx(const H5F_t *f);
 H5_DLL herr_t H5F_set_store_msg_crt_idx(H5F_t *f, hbool_t flag);

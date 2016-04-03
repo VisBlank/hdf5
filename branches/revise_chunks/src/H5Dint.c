@@ -1998,7 +1998,7 @@ H5D_close(H5D_t *dataset)
         if(dataset->shared->is_swimming)
             if(H5D__swmr_teardown(dataset, H5AC_ind_read_dxpl_id) < 0)
                 HDONE_ERROR(H5E_DATASET, H5E_CLOSEERROR, FAIL, "unable to shut down SWMR access")
-        
+
         /*
          * Release datatype, dataspace and creation property list -- there isn't
          * much we can do if one of these fails, so we just continue.
