@@ -582,6 +582,8 @@ H5_DLL herr_t H5D__scatgath_write(const H5D_io_info_t *io_info,
 H5_DLL herr_t H5D__layout_set_io_ops(const H5D_t *dataset);
 H5_DLL size_t H5D__layout_meta_size(const H5F_t *f, const H5O_layout_t *layout,
     hbool_t include_compact_data);
+H5_DLL herr_t H5D__layout_set_latest_version(H5O_layout_t *layout,
+    const H5S_t *space, const H5D_dcpl_cache_t *dcpl_cache);
 H5_DLL herr_t H5D__layout_oh_create(H5F_t *file, hid_t dxpl_id, H5O_t *oh,
     H5D_t *dset, hid_t dapl_id);
 H5_DLL herr_t H5D__layout_oh_read(H5D_t *dset, hid_t dxpl_id, hid_t dapl_id,
@@ -620,6 +622,7 @@ H5_DLL herr_t H5D__chunk_update_old_edge_chunks(H5D_t *dset, hid_t dxpl_id,
     hsize_t old_dim[]);
 H5_DLL herr_t H5D__chunk_prune_by_extent(H5D_t *dset, hid_t dxpl_id,
     const hsize_t *old_dim);
+H5_DLL herr_t H5D__chunk_set_sizes(H5D_t *dset);
 #ifdef H5_HAVE_PARALLEL
 H5_DLL herr_t H5D__chunk_addrmap(const H5D_io_info_t *io_info, haddr_t chunk_addr[]);
 #endif /* H5_HAVE_PARALLEL */

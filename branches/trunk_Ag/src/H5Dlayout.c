@@ -212,6 +212,41 @@ done:
 
 
 /*-------------------------------------------------------------------------
+ * Function:    H5D__layout_set_latest_version
+ *
+ * Purpose:     Set the encoding for a layout to the latest version.
+ *              Part of the coding in this routine is moved to
+ *              H5D__layout_set_latest_indexing().
+ *
+ * Return:      Non-negative on success/Negative on failure
+ *
+ * Programmer:  Quincey Koziol
+ *              Thursday, January 15, 2009
+ *
+ *-------------------------------------------------------------------------
+ */
+herr_t
+H5D__layout_set_latest_version(H5O_layout_t *layout, const H5S_t *space, 
+    const H5D_dcpl_cache_t *dcpl_cache)
+{
+    herr_t ret_value = SUCCEED;         /* Return value */
+
+    FUNC_ENTER_PACKAGE
+
+    /* Sanity check */
+    HDassert(layout);
+    HDassert(space);
+    HDassert(dcpl_cache);
+
+    /* Set encoding of layout to latest version */
+    layout->version = H5O_LAYOUT_VERSION_LATEST;
+
+done:
+    FUNC_LEAVE_NOAPI(ret_value)
+} /* end H5D__layout_set_latest_version() */
+
+
+/*-------------------------------------------------------------------------
  * Function:    H5D__layout_oh_create
  *
  * Purpose:     Create layout/pline/efl information for dataset
@@ -418,9 +453,10 @@ H5D__layout_oh_read(H5D_t *dataset, hid_t dxpl_id, hid_t dapl_id, H5P_genplist_t
     /* Copy layout to the DCPL */
     if(H5P_set(plist, H5D_CRT_LAYOUT_NAME, &dataset->shared->layout) < 0)
         HGOTO_ERROR(H5E_DATASET, H5E_CANTSET, FAIL, "can't set layout")
-    /* Adjust chunk dimensions back again (*sigh*) */
-    if(H5D_CHUNKED == dataset->shared->layout.type)
-        dataset->shared->layout.u.chunk.ndims++;
+
+    /* Set chunk sizes */
+    if(H5D__chunk_set_sizes(dataset) < 0)
+        HGOTO_ERROR(H5E_DATASET, H5E_BADVALUE, FAIL, "unable to set chunk sizes")
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)
