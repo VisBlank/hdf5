@@ -595,8 +595,6 @@ herr_t
 H5D__layout_oh_read(H5D_t *dataset, hid_t dxpl_id, hid_t dapl_id, H5P_genplist_t *plist)
 {
     htri_t msg_exists;                  /* Whether a particular type of message exists */
-    uint64_t chunk_size;                /* Size of chunk in bytes */
-    unsigned u;                         /* Local index variable */
     herr_t ret_value = SUCCEED;         /* Return value */
 
     FUNC_ENTER_PACKAGE

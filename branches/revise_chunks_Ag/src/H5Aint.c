@@ -1787,8 +1787,8 @@ done:
 htri_t
 H5A_get_ainfo(H5F_t *f, hid_t dxpl_id, H5O_t *oh, H5O_ainfo_t *ainfo)
 {
-    H5B2_t *bt2_name = NULL;            /* v2 B-tree handle for name index */
-    htri_t ret_value = FAIL;            /* Return value */
+    H5B2_t *bt2_name = NULL;    /* v2 B-tree handle for name index */
+    htri_t ret_value = FAIL;    /* Return value */
 
     FUNC_ENTER_NOAPI_TAG(dxpl_id, oh->cache_info.addr, FAIL)
 
