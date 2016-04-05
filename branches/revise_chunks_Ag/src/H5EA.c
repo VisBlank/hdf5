@@ -1116,6 +1116,7 @@ CATCH
 
 END_FUNC(PRIV)  /* end H5EA_iterate() */
 
+
 /*-------------------------------------------------------------------------
  * Function:    H5EA_patch_file
  *
@@ -1134,10 +1135,6 @@ H5EA_patch_file(H5EA_t *ea, H5F_t *f))
 
     /* Local variables */
 
-#ifdef H5EA_DEBUG
-HDfprintf(stderr, "%s: Called\n", FUNC);
-#endif /* H5EA_DEBUG */
-
     /*
      * Check arguments.
      */
@@ -1148,3 +1145,4 @@ HDfprintf(stderr, "%s: Called\n", FUNC);
         ea->f = ea->hdr->f = f;
 
 END_FUNC(PRIV)  /* end H5EA_patch_file() */
+
