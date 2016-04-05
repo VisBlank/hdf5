@@ -391,3 +391,4 @@ H5B__free_icr(void *thing)
 done:
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5B__free_icr() */
+
