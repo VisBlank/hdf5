@@ -186,7 +186,6 @@ H5FD_read(H5FD_t *file, const H5P_genplist_t *dxpl, H5FD_mem_t type, haddr_t add
             HDassert(H5FD_RAWDATA_DXPL == dxpl_type);
         else
             HDassert(H5FD_METADATA_DXPL == dxpl_type);
-
     }
 #endif /* H5_DEBUG_BUILD */
 
