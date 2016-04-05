@@ -567,7 +567,6 @@ H5_DLLVAR const H5B2_class_t H5D_BT2[1];
 H5_DLLVAR const H5B2_class_t H5D_BT2_FILT[1];
 
 
-
 /******************************/
 /* Package Private Prototypes */
 /******************************/

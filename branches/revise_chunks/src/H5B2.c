@@ -1616,6 +1616,7 @@ done:
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5B2_depend() */
 
+
 /*-------------------------------------------------------------------------
  * Function:    H5B2_patch_file
  *
@@ -1633,10 +1634,6 @@ H5B2_patch_file(H5B2_t *bt2, H5F_t *f)
 {
     FUNC_ENTER_NOAPI_NOINIT_NOERR
 
-#ifdef QAK
-HDfprintf(stderr, "%s: Called\n", FUNC);
-#endif /* QAK */
-
     /*
      * Check arguments.
      */
@@ -1648,3 +1645,4 @@ HDfprintf(stderr, "%s: Called\n", FUNC);
 
     FUNC_LEAVE_NOAPI(SUCCEED)
 } /* H5B2_patch_file() */
+
