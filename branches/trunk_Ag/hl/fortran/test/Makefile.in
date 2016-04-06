@@ -743,7 +743,7 @@ TRACE = perl $(top_srcdir)/bin/trace
 
 # Temporary files.
 CHECK_CLEANFILES = *.chkexe *.chklog *.clog *.clog2 dsetf[1-5].h5 \
-	f1img.h5 f1tab.h5 tstds.h5
+	f1img.h5 f[1-2]tab.h5 tstds.h5
 
 # Our main target, the test programs
 TEST_PROG = tstds tstlite tstimage tsttable
