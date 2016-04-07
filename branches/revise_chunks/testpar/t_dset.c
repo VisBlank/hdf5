@@ -3308,7 +3308,7 @@ test_actual_io_mode(int selection_mode) {
         "reading and writing are the same for actual_chunk_opt_mode");
 
     /* Test values */
-    if(actual_chunk_opt_mode_expected != (unsigned) -1 && actual_io_mode_expected != (unsigned) -1) {
+    if(actual_chunk_opt_mode_expected != (H5D_mpio_actual_chunk_opt_mode_t) -1 && actual_io_mode_expected != (H5D_mpio_actual_io_mode_t) -1) {
         sprintf(message, "Actual Chunk Opt Mode has the correct value for %s.\n",test_name);
         VRFY((actual_chunk_opt_mode_write == actual_chunk_opt_mode_expected), message);
         sprintf(message, "Actual IO Mode has the correct value for %s.\n",test_name);

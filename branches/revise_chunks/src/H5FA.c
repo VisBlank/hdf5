@@ -851,6 +851,7 @@ CATCH
 
 END_FUNC(PRIV)  /* end H5FA_undepend() */
 
+
 /*-------------------------------------------------------------------------
  * Function:    H5FA_patch_file
  *

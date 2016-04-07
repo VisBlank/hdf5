@@ -2896,7 +2896,7 @@ test_nbit_int(hid_t file)
     mask = ~((unsigned)~0 << (precision + offset)) & ((unsigned)~0 << offset);
     for(i=0; i<(size_t)size[0]; i++) {
         for(j=0; j<(size_t)size[1]; j++) {
-            if((new_data[i][j] & mask) != (orig_data[i][j] & mask)) {
+            if(((unsigned)new_data[i][j] & mask) != ((unsigned)orig_data[i][j] & mask)) {
                 H5_FAILED();
                 printf("    Read different values than written.\n");
                 printf("    At index %lu,%lu\n", (unsigned long)i, (unsigned long)j);
@@ -3435,9 +3435,9 @@ test_nbit_compound(hid_t file)
     s_mask = ~((unsigned)~0 << (precision[2] + offset[2])) & ((unsigned)~0 << offset[2]);
     for(i=0; i<size[0]; i++) {
         for(j=0; j<size[1]; j++) {
-            if((new_data[i][j].i & i_mask) != (orig_data[i][j].i & i_mask) ||
-                (new_data[i][j].c & c_mask) != (orig_data[i][j].c & c_mask) ||
-                (new_data[i][j].s & s_mask) != (orig_data[i][j].s & s_mask) ||
+            if(((unsigned)new_data[i][j].i & i_mask) != ((unsigned)orig_data[i][j].i & i_mask) ||
+                ((unsigned)new_data[i][j].c & c_mask) != ((unsigned)orig_data[i][j].c & c_mask) ||
+                ((unsigned)new_data[i][j].s & s_mask) != ((unsigned)orig_data[i][j].s & s_mask) ||
                 (orig_data[i][j].f==orig_data[i][j].f && new_data[i][j].f != orig_data[i][j].f))
             {
                 H5_FAILED();
@@ -3693,16 +3693,16 @@ test_nbit_compound_2(hid_t file)
 
         for(m = 0; m < (size_t)array_dims[0]; m++)
           for(n = 0; n < (size_t)array_dims[1]; n++)
-             if((new_data[i][j].b[m][n]&b_mask)!=(orig_data[i][j].b[m][n]&b_mask)) {
+             if(((unsigned)new_data[i][j].b[m][n] & b_mask)!=((unsigned)orig_data[i][j].b[m][n] & b_mask)) {
                 b_failed = 1;
                 goto out;
              }
 
         for(m = 0; m < (size_t)array_dims[0]; m++)
           for(n = 0; n < (size_t)array_dims[1]; n++)
-             if((new_data[i][j].d[m][n].i & i_mask)!=(orig_data[i][j].d[m][n].i & i_mask)||
-                (new_data[i][j].d[m][n].c & c_mask)!=(orig_data[i][j].d[m][n].c & c_mask)||
-                (new_data[i][j].d[m][n].s & s_mask)!=(orig_data[i][j].d[m][n].s & s_mask)||
+             if(((unsigned)new_data[i][j].d[m][n].i & i_mask) != ((unsigned)orig_data[i][j].d[m][n].i & i_mask)||
+                ((unsigned)new_data[i][j].d[m][n].c & c_mask) != ((unsigned)orig_data[i][j].d[m][n].c & c_mask)||
+                ((unsigned)new_data[i][j].d[m][n].s & s_mask) != ((unsigned)orig_data[i][j].d[m][n].s & s_mask)||
                 (new_data[i][j].d[m][n].f==new_data[i][j].d[m][n].f &&
                  new_data[i][j].d[m][n].f != new_data[i][j].d[m][n].f)) {
                 d_failed = 1;
@@ -3710,9 +3710,9 @@ test_nbit_compound_2(hid_t file)
              }
 
         out:
-        if((new_data[i][j].a.i & i_mask)!=(orig_data[i][j].a.i & i_mask)||
-           (new_data[i][j].a.c & c_mask)!=(orig_data[i][j].a.c & c_mask)||
-           (new_data[i][j].a.s & s_mask)!=(orig_data[i][j].a.s & s_mask)||
+        if(((unsigned)new_data[i][j].a.i & i_mask) != ((unsigned)orig_data[i][j].a.i & i_mask)||
+           ((unsigned)new_data[i][j].a.c & c_mask) != ((unsigned)orig_data[i][j].a.c & c_mask)||
+           ((unsigned)new_data[i][j].a.s & s_mask) != ((unsigned)orig_data[i][j].a.s & s_mask)||
            (new_data[i][j].a.f==new_data[i][j].a.f &&
             new_data[i][j].a.f != new_data[i][j].a.f)||
             new_data[i][j].v != orig_data[i][j].v || b_failed || d_failed) {
