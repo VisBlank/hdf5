@@ -421,7 +421,7 @@ H5D__layout_set_latest_indexing(H5O_layout_t *layout, const H5S_t *space,
                     layout->storage.u.chunk.idx_type = H5D_CHUNK_IDX_NONE;
                     layout->storage.u.chunk.ops = H5D_COPS_NONE;
                 } /* end else-if */
-                else { /* Used Fixed Array */
+                else {
                     /* Set the chunk index type to Fixed Array */
                     layout->u.chunk.idx_type = H5D_CHUNK_IDX_FARRAY;
                     layout->storage.u.chunk.idx_type = H5D_CHUNK_IDX_FARRAY;

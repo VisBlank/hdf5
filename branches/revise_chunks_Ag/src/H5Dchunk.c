@@ -6308,37 +6308,37 @@ H5D__chunk_file_alloc(const H5D_chk_idx_info_t *idx_info, const H5F_block_t *old
 
     /* Actually allocate space for the chunk in the file */
     if(alloc_chunk) {
-	switch(idx_info->storage->idx_type) {
-	    case H5D_CHUNK_IDX_NONE:
-	    {
-		H5D_chunk_ud_t udata;
+        switch(idx_info->storage->idx_type) {
+            case H5D_CHUNK_IDX_NONE:
+            {
+                H5D_chunk_ud_t udata;
 
-		udata.common.scaled = scaled;
+                udata.common.scaled = scaled;
                 if((idx_info->storage->ops->get_addr)(idx_info, &udata) < 0)
                     HGOTO_ERROR(H5E_DATASET, H5E_CANTGET, FAIL, "can't query chunk address")
-		new_chunk->offset = udata.chunk_block.offset;
-		HDassert(new_chunk->length == udata.chunk_block.length);
+                new_chunk->offset = udata.chunk_block.offset;
+                HDassert(new_chunk->length == udata.chunk_block.length);
                 break;
-	    }
+            }
 
-	    case H5D_CHUNK_IDX_EARRAY:
+            case H5D_CHUNK_IDX_EARRAY:
             case H5D_CHUNK_IDX_FARRAY:
             case H5D_CHUNK_IDX_BT2:
-	    case H5D_CHUNK_IDX_BTREE:
-	    case H5D_CHUNK_IDX_SINGLE:
+            case H5D_CHUNK_IDX_BTREE:
+            case H5D_CHUNK_IDX_SINGLE:
                 HDassert(new_chunk->length > 0);
-		H5_CHECK_OVERFLOW(new_chunk->length, /*From: */uint32_t, /*To: */hsize_t);
-		new_chunk->offset = H5MF_alloc(idx_info->f, H5FD_MEM_DRAW, idx_info->dxpl_id, (hsize_t)new_chunk->length);
-		if(!H5F_addr_defined(new_chunk->offset))
-		    HGOTO_ERROR(H5E_DATASET, H5E_CANTALLOC, FAIL, "file allocation failed")
+                H5_CHECK_OVERFLOW(new_chunk->length, /*From: */uint32_t, /*To: */hsize_t);
+                new_chunk->offset = H5MF_alloc(idx_info->f, H5FD_MEM_DRAW, idx_info->dxpl_id, (hsize_t)new_chunk->length);
+                if(!H5F_addr_defined(new_chunk->offset))
+                    HGOTO_ERROR(H5E_DATASET, H5E_CANTALLOC, FAIL, "file allocation failed")
                 *need_insert = TRUE;
-		break;
+                break;
 
-	    case H5D_CHUNK_IDX_NTYPES:
-	    default:
-		HDassert(0 && "This should never be executed!");
-		break;
-	} /* end switch */
+            case H5D_CHUNK_IDX_NTYPES:
+            default:
+                HDassert(0 && "This should never be executed!");
+                break;
+        } /* end switch */
     } /* end if */
 
     HDassert(H5F_addr_defined(new_chunk->offset));
