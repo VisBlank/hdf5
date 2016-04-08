@@ -2196,13 +2196,16 @@ test_file_double_file_dataset_open(hbool_t new)
     hid_t did1 = -1, did2 = -1;			/* Dataset IDs */
     hid_t sid1 = -1, sid2 = -1;			/* Dataspace IDs */
     hid_t tid1 = -1, tid2 = -1;			/* Datatype IDs */
-    hsize_t dims[1] = {4}, dims2[2] = {1, 4};	/* Dimension sizes */
+    hsize_t dims[1] = {5}, dims2[2] = {1, 4};	/* Dimension sizes */
+    hsize_t e_ext_dims[1] = {7};		/* Expanded dimension sizes */
+    hsize_t s_ext_dims[1] = {3};		/* Shrunk dimension sizes */
     hsize_t max_dims0[1] = {8}; 		/* Maximum dimension sizes */
     hsize_t max_dims1[1] = {H5S_UNLIMITED}; 	/* Maximum dimesion sizes for extensible array index */
     hsize_t max_dims2[2] = {H5S_UNLIMITED, H5S_UNLIMITED};	/* Maximum dimension sizes for v2 B-tree index */
-    hsize_t chunks[1] = {4}, chunks2[2] = {4, 5};		/* Chunk dimension sizes */
-    char* data[] = {"String 1", "String 2", "String 3", "String 4"};	/* Input Data */
-    char* buffer[4];							/* Output buffer */
+    hsize_t chunks[1] = {2}, chunks2[2] = {4, 5};		/* Chunk dimension sizes */
+    char* data[] = {"String 1", "String 2", "String 3", "String 4", "String 5"};	/* Input Data */
+    char* e_data[] = {"String 1", "String 2", "String 3", "String 4", "String 5", "String 6", "String 7"};	/* Input Data */
+    char* buffer[4];				/* Output buffer */
     int wbuf[4] = {1, 2, 3, 4};			/* Input data */
     herr_t ret;         			/* Generic return value */
 
@@ -2465,6 +2468,62 @@ test_file_double_file_dataset_open(hbool_t new)
     /* Second file close */
     ret = H5Fclose(fid2);
     CHECK(ret, FAIL, "H5Fclose");
+
+    /* 
+     * Scenario 4
+     * --trigger H5AC_protect: Assertion `f->shared' failed
+     *	 from second call to H5Dset_extent->...H5D__earray_idx_remove->H5EA_get...H5EA__iblock_protect...H5AC_protect
+     */
+    /* First file open */
+    fid1 = H5Fopen(FILE1, H5F_ACC_RDWR, H5P_DEFAULT);
+    CHECK(fid1, FAIL, "H5Fopen");
+
+    /* First file's dataset open */
+    did1 = H5Dopen2(fid1, "/dset_ea", H5P_DEFAULT);
+    CHECK(did1, FAIL, "H5Dopen2");
+
+    tid1 = H5Tcopy(did1);
+    CHECK(tid1, FAIL, "H5Tcopy");
+
+    /* Extend the dataset */
+    ret = H5Dset_extent(did1, e_ext_dims);
+    CHECK(ret, FAIL, "H5Dset_extent");
+
+    /* Write to the dataset */
+    ret = H5Dwrite(did1, tid1, H5S_ALL, H5S_ALL, H5P_DEFAULT, e_data);
+    CHECK(ret, FAIL, "H5Dwrite");
+
+    /* Second file open */
+    fid2 = H5Fopen(FILE1, H5F_ACC_RDWR, H5P_DEFAULT);
+    CHECK(fid2, FAIL, "H5Fopen");
+
+    /* Second file's dataset open */
+    did2 = H5Dopen2(fid2, "/dset_ea", H5P_DEFAULT );
+    CHECK(did2, FAIL, "H5Dopen2");
+
+    /* First file's dataset close */
+    ret = H5Dclose(did1);
+    CHECK(ret, FAIL, "H5Dclose");
+
+    /* First file close */
+    ret = H5Fclose(fid1);
+    CHECK(ret, FAIL, "H5Fclose");
+
+    /* Shrink the dataset */
+    ret = H5Dset_extent(did2, s_ext_dims);
+    CHECK(ret, FAIL, "H5Dset_extent");
+
+    /* Second file's dataset close */
+    ret = H5Dclose(did2);
+    CHECK(ret, FAIL, "H5Dclose");
+
+    /* Second file close */
+    ret = H5Fclose(fid2);
+    CHECK(ret, FAIL, "H5Fclose");
+
+    /* Close the data type */
+    ret = H5Tclose(tid1);
+    CHECK(ret, FAIL, "H5Tclose");
 
 } /* end test_file_double_dataset_open() */
 

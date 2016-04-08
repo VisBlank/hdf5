@@ -1226,10 +1226,12 @@ H5D__bt2_idx_remove(const H5D_chk_idx_info_t *idx_info, H5D_chunk_common_ud_t *u
     HDassert(udata);
 
     /* Check if the v2 B-tree is open yet */
-    if(NULL == idx_info->storage->u.btree2.bt2)
+    if(NULL == idx_info->storage->u.btree2.bt2) {
 	/* Open existing v2 B-tree */
         if(H5D__bt2_idx_open(idx_info) < 0)
             HGOTO_ERROR(H5E_DATASET, H5E_CANTOPENOBJ, FAIL, "can't open v2 B-tree")
+    } else  /* Patch the top level file pointer contained in bt2 if needed */
+	H5B2_patch_file(idx_info->storage->u.btree2.bt2, idx_info->f);
 
     /* Set convenience pointer to v2 B-tree structure */
     bt2 = idx_info->storage->u.btree2.bt2;
@@ -1547,6 +1549,10 @@ H5D__bt2_idx_dest(const H5D_chk_idx_info_t *idx_info)
 
     /* Check if the v2-btree is open */
     if(idx_info->storage->u.btree2.bt2) {
+
+	/* Patch the top level file pointer contained in bt2 if needed */
+	H5B2_patch_file(idx_info->storage->u.btree2.bt2, idx_info->f);
+
         /* Close v2 B-tree */
 	if(H5B2_close(idx_info->storage->u.btree2.bt2, idx_info->dxpl_id) < 0)
             HGOTO_ERROR(H5E_DATASET, H5E_CANTCLOSEOBJ, FAIL, "can't close v2 B-tree")
