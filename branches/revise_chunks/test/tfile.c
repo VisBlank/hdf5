@@ -2205,7 +2205,7 @@ test_file_double_file_dataset_open(hbool_t new)
     hsize_t chunks[1] = {2}, chunks2[2] = {4, 5};		/* Chunk dimension sizes */
     char* data[] = {"String 1", "String 2", "String 3", "String 4", "String 5"};	/* Input Data */
     char* e_data[] = {"String 1", "String 2", "String 3", "String 4", "String 5", "String 6", "String 7"};	/* Input Data */
-    char* buffer[4];				/* Output buffer */
+    char* buffer[5];				/* Output buffer */
     int wbuf[4] = {1, 2, 3, 4};			/* Input data */
     herr_t ret;         			/* Generic return value */
 
@@ -2394,7 +2394,7 @@ test_file_double_file_dataset_open(hbool_t new)
     CHECK(tid1, FAIL, "H5Tcopy");
 
     /* Second file's dataset read */
-    HDmemset(buffer, 0, sizeof(char*) * 4);
+    HDmemset(buffer, 0, sizeof(char*) * 5);
     ret = H5Dread(did2, tid2, H5S_ALL, H5S_ALL, H5P_DEFAULT, buffer);
     CHECK(ret, FAIL, "H5Dread");
 
@@ -2407,7 +2407,7 @@ test_file_double_file_dataset_open(hbool_t new)
     CHECK(ret, FAIL, "H5Fclose");
 
     /* First file's dataset read */
-    HDmemset(buffer, 0, sizeof(char*) * 4);
+    HDmemset(buffer, 0, sizeof(char*) * 5);
     ret = H5Dread(did1, tid1, H5S_ALL, H5S_ALL, H5P_DEFAULT, buffer);
 
     /* First file's dataset close */
